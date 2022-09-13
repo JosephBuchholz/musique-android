@@ -259,20 +259,22 @@ void App::OnUpdate(double dt)
                     } else {
                     }
 
-                    // staff lines
+                    // staff y position
                     float staffYPosition = 0.0f;
                     if (staffIndex == 0) {
                         staffYPosition = 0.0f;
                     } else if (staffIndex == 1) {
                         staffYPosition = (lineSpacing * staff->lines) * 2.0f;
                     }
-                    float songWidth = songData->GetSongWidth();
+
+                    // staff lines
+                    /*float songWidth = songData->GetSongWidth();
                     for (int i = 0; i < staff->lines; i++) {
                         renderData.AddLine(
                                 Line(0.0f, (lineSpacing * i) + staffYPosition + instYPosition,
                                      songWidth, (lineSpacing * i) + staffYPosition + instYPosition,
                                      BarLinePaint));
-                    }
+                    }*/
 
                     //for (int i = 0; i < staff->lines; i++) {
                     //    renderData.AddLine(Line(0.0f, (lineSpacing * i) + staffYPosition + instYPosition, displayWidth, (lineSpacing * i) + staffYPosition + instYPosition, BarLinePaint));
@@ -282,7 +284,19 @@ void App::OnUpdate(double dt)
                     float measurePosition = 0.0f;
                     for (auto *measure : staff->measures) {
 
-                        // measure lines
+                        float measureWidth = songData->GetMeasureWidth(measureNumber);
+
+                        // staff lines
+                        for (int i = 0; i < staff->lines; i++) {
+                            float endX = measurePosition + measureWidth;
+                            renderData.AddLine(
+                                    Line(measurePosition, (lineSpacing * i) + staffYPosition + instYPosition,
+                                         endX, (lineSpacing * i) + staffYPosition + instYPosition,
+                                         BarLinePaint));
+                        }
+
+
+                        // measure lines (bar lines)
                         float x = measurePosition;
                         //if (measureNumber != 0) {
                         //    x = measureWidths[measureNumber];
