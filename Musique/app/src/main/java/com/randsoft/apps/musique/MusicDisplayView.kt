@@ -7,6 +7,7 @@ import android.os.Build
 import android.util.AttributeSet
 import android.util.DisplayMetrics
 import android.util.Log
+import android.util.TypedValue
 import android.view.MotionEvent
 import android.view.View
 import android.view.WindowManager
@@ -27,12 +28,17 @@ class MusicDisplayView(context: Context, attrs: AttributeSet? = null): View(cont
     var renderData: RenderData? = null
     var frameData: FrameData? = null
 
+    var renderDataChanged = false
+
     // equal to a tenth of a gap between two lines in standard notation
     var scale = 1.0f
     var bitmapSizeScale = scale
 
     private var positionX = 150.0f
     private var positionY = 150.0f
+
+    private var mainBitmapPositionX = 0.0f
+    private var mainBitmapPositionY = 0.0f
 
     var deviceWidth: Int = 0
     var deviceHeight: Int = 0
@@ -58,6 +64,9 @@ class MusicDisplayView(context: Context, attrs: AttributeSet? = null): View(cont
     }
 
     private var quarterNoteBitmap: Bitmap? = null
+
+    private var mainBitmap: Bitmap? = null
+    private var firstRender = true;
 
     override fun onAttachedToWindow() {
         super.onAttachedToWindow()
@@ -96,23 +105,20 @@ class MusicDisplayView(context: Context, attrs: AttributeSet? = null): View(cont
         return bitmap
     }
 
-    @SuppressLint("DrawAllocation")
-    override fun onDraw(canvas: Canvas) {
-        canvas.drawPaint(backgroundPaint)
-
-        if (frameData != null) {
-            if ((frameData!!.playLinePosition*scale) + positionX >= deviceWidth.toFloat()/3.0f) {
-                positionX += (deviceWidth.toFloat()/3.0f) - ((frameData!!.playLinePosition*scale) + positionX)
-            } else if ((frameData!!.playLinePosition*scale) + positionX <= deviceWidth.toFloat()/8.0f) {
-                positionX += (deviceWidth.toFloat()/8.0f) - ((frameData!!.playLinePosition*scale) + positionX)
-            }
-        }
-
-        /*if (bitmap == null) {
-            bitmap = BitmapFactory.decodeResource(resources, R.drawable.ic_launcher_foreground)
-        }*/
-
+    private fun renderOnToBitmap()
+    {
         if (renderData != null) {
+            Log.w(TAG, "START RENDER ${renderData?.lines?.size}")
+            val density = resources.displayMetrics.density
+            val sizeX = 5000 * scale // in tenths
+            val sizeY = 5000 * scale // in tenths
+
+            // create the bitmap
+            mainBitmap = Bitmap.createBitmap(sizeX.toInt(), sizeY.toInt(), Bitmap.Config.ARGB_8888)
+
+            // "connect/link" the canvas to the bitmap so that the canvas draws on the bitmap
+            val mainCanvas = Canvas(mainBitmap!!)
+            //mainCanvas.drawPaint(backgroundPaint)
 
             for (line in renderData?.lines!!) {
                 val paint = Paint().apply {
@@ -121,7 +127,7 @@ class MusicDisplayView(context: Context, attrs: AttributeSet? = null): View(cont
                     isAntiAlias = true
                     strokeCap = Paint.Cap.values()[line.paint.strokeCap]
                 }
-                drawLine(canvas, line, paint)
+                drawLine(mainCanvas, line, paint)
             }
 
             for (text in renderData?.texts!!) {
@@ -131,10 +137,148 @@ class MusicDisplayView(context: Context, attrs: AttributeSet? = null): View(cont
                     textAlign = Paint.Align.CENTER
                     isAntiAlias = true
                 }
-                drawText(canvas, text, paint)
+                drawText(mainCanvas, text, paint)
             }
 
             for (bitmap in renderData?.bitmaps!!) {
+                val paint = Paint().apply {
+                    color = bitmap.paint.color
+                }
+
+                val mat = Matrix() // matrix of the bitmap
+                val resourceId = getResourceID(bitmap.assetId) // resource id of the bitmap
+                val drawable =
+                    ContextCompat.getDrawable(context, resourceId) // the drawable of the bitmap
+
+                // calculate centers of bitmaps
+                var centerX = (drawable!!.intrinsicWidth.toFloat() / density)
+                var centerY = 0.0f
+                if (bitmap.assetId == AssetID.QuarterNote.ordinal || bitmap.assetId == AssetID.EightNote.ordinal) {
+                    centerX = 5.65f
+                    centerY = 5.0f
+                } else if (bitmap.assetId == AssetID.WholeNote.ordinal ||
+                    bitmap.assetId == AssetID.HalfNoteNoteHead.ordinal ||
+                    bitmap.assetId == AssetID.QuarterNoteNoteHead.ordinal
+                ) {
+                    centerX = (drawable.intrinsicWidth.toFloat() / density)
+                    centerY = (drawable.intrinsicHeight.toFloat() / density) / 2.0f
+                } else if (bitmap.assetId == AssetID.Sharp.ordinal ||
+                    bitmap.assetId == AssetID.Natural.ordinal
+                ) {
+                    centerX = (drawable.intrinsicWidth.toFloat() / density)
+                    centerY = (drawable.intrinsicHeight.toFloat() / density) / 2.0f
+                } else if (bitmap.assetId == AssetID.Flat.ordinal) {
+                    centerX = (drawable.intrinsicWidth.toFloat() / density)
+                    centerY = (drawable.intrinsicHeight.toFloat() / density) * 0.25f
+                } else if (bitmap.assetId == AssetID.TrebleClef.ordinal) {
+                    centerY = 17.0f
+                } else if (bitmap.assetId == AssetID.QuarterRest.ordinal) {
+                    centerX = (drawable.intrinsicWidth.toFloat() / density)
+                    centerY = (drawable.intrinsicHeight.toFloat() / density) / 2.0f
+                } else if (bitmap.assetId == AssetID.WholeRest.ordinal) {
+                    centerX = (drawable.intrinsicWidth.toFloat() / density)
+                    centerY = (drawable.intrinsicHeight.toFloat() / density)
+                }
+
+                // translate bitmaps
+                mat.setTranslate(
+                    ((bitmap.x) * scale) - (((drawable!!.intrinsicWidth.toFloat() / density) - centerX) * bitmapSizeScale) + positionX,
+                    ((bitmap.y) * scale) - (((drawable.intrinsicHeight.toFloat() / density) - centerY) * bitmapSizeScale) + positionY
+                )
+
+                // draw bitmap
+                mainCanvas.drawBitmap(
+                    getBitmapFromVectorDrawable(
+                        resourceId,
+                        bitmap.sx * bitmapSizeScale,
+                        bitmap.sy * bitmapSizeScale
+                    )!!, mat, paint
+                )
+            }
+        }
+        else
+        {
+            Log.w(TAG, "RENDER DATA IS NULL")
+        }
+    }
+
+    fun renderDataIsDifferent(previousRenderData: RenderData, newRenderData: RenderData): Boolean
+    {
+        if (previousRenderData.lines.size != newRenderData.lines.size ||
+            previousRenderData.bitmaps.size != newRenderData.bitmaps.size ||
+            previousRenderData.texts.size != newRenderData.texts.size) { // they are different
+            return true
+        }
+        /*for (i in iterator<Int> {  }) {
+
+        }
+
+        for ((j, i) in previousRenderData.lines.withIndex()) {
+            Log.d("adsfh", "adsg");
+        }*/
+
+
+        return false // they are not different
+    }
+
+    @SuppressLint("DrawAllocation")
+    override fun onDraw(canvas: Canvas) {
+        if (firstRender && renderData?.lines?.size != null) // render main sheet music and save it in 'mainBitmap' for reuse
+        {
+            renderOnToBitmap()
+            firstRender = false
+        }
+
+        canvas.drawPaint(backgroundPaint)
+
+        if (frameData != null) {
+            if ((frameData!!.playLinePosition * scale) + positionX >= deviceWidth.toFloat() / 3.0f) {
+                positionX += (deviceWidth.toFloat() / 3.0f) - ((frameData!!.playLinePosition * scale) + positionX)
+            } else if ((frameData!!.playLinePosition * scale) + positionX <= deviceWidth.toFloat() / 8.0f) {
+                positionX += (deviceWidth.toFloat() / 8.0f) - ((frameData!!.playLinePosition * scale) + positionX)
+            }
+        }
+
+        if (renderDataChanged) {
+            renderOnToBitmap()
+        }
+
+        /*if (bitmap == null) {
+            bitmap = BitmapFactory.decodeResource(resources, R.drawable.ic_launcher_foreground)
+        }*/
+
+        if (renderData != null) {
+
+            if (mainBitmap != null)
+            {
+                val mat = Matrix() // matrix of the bitmap
+                // translate bitmap
+                mat.setTranslate(mainBitmapPositionX, mainBitmapPositionY)
+                // draw bitmap
+                canvas.drawBitmap(mainBitmap!!, mat, visiblePaint)
+            }
+
+            /*for (line in renderData?.lines!!) {
+                val paint = Paint().apply {
+                    color = line.paint.color
+                    strokeWidth = line.paint.strokeWidth * scale
+                    isAntiAlias = true
+                    strokeCap = Paint.Cap.values()[line.paint.strokeCap]
+                }
+                drawLine(canvas, line, paint)
+            }*/
+
+            /*for (text in renderData?.texts!!) {
+                val paint = Paint().apply {
+                    color = text.paint.color
+                    textSize = text.paint.textSize // 30.0 text size =about= 22.0 normal size
+                    textAlign = Paint.Align.CENTER
+                    isAntiAlias = true
+                }
+                drawText(canvas, text, paint)
+            }*/
+
+            /*for (bitmap in renderData?.bitmaps!!) {
                 val paint = Paint().apply {
                     color = bitmap.paint.color
                 }
@@ -178,9 +322,6 @@ class MusicDisplayView(context: Context, attrs: AttributeSet? = null): View(cont
 
                 //mat.setTranslate(((bitmap.x) * scale) - (drawable!!.intrinsicWidth.toFloat() - 7.149f) + positionX, ((bitmap.y) * scale) - (drawable.intrinsicHeight.toFloat() - 4.477f) + positionY)
                 canvas.drawBitmap(getBitmapFromVectorDrawable(resourceId, bitmap.sx * bitmapSizeScale, bitmap.sy * bitmapSizeScale)!!, mat, paint)
-                /*canvas.drawLine(10.0f, 10.0f, 10.0f, 47.2f, visiblePaint)
-                canvas.drawLine(20.0f, 10.0f, 20.0f, 56.0f + 10.0f, visiblePaint)
-                canvas.drawLine(20.0f, 10.0f, 20.0f + 23.0f, 10.0f, visiblePaint)*/
                 //val w = bitmap.sx
                // val h = bitmap.sy
                // val dst = RectF(((bitmap.x) * scale) - (drawable!!.intrinsicWidth.toFloat() - 7.149f) + positionX,
@@ -190,24 +331,8 @@ class MusicDisplayView(context: Context, attrs: AttributeSet? = null): View(cont
 
                 //canvas.drawBitmap(getBitmapFromVectorDrawable(resourceId)!!, Rect(0.0f,0.0f, drawable.intrinsicWidth.toFloat(), drawable.intrinsicHeight.toFloat()), dst, paint)
 
-                /*val mat = Matrix()
-                if (bitmap.assetId == AssetID.QuarterNote.ordinal) {
-                    if (quarterNoteBitmap != null) {
-                        val drawable = ContextCompat.getDrawable(context, R.drawable.quarter_note)
-                        mat.setScale(drawable!!.intrinsicWidth * bitmap.sx * bitmapSizeScale, drawable.intrinsicHeight.toFloat() * bitmap.sy * bitmapSizeScale)
-                        mat.setTranslate(((bitmap.x) * scale) - (drawable.intrinsicWidth.toFloat() - 7.149f) + positionX, ((bitmap.y) * scale) - (drawable.intrinsicHeight.toFloat() - 4.477f)  + positionY)
-                        canvas.drawBitmap(quarterNoteBitmap!!, mat, paint)
-                    } else {
-                        quarterNoteBitmap = getBitmapFromVectorDrawable(R.drawable.quarter_note)
-                        val drawable = ContextCompat.getDrawable(context, R.drawable.quarter_note)
-                        mat.setScale(drawable!!.intrinsicWidth * bitmap.sx * bitmapSizeScale, drawable.intrinsicHeight.toFloat() * bitmap.sy * bitmapSizeScale)
-                        mat.setTranslate(((bitmap.x) * scale) - (drawable.intrinsicWidth.toFloat() - 7.149f) + positionX, ((bitmap.y) * scale) - (drawable.intrinsicHeight.toFloat() - 4.477f)  + positionY)
-                        canvas.drawBitmap(quarterNoteBitmap!!, mat, paint)
-                    }
-                }*/
-
                 //canvas.drawRect((bitmap.x * scale) + positionX, (bitmap.y * scale) + positionY, ((bitmap.x * scale) + positionX) + 6.0f, ((bitmap.y * scale) + positionY) + 6.0f, visiblePaint)
-            }
+            }*/
 
             /*val mat = Matrix()
             mat.setTranslate(1.0f * scale, 2.0f * scale)
@@ -294,7 +419,20 @@ class MusicDisplayView(context: Context, attrs: AttributeSet? = null): View(cont
     }
 
     private fun drawText(canvas: Canvas, text: Text, paint: Paint) {
+        // trying to do some sizing and centering calculations
+        val heightPx2 = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, paint.textSize, context.resources.displayMetrics)
+        val heightPx = paint.textSize / context.resources.displayMetrics.scaledDensity
+        val textHeight = heightPx2 * context.resources.displayMetrics.density
+        Log.d(TAG, "heightPx1: $heightPx, heightPx2: $heightPx2, textHeight: $textHeight, density: ${context.resources.displayMetrics.density}, scaledDensity: ${context.resources.displayMetrics.scaledDensity}, textSize: ${paint.textSize}, center: ${(textHeight/2.0f) * scale}");
+        //context.resources.displayMetrics.scaledDensity
+        //paint.getTextBounds(text.text)
+        //paint.textAlign = Paint.Align.CENTER
+        canvas.drawRect((text.x * scale) + positionX, (text.y * scale) + positionY, ((text.x * scale) + positionX) + 6.0f, ((text.y * scale) + positionY) + 45.0f, visiblePaint)
+        text.y += (textHeight/2.0f) * scale
         canvas.drawText(text.text, (text.x * scale) + positionX, (text.y * scale) + positionY, paint)
-        canvas.drawRect((text.x * scale) + positionX, (text.y * scale) + positionY, ((text.x * scale) + positionX) + 6.0f, ((text.y * scale) + positionY) + 6.0f, visiblePaint)
+
+        var paint2 = paint
+        paint2.textSize = (10.0f * scale)
+        canvas.drawText(text.text, (text.x * scale) + positionX, (text.y * scale) + positionY, paint2)
     }
 }

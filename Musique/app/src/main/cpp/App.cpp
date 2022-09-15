@@ -282,239 +282,260 @@ void App::OnUpdate(double dt)
 
                     int measureNumber = 0;
                     float measurePosition = 0.0f;
+                    int measureRenderCount = 15; // the number of measures that need to be rendered
+                    int currentMeasureRenderedCount = 0; // the number of measures that have been rendered
                     for (auto *measure : staff->measures) {
 
-                        float measureWidth = songData->GetMeasureWidth(measureNumber);
+                        if (!(currentMeasureRenderedCount >= measureRenderCount) && measureNumber >= currentMeasure-(measureRenderCount/2)) // render measure in a radius of measureRenderCount/2
+                        {
+                            float measureWidth = songData->GetMeasureWidth(measureNumber);
 
-                        // staff lines
-                        for (int i = 0; i < staff->lines; i++) {
-                            float endX = measurePosition + measureWidth;
-                            renderData.AddLine(
-                                    Line(measurePosition, (lineSpacing * i) + staffYPosition + instYPosition,
-                                         endX, (lineSpacing * i) + staffYPosition + instYPosition,
-                                         BarLinePaint));
-                        }
-
-
-                        // measure lines (bar lines)
-                        float x = measurePosition;
-                        //if (measureNumber != 0) {
-                        //    x = measureWidths[measureNumber];
-                        //}
-                        renderData.AddLine(
-                                Line(x, 0.0f + staffYPosition + instYPosition, x,
-                                     (lineSpacing * (staff->lines - 1)) + staffYPosition +
-                                     instYPosition, BarLinePaint));
-                        x += songData->GetMeasureWidth(measureNumber);
-                        renderData.AddLine(
-                                Line(x, 0.0f + staffYPosition + instYPosition, x,
-                                     (lineSpacing * (staff->lines - 1)) + staffYPosition +
-                                     instYPosition, BarLinePaint));
-
-                        if (measureNumber == currentMeasure) {
-                            // calculating play line position in measure
-                            playLinePosInMeasure = measure->GetPlayLinePositionInMeasure(
-                                    playLineBeatPosition - currentMeasureBeatPosition,
-                                    songData->GetMeasureWidth(measureNumber));
-                            playLinePosition = measurePosition + playLinePosInMeasure;
-                        }
-
-                        // time signature
-                        if (measure->showTimeSignature and measure->timeSignature.print) {
-                            float positionX = measure->GetTimeSignaturePositionInMeasure(
-                                    songData->GetMeasureWidth(measureNumber)) + measurePosition;
-                            float positionY = 20.0f + staffYPosition + instYPosition;
-                            renderData.AddBitmap(
-                                    RenderBitmap(
-                                            GetTimeSignatureAssetID(measure->timeSignature.notes),
-                                            positionX, positionY, 1.0f, 1.0f,
-                                            Paint(0xff000000)));
-                            positionY = 40.0f + staffYPosition + instYPosition;
-                            renderData.AddBitmap(
-                                    RenderBitmap(GetTimeSignatureAssetID(
-                                            measure->timeSignature.noteType), positionX, positionY,
-                                                 1.0f, 1.0f,
-                                                 Paint(0xff000000)));
-                        }
-
-                        // clef
-                        if (measure->showClef) {
-                            float positionX = measure->GetClefPositionInMeasure(
-                                    songData->GetMeasureWidth(measureNumber)) + measurePosition;
-                            float positionY =
-                                    (lineSpacing * float(staff->lines - 1)) + staffYPosition +
-                                    instYPosition; // the bottom line + instYPosition
-                            renderData.AddBitmap(
-                                    RenderBitmap(GetClefAssetID(measure->clef), positionX,
-                                                 positionY, 1.0f, 1.0f,
-                                                 Paint(0xff000000)));
-                        }
-
-                        // key signature
-                        if (measure->showKeySignature && measure->keySignature.fifths != 0) {
-                            float positionX = measure->GetKeySignaturePositionInMeasure(
-                                    songData->GetMeasureWidth(measureNumber)) + measurePosition;
-                            float positionY =
-                                    (lineSpacing * float(staff->lines - 1)) + staffYPosition +
-                                    instYPosition; // the bottom line + instYPosition
-                            renderData.AddBitmap(
-                                    RenderBitmap(
-                                            GetKeySignatureAssetID(measure->keySignature.fifths),
-                                            positionX, positionY, 1.0f, 1.0f,
-                                            Paint(0xff000000)));
-                        }
-
-                        int noteIndex = 0;
-                        float beamStartX = 0.0f;
-                        float beamStartY = 0.0f;
-                        for (Note *note : measure->notes) {
-                            if (note->type == Note::NoteType::Tab /* && noteIndex != 0 && noteIndex != measure->notes.size() - 1 && noteIndex != measure->notes.size() - 2 && noteIndex != measure->notes.size() - 3 && noteIndex != measure->notes.size() - 4 && noteIndex != measure->notes.size() - 5*/) // tab note
-                            {
-                                //LOGI("tab note beat position: %f", note->beatPositionInSong);
-                                float positionX = songData->GetPositionXInSong(note->beatPositionInSong, measureNumber); // this line of code crashes the program
-                                //LOGI("Fret as string: %s", ToString(tabNote->fret).c_str());
-                                //float position = note->beatPositionInSong;
-                                //float position = (float)measureNumber;
-                                if (note->isPlaying) {
-                                    renderData.AddText(
-                                            Text(ToString(note->fret), positionX,
-                                                 (lineSpacing * note->string) + staffYPosition +
-                                                 instYPosition,
-                                                 Paint(0xff1188ee, TabTextPaint)));
-                                } else {
-                                    renderData.AddText(
-                                            Text(ToString(note->fret), positionX,
-                                                 (lineSpacing * note->string) + staffYPosition +
-                                                 instYPosition,
-                                                 Paint(0xff000000, TabTextPaint)));
-                                }
-                            } else/* if (noteIndex != 0 && noteIndex != measure->notes.size() - 1 && noteIndex != measure->notes.size() - 2 && noteIndex != measure->notes.size() - 3 && noteIndex != measure->notes.size() - 4 && noteIndex != measure->notes.size() - 5)*/ // standard note
-                            {
-                                if (!note->isRest) {
-                                    // rendering note head
-                                    //float positionX = measure->GetNotePositionInMeasure(
-                                    //        songData->GetMeasureWidth(measureNumber), noteIndex) + measurePosition;
-                                    float positionX = songData->GetPositionXInSong(note->beatPositionInSong, measureNumber);
-                                    float positionY =
-                                            (lineSpacing * measure->GetNoteYPosition(noteIndex)) +
-                                            staffYPosition +
-                                            instYPosition;
-                                    if (note->isPlaying) {
-                                        renderData.AddBitmap(
-                                                RenderBitmap(GetNoteHeadAssetID(note->durationType),
-                                                             positionX, positionY));
-                                        //renderData.AddText(
-                                        //        Text(ToString(0), positionX, positionY,
-                                        //             Paint(0xff1188ee)));
-                                    } else {
-                                        renderData.AddBitmap(
-                                                RenderBitmap(GetNoteHeadAssetID(note->durationType),
-                                                             positionX, positionY, 1.0f, 1.0f,
-                                                             Paint(0xff0044dd)));
-                                        //renderData.AddText(
-                                        //        Text(ToString(0), positionX, positionY,
-                                        //             Paint(0xff000000)));
-                                    }
-
-                                    // rendering note stem
-                                    float noteWidth = 11.3f;
-                                    float stemEndY = 0.0f;
-                                    if (note->noteStem.stemType == NoteStem::StemType::Up) {
-                                        float px = positionX + noteWidth -
-                                                   NoteStemPaint.strokeWidth / 2.0f;
-                                        renderData.AddLine(
-                                                Line(px, positionY, px, positionY - 30.0f,
-                                                     NoteStemPaint));
-                                        stemEndY = positionY - 30.0f;
-                                    } else if (note->noteStem.stemType ==
-                                               NoteStem::StemType::Down) {
-                                        float px = positionX + NoteStemPaint.strokeWidth / 2.0f;
-                                        renderData.AddLine(
-                                                Line(px, positionY, px, positionY + 30.0f,
-                                                     NoteStemPaint));
-                                        stemEndY = positionY + 30.0f;
-                                    } else if (note->noteStem.stemType ==
-                                               NoteStem::StemType::Double) {
-                                        float px = positionX + NoteStemPaint.strokeWidth / 2.0f;
-                                        renderData.AddLine(
-                                                Line(px, positionY, px, positionY + 30.0f,
-                                                     NoteStemPaint));
-                                        px = positionX + noteWidth -
-                                             NoteStemPaint.strokeWidth / 2.0f;
-                                        renderData.AddLine(
-                                                Line(px, positionY, px, positionY - 30.0f,
-                                                     NoteStemPaint));
-                                    }
-
-                                    // rendering note beam
-                                    if (note->beam.beamType == Beam::BeamType::Begin) {
-                                        if (note->noteStem.stemType == NoteStem::StemType::Up) {
-                                            beamStartX = positionX + noteWidth;
-                                            beamStartY = stemEndY;
-                                        } else if (note->noteStem.stemType ==
-                                                   NoteStem::StemType::Down) {
-                                            beamStartX = positionX;
-                                            beamStartY = stemEndY;
-                                        }
-                                    } else if (note->beam.beamType == Beam::BeamType::Continue) {
-                                        // do something
-                                    } else if (note->beam.beamType == Beam::BeamType::End) {
-                                        float beamEndX = 0.0f;
-                                        float beamEndY = stemEndY;
-                                        if (note->noteStem.stemType == NoteStem::StemType::Up) {
-                                            beamEndX = positionX + noteWidth;
-                                        } else if (note->noteStem.stemType ==
-                                                   NoteStem::StemType::Down) {
-                                            beamEndX = positionX;
-                                        }
-
-                                        renderData.AddLine(
-                                                Line(beamStartX, beamStartY, beamEndX, beamEndY,
-                                                     NoteBeamPaint));
-                                    }
-
-                                    if (note->accidental.accidentalType !=
-                                        Accidental::AccidentalType::None) {
-                                        float accX = positionX - 10.0f;
-                                        float accY = positionY;
-
-                                        renderData.AddBitmap(RenderBitmap(
-                                                GetAccidentalAssetID(
-                                                        note->accidental.accidentalType),
-                                                accX, accY, 1.0f, 1.0f, Paint(0xff000000)));
-                                    }
-                                } else // is a rest
-                                {
-                                    // rendering rest
-                                    float positionX = songData->GetPositionXInSong(
-                                            note->beatPositionInSong, measureNumber);
-                                    float positionY =
-                                            ((lineSpacing * (staff->lines - 1)) / 2.0f) +
-                                            staffYPosition +
-                                            instYPosition;
-
-                                    if (note->durationType == Note::NoteDurationType::Quarter) {
-                                        renderData.AddBitmap(
-                                                RenderBitmap(AssetID::QuarterRest,
-                                                             positionX, positionY));
-                                    } else if (note->isFullMeasureRest) {
-                                        positionY = lineSpacing + staffYPosition + instYPosition;
-                                        renderData.AddBitmap(
-                                                RenderBitmap(AssetID::WholeRest,
-                                                             positionX, positionY));
-                                    } else if (note->durationType == Note::NoteDurationType::Half) {
-                                        positionY = (lineSpacing * 2.0f) + staffYPosition +
-                                                    instYPosition;
-                                        renderData.AddBitmap(
-                                                RenderBitmap(AssetID::HalfRest,
-                                                             positionX, positionY));
-                                    }
-                                }
+                            // staff lines
+                            for (int i = 0; i < staff->lines; i++) {
+                                float endX = measurePosition + measureWidth;
+                                renderData.AddLine(
+                                        Line(measurePosition,
+                                             (lineSpacing * i) + staffYPosition + instYPosition,
+                                             endX,
+                                             (lineSpacing * i) + staffYPosition + instYPosition,
+                                             BarLinePaint));
                             }
 
-                            noteIndex++;
-                        }
 
+                            // measure lines (bar lines)
+                            float x = measurePosition;
+                            //if (measureNumber != 0) {
+                            //    x = measureWidths[measureNumber];
+                            //}
+                            renderData.AddLine(
+                                    Line(x, 0.0f + staffYPosition + instYPosition, x,
+                                         (lineSpacing * (staff->lines - 1)) + staffYPosition +
+                                         instYPosition, BarLinePaint));
+                            x += songData->GetMeasureWidth(measureNumber);
+                            renderData.AddLine(
+                                    Line(x, 0.0f + staffYPosition + instYPosition, x,
+                                         (lineSpacing * (staff->lines - 1)) + staffYPosition +
+                                         instYPosition, BarLinePaint));
+
+                            if (measureNumber == currentMeasure) {
+                                // calculating play line position in measure
+                                playLinePosInMeasure = measure->GetPlayLinePositionInMeasure(
+                                        playLineBeatPosition - currentMeasureBeatPosition,
+                                        songData->GetMeasureWidth(measureNumber));
+                                playLinePosition = measurePosition + playLinePosInMeasure;
+                            }
+
+                            // time signature
+                            if (measure->showTimeSignature and measure->timeSignature.print) {
+                                float positionX = measure->GetTimeSignaturePositionInMeasure(
+                                        songData->GetMeasureWidth(measureNumber)) + measurePosition;
+                                float positionY = 20.0f + staffYPosition + instYPosition;
+                                renderData.AddBitmap(
+                                        RenderBitmap(
+                                                GetTimeSignatureAssetID(
+                                                        measure->timeSignature.notes),
+                                                positionX, positionY, 1.0f, 1.0f,
+                                                Paint(0xff000000)));
+                                positionY = 40.0f + staffYPosition + instYPosition;
+                                renderData.AddBitmap(
+                                        RenderBitmap(GetTimeSignatureAssetID(
+                                                measure->timeSignature.noteType), positionX,
+                                                     positionY,
+                                                     1.0f, 1.0f,
+                                                     Paint(0xff000000)));
+                            }
+
+                            // clef
+                            if (measure->showClef) {
+                                float positionX = measure->GetClefPositionInMeasure(
+                                        songData->GetMeasureWidth(measureNumber)) + measurePosition;
+                                float positionY =
+                                        (lineSpacing * float(staff->lines - 1)) + staffYPosition +
+                                        instYPosition; // the bottom line + instYPosition
+                                renderData.AddBitmap(
+                                        RenderBitmap(GetClefAssetID(measure->clef), positionX,
+                                                     positionY, 1.0f, 1.0f,
+                                                     Paint(0xff000000)));
+                            }
+
+                            // key signature
+                            if (measure->showKeySignature && measure->keySignature.fifths != 0) {
+                                float positionX = measure->GetKeySignaturePositionInMeasure(
+                                        songData->GetMeasureWidth(measureNumber)) + measurePosition;
+                                float positionY =
+                                        (lineSpacing * float(staff->lines - 1)) + staffYPosition +
+                                        instYPosition; // the bottom line + instYPosition
+                                renderData.AddBitmap(
+                                        RenderBitmap(
+                                                GetKeySignatureAssetID(
+                                                        measure->keySignature.fifths),
+                                                positionX, positionY, 1.0f, 1.0f,
+                                                Paint(0xff000000)));
+                            }
+
+                            int noteIndex = 0;
+                            float beamStartX = 0.0f;
+                            float beamStartY = 0.0f;
+                            for (Note *note : measure->notes) {
+                                if (note->type ==
+                                    Note::NoteType::Tab /* && noteIndex != 0 && noteIndex != measure->notes.size() - 1 && noteIndex != measure->notes.size() - 2 && noteIndex != measure->notes.size() - 3 && noteIndex != measure->notes.size() - 4 && noteIndex != measure->notes.size() - 5*/) // tab note
+                                {
+                                    //LOGI("tab note beat position: %f", note->beatPositionInSong);
+                                    float positionX = songData->GetPositionXInSong(
+                                            note->beatPositionInSong,
+                                            measureNumber); // this line of code crashes the program
+                                    //LOGI("Fret as string: %s", ToString(tabNote->fret).c_str());
+                                    //float position = note->beatPositionInSong;
+                                    //float position = (float)measureNumber;
+                                    if (note->isPlaying) {
+                                        renderData.AddText(
+                                                Text(ToString(note->fret), positionX,
+                                                     (lineSpacing * note->string) + staffYPosition +
+                                                     instYPosition,
+                                                     Paint(0xff1188ee, TabTextPaint)));
+                                    } else {
+                                        renderData.AddText(
+                                                Text(ToString(note->fret), positionX,
+                                                     (lineSpacing * note->string) + staffYPosition +
+                                                     instYPosition,
+                                                     Paint(0xff000000, TabTextPaint)));
+                                    }
+                                } else/* if (noteIndex != 0 && noteIndex != measure->notes.size() - 1 && noteIndex != measure->notes.size() - 2 && noteIndex != measure->notes.size() - 3 && noteIndex != measure->notes.size() - 4 && noteIndex != measure->notes.size() - 5)*/ // standard note
+                                {
+                                    if (!note->isRest) {
+                                        // rendering note head
+                                        //float positionX = measure->GetNotePositionInMeasure(
+                                        //        songData->GetMeasureWidth(measureNumber), noteIndex) + measurePosition;
+                                        float positionX = songData->GetPositionXInSong(
+                                                note->beatPositionInSong, measureNumber);
+                                        float positionY =
+                                                (lineSpacing *
+                                                 measure->GetNoteYPosition(noteIndex)) +
+                                                staffYPosition +
+                                                instYPosition;
+                                        if (note->isPlaying) {
+                                            renderData.AddBitmap(
+                                                    RenderBitmap(
+                                                            GetNoteHeadAssetID(note->durationType),
+                                                            positionX, positionY));
+                                            //renderData.AddText(
+                                            //        Text(ToString(0), positionX, positionY,
+                                            //             Paint(0xff1188ee)));
+                                        } else {
+                                            renderData.AddBitmap(
+                                                    RenderBitmap(
+                                                            GetNoteHeadAssetID(note->durationType),
+                                                            positionX, positionY, 1.0f, 1.0f,
+                                                            Paint(0xff0044dd)));
+                                            //renderData.AddText(
+                                            //        Text(ToString(0), positionX, positionY,
+                                            //             Paint(0xff000000)));
+                                        }
+
+                                        // rendering note stem
+                                        float noteWidth = 11.3f;
+                                        float stemEndY = 0.0f;
+                                        if (note->noteStem.stemType == NoteStem::StemType::Up) {
+                                            float px = positionX + noteWidth -
+                                                       NoteStemPaint.strokeWidth / 2.0f;
+                                            renderData.AddLine(
+                                                    Line(px, positionY, px, positionY - 30.0f,
+                                                         NoteStemPaint));
+                                            stemEndY = positionY - 30.0f;
+                                        } else if (note->noteStem.stemType ==
+                                                   NoteStem::StemType::Down) {
+                                            float px = positionX + NoteStemPaint.strokeWidth / 2.0f;
+                                            renderData.AddLine(
+                                                    Line(px, positionY, px, positionY + 30.0f,
+                                                         NoteStemPaint));
+                                            stemEndY = positionY + 30.0f;
+                                        } else if (note->noteStem.stemType ==
+                                                   NoteStem::StemType::Double) {
+                                            float px = positionX + NoteStemPaint.strokeWidth / 2.0f;
+                                            renderData.AddLine(
+                                                    Line(px, positionY, px, positionY + 30.0f,
+                                                         NoteStemPaint));
+                                            px = positionX + noteWidth -
+                                                 NoteStemPaint.strokeWidth / 2.0f;
+                                            renderData.AddLine(
+                                                    Line(px, positionY, px, positionY - 30.0f,
+                                                         NoteStemPaint));
+                                        }
+
+                                        // rendering note beam
+                                        if (note->beam.beamType == Beam::BeamType::Begin) {
+                                            if (note->noteStem.stemType == NoteStem::StemType::Up) {
+                                                beamStartX = positionX + noteWidth;
+                                                beamStartY = stemEndY;
+                                            } else if (note->noteStem.stemType ==
+                                                       NoteStem::StemType::Down) {
+                                                beamStartX = positionX;
+                                                beamStartY = stemEndY;
+                                            }
+                                        } else if (note->beam.beamType ==
+                                                   Beam::BeamType::Continue) {
+                                            // do something
+                                        } else if (note->beam.beamType == Beam::BeamType::End) {
+                                            float beamEndX = 0.0f;
+                                            float beamEndY = stemEndY;
+                                            if (note->noteStem.stemType == NoteStem::StemType::Up) {
+                                                beamEndX = positionX + noteWidth;
+                                            } else if (note->noteStem.stemType ==
+                                                       NoteStem::StemType::Down) {
+                                                beamEndX = positionX;
+                                            }
+
+                                            renderData.AddLine(
+                                                    Line(beamStartX, beamStartY, beamEndX, beamEndY,
+                                                         NoteBeamPaint));
+                                        }
+
+                                        if (note->accidental.accidentalType !=
+                                            Accidental::AccidentalType::None) {
+                                            float accX = positionX - 10.0f;
+                                            float accY = positionY;
+
+                                            renderData.AddBitmap(RenderBitmap(
+                                                    GetAccidentalAssetID(
+                                                            note->accidental.accidentalType),
+                                                    accX, accY, 1.0f, 1.0f, Paint(0xff000000)));
+                                        }
+                                    } else // is a rest
+                                    {
+                                        // rendering rest
+                                        float positionX = songData->GetPositionXInSong(
+                                                note->beatPositionInSong, measureNumber);
+                                        float positionY =
+                                                ((lineSpacing * (staff->lines - 1)) / 2.0f) +
+                                                staffYPosition +
+                                                instYPosition;
+
+                                        if (note->durationType == Note::NoteDurationType::Quarter) {
+                                            renderData.AddBitmap(
+                                                    RenderBitmap(AssetID::QuarterRest,
+                                                                 positionX, positionY));
+                                        } else if (note->isFullMeasureRest) {
+                                            positionY =
+                                                    lineSpacing + staffYPosition + instYPosition;
+                                            renderData.AddBitmap(
+                                                    RenderBitmap(AssetID::WholeRest,
+                                                                 positionX, positionY));
+                                        } else if (note->durationType ==
+                                                   Note::NoteDurationType::Half) {
+                                            positionY = (lineSpacing * 2.0f) + staffYPosition +
+                                                        instYPosition;
+                                            renderData.AddBitmap(
+                                                    RenderBitmap(AssetID::HalfRest,
+                                                                 positionX, positionY));
+                                        }
+                                    }
+                                }
+
+                                noteIndex++;
+                            }
+
+                            currentMeasureRenderedCount++;
+                        }
                         measurePosition += songData->GetMeasureWidth(measureNumber);
                         measureNumber++;
                     }

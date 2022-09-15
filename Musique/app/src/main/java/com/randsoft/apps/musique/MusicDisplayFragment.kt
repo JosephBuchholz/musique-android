@@ -111,6 +111,16 @@ class MusicDisplayFragment : Fragment() {
 
     fun onUpdateRenderData(renderData: RenderData) {
         if (musicDisplayView != null) {
+            if (musicDisplayView?.renderData != null) {
+                if (musicDisplayView?.renderDataIsDifferent(
+                        musicDisplayView?.renderData!!, renderData) == true) { // if the has renderData changed from last time
+                    musicDisplayView?.renderDataChanged = true
+                }
+            }
+            else
+            {
+                musicDisplayView?.renderDataChanged = true
+            }
             musicDisplayView?.renderData = renderData
             musicDisplayView?.invalidate()
         }
