@@ -15,6 +15,9 @@
         <entry key="..\:/Users/jbuch/Desktop/Android/Musique/app/src/main/res/layout/list_item_song.xml" value="0.5" />
         <entry key="..\:/Users/jbuch/Desktop/Android/Musique/app/src/main/res/layout/music_display_fragment.xml" value="0.33" />
         <entry key="..\:/Users/jbuch/Desktop/Android/Musique/app/src/main/res/layout/song_list_fragment.xml" value="0.22" />
+        <entry key="..\:/Users/jbuch/Documents/GitHub/musique-android/Musique/app/src/main/res/drawable/half_note_notehead.xml" value="0.1" />
+        <entry key="..\:/Users/jbuch/Documents/GitHub/musique-android/Musique/app/src/main/res/drawable/quarter_note.xml" value="0.1" />
+        <entry key="..\:/Users/jbuch/Documents/GitHub/musique-android/Musique/app/src/main/res/drawable/quarter_note_notehead.xml" value="0.1" />
       </map>
     </option>
   </component>

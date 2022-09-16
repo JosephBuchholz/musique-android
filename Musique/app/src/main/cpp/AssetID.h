@@ -37,6 +37,7 @@ enum class AssetID {
     QuarterRest,
     EightRest,
     SixteenthRest,
+    ThirtySecondRest,
     KeySignature1Sharp,
     KeySignature2Sharps,
     KeySignature3Sharps,
@@ -120,6 +121,7 @@ static AssetID GetNoteHeadAssetID(Note::NoteDurationType type)
         case Note::NoteDurationType::Quarter: return AssetID::QuarterNoteNoteHead;
         case Note::NoteDurationType::Eighth: return AssetID::QuarterNoteNoteHead;
         case Note::NoteDurationType::Sixteenth: return AssetID::QuarterNoteNoteHead;
+        case Note::NoteDurationType::ThirtySecond: return AssetID::QuarterNoteNoteHead;
     }
 
     return AssetID::None;
@@ -135,6 +137,8 @@ static AssetID GetClefAssetID(Clef clef)
         return AssetID::AltoClef;
     } else if (clef.sign == "TAB") {
         return AssetID::TABClef;
+    } else if (clef.sign == "percussion") {
+        return AssetID::PercussionClef;
     }
 
     return AssetID::None;

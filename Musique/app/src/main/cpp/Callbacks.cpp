@@ -170,6 +170,57 @@ void UpdateRender(const RenderData& renderData) {
     // set bitmaps array field in renderDataObject
     env->SetObjectField(renderDataObject, fieldIdBitmaps, bitmapsArray);
 
+    // CUBIC CURVES
+
+    // getting cubic curve array field in renderDataObject
+    jfieldID fieldIdCubicCurves = env->GetFieldID(renderDataClass, "cubicCurves",
+                                            "[Lcom/randsoft/apps/musique/renderdata/CubicCurve;");
+
+    // creating new CubicCurve Array
+    jclass cubicCurveClass = env->FindClass("com/randsoft/apps/musique/renderdata/CubicCurve");
+    jmethodID cubicCurveConstructor = env->GetMethodID(cubicCurveClass, "<init>", "()V");
+    jobject cubicCurveObject = env->NewObject(cubicCurveClass, cubicCurveConstructor);
+    jobjectArray cubicCurvesArray = env->NewObjectArray((jsize)renderData.CubicCurves.size(), cubicCurveClass, cubicCurveObject);
+
+    {
+        jfieldID fieldIdX1 = env->GetFieldID(cubicCurveClass, "x1", "F");
+        jfieldID fieldIdY1 = env->GetFieldID(cubicCurveClass, "y1", "F");
+        jfieldID fieldIdX2 = env->GetFieldID(cubicCurveClass, "x2", "F");
+        jfieldID fieldIdY2 = env->GetFieldID(cubicCurveClass, "y2", "F");
+        jfieldID fieldIdX3 = env->GetFieldID(cubicCurveClass, "x3", "F");
+        jfieldID fieldIdY3 = env->GetFieldID(cubicCurveClass, "y3", "F");
+        jfieldID fieldIdX4 = env->GetFieldID(cubicCurveClass, "x4", "F");
+        jfieldID fieldIdY4 = env->GetFieldID(cubicCurveClass, "y4", "F");
+        jfieldID fieldIdPaint = env->GetFieldID(cubicCurveClass, "paint",
+                                                "Lcom/randsoft/apps/musique/renderdata/Paint;");
+        int index = 0;
+        for (auto curve : renderData.CubicCurves) {
+            jobject newCurve = env->NewObject(cubicCurveClass, cubicCurveConstructor);
+
+            env->SetFloatField(newCurve, fieldIdX1, curve.x1);
+            env->SetFloatField(newCurve, fieldIdY1, curve.y1);
+            env->SetFloatField(newCurve, fieldIdX2, curve.x2);
+            env->SetFloatField(newCurve, fieldIdY2, curve.y2);
+            env->SetFloatField(newCurve, fieldIdX3, curve.x3);
+            env->SetFloatField(newCurve, fieldIdY3, curve.y3);
+            env->SetFloatField(newCurve, fieldIdX4, curve.x4);
+            env->SetFloatField(newCurve, fieldIdY4, curve.y4);
+
+            jobject paintObject = env->NewObject(paintClass, paintConstructor, curve.paint.color);
+            env->SetFloatField(paintObject, paintFieldIdStrokeWidth, curve.paint.strokeWidth);
+            env->SetIntField(paintObject, paintFieldIdStrokeCap, (int)curve.paint.strokeCap);
+            env->SetFloatField(paintObject, paintFieldIdTextSize, curve.paint.textSize);
+
+            env->SetObjectField(newCurve, fieldIdPaint, paintObject);
+
+            env->SetObjectArrayElement(cubicCurvesArray, index, newCurve);
+            index++;
+        }
+    }
+
+    // set cubic curves array field in renderDataObject
+    env->SetObjectField(renderDataObject, fieldIdCubicCurves, cubicCurvesArray);
+
     // calling callback
     env->CallVoidMethod(mainActivityRefObj, updateRenderCallback, renderDataObject);
 }

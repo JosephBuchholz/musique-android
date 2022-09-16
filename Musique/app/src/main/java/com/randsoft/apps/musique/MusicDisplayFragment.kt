@@ -116,6 +116,7 @@ class MusicDisplayFragment : Fragment() {
                         musicDisplayView?.renderData!!, renderData) == true) { // if the has renderData changed from last time
                     musicDisplayView?.renderDataChanged = true
                 }
+                musicDisplayView?.renderDataChanged = true
             }
             else
             {

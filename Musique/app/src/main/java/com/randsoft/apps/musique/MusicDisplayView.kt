@@ -19,6 +19,7 @@ import com.randsoft.apps.musique.renderdata.Line
 import com.randsoft.apps.musique.renderdata.RenderBitmap
 import com.randsoft.apps.musique.renderdata.RenderData
 import com.randsoft.apps.musique.renderdata.Text
+import java.util.*
 
 private const val TAG = "MusicDisplayView"
 
@@ -68,6 +69,8 @@ class MusicDisplayView(context: Context, attrs: AttributeSet? = null): View(cont
     private var mainBitmap: Bitmap? = null
     private var firstRender = true;
 
+    private var bitmaps: MutableMap<Int, Bitmap?> = mutableMapOf()
+
     override fun onAttachedToWindow() {
         super.onAttachedToWindow()
         Log.d(TAG, "onAttachedToWindow----------------------------------")
@@ -91,18 +94,6 @@ class MusicDisplayView(context: Context, attrs: AttributeSet? = null): View(cont
             deviceHeight = displayMetrics.heightPixels
             deviceDpi = displayMetrics.densityDpi
         }
-    }
-
-    // for function see https://stackoverflow.com/questions/33696488/getting-bitmap-from-vector-drawable#:~:text=If%20you%20are%20willing%20to%20use%20Android%20KTX,or%20val%20bitmap%20%3D%20AppCompatResources.getDrawable%20%28context%2C%20drawableId%29.toBitmap%20%28%29
-    private fun getBitmapFromVectorDrawable(drawableId: Int, sx: Float, sy: Float): Bitmap? {
-        val density = resources.displayMetrics.density
-        val drawable = ContextCompat.getDrawable(context, drawableId)
-        val bitmap = Bitmap.createBitmap(((drawable!!.intrinsicWidth.toFloat() / density) * sx).toInt(),
-            ((drawable.intrinsicHeight.toFloat() / density) * sy).toInt(), Bitmap.Config.ARGB_8888)
-        val canvas = Canvas(bitmap)
-        drawable.setBounds(0, 0, canvas.width, canvas.height)
-        drawable.draw(canvas)
-        return bitmap
     }
 
     private fun renderOnToBitmap()
@@ -145,7 +136,6 @@ class MusicDisplayView(context: Context, attrs: AttributeSet? = null): View(cont
                     color = bitmap.paint.color
                 }
 
-                val mat = Matrix() // matrix of the bitmap
                 val resourceId = getResourceID(bitmap.assetId) // resource id of the bitmap
                 val drawable =
                     ContextCompat.getDrawable(context, resourceId) // the drawable of the bitmap
@@ -180,25 +170,58 @@ class MusicDisplayView(context: Context, attrs: AttributeSet? = null): View(cont
                     centerY = (drawable.intrinsicHeight.toFloat() / density)
                 }
 
-                // translate bitmaps
-                mat.setTranslate(
-                    ((bitmap.x) * scale) - (((drawable!!.intrinsicWidth.toFloat() / density) - centerX) * bitmapSizeScale) + positionX,
-                    ((bitmap.y) * scale) - (((drawable.intrinsicHeight.toFloat() / density) - centerY) * bitmapSizeScale) + positionY
-                )
+                val left =
+                    (((bitmap.x) * scale) - (((drawable.intrinsicWidth.toFloat() / density) - centerX) * bitmapSizeScale) + positionX).toInt()
+                val top =
+                    (((bitmap.y) * scale) - (((drawable.intrinsicHeight.toFloat() / density) - centerY) * bitmapSizeScale) + positionY).toInt()
+                val right =
+                    ((drawable.intrinsicWidth.toFloat() / density) * bitmap.sx * bitmapSizeScale).toInt() + left
+                val bottom =
+                    ((drawable.intrinsicHeight.toFloat() / density) * bitmap.sy * bitmapSizeScale).toInt() + top
 
-                // draw bitmap
-                mainCanvas.drawBitmap(
-                    getBitmapFromVectorDrawable(
-                        resourceId,
-                        bitmap.sx * bitmapSizeScale,
-                        bitmap.sy * bitmapSizeScale
-                    )!!, mat, paint
-                )
+                drawable.setTint(paint.color)
+                drawable.setBounds(left, top, right, bottom)
+                drawable.draw(mainCanvas)
+            }
+
+            // render cubic bezier curves
+            for (curve in renderData?.cubicCurves!!) {
+                val paint = Paint().apply {
+                    color = curve.paint.color
+                    strokeWidth = curve.paint.strokeWidth
+                    isAntiAlias = true
+                    strokeCap = Paint.Cap.values()[curve.paint.strokeCap]
+                    style = Paint.Style.STROKE
+                }
+
+                var path = Path()
+                var s = 5.0f;
+                var start = PointF(curve.x1 * scale + positionX, curve.y1 * scale + positionY)
+                var point1 = PointF(curve.x2 * scale + positionX, curve.y2 * scale + positionY)
+                var point2 = PointF(curve.x3 * scale + positionX, curve.y3 * scale + positionY)
+                var end = PointF(curve.x4 * scale + positionX, curve.y4 * scale + positionY)
+
+                path.moveTo(start.x, start.y)
+                path.cubicTo(point1.x, point1.y, point2.x, point2.y, end.x, end.y)
+
+                mainCanvas.drawPath(path, paint)
+
+                var i = 0;
+                while (i < 2) {
+                    point1 = PointF(point1.x, point1.y - 1.0f * scale)
+                    point2 = PointF(point2.x, point2.y - 1.0f * scale)
+                    path.reset()
+                    path.moveTo(start.x, start.y)
+                    path.cubicTo(point1.x, point1.y, point2.x, point2.y, end.x, end.y)
+
+                    mainCanvas.drawPath(path, paint)
+                    i++
+                }
             }
         }
         else
         {
-            Log.w(TAG, "RENDER DATA IS NULL")
+            Log.e(TAG, "RENDER DATA IS NULL")
         }
     }
 
@@ -209,28 +232,15 @@ class MusicDisplayView(context: Context, attrs: AttributeSet? = null): View(cont
             previousRenderData.texts.size != newRenderData.texts.size) { // they are different
             return true
         }
-        /*for (i in iterator<Int> {  }) {
-
-        }
-
-        for ((j, i) in previousRenderData.lines.withIndex()) {
-            Log.d("adsfh", "adsg");
-        }*/
-
 
         return false // they are not different
     }
 
     @SuppressLint("DrawAllocation")
     override fun onDraw(canvas: Canvas) {
-        if (firstRender && renderData?.lines?.size != null) // render main sheet music and save it in 'mainBitmap' for reuse
-        {
-            renderOnToBitmap()
-            firstRender = false
-        }
+        canvas.drawPaint(backgroundPaint) // fill canvas
 
-        canvas.drawPaint(backgroundPaint)
-
+        // calculate positionX (the position of the sheet music)
         if (frameData != null) {
             if ((frameData!!.playLinePosition * scale) + positionX >= deviceWidth.toFloat() / 3.0f) {
                 positionX += (deviceWidth.toFloat() / 3.0f) - ((frameData!!.playLinePosition * scale) + positionX)
@@ -239,111 +249,25 @@ class MusicDisplayView(context: Context, attrs: AttributeSet? = null): View(cont
             }
         }
 
-        if (renderDataChanged) {
-            renderOnToBitmap()
-        }
-
-        /*if (bitmap == null) {
-            bitmap = BitmapFactory.decodeResource(resources, R.drawable.ic_launcher_foreground)
-        }*/
-
         if (renderData != null) {
+
+            if (renderDataChanged) { // render renderData on to a bitmap if the render data has changed from last time
+                renderOnToBitmap()
+                renderDataChanged = false
+            }
 
             if (mainBitmap != null)
             {
-                val mat = Matrix() // matrix of the bitmap
                 // translate bitmap
+                val mat = Matrix()
                 mat.setTranslate(mainBitmapPositionX, mainBitmapPositionY)
-                // draw bitmap
+
+                // draw the bitmap that has renderData rendered on it
                 canvas.drawBitmap(mainBitmap!!, mat, visiblePaint)
             }
-
-            /*for (line in renderData?.lines!!) {
-                val paint = Paint().apply {
-                    color = line.paint.color
-                    strokeWidth = line.paint.strokeWidth * scale
-                    isAntiAlias = true
-                    strokeCap = Paint.Cap.values()[line.paint.strokeCap]
-                }
-                drawLine(canvas, line, paint)
-            }*/
-
-            /*for (text in renderData?.texts!!) {
-                val paint = Paint().apply {
-                    color = text.paint.color
-                    textSize = text.paint.textSize // 30.0 text size =about= 22.0 normal size
-                    textAlign = Paint.Align.CENTER
-                    isAntiAlias = true
-                }
-                drawText(canvas, text, paint)
-            }*/
-
-            /*for (bitmap in renderData?.bitmaps!!) {
-                val paint = Paint().apply {
-                    color = bitmap.paint.color
-                }
-
-                val mat = Matrix()
-                val resourceId = getResourceID(bitmap.assetId)
-                val drawable = ContextCompat.getDrawable(context, resourceId)
-                //Log.v(TAG, "w: ${drawable!!.intrinsicWidth}, h: ${drawable.intrinsicHeight}, d: ${getResources().getDisplayMetrics().density}")
-                //mat.setRotate(50.0f)
-                //mat.setScale(drawable!!.intrinsicWidth * bitmap.sx * bitmapSizeScale, drawable.intrinsicHeight.toFloat() * bitmap.sy * bitmapSizeScale)
-                val density = resources.displayMetrics.density
-
-                var centerX = (drawable!!.intrinsicWidth.toFloat() / density)
-                var centerY = 0.0f
-                if (bitmap.assetId == AssetID.QuarterNote.ordinal || bitmap.assetId == AssetID.EightNote.ordinal) {
-                    centerX = 5.65f
-                    centerY = 5.0f
-                } else if (bitmap.assetId == AssetID.WholeNote.ordinal ||
-                            bitmap.assetId == AssetID.HalfNoteNoteHead.ordinal ||
-                            bitmap.assetId == AssetID.QuarterNoteNoteHead.ordinal) {
-                    centerX = (drawable.intrinsicWidth.toFloat() / density)
-                    centerY = (drawable.intrinsicHeight.toFloat() / density) / 2.0f
-                } else if (bitmap.assetId == AssetID.Sharp.ordinal ||
-                    bitmap.assetId == AssetID.Natural.ordinal) {
-                    centerX = (drawable.intrinsicWidth.toFloat() / density)
-                    centerY = (drawable.intrinsicHeight.toFloat() / density) / 2.0f
-                } else if (bitmap.assetId == AssetID.Flat.ordinal) {
-                    centerX = (drawable.intrinsicWidth.toFloat() / density)
-                    centerY = (drawable.intrinsicHeight.toFloat() / density) * 0.25f
-                } else if (bitmap.assetId == AssetID.TrebleClef.ordinal) {
-                    centerY = 17.0f
-                } else if (bitmap.assetId == AssetID.QuarterRest.ordinal) {
-                    centerX = (drawable.intrinsicWidth.toFloat() / density)
-                    centerY = (drawable.intrinsicHeight.toFloat() / density) / 2.0f
-                } else if (bitmap.assetId == AssetID.WholeRest.ordinal) {
-                    centerX = (drawable.intrinsicWidth.toFloat() / density)
-                    centerY = (drawable.intrinsicHeight.toFloat() / density)
-                }
-
-                mat.setTranslate(((bitmap.x) * scale) - (((drawable!!.intrinsicWidth.toFloat() / density) - centerX) * bitmapSizeScale) + positionX, ((bitmap.y) * scale) - (((drawable.intrinsicHeight.toFloat() / density) - centerY) * bitmapSizeScale) + positionY)
-
-                //mat.setTranslate(((bitmap.x) * scale) - (drawable!!.intrinsicWidth.toFloat() - 7.149f) + positionX, ((bitmap.y) * scale) - (drawable.intrinsicHeight.toFloat() - 4.477f) + positionY)
-                canvas.drawBitmap(getBitmapFromVectorDrawable(resourceId, bitmap.sx * bitmapSizeScale, bitmap.sy * bitmapSizeScale)!!, mat, paint)
-                //val w = bitmap.sx
-               // val h = bitmap.sy
-               // val dst = RectF(((bitmap.x) * scale) - (drawable!!.intrinsicWidth.toFloat() - 7.149f) + positionX,
-                //    ((bitmap.y) * scale) - (drawable.intrinsicHeight.toFloat() - 4.477f)  + positionY,
-                //    w,
-                //    h)
-
-                //canvas.drawBitmap(getBitmapFromVectorDrawable(resourceId)!!, Rect(0.0f,0.0f, drawable.intrinsicWidth.toFloat(), drawable.intrinsicHeight.toFloat()), dst, paint)
-
-                //canvas.drawRect((bitmap.x * scale) + positionX, (bitmap.y * scale) + positionY, ((bitmap.x * scale) + positionX) + 6.0f, ((bitmap.y * scale) + positionY) + 6.0f, visiblePaint)
-            }*/
-
-            /*val mat = Matrix()
-            mat.setTranslate(1.0f * scale, 2.0f * scale)
-            if (quarterNoteBitmap != null) {
-                canvas.drawBitmap(quarterNoteBitmap!!, mat, null)
-            } else {
-                quarterNoteBitmap = getBitmapFromVectorDrawable(R.drawable.quarter_note)
-                canvas.drawBitmap(quarterNoteBitmap!!, mat, null)
-            }*/
         }
 
+        // draw frame data (includes: play line)
         if (frameData != null) {
             val paint = Paint().apply {
                 color = 0xff0044dd.toInt()
@@ -351,16 +275,13 @@ class MusicDisplayView(context: Context, attrs: AttributeSet? = null): View(cont
                 isAntiAlias = true
                 strokeCap = Paint.Cap.SQUARE
             }
+
+            // draw play line
             drawLine(canvas, Line(frameData!!.playLinePosition, frameData!!.playLinePositionY, frameData!!.playLinePosition, frameData!!.playLinePositionY + frameData!!.playLineHeight), paint)
         }
-
-        //drawLine(canvas, PointF(1.0f, 1.0f), PointF(12.0f, 12.0f), linePaint)
-        //drawLine(canvas, PointF(12.0f, 12.0f), PointF(12.0f, 6.0f), linePaint)
-        //canvas.drawText("1", 12.0f * scale, 12.0f * scale, textPaint)
-        //canvas.drawLine(1.0f, 1.0f, 12.0f, 12.0f, mainDisplayPaint)
-        //canvas.drawLine(12.0f, 12.0f, 12.0f, 6.0f, mainDisplayPaint)
     }
 
+    // gets the resourceID for the given assetID
     private fun getResourceID(assetID: Int): Int {
         return when (assetID) {
             AssetID.WholeNote.ordinal -> { R.drawable.whole_note } // notes
@@ -419,20 +340,19 @@ class MusicDisplayView(context: Context, attrs: AttributeSet? = null): View(cont
     }
 
     private fun drawText(canvas: Canvas, text: Text, paint: Paint) {
-        // trying to do some sizing and centering calculations
-        val heightPx2 = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, paint.textSize, context.resources.displayMetrics)
-        val heightPx = paint.textSize / context.resources.displayMetrics.scaledDensity
-        val textHeight = heightPx2 * context.resources.displayMetrics.density
-        Log.d(TAG, "heightPx1: $heightPx, heightPx2: $heightPx2, textHeight: $textHeight, density: ${context.resources.displayMetrics.density}, scaledDensity: ${context.resources.displayMetrics.scaledDensity}, textSize: ${paint.textSize}, center: ${(textHeight/2.0f) * scale}");
-        //context.resources.displayMetrics.scaledDensity
-        //paint.getTextBounds(text.text)
-        //paint.textAlign = Paint.Align.CENTER
-        canvas.drawRect((text.x * scale) + positionX, (text.y * scale) + positionY, ((text.x * scale) + positionX) + 6.0f, ((text.y * scale) + positionY) + 45.0f, visiblePaint)
-        text.y += (textHeight/2.0f) * scale
-        canvas.drawText(text.text, (text.x * scale) + positionX, (text.y * scale) + positionY, paint)
+        paint.textSize = paint.textSize * scale // scale textSize to the right size
 
-        var paint2 = paint
-        paint2.textSize = (10.0f * scale)
-        canvas.drawText(text.text, (text.x * scale) + positionX, (text.y * scale) + positionY, paint2)
+        // calculate bounds of the text
+        var textBounds = Rect()
+        paint.getTextBounds(text.text, 0, text.text.length, textBounds)
+
+        val textHeight = -textBounds.top // text height
+
+        // draw
+        canvas.drawText(text.text, (text.x * scale) + positionX, (text.y * scale) + (textHeight / 2.0f) + positionY, paint)
+    }
+
+    private fun drawDebugPoint(canvas: Canvas, point: PointF, paint: Paint = visiblePaint) {
+        canvas.drawRect(RectF(point.x, point.y, point.x + 6.0f, point.y + 6.0f), paint)
     }
 }

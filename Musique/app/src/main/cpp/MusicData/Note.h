@@ -36,8 +36,10 @@ public:
             durationType = NoteDurationType::Quarter;
         } else if (s == "eighth") {
             durationType = NoteDurationType::Eighth;
-        } else if (s == "sixteenth") {
+        } else if (s == "16th") {
             durationType = NoteDurationType::Sixteenth;
+        } else if (s == "32nd") {
+            durationType = NoteDurationType::ThirtySecond;
         } else {
             durationType = NoteDurationType::None;
         }
@@ -48,7 +50,7 @@ public:
     };
 
     enum class NoteDurationType {
-        None = 0, Whole, Half, Quarter, Eighth, Sixteenth
+        None = 0, Whole, Half, Quarter, Eighth, Sixteenth, ThirtySecond
     };
 
     bool isPlaying = false;

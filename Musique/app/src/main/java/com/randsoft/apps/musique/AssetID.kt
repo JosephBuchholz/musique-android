@@ -35,6 +35,7 @@ enum class AssetID {
     QuarterRest,
     EightRest,
     SixteenthRest,
+    ThirtySecondRest,
     KeySignature1Sharp,
     KeySignature2Sharps,
     KeySignature3Sharps,

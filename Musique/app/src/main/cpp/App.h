@@ -35,8 +35,14 @@ private:
     Paint NoteBeamPaint;
     Paint BarLinePaint;
 
+    Paint TabSlurPaint;
+
     Paint TextPaint;
     Paint TabTextPaint;
+
+    int normalColor = 0xff000000;
+    int highlightedColor = 0xff1188ee;
+    int playedColor = 0xff1188ee;
 
     enum class DisplayMode {
         None = 0, Linear, Vertical
@@ -54,6 +60,8 @@ private:
     float playLineBeatPosition = 0.0f; // 1 unit = 1 beat (usually one quarter note)
     float playLineHeight = 0.0f;
     float playLineY = 0.0f;
+
+    bool updateRenderData = true; // weather the sheet music needs to be updated(rendered) again
 
 
     float currentMeasureBeatPosition = 0.0f;
