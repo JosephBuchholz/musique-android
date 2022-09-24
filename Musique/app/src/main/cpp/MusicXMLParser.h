@@ -706,10 +706,10 @@ SongData* ParseMusicXML(const std::string& data, std::string& error)
                                                 currentTimeInMeasure += currentNote->duration.duration;
                                             }
                                         }
-                                        else
+                                        /*else
                                         {
                                             error = "note has no duration";
-                                        }
+                                        }*/
 
                                         // tie
                                         XMLElement* tieElement = noteElement->FirstChildElement("tie");

@@ -27,6 +27,9 @@ add_library( # Sets the name of the library.
         RenderData/Line.cpp
         App.cpp
         MusicData/SongData.cpp
+        MusicData/Measure.cpp
+        MusicData/Staff.cpp
+        MusicData/Instrument.cpp
         libs/tinyxml/tinystr.cpp
         libs/tinyxml/tinyxml.cpp
         libs/tinyxml/tinyxmlerror.cpp

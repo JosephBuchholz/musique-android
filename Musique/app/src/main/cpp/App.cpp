@@ -253,9 +253,29 @@ void App::OnUpdate(double dt)
 
 
             // --- MAIN RENDERING ---
-            float instYPosition = 38.0f;
+
+            /*
+             * An instrument's Y position starts at the first staff line (does not include ledger lines)
+             * An instrument's middleHeight is the amount of y space that it takes up below it's y position to the last staff line
+             * An instrument's aboveHeight is the amount of y space that it takes up above it's y position
+             * An instrument's belowHeight is the amount of y space that it takes up below it's y position + middleHeight
+             * An instrument's height is aboveHeight + middleHeight + belowHeight
+             */
+
+            float instYPosition = 0.0f;
             if (updateRenderData) {
+                Instrument* prevInstrument = nullptr;
+                float instMiddleHeight = 0.0f;
+                float instAboveHeight = 0.0f;
+                float instBelowHeight = 0.0f;
+                float instTotalHeight = 0.0f;
                 for (auto *instrument : songData->instruments) {
+
+                    if (prevInstrument != nullptr)
+                        instYPosition += prevInstrument->GetMiddleHeight(10.0f, 13.33f, 0, instrument->GetMeasureCount()) +
+                                prevInstrument->GetBelowHeight(10.0f, 13.33f, 0, instrument->GetMeasureCount());
+                    instYPosition += instrument->GetAboveHeight(10.0f, 13.33f, 0, instrument->GetMeasureCount());
+
                     int staffIndex = 0;
                     for (auto *staff : instrument->staves) {
                         float lineSpacing = 10.0f;
@@ -271,21 +291,10 @@ void App::OnUpdate(double dt)
                         if (staffIndex == 0) {
                             staffYPosition = 0.0f;
                         } else if (staffIndex == 1) {
-                            staffYPosition = (lineSpacing * staff->lines) * 2.0f;
+                            staffYPosition = instrument->staves[staffIndex-1]->GetMiddleHeight(lineSpacing, 0, staff->measures.size()) +
+                                    instrument->staves[staffIndex-1]->GetBelowHeight(lineSpacing, 0, staff->measures.size()) +
+                                    staff->GetAboveHeight(lineSpacing, 0, staff->measures.size());
                         }
-
-                        // staff lines
-                        /*float songWidth = songData->GetSongWidth();
-                        for (int i = 0; i < staff->lines; i++) {
-                            renderData.AddLine(
-                                    Line(0.0f, (lineSpacing * i) + staffYPosition + instYPosition,
-                                         songWidth, (lineSpacing * i) + staffYPosition + instYPosition,
-                                         BarLinePaint));
-                        }*/
-
-                        //for (int i = 0; i < staff->lines; i++) {
-                        //    renderData.AddLine(Line(0.0f, (lineSpacing * i) + staffYPosition + instYPosition, displayWidth, (lineSpacing * i) + staffYPosition + instYPosition, BarLinePaint));
-                        //}
 
                         int measureNumber = 0;
                         float measurePosition = 0.0f;
@@ -615,18 +624,18 @@ void App::OnUpdate(double dt)
                                     }
 
                                     noteIndex++;
-                                }
+                                } // notes loop
 
                                 currentMeasureRenderedCount++;
                             }
                             measurePosition += songData->GetMeasureWidth(measureNumber);
                             measureNumber++;
-                        }
+                        } // measures loop
                         staffIndex++;
-                    }
+                    } // staves loop
 
-                    instYPosition += 70.0f;
-                }
+                    prevInstrument = instrument;
+                } // instruments loop
 
                 UpdateRender(renderData);
                 updateRenderData = false;

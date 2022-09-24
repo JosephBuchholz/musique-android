@@ -12,6 +12,11 @@ class Measure {
 
 public:
 
+    float GetMiddleHeight(float staffLineCount, float lineSpacing);
+    float GetAboveHeight(float staffLineCount, float lineSpacing);
+    float GetBelowHeight(float staffLineCount, float lineSpacing);
+    float GetTotalHeight(float staffLineCount, float lineSpacing);
+
     float GetBeginningWidth() const {
         float width = 20.0f;
 

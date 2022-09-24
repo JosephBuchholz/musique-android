@@ -294,9 +294,9 @@ class MusicDisplayView(context: Context, attrs: AttributeSet? = null): View(cont
             AssetID.Time3.ordinal -> { R.drawable.time_3 }
             AssetID.Time4.ordinal -> { R.drawable.time_4 }
             AssetID.Time5.ordinal -> { R.drawable.time_3 }
-            AssetID.Time6.ordinal -> { R.drawable.time_3 }
+            AssetID.Time6.ordinal -> { R.drawable.time_6 }
             AssetID.Time7.ordinal -> { R.drawable.time_3 }
-            AssetID.Time8.ordinal -> { R.drawable.time_3 }
+            AssetID.Time8.ordinal -> { R.drawable.time_8 }
             AssetID.Time9.ordinal -> { R.drawable.time_3 }
             AssetID.Time0.ordinal -> { R.drawable.time_3 }
             AssetID.TrebleClef.ordinal -> { R.drawable.treble_clef } // clefs

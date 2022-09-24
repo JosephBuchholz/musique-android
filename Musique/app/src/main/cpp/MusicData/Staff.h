@@ -11,6 +11,12 @@ class Staff {
 public:
     virtual ~Staff() {}
 
+    // gets the max height of the measures from start to end
+    float GetMiddleHeight(float lineSpacing, int start, int end);
+    float GetAboveHeight(float lineSpacing, int start, int end);
+    float GetBelowHeight(float lineSpacing, int start, int end);
+    float GetTotalHeight(float lineSpacing, int start, int end);
+
     // gets the next(for example if the measure is repeated) beat position of the given measure
     float GetMeasureNextBeatPosition(int measureIndex, float currentBeatPosition) {
         float position = 0.0f;
