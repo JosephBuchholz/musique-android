@@ -81,6 +81,183 @@ StartStopType GetStartStopAttribute(XMLElement* element, const char* s, StartSto
     return defaultValue;
 }
 
+FontFamily GetFontFamilyAttribute(XMLElement* element, const char* s, FontFamily defaultValue = FontFamily())
+{
+    const char* attribute = element->Attribute(s);
+    FontFamily fontFamily = defaultValue;
+    if (attribute) {
+        fontFamily.fonts.push_back(attribute); // TODO: need to parse out comma sperated values
+    }
+    return fontFamily;
+}
+
+FontSize GetFontSizeAttribute(XMLElement* element, const char* s, FontSize defaultValue = FontSize())
+{
+    // TODO: needs implemented
+    return defaultValue;
+}
+
+FontStyle GetFontStyleAttribute(XMLElement* element, const char* s, FontStyle defaultValue = FontStyle::Normal)
+{
+    const char* attribute = element->Attribute(s);
+    if (attribute) {
+        if (strcmp(attribute, "normal") == 0) {
+            return FontStyle::Normal;
+        } else if (strcmp(attribute, "italic") == 0) {
+            return FontStyle::Italic;
+        }
+    }
+    return defaultValue;
+}
+
+FontWeight GetFontWeightAttribute(XMLElement* element, const char* s, FontWeight defaultValue = FontWeight::Normal)
+{
+    const char* attribute = element->Attribute(s);
+    if (attribute) {
+        if (strcmp(attribute, "normal") == 0) {
+            return FontWeight::Normal;
+        } else if (strcmp(attribute, "bold") == 0) {
+            return FontWeight::Bold;
+        }
+    }
+    return defaultValue;
+}
+
+Lyric::SyllabicType ParseSyllabicType(const std::string& value)
+{
+    if (value == "begin")
+        return Lyric::SyllabicType::Begin;
+    else if (value == "end")
+        return Lyric::SyllabicType::End;
+    else if (value == "middle")
+        return Lyric::SyllabicType::Middle;
+    else if (value == "single")
+        return Lyric::SyllabicType::Single;
+    else
+        LOGE("unrecognized syllabic type");
+    return Lyric::SyllabicType::None;
+}
+
+// parses a single lyric element
+Lyric ParseLyric(XMLElement* lyricElement)
+{
+    Lyric lyric = Lyric();
+    if (lyricElement)
+    {
+        lyric.number = GetNumberAttribute(lyricElement, "number", lyric.number);
+
+        // loop through all syllabic and text elements
+        XMLNode* previousElement = lyricElement->FirstChildElement(); // first element
+        while (true)
+        {
+            if (previousElement) {
+                XMLElement* element = previousElement->ToElement();
+                const char* value = element->Value();
+                if (strcmp(value, "syllabic") == 0) // syllabic
+                {
+                    XMLElement* syllabicElement = element;
+                    lyric.syllabics.push_back(ParseSyllabicType(syllabicElement->GetText())); // parse type and add to syllabic vector
+                }
+                else if (strcmp(value, "text") == 0) // text
+                {
+                    XMLElement* textElement = element;
+                    LyricText text = LyricText();
+                    text.text = textElement->GetText();
+                    lyric.text.push_back(text);
+                }
+                else
+                {
+                    LOGE("didn't recognize element in LYRIC");
+                }
+            }
+            else
+            {
+                break;
+            }
+            previousElement = previousElement->NextSiblingElement();
+        }
+    }
+    else
+    {
+        LOGE("lyricElement is null");
+    }
+    return lyric;
+}
+
+void ParseVisibleElement(XMLElement* element, VisibleElement& newElement)
+{
+    if (element)
+    {
+        // TODO: implement
+    }
+}
+
+void ParseTextualElement(XMLElement* element, TextualElement& newElement)
+{
+    if (element)
+    {
+        newElement.fontFamily = GetFontFamilyAttribute(element, "font-family");
+        newElement.fontSize = GetFontSizeAttribute(element, "font-size");
+        newElement.fontStyle = GetFontStyleAttribute(element, "font-style");
+        newElement.fontWeight = GetFontWeightAttribute(element, "font-weight");
+
+        ParseVisibleElement(element, newElement);
+    }
+}
+
+Rehearsal ParseRehearsal(XMLElement* element)
+{
+    Rehearsal rehearsal = Rehearsal();
+
+    if (element)
+    {
+        rehearsal.text.string = element->GetText();
+        ParseTextualElement(element, rehearsal);
+    }
+
+    return rehearsal;
+}
+
+Words ParseWords(XMLElement* element)
+{
+    Words words = Words();
+
+    if (element)
+    {
+        words.text.string = element->GetText();
+        ParseTextualElement(element, words);
+    }
+
+    return words;
+}
+
+Direction ParseDirection(XMLElement* directionElement)
+{
+    Direction direction = Direction();
+    if (directionElement)
+    {
+        XMLElement* directionTypeElement = directionElement->FirstChildElement("direction-type");
+        if (directionTypeElement)
+        {
+            // rehearsal
+            XMLElement* rehearsalElement = directionTypeElement->FirstChildElement("rehearsal");
+            if (rehearsalElement)
+            {
+                direction.rehearsals.push_back(ParseRehearsal(rehearsalElement));
+            }
+
+            // words
+            XMLElement* wordsElement = directionTypeElement->FirstChildElement("words");
+            if (wordsElement)
+            {
+                direction.words.push_back(ParseWords(wordsElement));
+            }
+        }
+
+    }
+    return direction;
+}
+
 SongData* ParseMusicXML(const std::string& data, std::string& error)
 {
     LOGW("STARTING TO PARSE");
@@ -347,6 +524,8 @@ SongData* ParseMusicXML(const std::string& data, std::string& error)
                                 for (int i = 0; i < currentInst->staves.size(); i++)
                                 {
                                     Measure* newMeasure = new Measure();
+                                    newMeasure->number = measureNumber;
+                                    newMeasure->index = measureNumber - 1;
                                     newMeasure->staff = i+1;
                                     currentMeasures.push_back(newMeasure);
                                 }
@@ -732,6 +911,22 @@ SongData* ParseMusicXML(const std::string& data, std::string& error)
                                             currentNote->CalculateDurationTypeFromString(noteType->GetText());
                                         }
 
+                                        // lyrics
+                                        XMLNode* previousLyricElement = noteElement->FirstChildElement("lyric");
+                                        while (true)
+                                        {
+                                            if (previousLyricElement) {
+                                                XMLElement* lyricElement = previousLyricElement->ToElement();
+                                                Lyric lyric = ParseLyric(lyricElement);
+                                                currentNote->lyrics.push_back(lyric);
+                                            }
+                                            else
+                                            {
+                                                break;
+                                            }
+                                            previousLyricElement = previousLyricElement->NextSiblingElement("lyric");
+                                        }
+
                                         // accidental
                                         XMLElement* accidentalElement = noteElement->FirstChildElement("accidental");
                                         if (accidentalElement)
@@ -904,6 +1099,11 @@ SongData* ParseMusicXML(const std::string& data, std::string& error)
                                     }
                                     else if (strcmp(value, "direction") == 0) // direction
                                     {
+                                        // direction
+                                        Direction direction = ParseDirection(element);
+                                        direction.beatPosition = currentTimeInMeasure;
+                                        currentMeasures[0]->directions.push_back(direction);
+
                                         // sound
                                         XMLElement* soundElement = element->FirstChildElement("sound");
                                         if (soundElement)

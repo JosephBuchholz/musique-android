@@ -265,10 +265,6 @@ void App::OnUpdate(double dt)
             float instYPosition = 0.0f;
             if (updateRenderData) {
                 Instrument* prevInstrument = nullptr;
-                float instMiddleHeight = 0.0f;
-                float instAboveHeight = 0.0f;
-                float instBelowHeight = 0.0f;
-                float instTotalHeight = 0.0f;
                 for (auto *instrument : songData->instruments) {
 
                     if (prevInstrument != nullptr)
@@ -329,12 +325,12 @@ void App::OnUpdate(double dt)
                                 //}
                                 renderData.AddLine(
                                         Line(x, 0.0f + staffYPosition + instYPosition, x,
-                                             (lineSpacing * (staff->lines - 1)) + staffYPosition +
+                                             (lineSpacing * float(staff->lines - 1)) + staffYPosition +
                                              instYPosition, BarLinePaint));
                                 x += songData->GetMeasureWidth(measureNumber);
                                 renderData.AddLine(
                                         Line(x, 0.0f + staffYPosition + instYPosition, x,
-                                             (lineSpacing * (staff->lines - 1)) + staffYPosition +
+                                             (lineSpacing * float(staff->lines - 1)) + staffYPosition +
                                              instYPosition, BarLinePaint));
 
                                 if (measureNumber == currentMeasure) {
@@ -399,6 +395,13 @@ void App::OnUpdate(double dt)
                                                     Paint(0xff000000)));
                                 }
 
+                                // render directions
+                                for (const Direction& direction : measure->directions)
+                                {
+                                    float positionY = staffYPosition + instYPosition - 20.0f;
+                                    RenderDirection(renderData, direction, positionY, measure);
+                                }
+
                                 int noteIndex = 0;
                                 float beamStartX = 0.0f;
                                 float beamStartY = 0.0f;
@@ -415,7 +418,7 @@ void App::OnUpdate(double dt)
                                         float positionX = songData->GetPositionXInSong(
                                                 note->beatPositionInSong, measureNumber);
                                         float positionY =
-                                                ((lineSpacing * (staff->lines - 1)) / 2.0f) +
+                                                ((lineSpacing * float(staff->lines - 1)) / 2.0f) +
                                                 staffYPosition +
                                                 instYPosition;
 
@@ -460,7 +463,7 @@ void App::OnUpdate(double dt)
                                         float positionX = songData->GetPositionXInSong(
                                                 note->beatPositionInSong,
                                                 measureNumber); // this line of code crashes the program
-                                        float positionY = (lineSpacing * (note->string-1)) + staffYPosition + instYPosition;
+                                        float positionY = (lineSpacing * float(note->string-1)) + staffYPosition + instYPosition;
                                         renderData.AddText(
                                                 Text(ToString(note->fret), positionX, positionY, Paint(color, TabTextPaint)));
 
@@ -514,6 +517,30 @@ void App::OnUpdate(double dt)
                                                         GetNoteHeadAssetID(
                                                                 note->durationType),
                                                         positionX, positionY, 1.0f, 1.0f, Paint(color)));
+
+                                        // ledger lines
+                                        if (measure->GetNoteYPosition(noteIndex) >= (float)staff->lines) // ledger lines below staff
+                                        {
+                                            int ledgerLineCount = (int)measure->GetNoteYPosition(noteIndex) - staff->lines + 1;
+                                            float y = staffYPosition + instYPosition + ((float)staff->lines * lineSpacing);
+                                            for (int i = 0; i < ledgerLineCount; i++) {
+                                                renderData.AddLine(
+                                                        Line(positionX - 4.0f, y, positionX + 14.0f, y,
+                                                             BarLinePaint));
+                                                y += 1.0f * lineSpacing;
+                                            }
+                                        }
+                                        if (measure->GetNoteYPosition(noteIndex) < 0.0f) // ledger lines above staff
+                                        {
+                                            int ledgerLineCount = abs((int)measure->GetNoteYPosition(noteIndex));
+                                            float y = staffYPosition + instYPosition - (1.0f * lineSpacing);
+                                            for (int i = 0; i < ledgerLineCount; i++) {
+                                                renderData.AddLine(
+                                                        Line(positionX - 4.0f, y, positionX + 14.0f, y,
+                                                             BarLinePaint));
+                                                y -= 1.0f * lineSpacing;
+                                            }
+                                        }
 
                                         for (Slur slur : note->slurs)
                                         {
@@ -623,6 +650,14 @@ void App::OnUpdate(double dt)
                                         }
                                     }
 
+                                    for (const auto& lyric : note->lyrics)
+                                    {
+                                        float positionY = (lineSpacing * (float)staff->lines) +
+                                                          staffYPosition +
+                                                          instYPosition + 20.0f;
+                                        RenderLyric(renderData, lyric, positionY, measure, note);
+                                    } // lyrics loop
+
                                     noteIndex++;
                                 } // notes loop
 
@@ -659,6 +694,46 @@ void App::OnUpdate(double dt)
 
             UpdateFrameData(frameData);
         }
+    }
+}
+
+void App::RenderLyric(RenderData& renderData, const Lyric& lyric, float positionY, Measure* measure, Note* note)
+{
+    Paint paint = Paint();
+    paint.textSize = 16.0f;
+    if (lyric.fontStyle == FontStyle::Italic)
+        paint.isItalic = true;
+    else if (lyric.fontWeight == FontWeight::Bold)
+        paint.isBold = true;
+    float positionX = songData->GetPositionXInSong(note->beatPositionInSong, measure->index);
+    renderData.AddText(Text(lyric.text[0].text, positionX, positionY, Paint(lyric.color.color, paint)));
+}
+
+void App::RenderDirection(RenderData& renderData, const Direction& direction, float positionY, Measure* measure)
+{
+    if (!direction.rehearsals.empty())
+    {
+        Rehearsal rehearsal = direction.rehearsals[0];
+        Paint paint = Paint();
+        paint.textSize = 16.0f;
+        if (rehearsal.fontStyle == FontStyle::Italic)
+            paint.isItalic = true;
+        else if (rehearsal.fontWeight == FontWeight::Bold)
+            paint.isBold = true;
+        float positionX = songData->GetPositionXInSong(direction.beatPositionInSong, measure->index);
+        renderData.AddText(Text(rehearsal.text.string, positionX, positionY, Paint(rehearsal.color.color, paint)));
+    }
+    else if (!direction.words.empty())
+    {
+        Words words = direction.words[0];
+        Paint paint = Paint();
+        paint.textSize = 16.0f;
+        if (words.fontStyle == FontStyle::Italic)
+            paint.isItalic = true;
+        else if (words.fontWeight == FontWeight::Bold)
+            paint.isBold = true;
+        float positionX = songData->GetPositionXInSong(direction.beatPositionInSong, measure->index);
+        renderData.AddText(Text(words.text.string, positionX, positionY, Paint(words.color.color, paint)));
     }
 }
 

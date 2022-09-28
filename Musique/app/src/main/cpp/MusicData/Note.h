@@ -7,6 +7,7 @@
 #include "NoteStem.h"
 #include "Beam.h"
 #include "Accidental.h"
+#include "Lyric.h"
 
 class Note {
 
@@ -70,6 +71,8 @@ public:
     Beam beam = Beam();
 
     Accidental accidental = Accidental();
+
+    std::vector<Lyric> lyrics;
 
     int staff = 1;
     int voice = 1;

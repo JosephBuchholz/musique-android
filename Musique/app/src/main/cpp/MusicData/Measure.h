@@ -195,6 +195,9 @@ public:
 
     Transpose transpose = Transpose();
 
+    int number = 1;
+    int index = 0;
+
     Duration duration = Duration(); // (hard coded) the duration of the measure
     float beatPosition = 0.0f; // the position in beats in the song
 

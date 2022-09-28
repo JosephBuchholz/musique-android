@@ -1,12 +1,7 @@
 #include "SongData.h"
 #include "../AndroidDebug.h"
 
-SongData::SongData()
-{
-    //OnUpdate();
-}
-
-Instrument* SongData::GetInstrument(std::string id) {
+Instrument* SongData::GetInstrument(const std::string& id) {
     for (auto& inst : instruments) {
         if (inst->id == id) {
             return inst;
@@ -64,7 +59,7 @@ void SongData::OnUpdate()
 
                         insertIndex++;
                     }
-                    orderedNotes.insert(insertIndex + orderedNotes.begin(), note);
+                    orderedNotes.insert(orderedNotes.begin() + insertIndex, note); // insert note at insertIndex
                 }
 
                 measureIndex++;
@@ -74,8 +69,8 @@ void SongData::OnUpdate()
 
     std::vector<float> measuresNotesWidths; // the widths of the combined widths of all the notes in each measure
     {
-        float time = 0.0f;
-        int steps = 0;
+        float time = 0.0f; // current time in song
+        int steps = 0; // debug var
         int measureIndex = 0;
         float width = 0.0f;
         int noteIndex = 0;
@@ -88,7 +83,8 @@ void SongData::OnUpdate()
 
                 //LOGD("note %i: beatpos: %f, duration: %f, width: %f, total width: %f", noteIndex, note->beatPositionInSong, note->duration.duration, note->GetMinWidth(), width);
                 //std::array<float, 3> a = { note->GetMinWidth(), note->beatPositionInSong, note->duration };
-                m_MinNoteData.push_back({ note->GetMinWidth(), note->beatPositionInSong, note->duration.duration });
+                //m_MinNoteData.push_back({ note->GetMinWidth(), note->beatPositionInSong, note->duration.duration });
+                m_MinNoteData.emplace_back(note->GetMinWidth(), note->beatPositionInSong, note->duration.duration );
 
                 if (measureIndex != note->measureIndex) {
                     measureIndex = note->measureIndex;
@@ -251,7 +247,7 @@ float SongData::GetPositionXInSong(float beatPositionInSong, int currentMeasureI
             {
                 //LOGD("beat positions at measure 0: %f, %f, %i, %f", noteData[1], beatPositionInSong, currentMeasureIndex, noteData[2]);
             }
-            if (noteData[1]/*beat position*/ >= beatPositionInSong)
+            if (noteData.beatPosition/*beat position*/ >= beatPositionInSong)
             {
                 if (previousNoteDuration == 0.0f)
                 {
@@ -268,13 +264,13 @@ float SongData::GetPositionXInSong(float beatPositionInSong, int currentMeasureI
                 //position -= previousNoteWidth - (previousNoteWidth * ((beatPositionInSong - previousNoteBeatPosition)/previousNoteDuration));
                 break; // done
             }
-            position += noteData[0]/*width*/;
-            previousNoteBeatPosition = noteData[1]/*beat position*/;
-            previousNoteDuration = noteData[2]/*duration*/;
+            position += noteData.width/*width*/;
+            previousNoteBeatPosition = noteData.beatPosition/*beat position*/;
+            previousNoteDuration = noteData.duration/*duration*/;
         }
-        pos += noteData[0]/*width*/;
-        time += noteData[2]/*duration*/;
-        previousNoteWidth = noteData[0]/*width*/;
+        pos += noteData.width/*width*/;
+        time += noteData.duration/*duration*/;
+        previousNoteWidth = noteData.width/*width*/;
     }
 
     return position;

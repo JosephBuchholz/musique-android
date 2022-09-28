@@ -9,7 +9,7 @@ class SongData {
 
 public:
 
-    SongData();
+    SongData() {}
     ~SongData()
     {
         LOGD("deconstructing song data");
@@ -19,13 +19,13 @@ public:
         LOGD("done deconstructing song data");
     }
 
-    Instrument* GetInstrument(std::string id);
+    Instrument* GetInstrument(const std::string& id);
 
     void OnUpdate();
 
     float GetMeasureWidth(int measureIndex);
     float GetMeasurePositionX(int measureIndex);
-    float GetMeasurePositionY(int measureIndex);
+    float GetMeasurePositionY(int measureIndex); // for use with a non horizontal mode (like a vertical mode)
     float GetMeasureBeatPosition(int measureIndex);
 
     float GetSongWidth(); // gets the width of the song
@@ -47,5 +47,13 @@ private:
     std::vector<float> m_MeasureWidths; // the widths of the measures
     std::vector<float> m_MeasureBeginWidths; // the widths of the measure's beginning width(before the notes, like the width of the time signature and key signature)
 
-    std::vector<std::array<float, 3>> m_MinNoteData; // the widths, beat positions, and durations of the smallest notes
+    struct NoteData
+    {
+        NoteData(float width, float beatPosition, float duration)
+            : width(width), beatPosition(beatPosition), duration(duration) {}
+        float width = 0.0f;
+        float beatPosition = 0.0f;
+        float duration = 0.0f;
+    };
+    std::vector<NoteData> m_MinNoteData; // the widths, beat positions, and durations of the smallest notes
 };

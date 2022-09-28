@@ -21,6 +21,9 @@ public:
     void OnMidiStart();
     void LoadSongFromString(const std::string& string);
 
+    void RenderDirection(RenderData& renderData, const Direction& direction, float positionY, Measure* measure);
+    void RenderLyric(RenderData& renderData, const Lyric& lyric, float positionY, Measure* measure, Note* note);
+
 private:
     void DeleteSongData();
 
@@ -67,7 +70,7 @@ private:
     float currentMeasureBeatPosition = 0.0f;
     int currentMeasure = 0;
 
-    float playing = false;
+    bool playing = false;
 
     float currentTempo = 120.0f; // beats per minute
 

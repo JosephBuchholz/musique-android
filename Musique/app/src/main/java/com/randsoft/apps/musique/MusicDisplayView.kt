@@ -12,6 +12,7 @@ import android.view.MotionEvent
 import android.view.View
 import android.view.WindowManager
 import androidx.core.content.ContextCompat
+import androidx.core.content.res.ResourcesCompat
 import androidx.core.graphics.drawable.DrawableCompat
 import androidx.lifecycle.LiveData
 import com.randsoft.apps.musique.framedata.FrameData
@@ -44,6 +45,9 @@ class MusicDisplayView(context: Context, attrs: AttributeSet? = null): View(cont
     var deviceWidth: Int = 0
     var deviceHeight: Int = 0
     var deviceDpi: Int = 0
+
+    var typefacePlain = ResourcesCompat.getFont(context, R.font.open_sans)
+    var typefaceItalic = ResourcesCompat.getFont(context, R.font.open_sans_italic)
 
     private val backgroundPaint = Paint().apply {
         color = 0xffffffff.toInt()
@@ -122,11 +126,19 @@ class MusicDisplayView(context: Context, attrs: AttributeSet? = null): View(cont
             }
 
             for (text in renderData?.texts!!) {
+                //typeface.style = Typeface.BOLD
                 val paint = Paint().apply {
                     color = text.paint.color
                     textSize = text.paint.textSize // 30.0 text size =about= 22.0 normal size
-                    textAlign = Paint.Align.CENTER
+                    textAlign = Paint.Align.values()[text.paint.align]
                     isAntiAlias = true
+                }
+
+                if (text.paint.isItalic) {
+                    paint.typeface = typefaceItalic
+                }
+                else {
+                    paint.typeface = typefacePlain
                 }
                 drawText(mainCanvas, text, paint)
             }

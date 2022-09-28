@@ -13,10 +13,17 @@ struct Paint {
         strokeWidth = paint.strokeWidth;
         strokeCap = paint.strokeCap;
         textSize = paint.textSize;
+        align = paint.align;
+        isItalic = paint.isItalic;
+        isBold = paint.isBold;
     }
 
     enum class Cap {
         Butt = 0, Round, Square
+    };
+
+    enum class Align {
+        Left = 0, Center, Right
     };
 
     int color = 0xff000000;
@@ -24,4 +31,7 @@ struct Paint {
     float strokeWidth = 1.0f;
     Cap strokeCap = Cap::Butt;
     float textSize = 10.0f;
+    Align align = Align::Center;
+    bool isItalic = false;
+    bool isBold = false;
 };

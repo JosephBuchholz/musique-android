@@ -1,6 +1,25 @@
 #pragma once
 
-class Direction {
+#include "BaseElement.h"
+
+#include "Rehearsal.h"
+#include "Words.h"
+
+#include "Types.h"
+
+#include <vector>
+
+class Direction : public BaseElement {
+public:
+    Direction() {}
+
 public:
 
+    float beatPosition = 0.0f; // the position of the note in the measure in beats(quarter notes)
+    float beatPositionInSong = 0.0f; // the position of the note in the song(not counting repeats) in beats(quarter notes)
+
+    std::vector<Rehearsal> rehearsals;
+    std::vector<Words> words;
+
+    AboveBelowType placement = AboveBelowType::Above;
 };

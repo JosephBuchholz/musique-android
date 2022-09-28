@@ -32,6 +32,9 @@ void UpdateRender(const RenderData& renderData) {
     jfieldID paintFieldIdStrokeWidth = env->GetFieldID(paintClass, "strokeWidth", "F");
     jfieldID paintFieldIdStrokeCap = env->GetFieldID(paintClass, "strokeCap", "I");
     jfieldID paintFieldIdTextSize = env->GetFieldID(paintClass, "textSize", "F");
+    jfieldID paintFieldIdIsItalic = env->GetFieldID(paintClass, "isItalic", "Z");
+    jfieldID paintFieldIdIsBold = env->GetFieldID(paintClass, "isBold", "Z");
+    jfieldID paintFieldIdAlign = env->GetFieldID(paintClass, "align", "I");
 
     // creating new RenderData object
     jclass renderDataClass = env->FindClass("com/randsoft/apps/musique/renderdata/RenderData");
@@ -102,7 +105,7 @@ void UpdateRender(const RenderData& renderData) {
                                                 "Lcom/randsoft/apps/musique/renderdata/Paint;");
 
         int index = 0;
-        for (auto text : renderData.Texts) {
+        for (const auto& text : renderData.Texts) {
             jobject newText = env->NewObject(textClass, textConstructor);
 
             env->SetObjectField(newText, fieldIdText, env->NewStringUTF(text.text.c_str()));
@@ -113,6 +116,9 @@ void UpdateRender(const RenderData& renderData) {
             env->SetFloatField(paintObject, paintFieldIdStrokeWidth, text.paint.strokeWidth);
             env->SetIntField(paintObject, paintFieldIdStrokeCap, (int)text.paint.strokeCap);
             env->SetFloatField(paintObject, paintFieldIdTextSize, text.paint.textSize);
+            env->SetBooleanField(paintObject, paintFieldIdIsItalic, text.paint.isItalic);
+            env->SetBooleanField(paintObject, paintFieldIdIsBold, text.paint.isBold);
+            env->SetIntField(paintObject, paintFieldIdAlign, (int)text.paint.align);
 
             env->SetObjectField(newText, fieldIdPaint, paintObject);
 
