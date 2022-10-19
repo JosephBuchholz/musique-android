@@ -3,6 +3,7 @@ package com.randsoft.apps.musique
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.pdf.PdfDocument
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -14,18 +15,22 @@ import android.widget.Button
 import android.widget.SeekBar
 import androidx.fragment.app.Fragment
 import com.randsoft.apps.musique.framedata.FrameData
+import com.randsoft.apps.musique.printing.PrintHandler
 import com.randsoft.apps.musique.renderdata.RenderData
 
 private const val TAG = "MusicDisplayFragment"
 
-class MusicDisplayFragment : Fragment() {
+class MusicDisplayFragment : Fragment(), PrintHandler.Callbacks {
 
     private var musicDisplayView: MusicDisplayView? = null
 
     private lateinit var playButton: Button
     private lateinit var restartButton: Button
+    private lateinit var printButton: Button
     private lateinit var zoomSeekBar: SeekBar
     private lateinit var playSeekBar: SeekBar
+
+    private lateinit var printHandler: PrintHandler
 
     var playing = false; // needs to be in a ViewModel
 
@@ -46,6 +51,20 @@ class MusicDisplayFragment : Fragment() {
     override fun onDetach() {
         super.onDetach()
         callbacks = null
+    }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        printHandler = PrintHandler(requireContext())
+        printHandler.setCallbacks(this)
+    }
+
+    override fun onCalculateNumPages(): Int {
+        return 1
+    }
+
+    override fun onDrawPage(page: PdfDocument.Page) {
+        musicDisplayView?.drawPage(page)
     }
 
     private var bitmap: Bitmap? = null
@@ -78,6 +97,16 @@ class MusicDisplayFragment : Fragment() {
                 callbacks?.onPlayButtonToggled(playing)
             }
             callbacks?.onResetButtonPressed()
+        }
+
+        printButton = view.findViewById(R.id.print_button)
+        printButton.setOnClickListener {
+            if (playing) { // stop the play back
+                playing = false;
+                callbacks?.onPlayButtonToggled(playing)
+            }
+
+            printHandler.print()
         }
 
         zoomSeekBar = view.findViewById(R.id.zoom_seek_bar)

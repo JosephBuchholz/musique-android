@@ -6,4 +6,5 @@ class RenderData {
     var texts: Array<Text> = emptyArray()
     var bitmaps: Array<RenderBitmap> = emptyArray()
     var cubicCurves: Array<CubicCurve> = emptyArray()
+    var scaling: Scaling = Scaling()
 }
