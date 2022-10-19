@@ -122,7 +122,7 @@ class MusicDisplayView(context: Context, attrs: AttributeSet? = null): View(cont
                     isAntiAlias = true
                     strokeCap = Paint.Cap.values()[line.paint.strokeCap]
                 }
-                drawLine(mainCanvas, line, paint)
+                drawLine(mainCanvas, line, paint, 0.0f, 0.0f)
             }
 
             for (text in renderData?.texts!!) {
@@ -140,7 +140,7 @@ class MusicDisplayView(context: Context, attrs: AttributeSet? = null): View(cont
                 else {
                     paint.typeface = typefacePlain
                 }
-                drawText(mainCanvas, text, paint)
+                drawText(mainCanvas, text, paint, 0.0f, 0.0f)
             }
 
             for (bitmap in renderData?.bitmaps!!) {
@@ -183,9 +183,9 @@ class MusicDisplayView(context: Context, attrs: AttributeSet? = null): View(cont
                 }
 
                 val left =
-                    (((bitmap.x) * scale) - (((drawable.intrinsicWidth.toFloat() / density) - centerX) * bitmapSizeScale) + positionX).toInt()
+                    (((bitmap.x) * scale) - (((drawable.intrinsicWidth.toFloat() / density) - centerX) * bitmapSizeScale) + 0.0f).toInt()
                 val top =
-                    (((bitmap.y) * scale) - (((drawable.intrinsicHeight.toFloat() / density) - centerY) * bitmapSizeScale) + positionY).toInt()
+                    (((bitmap.y) * scale) - (((drawable.intrinsicHeight.toFloat() / density) - centerY) * bitmapSizeScale) + 0.0f).toInt()
                 val right =
                     ((drawable.intrinsicWidth.toFloat() / density) * bitmap.sx * bitmapSizeScale).toInt() + left
                 val bottom =
@@ -272,7 +272,7 @@ class MusicDisplayView(context: Context, attrs: AttributeSet? = null): View(cont
             {
                 // translate bitmap
                 val mat = Matrix()
-                mat.setTranslate(mainBitmapPositionX, mainBitmapPositionY)
+                mat.setTranslate(mainBitmapPositionX + positionX, mainBitmapPositionY + positionY)
 
                 // draw the bitmap that has renderData rendered on it
                 canvas.drawBitmap(mainBitmap!!, mat, visiblePaint)
@@ -289,7 +289,9 @@ class MusicDisplayView(context: Context, attrs: AttributeSet? = null): View(cont
             }
 
             // draw play line
+            canvas.drawLine((0.0f * scale), (0.0f * scale), (frameData!!.playLinePosition * scale), ((frameData!!.playLinePositionY + frameData!!.playLineHeight) * scale), paint)
             drawLine(canvas, Line(frameData!!.playLinePosition, frameData!!.playLinePositionY, frameData!!.playLinePosition, frameData!!.playLinePositionY + frameData!!.playLineHeight), paint)
+            drawLine(canvas, Line(0.0f, 0.0f, frameData!!.playLinePosition, frameData!!.playLinePositionY + frameData!!.playLineHeight), paint)
         }
     }
 
@@ -362,6 +364,23 @@ class MusicDisplayView(context: Context, attrs: AttributeSet? = null): View(cont
 
         // draw
         canvas.drawText(text.text, (text.x * scale) + positionX, (text.y * scale) + (textHeight / 2.0f) + positionY, paint)
+    }
+
+    private fun drawLine(canvas: Canvas, line: Line, paint: Paint, px: Float, py: Float) {
+        canvas.drawLine((line.startX * scale) + px, (line.startY * scale) + py, (line.endX * scale) + px, (line.endY * scale) + py, paint)
+    }
+
+    private fun drawText(canvas: Canvas, text: Text, paint: Paint, px: Float, py: Float) {
+        paint.textSize = paint.textSize * scale // scale textSize to the right size
+
+        // calculate bounds of the text
+        var textBounds = Rect()
+        paint.getTextBounds(text.text, 0, text.text.length, textBounds)
+
+        val textHeight = -textBounds.top // text height
+
+        // draw
+        canvas.drawText(text.text, (text.x * scale) + px, (text.y * scale) + (textHeight / 2.0f) + py, paint)
     }
 
     private fun drawDebugPoint(canvas: Canvas, point: PointF, paint: Paint = visiblePaint) {

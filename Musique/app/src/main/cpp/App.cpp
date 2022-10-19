@@ -150,7 +150,7 @@ void App::OnUpdate(double dt)
 
     if (isUpdating) {
         if (playing) {
-            playLineBeatPosition += currentTempo * dtm;
+            playLineBeatPosition += float(currentTempo * dtm);
         }
 
         float playLinePosInMeasure = 0.0f;
@@ -333,13 +333,13 @@ void App::OnUpdate(double dt)
                                              (lineSpacing * float(staff->lines - 1)) + staffYPosition +
                                              instYPosition, BarLinePaint));
 
-                                if (measureNumber == currentMeasure) {
+                                /*if (measureNumber == currentMeasure) {
                                     // calculating play line position in measure
                                     playLinePosInMeasure = measure->GetPlayLinePositionInMeasure(
                                             playLineBeatPosition - currentMeasureBeatPosition,
                                             songData->GetMeasureWidth(measureNumber));
                                     playLinePosition = measurePosition + playLinePosInMeasure;
-                                }
+                                }*/
 
                                 // time signature
                                 if (measure->showTimeSignature and measure->timeSignature.print) {
@@ -742,4 +742,9 @@ void App::SetViewModelData(ViewModelData viewModelData)
     playing = viewModelData.playing;
     playLineBeatPosition = viewModelData.playLineBeatPosition;
     currentMeasure = viewModelData.currentMeasure;
+}
+
+void App::OnPlayProgressChanged(float progress)
+{
+    playLineBeatPosition = songData->totalBeatWidth * progress;
 }

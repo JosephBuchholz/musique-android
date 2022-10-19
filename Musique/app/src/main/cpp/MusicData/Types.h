@@ -4,6 +4,15 @@
 #include <string>
 #include "../AndroidDebug.h"
 
+enum class NoteValue {
+    None = 0, Whole, Half, Quarter, Eighth, Sixteenth, ThirtySecond
+};
+
+struct NoteUnit {
+    NoteValue noteValue = NoteValue::None;
+    bool isDotted = false;
+};
+
 enum class StartStopType {
     None = 0, Start, Stop, Continue
 };
@@ -14,6 +23,12 @@ enum class AboveBelowType {
 
 enum class Justify {
     None = 0, Left, Right, Center
+};
+
+struct Date {
+    int year = 1900;
+    int month = 1;
+    int day = 1;
 };
 
 struct Color {

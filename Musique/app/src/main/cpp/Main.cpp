@@ -135,6 +135,13 @@ extern "C" {
     }
 
     JNIEXPORT void JNICALL
+    Java_com_randsoft_apps_musique_MainActivity_onPlayProgressChangedNative(JNIEnv* env, jobject instance, jfloat progress) {
+        if (app != nullptr) {
+            app->OnPlayProgressChanged(progress);
+        }
+    }
+
+    JNIEXPORT void JNICALL
     Java_com_randsoft_apps_musique_MainActivity_onMidiStart(JNIEnv* env, jobject instance) {
         if (app != nullptr) {
             app->OnMidiStart();

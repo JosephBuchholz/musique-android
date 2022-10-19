@@ -25,6 +25,8 @@ public:
     float GetMinWidth() {
         float width = 0.0f;
         width += duration.duration * 5.0f * 10.0f; // should do a bit more calculations here
+        if (!lyrics.empty())
+            width += 20.0f;
         return width;
     }
 

@@ -17,6 +17,7 @@ public:
     void OnUpdate(double dt);
     void OnPlayButtonToggled(bool state) { playing = state; }
     void OnResetButtonPressed() { playLineBeatPosition = 0.0f; }
+    void OnPlayProgressChanged(float progress);
     void SetViewModelData(ViewModelData viewModelData);
     void OnMidiStart();
     void LoadSongFromString(const std::string& string);

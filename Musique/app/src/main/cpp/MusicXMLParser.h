@@ -1,4 +1,5 @@
 #pragma once
+
 #include <string>
 //#include "libs/tinyxml/tinyxml.h"
 //#include "libs/tinyxml/tinystr.h"
@@ -9,6 +10,8 @@
 
 using namespace tinyxml2;
 
+// ---- Conversions ----
+
 bool FromYesNoToBool(const char* string)
 {
     if (strcmp(string, "yes") == 0) {
@@ -16,6 +19,70 @@ bool FromYesNoToBool(const char* string)
     }
     return false;
 }
+
+Date FromStringToDate(const char* string)
+{
+    Date date = Date();
+    char* copy = strdup(string); // copy string so that it isn't const and can be used in strtok
+    char* s = strtok(copy, "-"); // the first part of the date (year)
+
+    int i = 0;
+    while (s != NULL) // get the different parts of the date using strtok(), (strtok splits a string using a delimiter)
+    {
+        if (i == 0) // year (yyyy)
+            date.year = ToInt(s);
+        else if (i == 1) // month (mm)
+            date.month = ToInt(s);
+        else if (i == 2) // day (dd)
+            date.day = ToInt(s);
+        s = strtok(NULL, "-"); // get the next part of the date
+        i++;
+    }
+
+    free(copy); // free the copied string
+
+    return date;
+}
+
+// ---- Is Value Functions ----
+
+bool IsInt(std::string value)
+{
+    return true; // TODO: needs implemented
+}
+
+// ---- Get Value Functions ----
+
+std::string GetStringValue(XMLElement* element, std::string defaultValue = "")
+{
+    if (element) {
+        return element->GetText();
+    }
+    return defaultValue;
+}
+
+std::string GetStringValue(std::string elementName, XMLElement* elementParent, std::string defaultValue = "")
+{
+    XMLElement* element = elementParent->FirstChildElement(elementName.c_str());
+    if (element)
+    {
+        return GetStringValue(element, defaultValue);
+    }
+    return defaultValue;
+}
+
+int GetIntValue(XMLElement* element, int defaultValue = 0)
+{
+    if (element) {
+        std::string c = element->GetText();
+        if (IsInt(c))
+            return ToInt(c);
+    }
+    return defaultValue;
+}
+
+
+// ---- Get Attribute Functions ----
 
 bool GetBoolAttribute(XMLElement* element, const char* s, bool defaultValue = false)
 {
@@ -122,6 +189,8 @@ FontWeight GetFontWeightAttribute(XMLElement* element, const char* s, FontWeight
     }
     return defaultValue;
 }
+
+// ---- Parse Functions ----
 
 Lyric::SyllabicType ParseSyllabicType(const std::string& value)
 {
@@ -258,54 +327,163 @@ Direction ParseDirection(XMLElement* directionElement)
     return direction;
 }
 
+void ParseWorkElement(XMLElement* workElement, std::string& workTitle, int& workNumber)
+{
+    if (workElement)
+    {
+        // work title
+        XMLElement* workTitleElement = workElement->FirstChildElement("work-title");
+        workTitle = GetStringValue(workTitleElement);
+
+        // work number
+        XMLElement* workNumberElement = workElement->FirstChildElement("work-number");
+        if (workNumberElement)
+        {
+            workNumber = GetIntValue(workNumberElement, workNumber);
+        }
+    }
+}
+
+void ParseEncodingElement(XMLElement* encodingElement, SongData* songData)
+{
+    if (encodingElement)
+    {
+        // loop through all elements
+        XMLNode* previousElement = encodingElement->FirstChildElement(); // first element
+        while (true)
+        {
+            if (previousElement) {
+                XMLElement* element = previousElement->ToElement();
+                const char* value = element->Value();
+                if (strcmp(value, "encoding-date") == 0) // encoding-date
+                {
+                    songData->encodingDate = FromStringToDate(GetStringValue(element, "1900-01-01").c_str());
+                }
+                else if (strcmp(value, "encoder") == 0) // encoder
+                {
+                    XMLElement* encoderElement = element;
+                    SongData::Encoder encoder = SongData::Encoder();
+                    encoder.name = GetStringValue(encoderElement, encoder.name);
+                    encoder.strType = GetStringAttribute(encoderElement, "type", encoder.strType);
+                    if (encoder.strType == "music")
+                        encoder.type = SongData::Encoder::EncoderType::Music;
+                    else if (encoder.strType == "words")
+                        encoder.type = SongData::Encoder::EncoderType::Words;
+                    else if (encoder.strType == "arrangement")
+                        encoder.type = SongData::Encoder::EncoderType::Arrangement;
+                    songData->encoders.push_back(encoder);
+                }
+                else if (strcmp(value, "software") == 0) // software
+                {
+                    songData->software = GetStringValue(element, songData->software);
+                }
+                else if (strcmp(value, "encoding-description") == 0) // encoding description
+                {
+                    songData->encodingDescription = GetStringValue(element, songData->encodingDescription);
+                }
+                else if (strcmp(value, "supports") == 0) // supports
+                {
+                    // TODO: handle this
+                }
+                else
+                {
+                    LOGE("didn't recognize element in Encoding");
+                }
+            }
+            else
+            {
+                break;
+            }
+            previousElement = previousElement->NextSiblingElement();
+        }
+    }
+}
+
+void ParseIdentificationElement(XMLElement* idElement, SongData* songData)
+{
+    if (idElement)
+    {
+        // loop through all elements
+        XMLNode* previousElement = idElement->FirstChildElement(); // first element
+        while (true)
+        {
+            if (previousElement) {
+                XMLElement* element = previousElement->ToElement();
+                const char* value = element->Value();
+                if (strcmp(value, "creator") == 0) // creator
+                {
+                    XMLElement* creatorElement = element;
+                    SongData::Creator creator = SongData::Creator();
+                    creator.name = GetStringValue(creatorElement, creator.name);
+                    creator.strType = GetStringAttribute(creatorElement, "type", creator.strType);
+                    if (creator.strType == "composer")
+                        creator.type = SongData::Creator::CreatorType::Composer;
+                    else if (creator.strType == "lyricist")
+                        creator.type = SongData::Creator::CreatorType::Lyricist;
+                    else if (creator.strType == "arranger")
+                        creator.type = SongData::Creator::CreatorType::Arranger;
+                    songData->creators.push_back(creator);
+                }
+                else if (strcmp(value, "rights") == 0) // rights
+                {
+                    XMLElement* rightElement = element;
+                    SongData::Rights rights = SongData::Rights();
+                    rights.right = GetStringValue(rightElement, rights.right);
+                    rights.strType = GetStringAttribute(rightElement, "type", rights.strType);
+                    if (rights.strType == "music")
+                        rights.type = SongData::Rights::RightType::Music;
+                    else if (rights.strType == "words")
+                        rights.type = SongData::Rights::RightType::Words;
+                    else if (rights.strType == "arrangement")
+                        rights.type = SongData::Rights::RightType::Arrangement;
+                    songData->rights.push_back(rights);
+                }
+                else if (strcmp(value, "encoding") == 0) // encoding
+                {
+                    ParseEncodingElement(element, songData);
+                }
+                else if (strcmp(value, "source") == 0) // source
+                {
+                    // TODO: handle this
+                }
+                else if (strcmp(value, "relation") == 0) // relation
+                {
+                    // TODO: handle this
+                }
+                else if (strcmp(value, "miscellaneous") == 0) // miscellaneous
+                {
+                    // TODO: handle this
+                }
+                else
+                {
+                    LOGE("didn't recognize element in Identification");
+                }
+            }
+            else
+            {
+                break;
+            }
+            previousElement = previousElement->NextSiblingElement();
+        }
+    }
+}
+
+void ParseDefaultsElement(XMLElement* defaultsElement)
+{
+    // TODO: implement
+}
+
+void ParseCreditElement(XMLElement* creditElement)
+{
+    // TODO: implement
+}
+
+// main file parsing
 SongData* ParseMusicXML(const std::string& data, std::string& error)
 {
     LOGW("STARTING TO PARSE");
     SongData* songData = new SongData();
     LOGW("Created song data");
-
-    /*{
-        tinyxml2::XMLDocument doc;
-        const char *d = data.c_str();
-        tinyxml2::XMLError xmlError = doc.Parse(d);
-        LOGW("parced document with tinyxml2");
-        if (xmlError != tinyxml2::XMLError::XML_SUCCESS) {
-            LOGE("error: %i", xmlError);
-        }
-
-        if (doc.Error())
-        {
-            LOGE("doc error: %s: %s", doc.ErrorName(), doc.ErrorStr());
-        }
-    }
-    LOGW("succsess with tinyxml2");
-
-    {
-        TiXmlDocument doc;
-        const char *d = data.c_str();
-        doc.Parse(d);
-        LOGW("parced document with tinyxml1");
-    }
-    LOGW("succsess with tinyxml1");*/
-
-    //error = "FAILED";
-
-    /*LOGD("going to parce");
-    int i = 0;
-    while (i < 10)
-    {
-        tinyxml2::XMLDocument testDoc;
-        const char *dat = data.c_str();
-        tinyxml2::XMLError e = testDoc.Parse(dat);
-
-        if (e != tinyxml2::XMLError::XML_SUCCESS) {
-            LOGE("error: %i", e);
-            error = "XMLERRORINTESTs: " + ToString(int(e));
-        }
-        LOGW("prace %i", i);
-        i++;
-    }
-    LOGD("finnishedparce");*/
     
     tinyxml2::XMLDocument doc;
     const char *d = data.c_str();
@@ -316,34 +494,6 @@ SongData* ParseMusicXML(const std::string& data, std::string& error)
         error = "XMLERROR: " + ToString(int(xmlError));
     }
 
-    /*LOGD("going to parce again");
-    i = 0;
-    while (i < 10)
-    {
-        tinyxml2::XMLDocument testDoc;
-        const char *dat = data.c_str();
-        tinyxml2::XMLError e = testDoc.Parse(dat);
-
-        if (e != tinyxml2::XMLError::XML_SUCCESS) {
-            LOGE("error: %i", e);
-            error = "XMLERRORINTESTs: " + ToString(int(e));
-        }
-        LOGW("prace %i", i);
-        i++;
-    }
-    LOGD("finnished parce again");*/
-
-    /*if (doc.Error())
-    {
-        LOGE("doc error: %s: %s", doc.ErrorName(), doc.ErrorStr());
-        error = "XML DOC ERROR";
-    }*/
-
-
-
-    /*TiXmlDocument doc;
-    const char *d = data.c_str();
-    doc.Parse(d);*/
     if (doc.Error())
     {
         LOGE("doc error: %s: %s", doc.ErrorName(), doc.ErrorStr());
@@ -359,16 +509,34 @@ SongData* ParseMusicXML(const std::string& data, std::string& error)
             songData->musicXMLVersion = root->Attribute("version");
 
             // work
-            XMLElement* work = root->FirstChildElement("work");
-            if (work)
+            XMLElement* workElement = root->FirstChildElement("work");
+            if (workElement)
             {
-                // work title
-                XMLElement* workTitle = work->FirstChildElement("work-title");
+                ParseWorkElement(workElement, songData->songTitle, songData->workNumber);
+            }
 
-                if (workTitle)
-                {
-                    songData->songTitle = workTitle->GetText();
-                }
+            songData->movementNumber = GetStringValue("movement-number", root, songData->movementNumber); // movement number
+            songData->movementTitle = GetStringValue("movement-title", root, songData->movementTitle); // movement title
+
+            // identification
+            XMLElement* identificationElement = root->FirstChildElement("identification");
+            if (identificationElement)
+            {
+                ParseIdentificationElement(identificationElement, songData);
+            }
+
+            // defaults
+            XMLElement* defaultsElement = root->FirstChildElement("defaults");
+            if (defaultsElement)
+            {
+                ParseDefaultsElement(defaultsElement);
+            }
+
+            // credit
+            XMLElement* creditElement = root->FirstChildElement("credit");
+            if (creditElement)
+            {
+                ParseCreditElement(creditElement);
             }
 
             // part list

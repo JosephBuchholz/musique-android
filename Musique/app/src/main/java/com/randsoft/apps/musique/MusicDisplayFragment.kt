@@ -25,6 +25,7 @@ class MusicDisplayFragment : Fragment() {
     private lateinit var playButton: Button
     private lateinit var restartButton: Button
     private lateinit var zoomSeekBar: SeekBar
+    private lateinit var playSeekBar: SeekBar
 
     var playing = false; // needs to be in a ViewModel
 
@@ -32,6 +33,7 @@ class MusicDisplayFragment : Fragment() {
         fun onStartRendering()
         fun onPlayButtonToggled(state: Boolean)
         fun onResetButtonPressed()
+        fun onPlayProgressChanged(progress: Float)
     }
 
     private var callbacks: Callbacks? = null
@@ -87,6 +89,22 @@ class MusicDisplayFragment : Fragment() {
                     musicDisplayView?.bitmapSizeScale = musicDisplayView!!.scale
                     musicDisplayView?.invalidate()
                 }
+            }
+
+            override fun onStartTrackingTouch(p0: SeekBar?) {
+
+            }
+
+            override fun onStopTrackingTouch(p0: SeekBar?) {
+
+            }
+        })
+
+        playSeekBar = view.findViewById(R.id.play_seek_bar)
+        playSeekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
+                var fProgress: Float = progress.toFloat() / 100.0f // from 0.0 to 1.0
+                callbacks?.onPlayProgressChanged(fProgress)
             }
 
             override fun onStartTrackingTouch(p0: SeekBar?) {

@@ -4,6 +4,7 @@
 
 #include "Rehearsal.h"
 #include "Words.h"
+#include "MetronomeMark.h"
 
 #include "Types.h"
 
@@ -20,6 +21,7 @@ public:
 
     std::vector<Rehearsal> rehearsals;
     std::vector<Words> words;
+    MetronomeMark* metronomeMark = nullptr;
 
     AboveBelowType placement = AboveBelowType::Above;
 };

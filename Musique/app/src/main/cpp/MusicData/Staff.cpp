@@ -39,3 +39,14 @@ float Staff::GetTotalHeight(float lineSpacing, int start, int end)
                   GetMiddleHeight(lineSpacing, start, end) +
                   GetBelowHeight(lineSpacing, start, end);
 }
+
+float Staff::GetTotalBeatWidth()
+{
+    float width = 0.0f;
+
+    for (auto* m : measures) {
+        width += m->GetDuration();
+    }
+
+    return width;
+}

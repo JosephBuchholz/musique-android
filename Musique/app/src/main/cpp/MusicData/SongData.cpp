@@ -18,6 +18,7 @@ void SongData::OnUpdate()
     // beat positions
     for (auto* instrument : instruments) {
         for (auto* staff : instrument->staves) {
+            totalBeatWidth = staff->GetTotalBeatWidth();
             int measureIndex = 0;
             for (auto* measure : staff->measures) {
                 measure->beatPosition = staff->GetMeasureBeatPosition(measureIndex);
@@ -68,6 +69,8 @@ void SongData::OnUpdate()
     }
 
     std::vector<float> measuresNotesWidths; // the widths of the combined widths of all the notes in each measure
+
+    // calculate m_MinNoteData
     {
         float time = 0.0f; // current time in song
         int steps = 0; // debug var
@@ -84,21 +87,20 @@ void SongData::OnUpdate()
                 //LOGD("note %i: beatpos: %f, duration: %f, width: %f, total width: %f", noteIndex, note->beatPositionInSong, note->duration.duration, note->GetMinWidth(), width);
                 //std::array<float, 3> a = { note->GetMinWidth(), note->beatPositionInSong, note->duration };
                 //m_MinNoteData.push_back({ note->GetMinWidth(), note->beatPositionInSong, note->duration.duration });
-                m_MinNoteData.emplace_back(note->GetMinWidth(), note->beatPositionInSong, note->duration.duration );
+                m_MinNoteData.emplace_back(GetNoteMinWidthInFront(note), note->beatPositionInSong, note->duration.duration, note->measureIndex );
 
                 if (measureIndex != note->measureIndex) {
                     measureIndex = note->measureIndex;
-                    measuresNotesWidths.push_back(width);
+                    //measuresNotesWidths.push_back(width);
                     width = 0.0f;
                 }
 
-                width += note->GetMinWidth(); // moved
+                width += GetNoteMinWidthInFront(note); // moved
             }
 
             if (noteIndex >= orderedNotes.size()-1) // is last note
             {
-                //width += note->GetMinWidth();
-                measuresNotesWidths.push_back(width);
+                //measuresNotesWidths.push_back(width);
             }
 
             noteIndex++;
@@ -107,13 +109,123 @@ void SongData::OnUpdate()
         LOGD("steps: %i", steps);
     }
 
+    {
+        for (Note *note: orderedNotes) {
+            float noteStartX = -1.0f;
+            float noteStopX = -1.0f;
+            float position = 0.0f;
+            float time = 0.0f;
+
+            NoteData previousNoteData = NoteData(0.0f, 0.0f, 0.0f, 0);
+
+            std::vector<NoteData*> noteDatas;
+            for (auto& minNoteData: m_MinNoteData) {
+                if (minNoteData.beatPositionInSong == note->beatPositionInSong && minNoteData.duration == note->duration.duration) // the same note
+                    break;
+                if (minNoteData.beatPositionInSong >= note->beatPositionInSong + note->duration.duration) // noteData.beatPositionInSong is past(or equal to) note stop beat position
+                {
+                    float stopBeatPosition = note->beatPositionInSong + note->duration.duration;
+                    // calculates how much of the previous note's width should be taken away from the position
+                    float diff = (stopBeatPosition - previousNoteData.beatPositionInSong); // num of beats between beatPositionInSong and previousNoteBeatPosition
+                    float howMuch = (diff/previousNoteData.duration); // the percentage of previousNoteWidth that needs to be added to previousNoteX to get the x of beatPositionInSong
+                    float howMuchToSub = 1.0f - howMuch; // the percentage of previousNoteWidth that needs to be subtracted from currentNoteX to get the x of beatPositionInSong
+                    noteStopX = position - (previousNoteData.width * howMuchToSub); // get the percentage of previousNoteWidth and subtract
+                    break;
+                }
+                else if (minNoteData.beatPositionInSong >= note->beatPositionInSong) // noteData.beatPositionInSong is past(or equal to) note->beatPositionInSong(what we want the x position of)
+                {
+                    if (minNoteData.beatPositionInSong != note->beatPositionInSong)
+                        noteDatas.push_back(&previousNoteData);
+                    noteDatas.push_back(&minNoteData);
+
+                    if (noteStartX == -1.0f)
+                    {
+                        if (previousNoteData.duration == 0.0f) // noteData is the first in the list so the position is just 0.0f
+                        {
+                            break; // done
+                        }
+
+                        // calculates how much of the previous note's width should be taken away from the position
+                        float diff = (note->beatPositionInSong - previousNoteData.beatPositionInSong); // num of beats between beatPositionInSong and previousNoteBeatPosition
+                        float howMuch = (diff/previousNoteData.duration); // the percentage of previousNoteWidth that needs to be added to previousNoteX to get the x of beatPositionInSong
+                        float howMuchToSub = 1.0f - howMuch; // the percentage of previousNoteWidth that needs to be subtracted from currentNoteX to get the x of beatPositionInSong
+                        noteStartX = position - (previousNoteData.width * howMuchToSub); // get the percentage of previousNoteWidth and subtract
+                    }
+                }
+
+                position += minNoteData.width;
+                time += minNoteData.duration;
+                previousNoteData.beatPositionInSong = minNoteData.beatPositionInSong;
+                previousNoteData.duration = minNoteData.duration;
+                previousNoteData.width = minNoteData.width;
+                /*if (note->beatPositionInSong >= minNoteData.beatPositionInSong && note->beatPositionInSong <= minNoteData.beatPositionInSong + minNoteData.duration) {
+                    float pos = note->beatPositionInSong
+                }
+                position*/
+            }
+
+            float noteWidth = noteStopX - noteStartX;
+            float minNoteWidth = GetNoteMinWidthInFront(note);
+            LOGW("noteWidth: %f, minNoteWidth: %f", noteWidth, minNoteWidth);
+            if (noteWidth < minNoteWidth) // then fix it so that noteWidth >= minNoteWidth
+            {
+                LOGE("noteWidth < minNoteWidth %i", noteDatas.size());
+                float howMuchToAdd = minNoteWidth - noteWidth;
+                for (auto* noteData: noteDatas) {
+                    float w = 0.0f;
+                    if (note->beatPositionInSong > noteData->beatPositionInSong)
+                    {
+                        w = (noteData->beatPositionInSong + noteData->duration) - note->beatPositionInSong;
+                    }
+                    else if (note->beatPositionInSong + note->duration.duration >= noteData->beatPositionInSong && note->beatPositionInSong + note->duration.duration < noteData->beatPositionInSong + noteData->duration)
+                    {
+                        w = (note->beatPositionInSong + note->duration.duration) - noteData->beatPositionInSong;
+                    }
+                    else
+                    {
+                        w = noteData->duration;
+                    }
+
+                    float pw = w / note->duration.duration;
+                    noteData->width += pw * howMuchToAdd;
+                    LOGD("pw = %f; w = %f; howMuchToAdd = %f; pw * howMuchToAdd = %f", pw, w, howMuchToAdd, pw * howMuchToAdd);
+                }
+            }
+        }
+    }
+
+    // calculate m_MinNoteData
+    {
+        float time = 0.0f; // current time in song
+        int steps = 0; // debug var
+        int measureIndex = 0;
+        float width = 0.0f;
+        int noteIndex = 0;
+        for (auto noteData : m_MinNoteData) {
+
+            if (measureIndex != noteData.measureIndex) {
+                measureIndex = noteData.measureIndex;
+                measuresNotesWidths.push_back(width);
+                width = 0.0f;
+            }
+
+            if (noteIndex >= orderedNotes.size()-1) // is last note
+            {
+                measuresNotesWidths.push_back(width);
+            }
+
+            width += noteData.width;
+        }
+    }
+
     // calculate measure widths
     for (auto* instrument : instruments) {
         for (auto* staff : instrument->staves) {
             int measureIndex = 0;
             for (auto* measure : staff->measures) {
-                int minWidth = measure->CalculateMinWidth(measuresNotesWidths[measureIndex]);
-                int beginWidth = measure->GetBeginningWidth();
+                // these were ints (this comment is only here be cause I could have cause a bug)
+                float minWidth = measure->CalculateMinWidth(measuresNotesWidths[measureIndex]);
+                float beginWidth = measure->GetBeginningWidth();
 
                 if ((int)m_MeasureWidths.size() - 1 >= measureIndex) { // if there is all ready a width at measureNumber
                     if (m_MeasureWidths[measureIndex] < minWidth) { // if the width of this measure is bigger than the widths of the previous measures
@@ -157,6 +269,16 @@ void SongData::CalculateNoteBeatPositionsInSong()
             }
         }
     }
+}
+
+float SongData::GetNoteMinWidthInFront(Note* note)
+{
+    return note->GetMinWidth();
+}
+
+float SongData::GetNoteMinWidthBehind(Note* note)
+{
+    return 0.0f;
 }
 
 float SongData::GetMeasureWidth(int measureIndex)
@@ -226,51 +348,43 @@ float SongData::GetPositionXInSong(float beatPositionInSong, int currentMeasureI
         }
     }*/
 
-    float pos = 0.0f;
+    float pos = 0.0f; // debug var
     float time = 0.0f;
+
     float previousNoteWidth = 0.0f;
     float previousNoteBeatPosition = 0.0f;
     float previousNoteDuration = 0.0f;
     for (auto noteData : m_MinNoteData)
     {
-        if (time >= GetMeasureBeatPosition(currentMeasureIndex)) // should be equal first time
+        if (time >= GetMeasureBeatPosition(currentMeasureIndex)) // should be equal first time that it is true
         {
-            if (previousNoteBeatPosition == 0.0f)
+            if (previousNoteBeatPosition == 0.0f) // first time, set to the start of the measure
             {
                 previousNoteBeatPosition = GetMeasureBeatPosition(currentMeasureIndex);
             }
-            //previousNoteBeatPosition = GetMeasureBeatPosition(currentMeasureIndex);
 
-            if (currentMeasureIndex == 1) {
-                //LOGD("beat positions: %f, %f, %i, %f", noteData[1], beatPositionInSong, currentMeasureIndex, noteData[2]);
-            } else if (currentMeasureIndex == 0)
+            if (noteData.beatPositionInSong >= beatPositionInSong) // noteData.beatPositionInSong is past(or equal to) beatPositionInSong(what we want the x position of)
             {
-                //LOGD("beat positions at measure 0: %f, %f, %i, %f", noteData[1], beatPositionInSong, currentMeasureIndex, noteData[2]);
-            }
-            if (noteData.beatPosition/*beat position*/ >= beatPositionInSong)
-            {
-                if (previousNoteDuration == 0.0f)
+                if (previousNoteDuration == 0.0f) // noteData is the first in the list so the position is just 0.0f
                 {
-                    break;
+                    break; // done
                 }
+
                 // calculates how much of the previous note's width should be taken away from the position
-
-
-
-                float diff = (beatPositionInSong - previousNoteBeatPosition);
-                float howMuch = (diff/previousNoteDuration);
-                float howMuchToSub = 1.0f - howMuch;
-                position -= (previousNoteWidth * howMuchToSub); // scale?
-                //position -= previousNoteWidth - (previousNoteWidth * ((beatPositionInSong - previousNoteBeatPosition)/previousNoteDuration));
+                float diff = (beatPositionInSong - previousNoteBeatPosition); // num of beats between beatPositionInSong and previousNoteBeatPosition
+                float howMuch = (diff/previousNoteDuration); // the percentage of previousNoteWidth that needs to be added to previousNoteX to get the x of beatPositionInSong
+                float howMuchToSub = 1.0f - howMuch; // the percentage of previousNoteWidth that needs to be subtracted from currentNoteX to get the x of beatPositionInSong
+                position -= (previousNoteWidth * howMuchToSub); // get the percentage of previousNoteWidth and subtract
                 break; // done
             }
-            position += noteData.width/*width*/;
-            previousNoteBeatPosition = noteData.beatPosition/*beat position*/;
-            previousNoteDuration = noteData.duration/*duration*/;
+
+            position += noteData.width;
+            previousNoteBeatPosition = noteData.beatPositionInSong;
+            previousNoteDuration = noteData.duration;
         }
-        pos += noteData.width/*width*/;
-        time += noteData.duration/*duration*/;
-        previousNoteWidth = noteData.width/*width*/;
+        pos += noteData.width;
+        time += noteData.duration;
+        previousNoteWidth = noteData.width;
     }
 
     return position;

@@ -32,16 +32,64 @@ public:
 
     float GetPositionXInSong(float beatPositionInSong, int currentMeasureIndex);
 
+    float GetNoteMinWidthInFront(Note* note); // the minimum amount of space needed in front of the note
+    float GetNoteMinWidthBehind(Note* note); // the minimum amount of space needed behind the note
+
 private:
     void CalculateNoteBeatPositionsInSong();
 
 public:
     std::string songTitle = "Title";
+    int workNumber = -1; // -1 is an invalid value
+
+    std::string movementNumber = "";
+    std::string movementTitle = "";
 
     std::string musicXMLVersion = "1.0";
 
 
     std::vector<Instrument*> instruments;
+
+    // creators, like composers or arrangers
+    struct Creator {
+        std::string name = "";
+        std::string strType = "";
+
+        enum class CreatorType {
+            None = 0, Composer, Lyricist, Arranger
+        } type = CreatorType::None;
+    };
+    std::vector<Creator> creators;
+
+    // rights, like copyright
+    struct Rights {
+        std::string right = "";
+        std::string strType = "";
+
+        enum class RightType {
+            None = 0, Music, Words, Arrangement
+        } type = RightType::None;
+    };
+    std::vector<Rights> rights;
+
+    // encoders
+    struct Encoder {
+        std::string name = "";
+        std::string strType = "";
+
+        enum class EncoderType {
+            None = 0, Music, Words, Arrangement
+        } type = EncoderType::None;
+    };
+    std::vector<Encoder> encoders;
+
+    std::string encodingDescription = "";
+
+    std::string software = "";
+
+    Date encodingDate = Date();
+
+    float totalBeatWidth = 0.0f;
 
 private:
     std::vector<float> m_MeasureWidths; // the widths of the measures
@@ -49,11 +97,12 @@ private:
 
     struct NoteData
     {
-        NoteData(float width, float beatPosition, float duration)
-            : width(width), beatPosition(beatPosition), duration(duration) {}
+        NoteData(float width, float beatPositionInSong, float duration, int measureIndex)
+            : width(width), beatPositionInSong(beatPositionInSong), duration(duration), measureIndex(measureIndex) {}
         float width = 0.0f;
-        float beatPosition = 0.0f;
+        float beatPositionInSong = 0.0f;
         float duration = 0.0f;
+        int measureIndex = 0;
     };
     std::vector<NoteData> m_MinNoteData; // the widths, beat positions, and durations of the smallest notes
 };

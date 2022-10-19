@@ -17,6 +17,8 @@ public:
     float GetBelowHeight(float lineSpacing, int start, int end);
     float GetTotalHeight(float lineSpacing, int start, int end);
 
+    float GetTotalBeatWidth();
+
     // gets the next(for example if the measure is repeated) beat position of the given measure
     float GetMeasureNextBeatPosition(int measureIndex, float currentBeatPosition) {
         float position = 0.0f;

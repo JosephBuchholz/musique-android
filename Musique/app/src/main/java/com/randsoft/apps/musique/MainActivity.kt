@@ -214,6 +214,11 @@ class MainActivity : AppCompatActivity(), MusicDisplayFragment.Callbacks,
         onResetButtonPressedNative()
     }
 
+    override fun onPlayProgressChanged(progress: Float)
+    {
+        onPlayProgressChangedNative(progress)
+    }
+
     // ---- Calls to Native C++ ----
 
     private external fun startRendering()
@@ -224,6 +229,7 @@ class MainActivity : AppCompatActivity(), MusicDisplayFragment.Callbacks,
 
     private external fun onPlayButtonToggledNative(state: Boolean)
     private external fun onResetButtonPressedNative()
+    private external fun onPlayProgressChangedNative(progress: Float)
 
     private external fun setViewModelData(viewModelData: ViewModelData)
     private external fun onMidiStart()
