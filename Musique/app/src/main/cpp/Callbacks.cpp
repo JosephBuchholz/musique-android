@@ -23,9 +23,97 @@ static JNIEnv* GetEnv() {
     return env;
 }
 
-void UpdateRender(const RenderData& renderData) {
+void UpdateFrameData(const FrameData& frameData)
+{
     JNIEnv* env = GetEnv();
 
+    jclass classMainActivity = env->FindClass("com/randsoft/apps/musique/MainActivity");
+    jmethodID callback = env->GetMethodID(classMainActivity, "onUpdateFrameData",
+                                          "(Lcom/randsoft/apps/musique/framedata/FrameData;)V");
+
+    // creating FrameData class
+    jclass frameDataClass = env->FindClass("com/randsoft/apps/musique/framedata/FrameData");
+    jmethodID constructor = env->GetMethodID(frameDataClass, "<init>", "()V");
+    jobject frameDataObject = env->NewObject(frameDataClass, constructor);
+
+    // setting 'playLinePosition' field
+    jfieldID fieldId = env->GetFieldID(frameDataClass, "playLinePosition", "F");
+    env->SetFloatField(frameDataObject, fieldId, frameData.playLinePosition);
+
+    // setting 'playLinePositionY' field
+    fieldId = env->GetFieldID(frameDataClass, "playLinePositionY", "F");
+    env->SetFloatField(frameDataObject, fieldId, frameData.playLinePositionY);
+
+    // setting 'playLineHeight' field
+    fieldId = env->GetFieldID(frameDataClass, "playLineHeight", "F");
+    env->SetFloatField(frameDataObject, fieldId, frameData.playLineHeight);
+
+    // setting 'playProgress' field
+    fieldId = env->GetFieldID(frameDataClass, "playProgress", "F");
+    env->SetFloatField(frameDataObject, fieldId, frameData.playProgress);
+
+    // calling callback
+    env->CallVoidMethod(mainActivityRefObj, callback, frameDataObject);
+}
+
+void UpdateSongData(const SongData& songData)
+{
+    JNIEnv* env = GetEnv();
+
+    jclass classMainActivity = env->FindClass("com/randsoft/apps/musique/MainActivity");
+    jmethodID callback = env->GetMethodID(classMainActivity, "onUpdateSongData",
+                                          "(Lcom/randsoft/apps/musique/songdata/SongData;)V");
+
+    // creating SongData class
+    jclass songDataClass = env->FindClass("com/randsoft/apps/musique/songdata/SongData");
+    jmethodID constructor = env->GetMethodID(songDataClass, "<init>", "()V");
+    jobject songDataObject = env->NewObject(songDataClass, constructor);
+
+    // String class
+    jclass stringClass = env->FindClass("java/lang/String");
+    jmethodID stringConstructor = env->GetMethodID(stringClass, "<init>", "()V");
+
+    // setting 'songTitle' field
+    jfieldID fieldId = env->GetFieldID(songDataClass, "songTitle", "Ljava/lang/String;");
+    jobject songTitleString = env->NewObject(stringClass, stringConstructor);
+    env->SetObjectField(songDataObject, fieldId, songTitleString);
+
+    // setting 'instruments' field
+    fieldId = env->GetFieldID(songDataClass, "instruments", "[Lcom/randsoft/apps/musique/songdata/InstrumentInfo;");
+
+    // creating new InstrumentInfo Array
+    jclass instrumentInfoClass = env->FindClass("com/randsoft/apps/musique/songdata/InstrumentInfo");
+    jmethodID instrumentInfoConstructor = env->GetMethodID(instrumentInfoClass, "<init>", "()V");
+    jobject instrumentInfoObject = env->NewObject(instrumentInfoClass, instrumentInfoConstructor);
+    jobjectArray instrumentInfoArray = env->NewObjectArray((jsize)songData.instrumentInfos.size(), instrumentInfoClass, instrumentInfoObject);
+
+    {
+        jfieldID fieldIdName = env->GetFieldID(instrumentInfoClass, "name", "Ljava/lang/String;");
+        jfieldID fieldIdVolume = env->GetFieldID(instrumentInfoClass, "volume", "I");
+        jfieldID fieldIdVisible = env->GetFieldID(instrumentInfoClass, "visible", "Z");
+
+        int index = 0;
+        for (const auto& instrumentInfo : songData.instrumentInfos) {
+            jobject newInstrumentInfo = env->NewObject(instrumentInfoClass, instrumentInfoConstructor);
+
+            //env->SetObjectField(newInstrumentInfo, fieldIdName, instrumentInfo.name);
+            env->SetIntField(newInstrumentInfo, fieldIdVolume, instrumentInfo.volume);
+            env->SetBooleanField(newInstrumentInfo, fieldIdVisible, instrumentInfo.visible);
+
+            env->SetObjectArrayElement(instrumentInfoArray, index, newInstrumentInfo);
+            index++;
+        }
+    }
+
+    // set instruments array field in songDataObject
+    env->SetObjectField(songDataObject, fieldId, instrumentInfoArray);
+
+    // calling callback
+    env->CallVoidMethod(mainActivityRefObj, callback, songDataObject);
+}
+
+jobject ConvertRenderDataToObject(JNIEnv* env, const RenderData& renderData)
+{
     // Paint class
     jclass paintClass = env->FindClass("com/randsoft/apps/musique/renderdata/Paint");
     jmethodID paintConstructor = env->GetMethodID(paintClass, "<init>", "(I)V");
@@ -45,7 +133,7 @@ void UpdateRender(const RenderData& renderData) {
 
     // getting line array field in renderDataObject
     jfieldID fieldIdLines = env->GetFieldID(renderDataClass, "lines",
-                                       "[Lcom/randsoft/apps/musique/renderdata/Line;");
+                                            "[Lcom/randsoft/apps/musique/renderdata/Line;");
 
     // creating new Line Array
     jclass lineClass = env->FindClass("com/randsoft/apps/musique/renderdata/Line");
@@ -134,7 +222,7 @@ void UpdateRender(const RenderData& renderData) {
 
     // getting bitmaps array field in renderDataObject
     jfieldID fieldIdBitmaps = env->GetFieldID(renderDataClass, "bitmaps",
-                                            "[Lcom/randsoft/apps/musique/renderdata/RenderBitmap;");
+                                              "[Lcom/randsoft/apps/musique/renderdata/RenderBitmap;");
 
     // creating new Bitmap Array
     jclass bitmapClass = env->FindClass("com/randsoft/apps/musique/renderdata/RenderBitmap");
@@ -180,7 +268,7 @@ void UpdateRender(const RenderData& renderData) {
 
     // getting cubic curve array field in renderDataObject
     jfieldID fieldIdCubicCurves = env->GetFieldID(renderDataClass, "cubicCurves",
-                                            "[Lcom/randsoft/apps/musique/renderdata/CubicCurve;");
+                                                  "[Lcom/randsoft/apps/musique/renderdata/CubicCurve;");
 
     // creating new CubicCurve Array
     jclass cubicCurveClass = env->FindClass("com/randsoft/apps/musique/renderdata/CubicCurve");
@@ -223,41 +311,59 @@ void UpdateRender(const RenderData& renderData) {
             index++;
         }
     }
+    return renderDataObject;
+}
 
-    // set cubic curves array field in renderDataObject
-    env->SetObjectField(renderDataObject, fieldIdCubicCurves, cubicCurvesArray);
+void UpdateRender(const RenderData& renderData) {
+    JNIEnv* env = GetEnv();
+
+    jobject renderDataObject = ConvertRenderDataToObject(env, renderData);
 
     // calling callback
     env->CallVoidMethod(mainActivityRefObj, updateRenderCallback, renderDataObject);
 }
 
-void UpdateFrameData(const FrameData& frameData)
+void UpdatePrintRenderData(const PrintRenderData& printRenderData)
 {
     JNIEnv* env = GetEnv();
 
     jclass classMainActivity = env->FindClass("com/randsoft/apps/musique/MainActivity");
-    jmethodID callback = env->GetMethodID(classMainActivity, "onUpdateFrameData",
-                                          "(Lcom/randsoft/apps/musique/framedata/FrameData;)V");
+    jmethodID callback = env->GetMethodID(classMainActivity, "onUpdatePrintRenderData",
+                                          "(Lcom/randsoft/apps/musique/renderdata/PrintRenderData;)V");
 
-    // creating FrameData class
-    jclass frameDataClass = env->FindClass("com/randsoft/apps/musique/framedata/FrameData");
-    jmethodID constructor = env->GetMethodID(frameDataClass, "<init>", "()V");
-    jobject frameDataObject = env->NewObject(frameDataClass, constructor);
+    // creating new PrintRenderData object
+    jclass printRenderDataClass = env->FindClass("com/randsoft/apps/musique/renderdata/PrintRenderData");
+    jmethodID constructor = env->GetMethodID(printRenderDataClass, "<init>", "()V");
+    jobject printRenderDataObject = env->NewObject(printRenderDataClass, constructor);
 
-    // setting 'playLinePosition' field
-    jfieldID fieldId = env->GetFieldID(frameDataClass, "playLinePosition", "F");
-    env->SetFloatField(frameDataObject, fieldId, frameData.playLinePosition);
+    // PAGES
 
-    // setting 'playLinePositionY' field
-    fieldId = env->GetFieldID(frameDataClass, "playLinePositionY", "F");
-    env->SetFloatField(frameDataObject, fieldId, frameData.playLinePositionY);
+    // getting pages array field
+    jfieldID fieldIdPages = env->GetFieldID(printRenderDataClass, "pages",
+                                            "[Lcom/randsoft/apps/musique/renderdata/RenderData;");
 
-    // setting 'playLineHeight' field
-    fieldId = env->GetFieldID(frameDataClass, "playLineHeight", "F");
-    env->SetFloatField(frameDataObject, fieldId, frameData.playLineHeight);
+    // creating new RenderData Array
+    jclass renderDataClass = env->FindClass("com/randsoft/apps/musique/renderdata/RenderData");
+    jmethodID renderDataConstructor = env->GetMethodID(renderDataClass, "<init>", "()V");
+    jobject renderDataObject = env->NewObject(renderDataClass, renderDataConstructor);
+    jobjectArray renderDataArray = env->NewObjectArray((jsize)printRenderData.pages.size(), renderDataClass, renderDataObject);
+
+
+    {
+        int index = 0;
+        for (const auto& page : printRenderData.pages) {
+            jobject newPageRenderData = ConvertRenderDataToObject(env, page); // get RenderData as a jobject
+
+            env->SetObjectArrayElement(renderDataArray, index, newPageRenderData);
+            index++;
+        }
+    }
+
+    // set pages array field
+    env->SetObjectField(printRenderDataObject, fieldIdPages, renderDataArray);
 
     // calling callback
-    env->CallVoidMethod(mainActivityRefObj, callback, frameDataObject);
+    env->CallVoidMethod(mainActivityRefObj, callback, printRenderDataObject);
 }
 
 void UpdateViewModelData(const ViewModelData& viewModelData) {

@@ -14,6 +14,18 @@ class Note {
 public:
     ~Note() {}
 
+    static bool IsNoteIsHigher(Note* note1, Note* note2)
+    {
+        if (note1->pitch.GetPitchValue() > note2->pitch.GetPitchValue())
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+
     void OnPlay() {
         isPlaying = true;
     }

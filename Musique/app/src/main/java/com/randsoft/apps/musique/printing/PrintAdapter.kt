@@ -27,6 +27,7 @@ class PrintAdapter(private val context: Context) : PrintDocumentAdapter()
     interface Callbacks {
         fun onDrawPage(page: PdfDocument.Page)
         fun onCalculateNumPages(): Int
+        fun onUpdateLayout(attributes: PrintAttributes): Boolean
     }
 
     private var callbacks: Callbacks? = null
@@ -53,7 +54,7 @@ class PrintAdapter(private val context: Context) : PrintDocumentAdapter()
         extras: Bundle?
     ) {
         Log.i(TAG, "onLayout");
-        var layoutChanged = true
+        val layoutChanged: Boolean = callbacks?.onUpdateLayout(newAttributes)!!
         pdfDocument = PrintedPdfDocument(context, newAttributes) // create document
 
         // if the job was canceled

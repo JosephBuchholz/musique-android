@@ -1,6 +1,6 @@
 #pragma once
 #include "AndroidDebug.h"
-#include "MusicData/SongData.h"
+#include "MusicData/Song.h"
 #include "ViewModelData.h"
 #include "Midi.h"
 #include "Callbacks.h"
@@ -21,12 +21,22 @@ public:
     void SetViewModelData(ViewModelData viewModelData);
     void OnMidiStart();
     void LoadSongFromString(const std::string& string);
+    bool OnUpdatePrintLayout();
+    int OnCalculateNumPages();
+    void RenderMusicToPage(RenderData& renderData, int page);
 
-    void RenderDirection(RenderData& renderData, const Direction& direction, float positionY, Measure* measure);
-    void RenderLyric(RenderData& renderData, const Lyric& lyric, float positionY, Measure* measure, Note* note);
+    void RenderNote(RenderData& renderData, const Note* note, Measure* measure, const Staff* staff, float staffYPosition, float instYPosition, int measureNumber, float ls, float mainPositionX, float mainPositionY, int noteIndex);
+    void RenderRest(RenderData& renderData, const Note* note, int lines, float ls, float offsetX, float offsetY);
+    void RenderTabNote(RenderData& renderData, const Note* note, int lines, float ls, float offsetX, float offsetY);
+    void RenderDirection(RenderData& renderData, const Direction& direction, float positionY, Measure* measure, float offsetX, float offsetY);
+    void RenderLyric(RenderData& renderData, const Lyric& lyric, float positionY, const Measure* measure, const Note* note, float offsetX, float offsetY);
+    void RenderTimeSignature(RenderData& renderData, const Measure* measure, float measurePosition, float ls, float offsetX, float offsetY);
+    void RenderKeySignature(RenderData& renderData, const Measure* measure, float measurePosition, float ls, int lines, float offsetX, float offsetY);
+    void RenderClef(RenderData& renderData, const Measure* measure, float measurePosition, float ls, int lines, float offsetX, float offsetY);
+    void RenderNoteStemAndFlagAndBeam(RenderData& renderData, const Note* note, float notePositionX, float notePositionY);
 
 private:
-    void DeleteSongData();
+    void DeleteSong();
 
 private:
 
@@ -75,10 +85,19 @@ private:
 
     float currentTempo = 120.0f; // beats per minute
 
-    SongData* songData = new SongData();
+    Song* song = new Song();
     std::string songString = "";
 
     float displayWidth = 1000.0f;
+
+    float curveStartX = 0.0f;
+    float curveStartY = 0.0f;
+
+    float beamStartX = 0.0f;
+    float beamStartY = 0.0f;
+
+    float lineSpacing = 10.0f;
+    float tabLineSpacing = 13.33f;
 
     bool startRendering = false;
 };

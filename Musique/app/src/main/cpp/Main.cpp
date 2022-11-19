@@ -148,6 +148,25 @@ extern "C" {
         }
     }
 
+    JNIEXPORT jboolean JNICALL
+    Java_com_randsoft_apps_musique_MainActivity_onUpdatePrintLayoutNative(JNIEnv* env, jobject instance,
+                                                                          jobject attributes) {
+        if (app != nullptr) {
+            bool layoutChanged = app->OnUpdatePrintLayout();
+            return layoutChanged;
+        }
+        return false;
+    }
+
+    JNIEXPORT jint JNICALL
+    Java_com_randsoft_apps_musique_MainActivity_onCalculateNumPagesNative(JNIEnv* env, jobject instance) {
+        if (app != nullptr) {
+            int numPages = app->OnCalculateNumPages();
+            return numPages;
+        }
+        return 0;
+    }
+
     JNIEXPORT void JNICALL
     Java_com_randsoft_apps_musique_MainActivity_loadSongFromString(JNIEnv* env, jobject instance,
                                                                    jstring string) {

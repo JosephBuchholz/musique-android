@@ -2,6 +2,7 @@ package com.randsoft.apps.musique.printing
 
 import android.content.Context
 import android.graphics.pdf.PdfDocument
+import android.print.PrintAttributes
 import android.print.PrintManager
 import com.randsoft.apps.musique.MusicDisplayFragment
 import com.randsoft.apps.musique.R
@@ -13,6 +14,7 @@ class PrintHandler(private val context: Context) : PrintAdapter.Callbacks {
     interface Callbacks {
         fun onDrawPage(page: PdfDocument.Page)
         fun onCalculateNumPages(): Int
+        fun onUpdateLayout(attributes: PrintAttributes): Boolean
     }
 
     private var callbacks: Callbacks? = null
@@ -27,6 +29,10 @@ class PrintHandler(private val context: Context) : PrintAdapter.Callbacks {
 
     override fun onCalculateNumPages(): Int {
         return callbacks?.onCalculateNumPages()!!
+    }
+
+    override fun onUpdateLayout(attributes: PrintAttributes): Boolean {
+        return callbacks?.onUpdateLayout(attributes)!!
     }
 
     fun print()

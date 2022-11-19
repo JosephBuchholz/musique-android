@@ -21,4 +21,6 @@ struct NoteStem {
     }
 
     StemType stemType = StemType::None;
+
+    float stemEndY = 0.0f; // relative to the center of the note
 };

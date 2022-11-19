@@ -106,9 +106,8 @@ static AssetID GetNoteAssetID(Note::NoteDurationType type)
         case Note::NoteDurationType::Quarter: return AssetID::QuarterNote;
         case Note::NoteDurationType::Eighth: return AssetID::EightNote;
         case Note::NoteDurationType::Sixteenth: return AssetID::SixteenthNote;
+        default: return AssetID::None;
     }
-
-    return AssetID::None;
 }
 
 static AssetID GetNoteHeadAssetID(Note::NoteDurationType type)

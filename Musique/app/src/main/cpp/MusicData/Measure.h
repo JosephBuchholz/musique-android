@@ -111,22 +111,29 @@ public:
         return position;
     }
 
-    float GetNoteYPosition(int noteIndex) const {
+    float GetPitchYPosition(Pitch pitch) const {
         float position = 0.0f;
 
-        Note* note = notes[noteIndex];
-
-        int y = GetLetterNumber(note->pitch.step) + note->pitch.octave*7; // the y position of pitch of the note
+        int y = GetLetterNumber(pitch.step) + pitch.octave*7; // the y position of pitch of the note
 
         int line = 5 - clef.line; // getting line starting from the top instead of the bottom
         if (clef.sign == "G" || clef.sign == "F" || clef.sign == "C") {
             int octave = 4; // the octave of the clef sign
+            if (clef.sign == "F")
+                octave = 3;
             int clefY = GetLetterNumber(clef.sign) + octave*7; // the y position of pitch of the clef
 
             position = (float)line - (y - clefY) * 0.5f; // the y position of the note on the staff
         }
 
         return position;
+    }
+
+    float GetNoteYPosition(int noteIndex) const {
+        float position = 0.0f;
+
+        Note* note = notes[noteIndex];
+        return GetPitchYPosition(note->pitch);
     }
 
     int GetLetterNumber(const std::string& s) const {

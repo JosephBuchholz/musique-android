@@ -27,6 +27,7 @@ private const val TAG = "MusicDisplayView"
 class MusicDisplayView(context: Context, attrs: AttributeSet? = null): View(context, attrs) {
 
     var renderData: RenderData? = null
+    var printRenderData: PrintRenderData? = null
     var frameData: FrameData? = null
 
     var renderDataChanged = false
@@ -288,9 +289,9 @@ class MusicDisplayView(context: Context, attrs: AttributeSet? = null): View(cont
             }
 
             // draw play line
-            canvas.drawLine((0.0f * scale), (0.0f * scale), (frameData!!.playLinePosition * scale), ((frameData!!.playLinePositionY + frameData!!.playLineHeight) * scale), paint)
+            //canvas.drawLine((0.0f * scale), (0.0f * scale), (frameData!!.playLinePosition * scale), ((frameData!!.playLinePositionY + frameData!!.playLineHeight) * scale), paint)
             drawLine(canvas, Line(frameData!!.playLinePosition, frameData!!.playLinePositionY, frameData!!.playLinePosition, frameData!!.playLinePositionY + frameData!!.playLineHeight), paint)
-            drawLine(canvas, Line(0.0f, 0.0f, frameData!!.playLinePosition, frameData!!.playLinePositionY + frameData!!.playLineHeight), paint)
+            //drawLine(canvas, Line(0.0f, 0.0f, frameData!!.playLinePosition, frameData!!.playLinePositionY + frameData!!.playLineHeight), paint)
         }
     }
 
@@ -323,14 +324,17 @@ class MusicDisplayView(context: Context, attrs: AttributeSet? = null): View(cont
         page.canvas.drawPaint(backgroundPaint) // fill canvas
         val density = resources.displayMetrics.density
 
-        if (renderData != null) {
+        if (printRenderData != null) {
 
             val mainCanvas = page.canvas
             //mainCanvas.drawPaint(backgroundPaint)
-            scale = tenthsToPoints(1.0f, renderData!!.scaling)
+
+            val pageRenderData: RenderData = printRenderData?.pages?.get(page.info.pageNumber)!!
+
+            scale = tenthsToPoints(1.0f, pageRenderData.scaling)
             bitmapSizeScale = scale
 
-            for (line in renderData?.lines!!) {
+            for (line in pageRenderData.lines) {
                 val paint = Paint().apply {
                     color = line.paint.color
                     strokeWidth = line.paint.strokeWidth * scale
@@ -340,7 +344,7 @@ class MusicDisplayView(context: Context, attrs: AttributeSet? = null): View(cont
                 drawLine(mainCanvas, line, paint, 0.0f, 0.0f)
             }
 
-            for (text in renderData?.texts!!) {
+            for (text in pageRenderData.texts) {
                 //typeface.style = Typeface.BOLD
                 val paint = Paint().apply {
                     color = text.paint.color
@@ -358,7 +362,7 @@ class MusicDisplayView(context: Context, attrs: AttributeSet? = null): View(cont
                 drawText(mainCanvas, text, paint, 0.0f, 0.0f)
             }
 
-            for (bitmap in renderData?.bitmaps!!) {
+            for (bitmap in pageRenderData.bitmaps) {
                 val paint = Paint().apply {
                     color = bitmap.paint.color
                 }
@@ -412,7 +416,7 @@ class MusicDisplayView(context: Context, attrs: AttributeSet? = null): View(cont
             }
 
             // render cubic bezier curves
-            for (curve in renderData?.cubicCurves!!) {
+            for (curve in pageRenderData.cubicCurves) {
                 val paint = Paint().apply {
                     color = curve.paint.color
                     strokeWidth = curve.paint.strokeWidth
@@ -482,8 +486,9 @@ class MusicDisplayView(context: Context, attrs: AttributeSet? = null): View(cont
             AssetID.WholeRest.ordinal -> { R.drawable.whole_and_half_rest } // rests
             AssetID.HalfRest.ordinal -> { R.drawable.whole_and_half_rest }
             AssetID.QuarterRest.ordinal -> { R.drawable.quarter_rest }
-            AssetID.EightRest.ordinal -> { R.drawable.quarter_rest }
-            AssetID.SixteenthRest.ordinal -> { R.drawable.quarter_rest }
+            AssetID.EightRest.ordinal -> { R.drawable.eighth_rest }
+            AssetID.SixteenthRest.ordinal -> { R.drawable.sixteenth_rest }
+            AssetID.ThirtySecondRest.ordinal -> { R.drawable.thirty_second_rest }
             AssetID.KeySignature1Sharp.ordinal -> { R.drawable.key_signature_1_sharp } // key signatures
             AssetID.KeySignature2Sharps.ordinal -> { R.drawable.key_signature_2_sharps }
             AssetID.KeySignature3Sharps.ordinal -> { R.drawable.key_signature_3_sharps }
@@ -491,13 +496,13 @@ class MusicDisplayView(context: Context, attrs: AttributeSet? = null): View(cont
             AssetID.KeySignature5Sharps.ordinal -> { R.drawable.key_signature_5_sharps }
             AssetID.KeySignature6Sharps.ordinal -> { R.drawable.key_signature_6_sharps }
             AssetID.KeySignature7Sharps.ordinal -> { R.drawable.key_signature_7_sharps }
-            AssetID.KeySignature1Flat.ordinal -> { R.drawable.quarter_rest }
-            AssetID.KeySignature2Flats.ordinal -> { R.drawable.quarter_rest }
+            AssetID.KeySignature1Flat.ordinal -> { R.drawable.thirty_second_rest }
+            AssetID.KeySignature2Flats.ordinal -> { R.drawable.thirty_second_rest }
             AssetID.KeySignature3Flats.ordinal -> { R.drawable.key_signature_3_flats }
-            AssetID.KeySignature4Flats.ordinal -> { R.drawable.quarter_rest }
-            AssetID.KeySignature5Flats.ordinal -> { R.drawable.quarter_rest }
-            AssetID.KeySignature6Flats.ordinal -> { R.drawable.quarter_rest }
-            AssetID.KeySignature7Flats.ordinal -> { R.drawable.quarter_rest }
+            AssetID.KeySignature4Flats.ordinal -> { R.drawable.thirty_second_rest }
+            AssetID.KeySignature5Flats.ordinal -> { R.drawable.thirty_second_rest }
+            AssetID.KeySignature6Flats.ordinal -> { R.drawable.thirty_second_rest }
+            AssetID.KeySignature7Flats.ordinal -> { R.drawable.thirty_second_rest }
             else -> { R.drawable.ic_launcher_background }
         }
     }

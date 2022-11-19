@@ -1,18 +1,9 @@
-#pragma once
-
-#include <string>
-//#include "libs/tinyxml/tinyxml.h"
-//#include "libs/tinyxml/tinystr.h"
-#include "libs/tinyxml2/tinyxml2.h"
-#include "MusicData/SongData.h"
-#include "MusicData/Types.h"
-#include "Utils/Converters.h"
-
-using namespace tinyxml2;
+#include "MusicXMLParser.h"
+#include "../Utils/Converters.h"
 
 // ---- Conversions ----
 
-bool FromYesNoToBool(const char* string)
+bool MusicXMLParser::FromYesNoToBool(const char* string)
 {
     if (strcmp(string, "yes") == 0) {
         return true;
@@ -20,14 +11,14 @@ bool FromYesNoToBool(const char* string)
     return false;
 }
 
-Date FromStringToDate(const char* string)
+Date MusicXMLParser::FromStringToDate(const char* string)
 {
     Date date = Date();
     char* copy = strdup(string); // copy string so that it isn't const and can be used in strtok
     char* s = strtok(copy, "-"); // the first part of the date (year)
 
     int i = 0;
-    while (s != NULL) // get the different parts of the date using strtok(), (strtok splits a string using a delimiter)
+    while (s != nullptr) // get the different parts of the date using strtok(), (strtok splits a string using a delimiter)
     {
         if (i == 0) // year (yyyy)
             date.year = ToInt(s);
@@ -35,7 +26,7 @@ Date FromStringToDate(const char* string)
             date.month = ToInt(s);
         else if (i == 2) // day (dd)
             date.day = ToInt(s);
-        s = strtok(NULL, "-"); // get the next part of the date
+        s = strtok(nullptr, "-"); // get the next part of the date
         i++;
     }
 
@@ -44,16 +35,9 @@ Date FromStringToDate(const char* string)
     return date;
 }
 
-// ---- Is Value Functions ----
-
-bool IsInt(std::string value)
-{
-    return true; // TODO: needs implemented
-}
-
 // ---- Get Value Functions ----
 
-std::string GetStringValue(XMLElement* element, std::string defaultValue = "")
+std::string MusicXMLParser::GetStringValue(XMLElement* element, std::string defaultValue)
 {
     if (element) {
         return element->GetText();
@@ -61,7 +45,7 @@ std::string GetStringValue(XMLElement* element, std::string defaultValue = "")
     return defaultValue;
 }
 
-std::string GetStringValue(std::string elementName, XMLElement* elementParent, std::string defaultValue = "")
+std::string MusicXMLParser::GetStringValue(std::string elementName, XMLElement* elementParent, std::string defaultValue)
 {
     XMLElement* element = elementParent->FirstChildElement(elementName.c_str());
     if (element)
@@ -71,7 +55,7 @@ std::string GetStringValue(std::string elementName, XMLElement* elementParent, s
     return defaultValue;
 }
 
-int GetIntValue(XMLElement* element, int defaultValue = 0)
+int MusicXMLParser::GetIntValue(XMLElement* element, int defaultValue)
 {
     if (element) {
         std::string c = element->GetText();
@@ -84,7 +68,7 @@ int GetIntValue(XMLElement* element, int defaultValue = 0)
 
 // ---- Get Attribute Functions ----
 
-bool GetBoolAttribute(XMLElement* element, const char* s, bool defaultValue = false)
+bool MusicXMLParser::GetBoolAttribute(XMLElement* element, const char* s, bool defaultValue)
 {
     const char* attribute = element->Attribute(s);
     if (attribute) {
@@ -93,7 +77,7 @@ bool GetBoolAttribute(XMLElement* element, const char* s, bool defaultValue = fa
     return defaultValue;
 }
 
-float GetFloatAttribute(XMLElement* element, const char* s, float defaultValue = 0.0f)
+float MusicXMLParser::GetFloatAttribute(XMLElement* element, const char* s, float defaultValue)
 {
     const char* attribute = element->Attribute(s);
     if (attribute) {
@@ -102,7 +86,7 @@ float GetFloatAttribute(XMLElement* element, const char* s, float defaultValue =
     return defaultValue;
 }
 
-std::string GetStringAttribute(XMLElement* element, const char* s, std::string defaultValue = "")
+std::string MusicXMLParser::GetStringAttribute(XMLElement* element, const char* s, std::string defaultValue)
 {
     const char* attribute = element->Attribute(s);
     if (attribute) {
@@ -111,7 +95,7 @@ std::string GetStringAttribute(XMLElement* element, const char* s, std::string d
     return defaultValue;
 }
 
-int GetNumberAttribute(XMLElement* element, const char* s, int defaultValue = 0)
+int MusicXMLParser::GetNumberAttribute(XMLElement* element, const char* s, int defaultValue)
 {
     const char* attribute = element->Attribute(s);
     if (attribute) {
@@ -120,7 +104,7 @@ int GetNumberAttribute(XMLElement* element, const char* s, int defaultValue = 0)
     return defaultValue;
 }
 
-AboveBelowType GetAboveBelowAttribute(XMLElement* element, const char* s, AboveBelowType defaultValue = AboveBelowType::None)
+AboveBelowType MusicXMLParser::GetAboveBelowAttribute(XMLElement* element, const char* s, AboveBelowType defaultValue)
 {
     const char* attribute = element->Attribute(s);
     if (attribute) {
@@ -133,7 +117,7 @@ AboveBelowType GetAboveBelowAttribute(XMLElement* element, const char* s, AboveB
     return defaultValue;
 }
 
-StartStopType GetStartStopAttribute(XMLElement* element, const char* s, StartStopType defaultValue = StartStopType::None)
+StartStopType MusicXMLParser::GetStartStopAttribute(XMLElement* element, const char* s, StartStopType defaultValue)
 {
     const char* attribute = element->Attribute(s);
     if (attribute) {
@@ -148,7 +132,7 @@ StartStopType GetStartStopAttribute(XMLElement* element, const char* s, StartSto
     return defaultValue;
 }
 
-FontFamily GetFontFamilyAttribute(XMLElement* element, const char* s, FontFamily defaultValue = FontFamily())
+FontFamily MusicXMLParser::GetFontFamilyAttribute(XMLElement* element, const char* s, FontFamily defaultValue)
 {
     const char* attribute = element->Attribute(s);
     FontFamily fontFamily = defaultValue;
@@ -158,13 +142,13 @@ FontFamily GetFontFamilyAttribute(XMLElement* element, const char* s, FontFamily
     return fontFamily;
 }
 
-FontSize GetFontSizeAttribute(XMLElement* element, const char* s, FontSize defaultValue = FontSize())
+FontSize MusicXMLParser::GetFontSizeAttribute(XMLElement* element, const char* s, FontSize defaultValue)
 {
     // TODO: needs implemented
     return defaultValue;
 }
 
-FontStyle GetFontStyleAttribute(XMLElement* element, const char* s, FontStyle defaultValue = FontStyle::Normal)
+FontStyle MusicXMLParser::GetFontStyleAttribute(XMLElement* element, const char* s, FontStyle defaultValue)
 {
     const char* attribute = element->Attribute(s);
     if (attribute) {
@@ -177,7 +161,7 @@ FontStyle GetFontStyleAttribute(XMLElement* element, const char* s, FontStyle de
     return defaultValue;
 }
 
-FontWeight GetFontWeightAttribute(XMLElement* element, const char* s, FontWeight defaultValue = FontWeight::Normal)
+FontWeight MusicXMLParser::GetFontWeightAttribute(XMLElement* element, const char* s, FontWeight defaultValue)
 {
     const char* attribute = element->Attribute(s);
     if (attribute) {
@@ -192,7 +176,7 @@ FontWeight GetFontWeightAttribute(XMLElement* element, const char* s, FontWeight
 
 // ---- Parse Functions ----
 
-Lyric::SyllabicType ParseSyllabicType(const std::string& value)
+Lyric::SyllabicType MusicXMLParser::ParseSyllabicType(const std::string& value)
 {
     if (value == "begin")
         return Lyric::SyllabicType::Begin;
@@ -208,7 +192,7 @@ Lyric::SyllabicType ParseSyllabicType(const std::string& value)
 }
 
 // parses a single lyric element
-Lyric ParseLyric(XMLElement* lyricElement)
+Lyric MusicXMLParser::ParseLyric(XMLElement* lyricElement)
 {
     Lyric lyric = Lyric();
     if (lyricElement)
@@ -253,7 +237,7 @@ Lyric ParseLyric(XMLElement* lyricElement)
     return lyric;
 }
 
-void ParseVisibleElement(XMLElement* element, VisibleElement& newElement)
+void MusicXMLParser::ParseVisibleElement(XMLElement* element, VisibleElement& newElement)
 {
     if (element)
     {
@@ -261,7 +245,7 @@ void ParseVisibleElement(XMLElement* element, VisibleElement& newElement)
     }
 }
 
-void ParseTextualElement(XMLElement* element, TextualElement& newElement)
+void MusicXMLParser::ParseTextualElement(XMLElement* element, TextualElement& newElement)
 {
     if (element)
     {
@@ -274,7 +258,7 @@ void ParseTextualElement(XMLElement* element, TextualElement& newElement)
     }
 }
 
-Rehearsal ParseRehearsal(XMLElement* element)
+Rehearsal MusicXMLParser::ParseRehearsal(XMLElement* element)
 {
     Rehearsal rehearsal = Rehearsal();
 
@@ -287,7 +271,7 @@ Rehearsal ParseRehearsal(XMLElement* element)
     return rehearsal;
 }
 
-Words ParseWords(XMLElement* element)
+Words MusicXMLParser::ParseWords(XMLElement* element)
 {
     Words words = Words();
 
@@ -300,7 +284,7 @@ Words ParseWords(XMLElement* element)
     return words;
 }
 
-Direction ParseDirection(XMLElement* directionElement)
+Direction MusicXMLParser::ParseDirection(XMLElement* directionElement)
 {
     Direction direction = Direction();
     if (directionElement)
@@ -327,7 +311,7 @@ Direction ParseDirection(XMLElement* directionElement)
     return direction;
 }
 
-void ParseWorkElement(XMLElement* workElement, std::string& workTitle, int& workNumber)
+void MusicXMLParser::ParseWorkElement(XMLElement* workElement, std::string& workTitle, int& workNumber)
 {
     if (workElement)
     {
@@ -344,7 +328,7 @@ void ParseWorkElement(XMLElement* workElement, std::string& workTitle, int& work
     }
 }
 
-void ParseEncodingElement(XMLElement* encodingElement, SongData* songData)
+void MusicXMLParser::ParseEncodingElement(XMLElement* encodingElement, Song* song)
 {
     if (encodingElement)
     {
@@ -357,29 +341,29 @@ void ParseEncodingElement(XMLElement* encodingElement, SongData* songData)
                 const char* value = element->Value();
                 if (strcmp(value, "encoding-date") == 0) // encoding-date
                 {
-                    songData->encodingDate = FromStringToDate(GetStringValue(element, "1900-01-01").c_str());
+                    song->encodingDate = FromStringToDate(GetStringValue(element, "1900-01-01").c_str());
                 }
                 else if (strcmp(value, "encoder") == 0) // encoder
                 {
                     XMLElement* encoderElement = element;
-                    SongData::Encoder encoder = SongData::Encoder();
+                    Song::Encoder encoder = Song::Encoder();
                     encoder.name = GetStringValue(encoderElement, encoder.name);
                     encoder.strType = GetStringAttribute(encoderElement, "type", encoder.strType);
                     if (encoder.strType == "music")
-                        encoder.type = SongData::Encoder::EncoderType::Music;
+                        encoder.type = Song::Encoder::EncoderType::Music;
                     else if (encoder.strType == "words")
-                        encoder.type = SongData::Encoder::EncoderType::Words;
+                        encoder.type = Song::Encoder::EncoderType::Words;
                     else if (encoder.strType == "arrangement")
-                        encoder.type = SongData::Encoder::EncoderType::Arrangement;
-                    songData->encoders.push_back(encoder);
+                        encoder.type = Song::Encoder::EncoderType::Arrangement;
+                    song->encoders.push_back(encoder);
                 }
                 else if (strcmp(value, "software") == 0) // software
                 {
-                    songData->software = GetStringValue(element, songData->software);
+                    song->software = GetStringValue(element, song->software);
                 }
                 else if (strcmp(value, "encoding-description") == 0) // encoding description
                 {
-                    songData->encodingDescription = GetStringValue(element, songData->encodingDescription);
+                    song->encodingDescription = GetStringValue(element, song->encodingDescription);
                 }
                 else if (strcmp(value, "supports") == 0) // supports
                 {
@@ -399,7 +383,7 @@ void ParseEncodingElement(XMLElement* encodingElement, SongData* songData)
     }
 }
 
-void ParseIdentificationElement(XMLElement* idElement, SongData* songData)
+void MusicXMLParser::ParseIdentificationElement(XMLElement* idElement, Song* song)
 {
     if (idElement)
     {
@@ -413,34 +397,34 @@ void ParseIdentificationElement(XMLElement* idElement, SongData* songData)
                 if (strcmp(value, "creator") == 0) // creator
                 {
                     XMLElement* creatorElement = element;
-                    SongData::Creator creator = SongData::Creator();
+                    Song::Creator creator = Song::Creator();
                     creator.name = GetStringValue(creatorElement, creator.name);
                     creator.strType = GetStringAttribute(creatorElement, "type", creator.strType);
                     if (creator.strType == "composer")
-                        creator.type = SongData::Creator::CreatorType::Composer;
+                        creator.type = Song::Creator::CreatorType::Composer;
                     else if (creator.strType == "lyricist")
-                        creator.type = SongData::Creator::CreatorType::Lyricist;
+                        creator.type = Song::Creator::CreatorType::Lyricist;
                     else if (creator.strType == "arranger")
-                        creator.type = SongData::Creator::CreatorType::Arranger;
-                    songData->creators.push_back(creator);
+                        creator.type = Song::Creator::CreatorType::Arranger;
+                    song->creators.push_back(creator);
                 }
                 else if (strcmp(value, "rights") == 0) // rights
                 {
                     XMLElement* rightElement = element;
-                    SongData::Rights rights = SongData::Rights();
+                    Song::Rights rights = Song::Rights();
                     rights.right = GetStringValue(rightElement, rights.right);
                     rights.strType = GetStringAttribute(rightElement, "type", rights.strType);
                     if (rights.strType == "music")
-                        rights.type = SongData::Rights::RightType::Music;
+                        rights.type = Song::Rights::RightType::Music;
                     else if (rights.strType == "words")
-                        rights.type = SongData::Rights::RightType::Words;
+                        rights.type = Song::Rights::RightType::Words;
                     else if (rights.strType == "arrangement")
-                        rights.type = SongData::Rights::RightType::Arrangement;
-                    songData->rights.push_back(rights);
+                        rights.type = Song::Rights::RightType::Arrangement;
+                    song->rights.push_back(rights);
                 }
                 else if (strcmp(value, "encoding") == 0) // encoding
                 {
-                    ParseEncodingElement(element, songData);
+                    ParseEncodingElement(element, song);
                 }
                 else if (strcmp(value, "source") == 0) // source
                 {
@@ -468,23 +452,23 @@ void ParseIdentificationElement(XMLElement* idElement, SongData* songData)
     }
 }
 
-void ParseDefaultsElement(XMLElement* defaultsElement)
+void MusicXMLParser::ParseDefaultsElement(XMLElement* defaultsElement)
 {
     // TODO: implement
 }
 
-void ParseCreditElement(XMLElement* creditElement)
+void MusicXMLParser::ParseCreditElement(XMLElement* creditElement)
 {
     // TODO: implement
 }
 
 // main file parsing
-SongData* ParseMusicXML(const std::string& data, std::string& error)
+Song* MusicXMLParser::ParseMusicXML(const std::string& data, std::string& error)
 {
     LOGW("STARTING TO PARSE");
-    SongData* songData = new SongData();
+    Song* song = new Song();
     LOGW("Created song data");
-    
+
     tinyxml2::XMLDocument doc;
     const char *d = data.c_str();
     tinyxml2::XMLError xmlError = doc.Parse(d);
@@ -506,23 +490,23 @@ SongData* ParseMusicXML(const std::string& data, std::string& error)
         XMLElement* root = doc.FirstChildElement("score-partwise");
         if (root)
         {
-            songData->musicXMLVersion = root->Attribute("version");
+            song->musicXMLVersion = root->Attribute("version");
 
             // work
             XMLElement* workElement = root->FirstChildElement("work");
             if (workElement)
             {
-                ParseWorkElement(workElement, songData->songTitle, songData->workNumber);
+                ParseWorkElement(workElement, song->songData.songTitle, song->songData.workNumber);
             }
 
-            songData->movementNumber = GetStringValue("movement-number", root, songData->movementNumber); // movement number
-            songData->movementTitle = GetStringValue("movement-title", root, songData->movementTitle); // movement title
+            song->songData.movementNumber = GetStringValue("movement-number", root, song->songData.movementNumber); // movement number
+            song->songData.movementTitle = GetStringValue("movement-title", root, song->songData.movementTitle); // movement title
 
             // identification
             XMLElement* identificationElement = root->FirstChildElement("identification");
             if (identificationElement)
             {
-                ParseIdentificationElement(identificationElement, songData);
+                ParseIdentificationElement(identificationElement, song);
             }
 
             // defaults
@@ -551,7 +535,7 @@ SongData* ParseMusicXML(const std::string& data, std::string& error)
                     {
                         XMLElement* scorePart = previousScorePartElement->ToElement();
                         Instrument* instrument = new Instrument();
-                        songData->instruments.push_back(instrument);
+                        song->instruments.push_back(instrument);
 
                         // part id
                         instrument->id = scorePart->Attribute("id");
@@ -650,10 +634,10 @@ SongData* ParseMusicXML(const std::string& data, std::string& error)
                 {
                     XMLElement* part = previous->ToElement();
                     std::string id = part->Attribute("id");
-                    Instrument* currentInst = songData->GetInstrument(id);
+                    Instrument* currentInst = song->GetInstrument(id);
                     if (currentInst == nullptr) {
                         error = "Instrument " + id + " does not exist";
-                        return songData;
+                        return song;
                     }
 
                     //currentInst->staves.push_back(new Staff());
@@ -1362,5 +1346,5 @@ SongData* ParseMusicXML(const std::string& data, std::string& error)
     LOGD("Finnished");
     doc.Clear();
 
-    return songData;
+    return song;
 }

@@ -8,6 +8,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.*
+import android.print.PrintAttributes
 import android.provider.MediaStore
 import androidx.appcompat.app.AppCompatActivity
 import android.util.Log
@@ -19,7 +20,9 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import com.randsoft.apps.musique.databinding.ActivityMainBinding
 import com.randsoft.apps.musique.framedata.FrameData
+import com.randsoft.apps.musique.renderdata.PrintRenderData
 import com.randsoft.apps.musique.renderdata.RenderData
+import com.randsoft.apps.musique.songdata.SongData
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -219,6 +222,14 @@ class MainActivity : AppCompatActivity(), MusicDisplayFragment.Callbacks,
         onPlayProgressChangedNative(progress)
     }
 
+    override fun onUpdatePrintLayout(attributes: PrintAttributes): Boolean {
+        return onUpdatePrintLayoutNative(attributes)
+    }
+
+    override fun onCalculateNumPages(): Int {
+        return onCalculateNumPagesNative()
+    }
+
     // ---- Calls to Native C++ ----
 
     private external fun startRendering()
@@ -230,6 +241,8 @@ class MainActivity : AppCompatActivity(), MusicDisplayFragment.Callbacks,
     private external fun onPlayButtonToggledNative(state: Boolean)
     private external fun onResetButtonPressedNative()
     private external fun onPlayProgressChangedNative(progress: Float)
+    private external fun onUpdatePrintLayoutNative(attributes: PrintAttributes): Boolean
+    private external fun onCalculateNumPagesNative(): Int
 
     private external fun setViewModelData(viewModelData: ViewModelData)
     private external fun onMidiStart()
@@ -244,10 +257,26 @@ class MainActivity : AppCompatActivity(), MusicDisplayFragment.Callbacks,
         })
     }
 
+    private fun onUpdatePrintRenderData(printRenderData: PrintRenderData) {
+        Handler(Looper.getMainLooper()).post(Runnable {
+            if (musicDisplayFragment != null) {
+                musicDisplayFragment?.onUpdatePrintRenderData(printRenderData);
+            }
+        })
+    }
+
     private fun onUpdateFrameData(frameData: FrameData) {
         Handler(Looper.getMainLooper()).post(Runnable {
             if (musicDisplayFragment != null) {
                 musicDisplayFragment?.onUpdateFrameData(frameData);
+            }
+        })
+    }
+
+    private fun onUpdateSongData(songData: SongData) {
+        Handler(Looper.getMainLooper()).post(Runnable {
+            if (musicDisplayFragment != null) {
+                musicDisplayFragment?.onUpdateSongData(songData);
             }
         })
     }

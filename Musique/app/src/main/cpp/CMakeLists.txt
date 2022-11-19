@@ -6,7 +6,6 @@
 cmake_minimum_required(VERSION 3.18.1)
 
 # Declares and names the project.
-
 project("musique")
 
 # Creates and names a library, sets it as either STATIC
@@ -26,10 +25,13 @@ add_library( # Sets the name of the library.
         RenderData/RenderData.cpp
         RenderData/Line.cpp
         App.cpp
+        MusicData/Song.cpp
         MusicData/SongData.cpp
         MusicData/Measure.cpp
         MusicData/Staff.cpp
         MusicData/Instrument.cpp
+        MusicXMLParser/MusicXMLParser.cpp
+        Utils/Converters.cpp
         libs/tinyxml/tinystr.cpp
         libs/tinyxml/tinyxml.cpp
         libs/tinyxml/tinyxmlerror.cpp
