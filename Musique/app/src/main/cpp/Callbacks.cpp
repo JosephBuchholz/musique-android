@@ -75,8 +75,8 @@ void UpdateSongData(const SongData& songData)
 
     // setting 'songTitle' field
     jfieldID fieldId = env->GetFieldID(songDataClass, "songTitle", "Ljava/lang/String;");
-    jobject songTitleString = env->NewObject(stringClass, stringConstructor);
-    env->SetObjectField(songDataObject, fieldId, songTitleString);
+    std::string title = songData.songTitle + " " + songData.movementTitle + " " + songData.movementNumber;
+    env->SetObjectField(songDataObject, fieldId, env->NewStringUTF(title.c_str()));
 
     // setting 'instruments' field
     fieldId = env->GetFieldID(songDataClass, "instruments", "[Lcom/randsoft/apps/musique/songdata/InstrumentInfo;");
@@ -96,7 +96,7 @@ void UpdateSongData(const SongData& songData)
         for (const auto& instrumentInfo : songData.instrumentInfos) {
             jobject newInstrumentInfo = env->NewObject(instrumentInfoClass, instrumentInfoConstructor);
 
-            //env->SetObjectField(newInstrumentInfo, fieldIdName, instrumentInfo.name);
+            env->SetObjectField(newInstrumentInfo, fieldIdName, env->NewStringUTF(instrumentInfo.name.c_str()));
             env->SetIntField(newInstrumentInfo, fieldIdVolume, instrumentInfo.volume);
             env->SetBooleanField(newInstrumentInfo, fieldIdVisible, instrumentInfo.visible);
 

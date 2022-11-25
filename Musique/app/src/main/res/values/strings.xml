@@ -1,3 +1,12 @@
 <resources>
     <string name="app_name">Musique</string>
+
+    <string name="cancel">Cancel</string>
+    <string name="ok">OK</string>
+
+    <string-array name="music_layout_values">
+        <item>"Horizontal"</item>
+        <item>"Vertical"</item>
+        <item>"Paged"</item>
+    </string-array>
 </resources>

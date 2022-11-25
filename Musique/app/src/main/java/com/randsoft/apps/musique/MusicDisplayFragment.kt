@@ -29,14 +29,17 @@ import com.randsoft.apps.musique.songdata.SongData
 
 private const val TAG = "MusicDisplayFragment"
 
-class MusicDisplayFragment : Fragment(), PrintHandler.Callbacks {
+class MusicDisplayFragment : Fragment(), PrintHandler.Callbacks, SettingsDialogFragment.Callbacks {
 
     private var musicDisplayView: MusicDisplayView? = null
 
+    private lateinit var titleTextView: TextView
+
     private lateinit var playButton: ImageButton
     private lateinit var restartButton: ImageButton
-    private lateinit var printButton: Button
-    private lateinit var instrumentControlButton: Button
+    private lateinit var printButton: ImageButton
+    private lateinit var instrumentControlButton: ImageButton
+    private lateinit var settingsButton: ImageButton
 
     private lateinit var zoomSeekBar: SeekBar
     private lateinit var playSeekBar: SeekBar
@@ -44,6 +47,8 @@ class MusicDisplayFragment : Fragment(), PrintHandler.Callbacks {
     private lateinit var instrumentControlRecyclerView: RecyclerView
 
     private lateinit var printHandler: PrintHandler
+
+    private lateinit var settingsDialogFragment: SettingsDialogFragment
 
     private var songData: SongData? = null
 
@@ -56,6 +61,7 @@ class MusicDisplayFragment : Fragment(), PrintHandler.Callbacks {
         fun onPlayProgressChanged(progress: Float)
         fun onCalculateNumPages(): Int
         fun onUpdatePrintLayout(attributes: PrintAttributes): Boolean
+        fun updateInstrumentInfo(info: InstrumentInfo, index: Int)
     }
 
     private var callbacks: Callbacks? = null
@@ -96,6 +102,8 @@ class MusicDisplayFragment : Fragment(), PrintHandler.Callbacks {
         savedInstanceState: Bundle?
     ): View? {
         val view = inflater.inflate(R.layout.music_display_fragment, container, false)
+
+        settingsDialogFragment = SettingsDialogFragment.newInstance(this)
 
         musicDisplayView = view.findViewById(R.id.music_display_view)
 
@@ -138,6 +146,11 @@ class MusicDisplayFragment : Fragment(), PrintHandler.Callbacks {
                 instrumentControlRecyclerView.visibility = View.GONE
         }
 
+        settingsButton = view.findViewById(R.id.settings_button)
+        settingsButton.setOnClickListener {
+            settingsDialogFragment.show(parentFragmentManager, "SettingsDialog")
+        }
+
         zoomSeekBar = view.findViewById(R.id.zoom_seek_bar)
         zoomSeekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
@@ -174,6 +187,8 @@ class MusicDisplayFragment : Fragment(), PrintHandler.Callbacks {
             }
         })
 
+        titleTextView = view.findViewById(R.id.titleTextView)
+
         instrumentControlRecyclerView = view.findViewById(R.id.instrument_control_recycler_view)
         instrumentControlRecyclerView.layoutManager = LinearLayoutManager(context)
         instrumentControlRecyclerView.adapter = InstrumentControlAdapter(emptyList())
@@ -183,17 +198,37 @@ class MusicDisplayFragment : Fragment(), PrintHandler.Callbacks {
         return view
     }
 
+    override fun onSettingsChanged(settings: SettingsDialogFragment.Settings) {
+        Log.e(TAG, "SETTINGS CHANGED");
+    }
+
     inner class InstrumentControlViewHolder(view: View) : RecyclerView.ViewHolder(view) {
 
         private lateinit var instrument: InstrumentInfo
+        private var index: Int = 0
 
         private var name: TextView = view.findViewById(R.id.instrument_name)
         private var volume: TextView = view.findViewById(R.id.volume)
+        private var isVisibleButton: Button = view.findViewById(R.id.is_visible_button)
 
-        fun bind(instrument: InstrumentInfo) {
+        fun bind(instrument: InstrumentInfo, index: Int) {
             this.instrument = instrument
+            this.index = index
+            update()
+            isVisibleButton.setOnClickListener {
+                instrument.visible = !instrument.visible
+                update()
+                callbacks?.updateInstrumentInfo(instrument, index)
+            }
+        }
+
+        private fun update() {
             name.text = instrument.name
-            volume.text = instrument.volume.toString()
+            volume.text = "Volume " + instrument.volume.toString()
+            if (instrument.visible)
+                isVisibleButton.text = "Visible";
+            else
+                isVisibleButton.text = "Not Visible"
         }
     }
 
@@ -203,7 +238,7 @@ class MusicDisplayFragment : Fragment(), PrintHandler.Callbacks {
         }
 
         override fun onBindViewHolder(holder: InstrumentControlViewHolder, position: Int) {
-            holder.bind(instruments[position])
+            holder.bind(instruments[position], position)
         }
 
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): InstrumentControlViewHolder {
@@ -259,6 +294,7 @@ class MusicDisplayFragment : Fragment(), PrintHandler.Callbacks {
         this.songData = songData
         val adapter = instrumentControlRecyclerView.adapter as InstrumentControlAdapter
         adapter.instruments = songData.instruments.toList()
+        titleTextView.text = songData.songTitle
     }
 
     companion object {

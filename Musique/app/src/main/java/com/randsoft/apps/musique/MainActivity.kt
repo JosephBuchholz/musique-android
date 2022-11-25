@@ -22,6 +22,7 @@ import com.randsoft.apps.musique.databinding.ActivityMainBinding
 import com.randsoft.apps.musique.framedata.FrameData
 import com.randsoft.apps.musique.renderdata.PrintRenderData
 import com.randsoft.apps.musique.renderdata.RenderData
+import com.randsoft.apps.musique.songdata.InstrumentInfo
 import com.randsoft.apps.musique.songdata.SongData
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -230,6 +231,10 @@ class MainActivity : AppCompatActivity(), MusicDisplayFragment.Callbacks,
         return onCalculateNumPagesNative()
     }
 
+    override fun updateInstrumentInfo(info: InstrumentInfo, index: Int) {
+        updateInstrumentInfoNative(info, index)
+    }
+
     // ---- Calls to Native C++ ----
 
     private external fun startRendering()
@@ -243,6 +248,7 @@ class MainActivity : AppCompatActivity(), MusicDisplayFragment.Callbacks,
     private external fun onPlayProgressChangedNative(progress: Float)
     private external fun onUpdatePrintLayoutNative(attributes: PrintAttributes): Boolean
     private external fun onCalculateNumPagesNative(): Int
+    private external fun updateInstrumentInfoNative(instrumentInfo: InstrumentInfo, index: Int)
 
     private external fun setViewModelData(viewModelData: ViewModelData)
     private external fun onMidiStart()

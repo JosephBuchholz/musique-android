@@ -25,6 +25,11 @@ int ToInt(const std::string& value)
     return std::atoi(value.c_str());
 }
 
+unsigned int ToUnsignedInt(const std::string& value)
+{
+    return std::atoi(value.c_str());
+}
+
 float ToFloat(const std::string& value)
 {
     return std::atof(value.c_str());
@@ -33,6 +38,11 @@ float ToFloat(const std::string& value)
 // ---- Is Value Functions ----
 
 bool IsInt(const std::string& value)
+{
+    return true; // TODO: needs implemented
+}
+
+bool IsUnsignedInt(const std::string& value)
 {
     return true; // TODO: needs implemented
 }

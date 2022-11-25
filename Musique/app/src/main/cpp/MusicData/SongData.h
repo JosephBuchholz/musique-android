@@ -6,7 +6,7 @@
 class SongData
 {
 public:
-    std::string songTitle = "Title";
+    std::string songTitle = "";
 
     int workNumber = -1; // -1 is an invalid value
 

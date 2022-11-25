@@ -18,6 +18,7 @@ public:
     void OnPlayButtonToggled(bool state) { playing = state; }
     void OnResetButtonPressed() { playLineBeatPosition = 0.0f; }
     void OnPlayProgressChanged(float progress);
+    void UpdateInstrumentInfo(const InstrumentInfo& info, unsigned int index);
     void SetViewModelData(ViewModelData viewModelData);
     void OnMidiStart();
     void LoadSongFromString(const std::string& string);
@@ -30,6 +31,7 @@ public:
     void RenderTabNote(RenderData& renderData, const Note* note, int lines, float ls, float offsetX, float offsetY);
     void RenderDirection(RenderData& renderData, const Direction& direction, float positionY, Measure* measure, float offsetX, float offsetY);
     void RenderLyric(RenderData& renderData, const Lyric& lyric, float positionY, const Measure* measure, const Note* note, float offsetX, float offsetY);
+    void RenderChord(RenderData& renderData, const Chord& chord, float positionY, const Measure* measure, float offsetX, float offsetY);
     void RenderTimeSignature(RenderData& renderData, const Measure* measure, float measurePosition, float ls, float offsetX, float offsetY);
     void RenderKeySignature(RenderData& renderData, const Measure* measure, float measurePosition, float ls, int lines, float offsetX, float offsetY);
     void RenderClef(RenderData& renderData, const Measure* measure, float measurePosition, float ls, int lines, float offsetX, float offsetY);

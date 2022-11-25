@@ -33,7 +33,7 @@ void Song::OnUpdate()
     for (auto* instrument : instruments) {
         InstrumentInfo instInfo = InstrumentInfo();
         instInfo.name = instrument->name.string;
-        instInfo.volume = 50;
+        instInfo.volume = 100;
         instInfo.visible = true;
         songData.instrumentInfos.push_back(instInfo);
     }
@@ -406,6 +406,10 @@ void Song::CalculateNoteBeatPositionsInSong()
 
                 for (Note* note : measure->notes) {
                     note->beatPositionInSong = note->beatPosition + measureBeatPosition;
+                }
+
+                for (Chord& chord : measure->chords) {
+                    chord.beatPositionInSong = chord.beatPosition + measureBeatPosition;
                 }
 
                 measureIndex++;

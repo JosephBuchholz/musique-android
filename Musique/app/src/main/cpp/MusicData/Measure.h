@@ -6,6 +6,7 @@
 #include "Transpose.h"
 #include "Direction.h"
 #include "SoundEvent.h"
+#include "Chords/Chord.h"
 #include <vector>
 
 class Measure {
@@ -211,6 +212,7 @@ public:
     std::vector<Note*> notes; // the notes contained in this measure
     std::vector<Direction> directions; // the directions contained in this measure
     std::vector<SoundEvent> soundEvents; // the sound events contained in this measure
+    std::vector<Chord> chords; // the chords contained in this measure
 
     int divisions = 1;
 

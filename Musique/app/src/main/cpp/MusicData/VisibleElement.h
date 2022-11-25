@@ -1,9 +1,9 @@
 #pragma once
-#include "BaseElement.h"
+#include "PrintableElement.h"
 #include "Types.h"
 
 // the base class of all notation elements
-class VisibleElement : public BaseElement {
+class VisibleElement : public PrintableElement {
 
 public:
     VisibleElement() {}

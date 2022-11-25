@@ -4,6 +4,8 @@
 #include <string>
 #include "../AndroidDebug.h"
 
+typedef float Alter;
+
 enum class NoteValue {
     None = 0, Whole, Half, Quarter, Eighth, Sixteenth, ThirtySecond
 };

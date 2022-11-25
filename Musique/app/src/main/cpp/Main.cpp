@@ -175,4 +175,17 @@ extern "C" {
             app->LoadSongFromString(env->GetStringUTFChars(string, &isCopy));
         }
     }
+
+    JNIEXPORT void JNICALL
+    Java_com_randsoft_apps_musique_MainActivity_updateInstrumentInfoNative(JNIEnv* env, jobject instance,
+                                                                           jobject info,
+                                                                           jint index) {
+        if (app != nullptr) {
+            InstrumentInfo instrumentInfo = InstrumentInfo();
+            jfieldID isVisibleField = env->GetFieldID(env->GetObjectClass(info), "visible", "Z");
+            jboolean isVisible = env->GetBooleanField(info, isVisibleField);
+            instrumentInfo.visible = isVisible;
+            app->UpdateInstrumentInfo(instrumentInfo, int(index));
+        }
+    }
 }

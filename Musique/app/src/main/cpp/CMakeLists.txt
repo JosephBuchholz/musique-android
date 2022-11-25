@@ -30,6 +30,7 @@ add_library( # Sets the name of the library.
         MusicData/Measure.cpp
         MusicData/Staff.cpp
         MusicData/Instrument.cpp
+        MusicData/Chords/Chord.cpp
         MusicXMLParser/MusicXMLParser.cpp
         Utils/Converters.cpp
         libs/tinyxml/tinystr.cpp

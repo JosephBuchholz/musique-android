@@ -45,12 +45,40 @@ std::string MusicXMLParser::GetStringValue(XMLElement* element, std::string defa
     return defaultValue;
 }
 
-std::string MusicXMLParser::GetStringValue(std::string elementName, XMLElement* elementParent, std::string defaultValue)
+std::string MusicXMLParser::GetStringValue(const std::string& elementName, XMLElement* elementParent, std::string defaultValue)
 {
     XMLElement* element = elementParent->FirstChildElement(elementName.c_str());
     if (element)
     {
         return GetStringValue(element, defaultValue);
+    }
+    return defaultValue;
+}
+
+float MusicXMLParser::GetFloatValue(XMLElement* element, float defaultValue)
+{
+    if (element) {
+        const char* s = element->GetText();
+        float value;
+        try {
+            value = std::stof(s);
+        }
+        catch (std::exception& e) {
+            // TODO: error
+            LOGE("NOT A FLOAT");
+            return defaultValue;
+        }
+        return value;
+    }
+    return defaultValue;
+}
+
+float MusicXMLParser::GetFloatValue(const std::string& elementName, XMLElement* elementParent, float defaultValue)
+{
+    XMLElement* element = elementParent->FirstChildElement(elementName.c_str());
+    if (element)
+    {
+        return GetFloatValue(element, defaultValue);
     }
     return defaultValue;
 }
@@ -61,6 +89,36 @@ int MusicXMLParser::GetIntValue(XMLElement* element, int defaultValue)
         std::string c = element->GetText();
         if (IsInt(c))
             return ToInt(c);
+    }
+    return defaultValue;
+}
+
+int MusicXMLParser::GetIntValue(const std::string& elementName, XMLElement* elementParent, int defaultValue)
+{
+    XMLElement* element = elementParent->FirstChildElement(elementName.c_str());
+    if (element)
+    {
+        return GetIntValue(element, defaultValue);
+    }
+    return defaultValue;
+}
+
+unsigned int MusicXMLParser::GetUnsignedIntValue(XMLElement* element, unsigned int defaultValue)
+{
+    if (element) {
+        std::string c = element->GetText();
+        if (IsUnsignedInt(c))
+            return ToUnsignedInt(c);
+    }
+    return defaultValue;
+}
+
+unsigned int MusicXMLParser::GetUnsignedIntValue(const std::string& elementName, XMLElement* elementParent, unsigned int defaultValue)
+{
+    XMLElement* element = elementParent->FirstChildElement(elementName.c_str());
+    if (element)
+    {
+        return GetUnsignedIntValue(element, defaultValue);
     }
     return defaultValue;
 }
@@ -237,11 +295,29 @@ Lyric MusicXMLParser::ParseLyric(XMLElement* lyricElement)
     return lyric;
 }
 
+void MusicXMLParser::ParseBaseElement(XMLElement* element, BaseElement& newElement)
+{
+    if (element)
+    {
+        // TODO: implement
+    }
+}
+
+void MusicXMLParser::ParsePrintableElement(XMLElement* element, PrintableElement& newElement)
+{
+    if (element)
+    {
+        // TODO: implement
+        ParseBaseElement(element, newElement);
+    }
+}
+
 void MusicXMLParser::ParseVisibleElement(XMLElement* element, VisibleElement& newElement)
 {
     if (element)
     {
         // TODO: implement
+        ParsePrintableElement(element, newElement);
     }
 }
 
@@ -317,7 +393,7 @@ void MusicXMLParser::ParseWorkElement(XMLElement* workElement, std::string& work
     {
         // work title
         XMLElement* workTitleElement = workElement->FirstChildElement("work-title");
-        workTitle = GetStringValue(workTitleElement);
+        workTitle = GetStringValue(workTitleElement, workTitle);
 
         // work number
         XMLElement* workNumberElement = workElement->FirstChildElement("work-number");
@@ -460,6 +536,463 @@ void MusicXMLParser::ParseDefaultsElement(XMLElement* defaultsElement)
 void MusicXMLParser::ParseCreditElement(XMLElement* creditElement)
 {
     // TODO: implement
+}
+
+void MusicXMLParser::ParseHarmonyElement(XMLElement* harmonyElement, float& currentTimeInMeasure, std::vector<Measure*> currentMeasures)
+{
+    Chord newChord;
+
+    // root note
+    XMLElement* rootElement = harmonyElement->FirstChildElement("root");
+    if (rootElement)
+    {
+        XMLElement* rootStepElement = rootElement->FirstChildElement("root-step");
+        if (rootStepElement)
+        {
+            newChord.rootPitch.step = GetStringValue(rootStepElement, newChord.rootPitch.step);
+        }
+        else
+            ; // TODO: error: this element is required
+
+        newChord.rootPitch.alter = GetFloatValue("root-alter", rootElement, newChord.rootPitch.alter);
+    }
+
+    // bass note
+    XMLElement* bassElement = harmonyElement->FirstChildElement("bass");
+    if (bassElement)
+    {
+        XMLElement* bassStepElement = bassElement->FirstChildElement("bass-step");
+        if (bassStepElement)
+        {
+            newChord.bassPitch.step = GetStringValue(bassStepElement, newChord.bassPitch.step);
+        }
+        else
+            ; // TODO: error: this element is required
+
+        newChord.bassPitch.alter = GetFloatValue("bass-alter", bassElement, newChord.bassPitch.alter);
+
+        newChord.bassSeparator.string = GetStringValue("bass-separator", bassElement, newChord.bassSeparator.string);
+
+        std::string bassPosStr = GetStringAttribute(bassElement, "arrangement", "");
+        if (bassPosStr == "horizontal")
+            newChord.bassPos = Chord::BassPos::Horizontal;
+        else if (bassPosStr == "vertical")
+            newChord.bassPos = Chord::BassPos::Vertical;
+        else if (bassPosStr == "diagonal")
+            newChord.bassPos = Chord::BassPos::Diagonal;
+        else if (bassPosStr.empty())
+            newChord.bassPos = Chord::BassPos::None;
+        else
+            ; // TODO: error: this is not possible
+
+        newChord.hasBassNote = true;
+    }
+
+    // kind note
+    XMLElement* kindElement = harmonyElement->FirstChildElement("kind");
+    if (kindElement)
+    {
+        std::string typeString = GetStringValue(kindElement, "");
+
+        if (typeString == "none")
+            newChord.harmonyType = Chord::HarmonyType::NoHarmony;
+        else if (typeString == "other")
+            newChord.harmonyType = Chord::HarmonyType::Other;
+        else if (typeString == "augmented")
+            newChord.harmonyType = Chord::HarmonyType::Augmented;
+        else if (typeString == "augmented-seventh")
+            newChord.harmonyType = Chord::HarmonyType::AugmentedSeventh;
+        else if (typeString == "diminished")
+            newChord.harmonyType = Chord::HarmonyType::Diminished;
+        else if (typeString == "diminished-seventh")
+            newChord.harmonyType = Chord::HarmonyType::DiminishedSeventh;
+        else if (typeString == "dominant")
+            newChord.harmonyType = Chord::HarmonyType::Dominant;
+        else if (typeString == "dominant-11th")
+            newChord.harmonyType = Chord::HarmonyType::Dominant11th;
+        else if (typeString == "dominant-13th")
+            newChord.harmonyType = Chord::HarmonyType::Dominant13th;
+        else if (typeString == "dominant-ninth")
+            newChord.harmonyType = Chord::HarmonyType::DominantNinth;
+        else if (typeString == "French")
+            newChord.harmonyType = Chord::HarmonyType::French;
+        else if (typeString == "German")
+            newChord.harmonyType = Chord::HarmonyType::German;
+        else if (typeString == "half-diminished")
+            newChord.harmonyType = Chord::HarmonyType::HalfDiminished;
+        else if (typeString == "Italian")
+            newChord.harmonyType = Chord::HarmonyType::Italian;
+        else if (typeString == "major")
+            newChord.harmonyType = Chord::HarmonyType::Major;
+        else if (typeString == "major-11th")
+            newChord.harmonyType = Chord::HarmonyType::Major11th;
+        else if (typeString == "major-13th")
+            newChord.harmonyType = Chord::HarmonyType::Major13th;
+        else if (typeString == "major-minor")
+            newChord.harmonyType = Chord::HarmonyType::MajorMinor;
+        else if (typeString == "major-ninth")
+            newChord.harmonyType = Chord::HarmonyType::MajorNinth;
+        else if (typeString == "major-seventh")
+            newChord.harmonyType = Chord::HarmonyType::MajorSeventh;
+        else if (typeString == "major-sixth")
+            newChord.harmonyType = Chord::HarmonyType::MajorSixth;
+        else if (typeString == "minor")
+            newChord.harmonyType = Chord::HarmonyType::Minor;
+        else if (typeString == "minor-11th")
+            newChord.harmonyType = Chord::HarmonyType::Minor11th;
+        else if (typeString == "minor-13th")
+            newChord.harmonyType = Chord::HarmonyType::Minor13th;
+        else if (typeString == "minor-ninth")
+            newChord.harmonyType = Chord::HarmonyType::MinorNinth;
+        else if (typeString == "minor-seventh")
+            newChord.harmonyType = Chord::HarmonyType::MinorSeventh;
+        else if (typeString == "minor-sixth")
+            newChord.harmonyType = Chord::HarmonyType::MinorSixth;
+        else if (typeString == "Neapolitan")
+            newChord.harmonyType = Chord::HarmonyType::Neapolitan;
+        else if (typeString == "pedal")
+            newChord.harmonyType = Chord::HarmonyType::Pedal;
+        else if (typeString == "power")
+            newChord.harmonyType = Chord::HarmonyType::Power;
+        else if (typeString == "suspended-fourth")
+            newChord.harmonyType = Chord::HarmonyType::SuspendedFourth;
+        else if (typeString == "suspended-second")
+            newChord.harmonyType = Chord::HarmonyType::SuspendedSecond;
+        else if (typeString == "Tristan")
+            newChord.harmonyType = Chord::HarmonyType::Tristan;
+        else
+            ; // TODO: error: this is not possible
+        newChord.brackets = GetBoolAttribute(kindElement, "bracket-degrees", newChord.brackets);
+        newChord.parentheses = GetBoolAttribute(kindElement, "parentheses-degrees", newChord.parentheses);
+        newChord.stackDegrees = GetBoolAttribute(kindElement, "stack-degrees", newChord.stackDegrees);
+        newChord.useSymbols = GetBoolAttribute(kindElement, "use-symbols", newChord.useSymbols);
+        newChord.harmonyTypeText = GetStringAttribute(kindElement, "text", newChord.harmonyTypeText);
+    }
+    else
+        ; // TODO: error: this element is required
+
+    // loop through all degree elements
+    XMLNode* previousElement = kindElement->FirstChildElement(); // first element
+    while (true)
+    {
+        if (previousElement) {
+            XMLElement* element = previousElement->ToElement();
+            const char* value = element->Value();
+            if (strcmp(value, "degree") == 0)
+            {
+                XMLElement* degreeElement = element;
+                ChordDegree newDegree = ChordDegree();
+
+                ParsePrintableElement(degreeElement, newDegree);
+
+                // degree value element
+                XMLElement* degreeValueElement = degreeElement->FirstChildElement("degree-value");
+                if (degreeValueElement)
+                {
+                    ParseVisibleElement(degreeValueElement, newDegree.degree);
+                    newDegree.degree.degree = GetUnsignedIntValue(degreeValueElement, newDegree.degree.degree);
+                }
+
+                // degree type element
+                XMLElement* degreeTypeElement = degreeElement->FirstChildElement("degree-type");
+                if (degreeTypeElement)
+                {
+                    ParseVisibleElement(degreeTypeElement, newDegree.degreeType);
+                    std::string s = GetStringValue(degreeTypeElement, "");
+                    if (s == "add")
+                        newDegree.degreeType.type = DegreeType::Type::Add;
+                    else if (s == "subtract")
+                        newDegree.degreeType.type = DegreeType::Type::Subtract;
+                    else if (s == "alter")
+                        newDegree.degreeType.type = DegreeType::Type::Alter;
+                    else if (s.empty())
+                        newDegree.degreeType.type = DegreeType::Type::None;
+                    else
+                        ; // TODO: error not a valid value
+                }
+
+                // degree alter element
+                XMLElement* degreeAlterElement = degreeElement->FirstChildElement("degree-alter");
+                if (degreeAlterElement)
+                {
+                    ParseVisibleElement(degreeAlterElement, newDegree.degreeAlter);
+                    newDegree.degreeAlter.alter = GetFloatValue(degreeAlterElement, newDegree.degreeAlter.alter);
+                }
+
+                newChord.degrees.push_back(newDegree);
+            }
+        }
+        else
+        {
+            break;
+        }
+        previousElement = previousElement->NextSiblingElement();
+    }
+
+    newChord.beatPosition = currentTimeInMeasure; // note: harmony elements don't increment the time
+    newChord.CalculateChordName();
+    //LOGE("Chord (%s) is at %f", newChord.chordName.string.c_str(), newChord.beatPosition);
+    currentMeasures[newChord.staff - 1]->chords.push_back(newChord);
+}
+
+void MusicXMLParser::ParseNoteElement(XMLElement* noteElement, float& currentTimeInMeasure, bool isTab, Note* currentNote, Note* previousNote, std::vector<Measure*> currentMeasures, int measureNumber, std::string& error)
+{
+    if (isTab) {
+        currentNote->type = Note::NoteType::Tab;
+    }
+
+    // staff
+    XMLElement* staffElement = noteElement->FirstChildElement("staff");
+    if (staffElement)
+    {
+        currentNote->staff = ToInt(staffElement->GetText());
+    }
+    else
+    {
+        currentNote->staff = 1;
+    }
+
+    // chord
+    XMLElement* chordElement = noteElement->FirstChildElement("chord");
+    if (chordElement)
+    {
+        currentNote->isChord = true;
+    }
+
+    // rest
+    XMLElement* restElement = noteElement->FirstChildElement("rest");
+    if (restElement)
+    {
+        currentNote->isRest = true;
+        currentNote->isFullMeasureRest = GetBoolAttribute(restElement, "measure", false);
+    }
+
+    // pitch
+    XMLElement* pitch = noteElement->FirstChildElement("pitch");
+    if (pitch)
+    {
+        // step
+        XMLElement* step = pitch->FirstChildElement("step");
+        if (step)
+        {
+            currentNote->pitch.step = step->GetText();
+        }
+        else
+        {
+            error = "no step element in pitch element";
+        }
+
+        // octave
+        XMLElement* octave = pitch->FirstChildElement("octave");
+        if (step)
+        {
+            currentNote->pitch.octave = ToInt(octave->GetText());
+        }
+        else
+        {
+            error = "no octave element in pitch element";
+        }
+
+        // alter
+        XMLElement* alter = pitch->FirstChildElement("alter");
+        if (alter)
+        {
+            currentNote->pitch.alter = float(ToInt(alter->GetText()));
+        }
+    }
+
+    // duration
+    XMLElement* duration = noteElement->FirstChildElement("duration");
+    if (duration)
+    {
+        int divisions = currentMeasures[currentNote->staff-1]->divisions;
+        if (divisions != 0)
+        {
+            currentNote->duration.duration = (1.0f / (float)divisions) * (float)ToInt(duration->GetText());
+        }
+        else
+        {
+            error = "Error divisions is zero";
+        }
+
+        // calculating beat position of note
+        if (currentNote->isChord) { // is a chord so beat position is the same as the previous note's beat position
+            if (previousNote)
+                currentNote->beatPosition = currentTimeInMeasure - previousNote->duration.duration;
+            else
+                currentNote->beatPosition = 0.0f;
+        } else { // not a chord so beat position is equal to the current time in the measure
+            currentNote->beatPosition = currentTimeInMeasure;
+        }
+
+        // increment time in measure
+        if (!currentNote->isChord)
+        {
+            currentTimeInMeasure += currentNote->duration.duration;
+        }
+    }
+    /*else
+    {
+        error = "note has no duration";
+    }*/
+
+    // tie
+    XMLElement* tieElement = noteElement->FirstChildElement("tie");
+    if (tieElement)
+    {
+
+    }
+
+    // voice
+    XMLElement* voiceElement = noteElement->FirstChildElement("voice");
+    if (voiceElement)
+    {
+        currentNote->voice = ToInt(voiceElement->GetText());
+    }
+
+    // type
+    XMLElement* noteType = noteElement->FirstChildElement("type");
+    if (noteType)
+    {
+        currentNote->CalculateDurationTypeFromString(noteType->GetText());
+    }
+
+    // lyrics
+    XMLNode* previousLyricElement = noteElement->FirstChildElement("lyric");
+    while (true)
+    {
+        if (previousLyricElement) {
+            XMLElement* lyricElement = previousLyricElement->ToElement();
+            Lyric lyric = ParseLyric(lyricElement);
+            currentNote->lyrics.push_back(lyric);
+        }
+        else
+        {
+            break;
+        }
+        previousLyricElement = previousLyricElement->NextSiblingElement("lyric");
+    }
+
+    // accidental
+    XMLElement* accidentalElement = noteElement->FirstChildElement("accidental");
+    if (accidentalElement)
+    {
+        currentNote->accidental.accidentalType = Accidental::CalculateAccidentalTypeFromString(accidentalElement->GetText());
+
+        currentNote->accidental.isCautionary = GetBoolAttribute(accidentalElement, "cautionary", false);
+        currentNote->accidental.isEditorial = GetBoolAttribute(accidentalElement, "editorial", false);
+        currentNote->accidental.hasBrackets = GetBoolAttribute(accidentalElement, "bracket", false);
+        currentNote->accidental.hasParentheses = GetBoolAttribute(accidentalElement, "parentheses", false);
+    }
+
+    // stem
+    XMLElement* stemElement = noteElement->FirstChildElement("stem");
+    if (stemElement)
+    {
+        currentNote->noteStem.stemType = currentNote->noteStem.CalculateStemTypeFromString(stemElement->GetText());
+    }
+
+    // beam
+    XMLElement* beamElement = noteElement->FirstChildElement("beam");
+    if (beamElement)
+    {
+        currentNote->beam.beamType = currentNote->beam.CalculateBeamTypeFromString(beamElement->GetText());
+        currentNote->beam.beamLevel = GetNumberAttribute(beamElement, "number", 1);
+    }
+
+    // notations
+    XMLElement* notations = noteElement->FirstChildElement("notations");
+    if (notations)
+    {
+        // slurs
+        XMLElement* slurElement = notations->FirstChildElement("slur");
+        if (slurElement)
+        {
+            Slur slur = Slur();
+            slur.id = GetNumberAttribute(slurElement, "number");
+            slur.placement = GetAboveBelowAttribute(slurElement, "placement");
+            slur.type = GetStartStopAttribute(slurElement, "type");
+            currentNote->slurs.push_back(slur);
+        }
+
+        // technical
+        XMLElement* technical = notations->FirstChildElement("technical");
+        if (technical)
+        {
+            // hammer ons
+            XMLNode* previousHammerOnElement = technical->FirstChildElement("hammer-on");
+            while (true)
+            {
+                if (previousHammerOnElement) {
+                    XMLElement* hammerOnElement = previousHammerOnElement->ToElement();
+                    if (hammerOnElement)
+                    {
+                        TABSlur tabSlur = TABSlur();
+                        tabSlur.slurType = TABSlur::SlurType::HammerOn;
+                        tabSlur.id = GetNumberAttribute(hammerOnElement, "number");
+                        tabSlur.placement = GetAboveBelowAttribute(hammerOnElement, "placement");
+                        tabSlur.type = GetStartStopAttribute(hammerOnElement, "type");
+                        if (hammerOnElement->GetText()) {
+                            tabSlur.text = hammerOnElement->GetText();
+                        }
+                        currentNote->tabSlurs.push_back(tabSlur);
+                    }
+                }
+                else
+                {
+                    break;
+                }
+                previousHammerOnElement = previousHammerOnElement->NextSiblingElement("hammer-on");
+            }
+
+            // pull offs
+            XMLNode* previousPullOffElement = technical->FirstChildElement("pull-off");
+            while (true)
+            {
+                if (previousPullOffElement) {
+                    XMLElement* pullOffElement = previousPullOffElement->ToElement();
+                    if (pullOffElement)
+                    {
+                        TABSlur tabSlur = TABSlur();
+                        tabSlur.slurType = TABSlur::SlurType::PullOff;
+                        tabSlur.id = GetNumberAttribute(pullOffElement, "number");
+                        tabSlur.placement = GetAboveBelowAttribute(pullOffElement, "placement");
+                        tabSlur.type = GetStartStopAttribute(pullOffElement, "type");
+                        if (pullOffElement->GetText()) {
+                            tabSlur.text = pullOffElement->GetText();
+                        }
+                        currentNote->tabSlurs.push_back(tabSlur);
+                    }
+                }
+                else
+                {
+                    break;
+                }
+                previousPullOffElement = previousPullOffElement->NextSiblingElement("pull_off");
+            }
+
+            // - TAB only -
+            if (currentNote->type == Note::NoteType::Tab and isTab) {
+
+                // string
+                XMLElement* string = technical->FirstChildElement("string");
+                if (string)
+                {
+                    currentNote->string = ToInt(string->GetText());
+                }
+
+                // fret
+                XMLElement* fret = technical->FirstChildElement("fret");
+                if (fret)
+                {
+                    currentNote->fret = ToInt(fret->GetText());
+                }
+            }
+        }
+    }
+
+    currentNote->measureIndex = measureNumber - 1;
+    currentMeasures[currentNote->staff - 1]->notes.push_back(currentNote);
 }
 
 // main file parsing
@@ -940,265 +1473,8 @@ Song* MusicXMLParser::ParseMusicXML(const std::string& data, std::string& error)
                                     const char* value = element->Value();
                                     if (strcmp(value, "note") == 0) // note
                                     {
-                                        XMLElement* noteElement = element;
-
                                         Note* currentNote = new Note();
-                                        if (isTab) {
-                                            currentNote->type = Note::NoteType::Tab;
-                                        }
-
-                                        // staff
-                                        XMLElement* staffElement = noteElement->FirstChildElement("staff");
-                                        if (staffElement)
-                                        {
-                                            currentNote->staff = ToInt(staffElement->GetText());
-                                        }
-                                        else
-                                        {
-                                            currentNote->staff = 1;
-                                        }
-
-                                        // chord
-                                        XMLElement* chordElement = noteElement->FirstChildElement("chord");
-                                        if (chordElement)
-                                        {
-                                            currentNote->isChord = true;
-                                        }
-
-                                        // rest
-                                        XMLElement* restElement = noteElement->FirstChildElement("rest");
-                                        if (restElement)
-                                        {
-                                            currentNote->isRest = true;
-                                            currentNote->isFullMeasureRest = GetBoolAttribute(restElement, "measure", false);
-                                        }
-
-                                        // pitch
-                                        XMLElement* pitch = noteElement->FirstChildElement("pitch");
-                                        if (pitch)
-                                        {
-                                            // step
-                                            XMLElement* step = pitch->FirstChildElement("step");
-                                            if (step)
-                                            {
-                                                currentNote->pitch.step = step->GetText();
-                                            }
-                                            else
-                                            {
-                                                error = "no step element in pitch element";
-                                            }
-
-                                            // octave
-                                            XMLElement* octave = pitch->FirstChildElement("octave");
-                                            if (step)
-                                            {
-                                                currentNote->pitch.octave = ToInt(octave->GetText());
-                                            }
-                                            else
-                                            {
-                                                error = "no octave element in pitch element";
-                                            }
-
-                                            // alter
-                                            XMLElement* alter = pitch->FirstChildElement("alter");
-                                            if (alter)
-                                            {
-                                                currentNote->pitch.alter = float(ToInt(alter->GetText()));
-                                            }
-                                        }
-
-                                        // duration
-                                        XMLElement* duration = noteElement->FirstChildElement("duration");
-                                        if (duration)
-                                        {
-                                            int divisions = currentMeasures[currentNote->staff-1]->divisions;
-                                            if (divisions != 0)
-                                            {
-                                                currentNote->duration.duration = (1.0f / (float)divisions) * (float)ToInt(duration->GetText());
-                                            }
-                                            else
-                                            {
-                                                error = "Error divisions is zero";
-                                            }
-
-                                            // calculating beat position of note
-                                            if (currentNote->isChord) { // is a chord so beat position is the same as the previous note's beat position
-                                                if (previousNote)
-                                                    currentNote->beatPosition = currentTimeInMeasure - previousNote->duration.duration;
-                                                else
-                                                    currentNote->beatPosition = 0.0f;
-                                            } else { // not a chord so beat position is equal to the current time in the measure
-                                                currentNote->beatPosition = currentTimeInMeasure;
-                                            }
-
-                                            // increment time in measure
-                                            if (!currentNote->isChord)
-                                            {
-                                                currentTimeInMeasure += currentNote->duration.duration;
-                                            }
-                                        }
-                                        /*else
-                                        {
-                                            error = "note has no duration";
-                                        }*/
-
-                                        // tie
-                                        XMLElement* tieElement = noteElement->FirstChildElement("tie");
-                                        if (tieElement)
-                                        {
-
-                                        }
-
-                                        // voice
-                                        XMLElement* voiceElement = noteElement->FirstChildElement("voice");
-                                        if (voiceElement)
-                                        {
-                                            currentNote->voice = ToInt(voiceElement->GetText());
-                                        }
-
-                                        // type
-                                        XMLElement* noteType = noteElement->FirstChildElement("type");
-                                        if (noteType)
-                                        {
-                                            currentNote->CalculateDurationTypeFromString(noteType->GetText());
-                                        }
-
-                                        // lyrics
-                                        XMLNode* previousLyricElement = noteElement->FirstChildElement("lyric");
-                                        while (true)
-                                        {
-                                            if (previousLyricElement) {
-                                                XMLElement* lyricElement = previousLyricElement->ToElement();
-                                                Lyric lyric = ParseLyric(lyricElement);
-                                                currentNote->lyrics.push_back(lyric);
-                                            }
-                                            else
-                                            {
-                                                break;
-                                            }
-                                            previousLyricElement = previousLyricElement->NextSiblingElement("lyric");
-                                        }
-
-                                        // accidental
-                                        XMLElement* accidentalElement = noteElement->FirstChildElement("accidental");
-                                        if (accidentalElement)
-                                        {
-                                            currentNote->accidental.accidentalType = Accidental::CalculateAccidentalTypeFromString(accidentalElement->GetText());
-
-                                            currentNote->accidental.isCautionary = GetBoolAttribute(accidentalElement, "cautionary", false);
-                                            currentNote->accidental.isEditorial = GetBoolAttribute(accidentalElement, "editorial", false);
-                                            currentNote->accidental.hasBrackets = GetBoolAttribute(accidentalElement, "bracket", false);
-                                            currentNote->accidental.hasParentheses = GetBoolAttribute(accidentalElement, "parentheses", false);
-                                        }
-
-                                        // stem
-                                        XMLElement* stemElement = noteElement->FirstChildElement("stem");
-                                        if (stemElement)
-                                        {
-                                            currentNote->noteStem.stemType = currentNote->noteStem.CalculateStemTypeFromString(stemElement->GetText());
-                                        }
-
-                                        // beam
-                                        XMLElement* beamElement = noteElement->FirstChildElement("beam");
-                                        if (beamElement)
-                                        {
-                                            currentNote->beam.beamType = currentNote->beam.CalculateBeamTypeFromString(beamElement->GetText());
-                                            currentNote->beam.beamLevel = GetNumberAttribute(beamElement, "number", 1);
-                                        }
-
-                                        // notations
-                                        XMLElement* notations = noteElement->FirstChildElement("notations");
-                                        if (notations)
-                                        {
-                                            // slurs
-                                            XMLElement* slurElement = notations->FirstChildElement("slur");
-                                            if (slurElement)
-                                            {
-                                                Slur slur = Slur();
-                                                slur.id = GetNumberAttribute(slurElement, "number");
-                                                slur.placement = GetAboveBelowAttribute(slurElement, "placement");
-                                                slur.type = GetStartStopAttribute(slurElement, "type");
-                                                currentNote->slurs.push_back(slur);
-                                            }
-
-                                            // technical
-                                            XMLElement* technical = notations->FirstChildElement("technical");
-                                            if (technical)
-                                            {
-                                                // hammer ons
-                                                XMLNode* previousHammerOnElement = technical->FirstChildElement("hammer-on");
-                                                while (true)
-                                                {
-                                                    if (previousHammerOnElement) {
-                                                        XMLElement* hammerOnElement = previousHammerOnElement->ToElement();
-                                                        if (hammerOnElement)
-                                                        {
-                                                            TABSlur tabSlur = TABSlur();
-                                                            tabSlur.slurType = TABSlur::SlurType::HammerOn;
-                                                            tabSlur.id = GetNumberAttribute(hammerOnElement, "number");
-                                                            tabSlur.placement = GetAboveBelowAttribute(hammerOnElement, "placement");
-                                                            tabSlur.type = GetStartStopAttribute(hammerOnElement, "type");
-                                                            if (hammerOnElement->GetText()) {
-                                                                tabSlur.text = hammerOnElement->GetText();
-                                                            }
-                                                            currentNote->tabSlurs.push_back(tabSlur);
-                                                        }
-                                                    }
-                                                    else
-                                                    {
-                                                        break;
-                                                    }
-                                                    previousHammerOnElement = previousHammerOnElement->NextSiblingElement("hammer-on");
-                                                }
-
-                                                // pull offs
-                                                XMLNode* previousPullOffElement = technical->FirstChildElement("pull-off");
-                                                while (true)
-                                                {
-                                                    if (previousPullOffElement) {
-                                                        XMLElement* pullOffElement = previousPullOffElement->ToElement();
-                                                        if (pullOffElement)
-                                                        {
-                                                            TABSlur tabSlur = TABSlur();
-                                                            tabSlur.slurType = TABSlur::SlurType::PullOff;
-                                                            tabSlur.id = GetNumberAttribute(pullOffElement, "number");
-                                                            tabSlur.placement = GetAboveBelowAttribute(pullOffElement, "placement");
-                                                            tabSlur.type = GetStartStopAttribute(pullOffElement, "type");
-                                                            if (pullOffElement->GetText()) {
-                                                                tabSlur.text = pullOffElement->GetText();
-                                                            }
-                                                            currentNote->tabSlurs.push_back(tabSlur);
-                                                        }
-                                                    }
-                                                    else
-                                                    {
-                                                        break;
-                                                    }
-                                                    previousPullOffElement = previousPullOffElement->NextSiblingElement("pull_off");
-                                                }
-
-                                                // - TAB only -
-                                                if (currentNote->type == Note::NoteType::Tab and isTab) {
-
-                                                    // string
-                                                    XMLElement* string = technical->FirstChildElement("string");
-                                                    if (string)
-                                                    {
-                                                        currentNote->string = ToInt(string->GetText());
-                                                    }
-
-                                                    // fret
-                                                    XMLElement* fret = technical->FirstChildElement("fret");
-                                                    if (fret)
-                                                    {
-                                                        currentNote->fret = ToInt(fret->GetText());
-                                                    }
-                                                }
-                                            }
-                                        }
-
-                                        currentNote->measureIndex = measureNumber - 1;
-                                        currentMeasures[currentNote->staff - 1]->notes.push_back(currentNote);
+                                        ParseNoteElement(element, currentTimeInMeasure, isTab, currentNote, previousNote, currentMeasures, measureNumber, error);
                                         previousNote = currentNote;
                                     }
                                     else if (strcmp(value, "backup") == 0) // backup time in measure
@@ -1224,6 +1500,10 @@ Song* MusicXMLParser::ParseMusicXML(const std::string& data, std::string& error)
                                         {
                                             error = "backup element has no duration";
                                         }
+                                    }
+                                    else if (strcmp(value, "harmony") == 0) // harmony element (i.e. chords)
+                                    {
+                                        ParseHarmonyElement(element, currentTimeInMeasure, currentMeasures);
                                     }
                                     else if (strcmp(value, "forward") == 0) // increment time in measure
                                     {
