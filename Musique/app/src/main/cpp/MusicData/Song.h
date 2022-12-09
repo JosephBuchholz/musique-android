@@ -17,6 +17,7 @@ public:
 
     void OnUpdate();
 
+    int GetMeasureCount() const { return m_MeasureWidths.size(); }
     float GetMeasureWidth(int measureIndex);
     float GetMeasurePositionX(int measureIndex);
     float GetMeasurePositionY(int measureIndex); // for use with a non horizontal mode (like a vertical mode)
@@ -25,6 +26,7 @@ public:
     float GetSongWidth(); // gets the width of the song
 
     float GetPositionXInSong(float beatPositionInSong, int currentMeasureIndex);
+    float GetPositionXInMeasure(float beatPositionInSong, int currentMeasureIndex);
 
     float GetNoteMinWidthInFront(Note* note); // the minimum amount of space needed in front of the note
     float GetNoteMinWidthBehind(Note* note); // the minimum amount of space needed behind the note

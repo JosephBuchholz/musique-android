@@ -30,6 +30,10 @@ public:
     static Date FromStringToDate(const char* string);
 
 private:
+    // ---- From String ----
+
+    static Chord::HarmonyType GetHarmonyTypeFromString(const std::string& string);
+
     // ---- Get Value Functions ----
 
     static std::string GetStringValue(XMLElement* element, std::string defaultValue = "");
@@ -40,6 +44,8 @@ private:
     static int GetIntValue(const std::string& elementName, XMLElement* elementParent, int defaultValue = 0);
     static unsigned int GetUnsignedIntValue(XMLElement* element, unsigned int defaultValue = 0);
     static unsigned int GetUnsignedIntValue(const std::string& elementName, XMLElement* elementParent, unsigned int defaultValue = 0);
+    static StartStopType GetStartStopValue(XMLElement* element, StartStopType defaultValue = StartStopType::None);
+    static StartStopType GetStartStopValue(const std::string& elementName, XMLElement* elementParent, StartStopType defaultValue = StartStopType::None);
 
     // ---- Get Attribute Functions ----
 
@@ -49,6 +55,7 @@ private:
     static int GetNumberAttribute(XMLElement* element, const char* s, int defaultValue = 0);
     static AboveBelowType GetAboveBelowAttribute(XMLElement* element, const char* s, AboveBelowType defaultValue = AboveBelowType::None);
     static StartStopType GetStartStopAttribute(XMLElement* element, const char* s, StartStopType defaultValue = StartStopType::None);
+    static RightLeftType GetRightLeftAttribute(XMLElement* element, const char* s, RightLeftType defaultValue = RightLeftType::None);
     static FontFamily GetFontFamilyAttribute(XMLElement* element, const char* s, FontFamily defaultValue = FontFamily());
     static FontSize GetFontSizeAttribute(XMLElement* element, const char* s, FontSize defaultValue = FontSize());
     static FontStyle GetFontStyleAttribute(XMLElement* element, const char* s, FontStyle defaultValue = FontStyle::Normal);
@@ -73,6 +80,8 @@ private:
     static void ParseIdentificationElement(XMLElement* idElement, Song* song);
     static void ParseDefaultsElement(XMLElement* defaultsElement);
     static void ParseCreditElement(XMLElement* creditElement);
+    static void ParseFrameElement(XMLElement* frameElement, Chord& chord);
     static void ParseHarmonyElement(XMLElement* harmonyElement, float& currentTimeInMeasure, std::vector<Measure*> currentMeasures);
     static void ParseNoteElement(XMLElement* noteElement, float& currentTimeInMeasure, bool isTab, Note* currentNote, Note* previousNote, std::vector<Measure*> currentMeasures, int measureNumber, std::string& error);
+    static void ParseTechnicalElement(XMLElement* technicalElement, Note* currentNote, bool isTab);
 };

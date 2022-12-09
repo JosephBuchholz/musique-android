@@ -259,6 +259,12 @@ class MusicDisplayView(context: Context, attrs: AttributeSet? = null): View(cont
             } else if ((frameData!!.playLinePosition * scale) + positionX <= deviceWidth.toFloat() / 8.0f) {
                 positionX += (deviceWidth.toFloat() / 8.0f) - ((frameData!!.playLinePosition * scale) + positionX)
             }
+
+            if ((frameData!!.playLinePositionY * scale) + positionY >= deviceHeight.toFloat() / 3.0f) {
+                positionY += (deviceHeight.toFloat() / 3.0f) - ((frameData!!.playLinePositionY * scale) + positionY)
+            } else if ((frameData!!.playLinePositionY * scale) + positionY <= deviceHeight.toFloat() / 8.0f) {
+                positionY += (deviceHeight.toFloat() / 8.0f) - ((frameData!!.playLinePositionY * scale) + positionY)
+            }
         }
 
         if (renderData != null) {

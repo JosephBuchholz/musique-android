@@ -136,7 +136,8 @@ void App::OnUpdate(double dt)
 {
     double dts = dt / 1000.0; // delta time in seconds
     double dtm = dts / 60.0; // delta time in minutes
-    aTime += dts;
+
+    /*aTime += dts;
     frames += 1;
     if (aTime >= 1.0f) {
         fps = frames;
@@ -148,9 +149,10 @@ void App::OnUpdate(double dt)
         jcount += 1;
         icount = 0;
     }
-    icount += 1;
+    icount += 1;*/
 
     if (isUpdating) {
+
         if (playing) {
             playLineBeatPosition += float(currentTempo * dtm);
         }
@@ -228,57 +230,222 @@ void App::OnUpdate(double dt)
             }
         }
 
+        // --- RENDERING ---
         if (startRendering) {
-            RenderData renderData = RenderData();
-            FrameData frameData = FrameData();
+            Render();
+        }
 
-            //std::vector<float> measureWidths;
+    } // if (isUpdating)
+}
 
-            //for (auto* instrument : song->instruments) {
-            //    for (auto* staff : instrument->staves) {
-            //        int measureNumber = 0;
-            //        for (const auto* measure : staff->measures) {
-            //           int minWidth = measure->CalculateMinWidth();
-//
-//                        if ((int)measureWidths.size() - 1 >= measureNumber) { // if there is all ready a width at measureNumber
-//                            if (measureWidths[measureNumber] < minWidth) { // if the width of this measure is bigger than the widths of the previous measures
-//                               measureWidths[measureNumber] = minWidth;
- //                           }
- //                       } else { // else push back width
-  //                          measureWidths.push_back(minWidth);
-   //                     }
-//
-//                        measureNumber++;
-//                    }
-//                }
- //           }
+void App::Render()
+{
+    switch (settings.musicLayout)
+    {
+        case Settings::MusicLayout::Horizontal: {
+            RenderHorizontalLayout();
+            break;
+        }
+        case Settings::MusicLayout::Vertical: {
+            RenderVerticalLayout();
+            break;
+        }
+        default: {
+            LOGE("This layout is not supported");
+            break;
+        }
+    }
+}
+
+void App::RenderHorizontalLayout()
+{
+    RenderData renderData = RenderData();
+    FrameData frameData = FrameData();
+
+    // --- MAIN RENDERING ---
+
+    /*
+     * An instrument's Y position starts at the first staff line (does not include ledger lines)
+     * An instrument's middleHeight is the amount of y space that it takes up below it's y position to the last staff line
+     * An instrument's aboveHeight is the amount of y space that it takes up above it's y position
+     * An instrument's belowHeight is the amount of y space that it takes up below it's y position + middleHeight
+     * An instrument's height is aboveHeight + middleHeight + belowHeight
+     */
+
+    float instYPosition = 0.0f;
+    if (updateRenderData) {
+        Instrument* prevInstrument = nullptr;
+        int instrumentIndex = 0;
+        for (auto *instrument : song->instruments) {
+
+            if (song->songData.instrumentInfos[instrumentIndex].visible)
+            {
+                if (prevInstrument != nullptr)
+                    instYPosition += prevInstrument->GetMiddleHeight(10.0f, 13.33f, 0, instrument->GetMeasureCount()) +
+                                     prevInstrument->GetBelowHeight(10.0f, 13.33f, 0, instrument->GetMeasureCount());
+                instYPosition += instrument->GetAboveHeight(10.0f, 13.33f, 0, instrument->GetMeasureCount());
+
+                int staffIndex = 0;
+                for (auto *staff : instrument->staves) {
+                    float ls = lineSpacing;
+                    if (staff->type == Staff::StaffType::Tab) {
+                        ls = tabLineSpacing;
+                    }
+
+                    // staff y position
+                    float staffYPosition = 0.0f;
+                    if (staffIndex == 0) {
+                        staffYPosition = 0.0f;
+                    } else if (staffIndex == 1) {
+                        staffYPosition = instrument->staves[staffIndex-1]->GetMiddleHeight(ls, 0, staff->measures.size()) +
+                                         instrument->staves[staffIndex-1]->GetBelowHeight(ls, 0, staff->measures.size()) +
+                                         staff->GetAboveHeight(ls, 0, staff->measures.size());
+                    }
+
+                    int measureNumber = 0;
+                    float measurePosition = 0.0f;
+                    int measureRenderCount = 15; // the number of measures that need to be rendered
+                    int currentMeasureRenderedCount = 0; // the number of measures that have been rendered
+                    for (auto *measure : staff->measures) {
+
+                        if (!(currentMeasureRenderedCount >= measureRenderCount) &&
+                            measureNumber >= currentMeasure - (measureRenderCount /
+                                                               2)) // render measure in a radius of measureRenderCount/2
+                        {
+                            float measureWidth = song->GetMeasureWidth(measureNumber);
+
+                            // staff lines
+                            for (int i = 0; i < staff->lines; i++) {
+                                float endX = measurePosition + measureWidth;
+                                renderData.AddLine(
+                                        Line(measurePosition,
+                                             (ls * i) + staffYPosition + instYPosition,
+                                             endX,
+                                             (ls * i) + staffYPosition + instYPosition,
+                                             BarLinePaint));
+                            }
 
 
-            // --- MAIN RENDERING ---
+                            // measure lines (bar lines)
+                            float x = measurePosition;
+                            renderData.AddLine(
+                                    Line(x, 0.0f + staffYPosition + instYPosition, x,
+                                         (ls * float(staff->lines - 1)) + staffYPosition +
+                                         instYPosition, BarLinePaint));
+                            x += song->GetMeasureWidth(measureNumber);
+                            renderData.AddLine(
+                                    Line(x, 0.0f + staffYPosition + instYPosition, x,
+                                         (ls * float(staff->lines - 1)) + staffYPosition +
+                                         instYPosition, BarLinePaint));
 
-            /*
-             * An instrument's Y position starts at the first staff line (does not include ledger lines)
-             * An instrument's middleHeight is the amount of y space that it takes up below it's y position to the last staff line
-             * An instrument's aboveHeight is the amount of y space that it takes up above it's y position
-             * An instrument's belowHeight is the amount of y space that it takes up below it's y position + middleHeight
-             * An instrument's height is aboveHeight + middleHeight + belowHeight
-             */
+                            RenderTimeSignature(renderData, measure, measurePosition, ls, 0.0f, instYPosition + staffYPosition);
+                            RenderClef(renderData, measure, measurePosition, ls, staff->lines, 0.0f, instYPosition + staffYPosition);
+                            RenderKeySignature(renderData, measure, measurePosition, ls, staff->lines, 0.0f, instYPosition + staffYPosition);
 
-            float instYPosition = 0.0f;
-            if (updateRenderData) {
-                Instrument* prevInstrument = nullptr;
+                            // render directions
+                            for (const Direction& direction : measure->directions)
+                            {
+                                float positionY = staffYPosition + instYPosition - 20.0f;
+                                RenderDirection(renderData, direction, positionY, measure, 0.0f, 0.0f, measurePosition);
+                            }
+
+                            int noteIndex = 0;
+                            for (Note *note : measure->notes) {
+                                RenderNote(renderData, note, measure, measurePosition, staff, staffYPosition, instYPosition, measureNumber, ls, 0.0f, 0.0f, noteIndex);
+                                noteIndex++;
+                            }
+
+                            // render all chords in this measure
+                            for (Chord& chord : measure->chords) {
+                                chord.CalculateChordName();
+                                float positionY = staffYPosition +
+                                                  instYPosition - 40.0f;
+                                RenderChord(renderData, chord, positionY, measure, 0.0f, 0.0f, measurePosition);
+                            }
+
+                            currentMeasureRenderedCount++;
+                        }
+                        measurePosition += song->GetMeasureWidth(measureNumber);
+                        measureNumber++;
+                    } // measures loop
+                    staffIndex++;
+                } // staves loop
+
+                prevInstrument = instrument;
+            }
+            instrumentIndex++;
+        } // instruments loop
+
+        UpdateRender(renderData);
+        updateRenderData = false;
+    }
+
+    playLinePosition = song->GetPositionXInSong(playLineBeatPosition, currentMeasure);
+
+    renderData.AddLine(
+            Line(0.0f, 20.0f, 0.0f, instYPosition, BarLinePaint));
+
+    if (playLineHeight == 0.0f) {
+        playLineHeight = instYPosition + 80.0f;
+    }
+
+    frameData.playLinePosition = playLinePosition;
+    frameData.playLinePositionY = playLineY;
+    frameData.playLineHeight = playLineHeight;
+    frameData.playProgress = playLineBeatPosition / song->totalBeatWidth;
+
+    UpdateFrameData(frameData);
+}
+
+void App::RenderVerticalLayout()
+{
+    RenderData renderData = RenderData();
+    FrameData frameData = FrameData();
+
+    // --- MAIN RENDERING ---
+
+    /*
+     * An instrument's Y position starts at the first staff line (does not include ledger lines)
+     * An instrument's middleHeight is the amount of y space that it takes up below it's y position to the last staff line
+     * An instrument's aboveHeight is the amount of y space that it takes up above it's y position
+     * An instrument's belowHeight is the amount of y space that it takes up below it's y position + middleHeight
+     * An instrument's height is aboveHeight + middleHeight + belowHeight
+     */
+
+    float instYPosition = 0.0f;
+    if (updateRenderData) {
+
+        int measureCount = song->GetMeasureCount();
+
+        float totalWidth = 0.0f;
+        int startMeasure = 0;
+        int endMeasure = 0;
+        for (int i = 0; i < measureCount; i++)
+        {
+            float width = song->GetMeasureWidth(i);
+
+            if (totalWidth + width > pageWidth)
+                endMeasure = i-1;
+            else if (i == measureCount-1)
+                endMeasure = i;
+
+            if (totalWidth + width > pageWidth || i == measureCount-1) {
+
+                Instrument *prevInstrument = nullptr;
                 int instrumentIndex = 0;
-                for (auto *instrument : song->instruments) {
+                for (auto *instrument: song->instruments) {
 
-                    if (song->songData.instrumentInfos[instrumentIndex].visible)
-                    {
+                    if (song->songData.instrumentInfos[instrumentIndex].visible) {
                         if (prevInstrument != nullptr)
-                            instYPosition += prevInstrument->GetMiddleHeight(10.0f, 13.33f, 0, instrument->GetMeasureCount()) +
-                                             prevInstrument->GetBelowHeight(10.0f, 13.33f, 0, instrument->GetMeasureCount());
-                        instYPosition += instrument->GetAboveHeight(10.0f, 13.33f, 0, instrument->GetMeasureCount());
+                            instYPosition += prevInstrument->GetMiddleHeight(10.0f, 13.33f, 0,
+                                                                             instrument->GetMeasureCount()) +
+                                             prevInstrument->GetBelowHeight(10.0f, 13.33f, 0,
+                                                                            instrument->GetMeasureCount());
+                        instYPosition += instrument->GetAboveHeight(10.0f, 13.33f, 0,
+                                                                    instrument->GetMeasureCount());
 
                         int staffIndex = 0;
-                        for (auto *staff : instrument->staves) {
+                        for (auto *staff: instrument->staves) {
                             float ls = lineSpacing;
                             if (staff->type == Staff::StaffType::Tab) {
                                 ls = tabLineSpacing;
@@ -289,16 +456,27 @@ void App::OnUpdate(double dt)
                             if (staffIndex == 0) {
                                 staffYPosition = 0.0f;
                             } else if (staffIndex == 1) {
-                                staffYPosition = instrument->staves[staffIndex-1]->GetMiddleHeight(ls, 0, staff->measures.size()) +
-                                                 instrument->staves[staffIndex-1]->GetBelowHeight(ls, 0, staff->measures.size()) +
-                                                 staff->GetAboveHeight(ls, 0, staff->measures.size());
+                                staffYPosition =
+                                        instrument->staves[staffIndex - 1]->GetMiddleHeight(ls, 0,
+                                                                                            staff->measures.size()) +
+                                        instrument->staves[staffIndex - 1]->GetBelowHeight(ls, 0,
+                                                                                           staff->measures.size()) +
+                                        staff->GetAboveHeight(ls, 0, staff->measures.size());
                             }
 
-                            int measureNumber = 0;
+                            int measureNumber = startMeasure;
                             float measurePosition = 0.0f;
                             int measureRenderCount = 15; // the number of measures that need to be rendered
                             int currentMeasureRenderedCount = 0; // the number of measures that have been rendered
-                            for (auto *measure : staff->measures) {
+                            for (int m = startMeasure; m <= endMeasure; m++) {
+
+                                Measure* measure = staff->measures[m];
+
+                                if (m == currentMeasure)
+                                {
+                                    playLinePosition = song->GetPositionXInMeasure(playLineBeatPosition, currentMeasure) + measurePosition;
+                                    playLineY = instYPosition;
+                                }
 
                                 if (!(currentMeasureRenderedCount >= measureRenderCount) &&
                                     measureNumber >= currentMeasure - (measureRenderCount /
@@ -330,29 +508,36 @@ void App::OnUpdate(double dt)
                                                  (ls * float(staff->lines - 1)) + staffYPosition +
                                                  instYPosition, BarLinePaint));
 
-                                    RenderTimeSignature(renderData, measure, measurePosition, ls, 0.0f, instYPosition + staffYPosition);
-                                    RenderClef(renderData, measure, measurePosition, ls, staff->lines, 0.0f, instYPosition + staffYPosition);
-                                    RenderKeySignature(renderData, measure, measurePosition, ls, staff->lines, 0.0f, instYPosition + staffYPosition);
+                                    RenderTimeSignature(renderData, measure, measurePosition, ls,
+                                                        0.0f, instYPosition + staffYPosition);
+                                    RenderClef(renderData, measure, measurePosition, ls,
+                                               staff->lines, 0.0f, instYPosition + staffYPosition);
+                                    RenderKeySignature(renderData, measure, measurePosition, ls,
+                                                       staff->lines, 0.0f,
+                                                       instYPosition + staffYPosition);
 
                                     // render directions
-                                    for (const Direction& direction : measure->directions)
-                                    {
+                                    for (const Direction &direction: measure->directions) {
                                         float positionY = staffYPosition + instYPosition - 20.0f;
-                                        RenderDirection(renderData, direction, positionY, measure, 0.0f, 0.0f);
+                                        RenderDirection(renderData, direction, positionY, measure,
+                                                        0.0f, 0.0f, measurePosition);
                                     }
 
                                     int noteIndex = 0;
-                                    for (Note *note : measure->notes) {
-                                        RenderNote(renderData, note, measure, staff, staffYPosition, instYPosition, measureNumber, ls, 0.0f, 0.0f, noteIndex);
+                                    for (Note *note: measure->notes) {
+                                        RenderNote(renderData, note, measure, measurePosition, staff, staffYPosition,
+                                                   instYPosition, measureNumber, ls, 0.0f, 0.0f,
+                                                   noteIndex);
                                         noteIndex++;
                                     }
 
                                     // render all chords in this measure
-                                    for (Chord& chord : measure->chords) {
+                                    for (Chord &chord: measure->chords) {
                                         chord.CalculateChordName();
                                         float positionY = staffYPosition +
                                                           instYPosition - 40.0f;
-                                        RenderChord(renderData, chord, positionY, measure, 0.0f, 0.0f);
+                                        RenderChord(renderData, chord, positionY, measure, 0.0f,
+                                                    0.0f, measurePosition);
                                     }
 
                                     currentMeasureRenderedCount++;
@@ -368,29 +553,32 @@ void App::OnUpdate(double dt)
                     instrumentIndex++;
                 } // instruments loop
 
-                UpdateRender(renderData);
-                updateRenderData = false;
+                totalWidth = width;
+                instYPosition += 100.0f;
+                startMeasure = i;
             }
-
-            playLinePosition = song->GetPositionXInSong(playLineBeatPosition, currentMeasure);
-
-            renderData.AddLine(
-                    Line(0.0f, 20.0f, 0.0f, instYPosition, BarLinePaint));
-
-            if (playLineHeight == 0.0f) {
-                playLineHeight = instYPosition + 80.0f;
-            }
-
-            frameData.playLinePosition = playLinePosition;
-            frameData.playLinePositionY = playLineY;
-            frameData.playLineHeight = playLineHeight;
-            frameData.playProgress = playLineBeatPosition / song->totalBeatWidth;
-
-            UpdateFrameData(frameData);
+            else
+                totalWidth += width;
         }
-    }
-}
 
+        UpdateRender(renderData);
+        updateRenderData = false;
+    }
+
+    renderData.AddLine(
+            Line(0.0f, 20.0f, 0.0f, instYPosition, BarLinePaint));
+
+    if (playLineHeight == 0.0f) {
+        playLineHeight = instYPosition + 80.0f;
+    }
+
+    frameData.playLinePosition = playLinePosition;
+    frameData.playLinePositionY = playLineY;
+    frameData.playLineHeight = playLineHeight;
+    frameData.playProgress = playLineBeatPosition / song->totalBeatWidth;
+
+    UpdateFrameData(frameData);
+}
 
 void App::RenderKeySignature(RenderData& renderData, const Measure* measure, float measurePosition, float ls, int lines, float offsetX, float offsetY)
 {
@@ -496,7 +684,7 @@ void App::RenderLyric(RenderData& renderData, const Lyric& lyric, float position
     renderData.AddText(Text(lyric.text[0].text, positionX + offsetX, positionY + offsetY, Paint(lyric.color.color, paint)));
 }
 
-void App::RenderDirection(RenderData& renderData, const Direction& direction, float positionY, Measure* measure, float offsetX, float offsetY)
+void App::RenderDirection(RenderData& renderData, const Direction& direction, float positionY, Measure* measure, float measureXPosition, float offsetX, float offsetY)
 {
     if (!direction.rehearsals.empty())
     {
@@ -507,7 +695,7 @@ void App::RenderDirection(RenderData& renderData, const Direction& direction, fl
             paint.isItalic = true;
         else if (rehearsal.fontWeight == FontWeight::Bold)
             paint.isBold = true;
-        float positionX = song->GetPositionXInSong(direction.beatPositionInSong, measure->index);
+        float positionX = song->GetPositionXInMeasure(direction.beatPositionInSong, measure->index) + measureXPosition;
         renderData.AddText(Text(rehearsal.text.string, positionX + offsetX, positionY + offsetY, Paint(rehearsal.color.color, paint)));
     }
     else if (!direction.words.empty())
@@ -522,6 +710,19 @@ void App::RenderDirection(RenderData& renderData, const Direction& direction, fl
         float positionX = song->GetPositionXInSong(direction.beatPositionInSong, measure->index);
         renderData.AddText(Text(words.text.string, positionX + offsetX, positionY + offsetY, Paint(words.color.color, paint)));
     }
+}
+
+void App::RenderChord(RenderData& renderData, const Chord& chord, float positionY, const Measure* measure, float measureXPosition, float offsetX, float offsetY)
+{
+    Paint paint = Paint();
+    paint.textSize = 16.0f;
+    if (chord.fontStyle == FontStyle::Italic)
+        paint.isItalic = true;
+    else if (chord.fontWeight == FontWeight::Bold)
+        paint.isBold = true;
+    float positionX = song->GetPositionXInMeasure(chord.beatPositionInSong, measure->index) + measureXPosition;
+    //LOGE("Chord (%s) is at %f, %f", chord.chordName.string.c_str(), chord.beatPosition, positionX);
+    renderData.AddText(Text(chord.chordName.string, positionX + offsetX, positionY + offsetY, Paint(chord.color.color, paint)));
 }
 
 void App::SetViewModelData(ViewModelData viewModelData)
@@ -546,7 +747,7 @@ void AddLine(RenderData& renderData, float startX, float startY, float endX, flo
                  paint));
 }
 
-void App::RenderRest(RenderData& renderData, const Note* note, int lines, float ls, float offsetX, float offsetY)
+void App::RenderRest(RenderData& renderData, const Note* note, float measurePositionX, int lines, float ls, float offsetX, float offsetY)
 {
     // calculate color of the note
     int color = normalColor;
@@ -555,7 +756,7 @@ void App::RenderRest(RenderData& renderData, const Note* note, int lines, float 
     }
 
     // rendering rest
-    float positionX = song->GetPositionXInSong(note->beatPositionInSong, note->measureIndex) + offsetX;
+    float positionX = song->GetPositionXInMeasure(note->beatPositionInSong, note->measureIndex) + measurePositionX + offsetX;
     float positionY = ((ls * float(lines - 1)) / 2.0f) + offsetY;
 
     if (note->isFullMeasureRest) {
@@ -595,7 +796,7 @@ void App::RenderRest(RenderData& renderData, const Note* note, int lines, float 
     }
 }
 
-void App::RenderTabNote(RenderData& renderData, const Note* note, int lines, float ls, float offsetX, float offsetY)
+void App::RenderTabNote(RenderData& renderData, const Note* note, float measurePositionX, int lines, float ls, float offsetX, float offsetY)
 {
     // calculate color of the note
     int color = normalColor;
@@ -603,7 +804,7 @@ void App::RenderTabNote(RenderData& renderData, const Note* note, int lines, flo
         color = playedColor;
     }
 
-    float positionX = song->GetPositionXInSong(note->beatPositionInSong,note->measureIndex) + offsetX; // this line of code crashes the program
+    float positionX = song->GetPositionXInMeasure(note->beatPositionInSong,note->measureIndex) + measurePositionX + offsetX; // this line of code crashes the program
     float positionY = (ls * float(note->string - 1)) + offsetY;
     renderData.AddText(
             Text(ToString(note->fret), positionX, positionY,
@@ -641,20 +842,7 @@ void App::RenderTabNote(RenderData& renderData, const Note* note, int lines, flo
     }
 }
 
-void App::RenderChord(RenderData& renderData, const Chord& chord, float positionY, const Measure* measure, float offsetX, float offsetY)
-{
-    Paint paint = Paint();
-    paint.textSize = 16.0f;
-    if (chord.fontStyle == FontStyle::Italic)
-        paint.isItalic = true;
-    else if (chord.fontWeight == FontWeight::Bold)
-        paint.isBold = true;
-    float positionX = song->GetPositionXInSong(chord.beatPositionInSong, measure->index);
-    //LOGE("Chord (%s) is at %f, %f", chord.chordName.string.c_str(), chord.beatPosition, positionX);
-    renderData.AddText(Text(chord.chordName.string, positionX + offsetX, positionY + offsetY, Paint(chord.color.color, paint)));
-}
-
-void App::RenderNote(RenderData& renderData, const Note* note, Measure* measure, const Staff* staff, float staffYPosition, float instYPosition, int measureNumber, float ls, float mainPositionX, float mainPositionY, int noteIndex)
+void App::RenderNote(RenderData& renderData, const Note* note, Measure* measure, float measurePositionX, const Staff* staff, float staffYPosition, float instYPosition, int measureNumber, float ls, float mainPositionX, float mainPositionY, int noteIndex)
 {
     // calculate color of the note
     int color = normalColor;
@@ -663,17 +851,17 @@ void App::RenderNote(RenderData& renderData, const Note* note, Measure* measure,
     }
 
     if (note->isRest) { // is a rest
-        RenderRest(renderData, note, staff->lines, ls, mainPositionX, mainPositionY + staffYPosition + instYPosition);
+        RenderRest(renderData, note, measurePositionX, staff->lines, ls, mainPositionX, mainPositionY + staffYPosition + instYPosition);
     } else if (note->type ==
                Note::NoteType::Tab) // is a tab note
     {
-        RenderTabNote(renderData, note, staff->lines, ls, mainPositionX, mainPositionY + staffYPosition + instYPosition);
+        RenderTabNote(renderData, note, measurePositionX, staff->lines, ls, mainPositionX, mainPositionY + staffYPosition + instYPosition);
     } else // is a standard note
     {
         // rendering note head
         //float positionX = measure->GetNotePositionInMeasure(
         //        song->GetMeasureWidth(measureNumber), noteIndex) + measurePosition;
-        float positionX = song->GetPositionXInSong(note->beatPositionInSong, measureNumber);
+        float positionX = song->GetPositionXInMeasure(note->beatPositionInSong, measureNumber) + measurePositionX;
         float positionY = (ls * measure->GetNoteYPosition(noteIndex)) + staffYPosition + instYPosition;
 
         renderData.AddBitmap(RenderBitmap(GetNoteHeadAssetID(note->durationType),positionX + mainPositionX, positionY + mainPositionY, 1.0f, 1.0f, Paint(color)));
@@ -921,12 +1109,12 @@ void App::RenderMusicToPage(RenderData& renderData, int page) {
                         // render directions
                         for (const Direction &direction: measure->directions) {
                             float positionY = staffYPosition + instYPosition - 20.0f;
-                            RenderDirection(renderData, direction, positionY, measure, mainPositionX, mainPositionY);
+                            RenderDirection(renderData, direction, positionY, measure, mainPositionX, mainPositionY, measurePosition);
                         }
 
                         int noteIndex = 0;
                         for (Note *note: measure->notes) {
-                            RenderNote(renderData, note, measure, staff, staffYPosition, instYPosition, measureNumber, ls, mainPositionX, mainPositionY, noteIndex);
+                            RenderNote(renderData, note, measure, measurePosition, staff, staffYPosition, instYPosition, measureNumber, ls, mainPositionX, mainPositionY, noteIndex);
                             noteIndex++;
                         }
 

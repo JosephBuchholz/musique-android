@@ -4,6 +4,7 @@
 #include "ViewModelData.h"
 #include "Midi.h"
 #include "Callbacks.h"
+#include "Settings.h"
 
 class App {
 
@@ -26,12 +27,16 @@ public:
     int OnCalculateNumPages();
     void RenderMusicToPage(RenderData& renderData, int page);
 
-    void RenderNote(RenderData& renderData, const Note* note, Measure* measure, const Staff* staff, float staffYPosition, float instYPosition, int measureNumber, float ls, float mainPositionX, float mainPositionY, int noteIndex);
-    void RenderRest(RenderData& renderData, const Note* note, int lines, float ls, float offsetX, float offsetY);
-    void RenderTabNote(RenderData& renderData, const Note* note, int lines, float ls, float offsetX, float offsetY);
-    void RenderDirection(RenderData& renderData, const Direction& direction, float positionY, Measure* measure, float offsetX, float offsetY);
+    void Render();
+    void RenderHorizontalLayout();
+    void RenderVerticalLayout();
+
+    void RenderNote(RenderData& renderData, const Note* note, Measure* measure, float measurePositionX, const Staff* staff, float staffYPosition, float instYPosition, int measureNumber, float ls, float mainPositionX, float mainPositionY, int noteIndex);
+    void RenderRest(RenderData& renderData, const Note* note, float measurePositionX, int lines, float ls, float offsetX, float offsetY);
+    void RenderTabNote(RenderData& renderData, const Note* note, float measurePositionX, int lines, float ls, float offsetX, float offsetY);
+    void RenderDirection(RenderData& renderData, const Direction& direction, float positionY, Measure* measure, float measureXPosition, float offsetX, float offsetY);
     void RenderLyric(RenderData& renderData, const Lyric& lyric, float positionY, const Measure* measure, const Note* note, float offsetX, float offsetY);
-    void RenderChord(RenderData& renderData, const Chord& chord, float positionY, const Measure* measure, float offsetX, float offsetY);
+    void RenderChord(RenderData& renderData, const Chord& chord, float positionY, const Measure* measure, float measureXPosition, float offsetX, float offsetY);
     void RenderTimeSignature(RenderData& renderData, const Measure* measure, float measurePosition, float ls, float offsetX, float offsetY);
     void RenderKeySignature(RenderData& renderData, const Measure* measure, float measurePosition, float ls, int lines, float offsetX, float offsetY);
     void RenderClef(RenderData& renderData, const Measure* measure, float measurePosition, float ls, int lines, float offsetX, float offsetY);
@@ -79,7 +84,6 @@ private:
 
     bool updateRenderData = true; // weather the sheet music needs to be updated(rendered) again
 
-
     float currentMeasureBeatPosition = 0.0f;
     int currentMeasure = 0;
 
@@ -102,4 +106,8 @@ private:
     float tabLineSpacing = 13.33f;
 
     bool startRendering = false;
+
+    Settings settings;
+
+    float pageWidth = 1024.0f;
 };

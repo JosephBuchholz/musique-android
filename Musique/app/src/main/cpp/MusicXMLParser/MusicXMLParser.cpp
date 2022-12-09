@@ -35,6 +35,81 @@ Date MusicXMLParser::FromStringToDate(const char* string)
     return date;
 }
 
+// ---- From String ----
+
+Chord::HarmonyType MusicXMLParser::GetHarmonyTypeFromString(const std::string& string)
+{
+    if (string == "none")
+        return Chord::HarmonyType::NoHarmony;
+    else if (string == "other")
+        return Chord::HarmonyType::Other;
+    else if (string == "augmented")
+        return Chord::HarmonyType::Augmented;
+    else if (string == "augmented-seventh")
+        return Chord::HarmonyType::AugmentedSeventh;
+    else if (string == "diminished")
+        return Chord::HarmonyType::Diminished;
+    else if (string == "diminished-seventh")
+        return Chord::HarmonyType::DiminishedSeventh;
+    else if (string == "dominant")
+        return Chord::HarmonyType::Dominant;
+    else if (string == "dominant-11th")
+        return Chord::HarmonyType::Dominant11th;
+    else if (string == "dominant-13th")
+        return Chord::HarmonyType::Dominant13th;
+    else if (string == "dominant-ninth")
+        return Chord::HarmonyType::DominantNinth;
+    else if (string == "French")
+        return Chord::HarmonyType::French;
+    else if (string == "German")
+        return Chord::HarmonyType::German;
+    else if (string == "half-diminished")
+        return Chord::HarmonyType::HalfDiminished;
+    else if (string == "Italian")
+        return Chord::HarmonyType::Italian;
+    else if (string == "major")
+        return Chord::HarmonyType::Major;
+    else if (string == "major-11th")
+        return Chord::HarmonyType::Major11th;
+    else if (string == "major-13th")
+        return Chord::HarmonyType::Major13th;
+    else if (string == "major-minor")
+        return Chord::HarmonyType::MajorMinor;
+    else if (string == "major-ninth")
+        return Chord::HarmonyType::MajorNinth;
+    else if (string == "major-seventh")
+        return Chord::HarmonyType::MajorSeventh;
+    else if (string == "major-sixth")
+        return Chord::HarmonyType::MajorSixth;
+    else if (string == "minor")
+        return Chord::HarmonyType::Minor;
+    else if (string == "minor-11th")
+        return Chord::HarmonyType::Minor11th;
+    else if (string == "minor-13th")
+        return Chord::HarmonyType::Minor13th;
+    else if (string == "minor-ninth")
+        return Chord::HarmonyType::MinorNinth;
+    else if (string == "minor-seventh")
+        return Chord::HarmonyType::MinorSeventh;
+    else if (string == "minor-sixth")
+        return Chord::HarmonyType::MinorSixth;
+    else if (string == "Neapolitan")
+        return Chord::HarmonyType::Neapolitan;
+    else if (string == "pedal")
+        return Chord::HarmonyType::Pedal;
+    else if (string == "power")
+        return Chord::HarmonyType::Power;
+    else if (string == "suspended-fourth")
+        return Chord::HarmonyType::SuspendedFourth;
+    else if (string == "suspended-second")
+        return Chord::HarmonyType::SuspendedSecond;
+    else if (string == "Tristan")
+        return Chord::HarmonyType::Tristan;
+    else
+        ; // TODO: error: this is not possible
+        return Chord::HarmonyType::None;
+}
+
 // ---- Get Value Functions ----
 
 std::string MusicXMLParser::GetStringValue(XMLElement* element, std::string defaultValue)
@@ -123,6 +198,36 @@ unsigned int MusicXMLParser::GetUnsignedIntValue(const std::string& elementName,
     return defaultValue;
 }
 
+StartStopType MusicXMLParser::GetStartStopValue(XMLElement* element, StartStopType defaultValue)
+{
+    if (element) {
+        const char* c = element->GetText();
+        if (strcmp(c, "start") == 0) {
+            return StartStopType::Start;
+        } else if (strcmp(c, "stop") == 0) {
+            return StartStopType::Stop;
+        } else if (strcmp(c, "continue") == 0) {
+            return StartStopType::Continue;
+        }
+    }
+    return defaultValue;
+}
+
+StartStopType MusicXMLParser::GetStartStopValue(const std::string& elementName, XMLElement* elementParent, StartStopType defaultValue)
+{
+    XMLElement* element = elementParent->FirstChildElement(elementName.c_str());
+    if (element) {
+        const char* c = element->GetText();
+        if (strcmp(c, "start") == 0) {
+            return StartStopType::Start;
+        } else if (strcmp(c, "stop") == 0) {
+            return StartStopType::Stop;
+        } else if (strcmp(c, "continue") == 0) {
+            return StartStopType::Continue;
+        }
+    }
+    return defaultValue;
+}
 
 // ---- Get Attribute Functions ----
 
@@ -185,6 +290,19 @@ StartStopType MusicXMLParser::GetStartStopAttribute(XMLElement* element, const c
             return StartStopType::Stop;
         } else if (strcmp(attribute, "continue") == 0) {
             return StartStopType::Continue;
+        }
+    }
+    return defaultValue;
+}
+
+RightLeftType MusicXMLParser::GetRightLeftAttribute(XMLElement* element, const char* s, RightLeftType defaultValue)
+{
+    const char* attribute = element->Attribute(s);
+    if (attribute) {
+        if (strcmp(attribute, "right") == 0) {
+            return RightLeftType::Right;
+        } else if (strcmp(attribute, "left") == 0) {
+            return RightLeftType::Left;
         }
     }
     return defaultValue;
@@ -538,6 +656,53 @@ void MusicXMLParser::ParseCreditElement(XMLElement* creditElement)
     // TODO: implement
 }
 
+void MusicXMLParser::ParseFrameElement(XMLElement* frameElement, Chord& chord)
+{
+    if (frameElement)
+    {
+        ChordDiagram chordDiagram;
+
+        XMLElement* rootStepElement = frameElement->FirstChildElement("root-step");
+
+        chordDiagram.string = GetUnsignedIntValue("frame-strings", frameElement, 0);
+        chordDiagram.frets = GetUnsignedIntValue("frame-frets", frameElement, 0);
+
+        XMLElement* firstFretElement = frameElement->FirstChildElement("first-fret");
+        if (firstFretElement)
+        {
+            chordDiagram.firstFret = GetUnsignedIntValue(firstFretElement, chordDiagram.firstFret);
+            GetRightLeftAttribute(firstFretElement, "location", chordDiagram.firstFretLocation);
+        }
+
+        // loop through all degree elements
+        XMLNode* previousElement = frameElement->FirstChildElement(); // first element
+        while (true)
+        {
+            if (previousElement) {
+                XMLElement* element = previousElement->ToElement();
+                const char* value = element->Value();
+                if (strcmp(value, "frame-note") == 0)
+                {
+                    XMLElement* frameNoteElement = element;
+                    ChordDiagramNote chordDiagramNote = ChordDiagramNote();
+
+                    chordDiagramNote.string = GetUnsignedIntValue("string", frameNoteElement, chordDiagramNote.string);
+                    chordDiagramNote.fret = GetUnsignedIntValue("fret", frameNoteElement, chordDiagramNote.fret);
+                    chordDiagramNote.fingering = GetUnsignedIntValue("fingering", frameNoteElement, chordDiagramNote.fingering);
+                    chordDiagramNote.barre = GetStartStopValue("barre", frameNoteElement, chordDiagramNote.barre);
+                }
+            }
+            else
+            {
+                break;
+            }
+            previousElement = previousElement->NextSiblingElement();
+        }
+
+        chord.chordDiagram = chordDiagram;
+    }
+}
+
 void MusicXMLParser::ParseHarmonyElement(XMLElement* harmonyElement, float& currentTimeInMeasure, std::vector<Measure*> currentMeasures)
 {
     Chord newChord;
@@ -594,74 +759,8 @@ void MusicXMLParser::ParseHarmonyElement(XMLElement* harmonyElement, float& curr
     {
         std::string typeString = GetStringValue(kindElement, "");
 
-        if (typeString == "none")
-            newChord.harmonyType = Chord::HarmonyType::NoHarmony;
-        else if (typeString == "other")
-            newChord.harmonyType = Chord::HarmonyType::Other;
-        else if (typeString == "augmented")
-            newChord.harmonyType = Chord::HarmonyType::Augmented;
-        else if (typeString == "augmented-seventh")
-            newChord.harmonyType = Chord::HarmonyType::AugmentedSeventh;
-        else if (typeString == "diminished")
-            newChord.harmonyType = Chord::HarmonyType::Diminished;
-        else if (typeString == "diminished-seventh")
-            newChord.harmonyType = Chord::HarmonyType::DiminishedSeventh;
-        else if (typeString == "dominant")
-            newChord.harmonyType = Chord::HarmonyType::Dominant;
-        else if (typeString == "dominant-11th")
-            newChord.harmonyType = Chord::HarmonyType::Dominant11th;
-        else if (typeString == "dominant-13th")
-            newChord.harmonyType = Chord::HarmonyType::Dominant13th;
-        else if (typeString == "dominant-ninth")
-            newChord.harmonyType = Chord::HarmonyType::DominantNinth;
-        else if (typeString == "French")
-            newChord.harmonyType = Chord::HarmonyType::French;
-        else if (typeString == "German")
-            newChord.harmonyType = Chord::HarmonyType::German;
-        else if (typeString == "half-diminished")
-            newChord.harmonyType = Chord::HarmonyType::HalfDiminished;
-        else if (typeString == "Italian")
-            newChord.harmonyType = Chord::HarmonyType::Italian;
-        else if (typeString == "major")
-            newChord.harmonyType = Chord::HarmonyType::Major;
-        else if (typeString == "major-11th")
-            newChord.harmonyType = Chord::HarmonyType::Major11th;
-        else if (typeString == "major-13th")
-            newChord.harmonyType = Chord::HarmonyType::Major13th;
-        else if (typeString == "major-minor")
-            newChord.harmonyType = Chord::HarmonyType::MajorMinor;
-        else if (typeString == "major-ninth")
-            newChord.harmonyType = Chord::HarmonyType::MajorNinth;
-        else if (typeString == "major-seventh")
-            newChord.harmonyType = Chord::HarmonyType::MajorSeventh;
-        else if (typeString == "major-sixth")
-            newChord.harmonyType = Chord::HarmonyType::MajorSixth;
-        else if (typeString == "minor")
-            newChord.harmonyType = Chord::HarmonyType::Minor;
-        else if (typeString == "minor-11th")
-            newChord.harmonyType = Chord::HarmonyType::Minor11th;
-        else if (typeString == "minor-13th")
-            newChord.harmonyType = Chord::HarmonyType::Minor13th;
-        else if (typeString == "minor-ninth")
-            newChord.harmonyType = Chord::HarmonyType::MinorNinth;
-        else if (typeString == "minor-seventh")
-            newChord.harmonyType = Chord::HarmonyType::MinorSeventh;
-        else if (typeString == "minor-sixth")
-            newChord.harmonyType = Chord::HarmonyType::MinorSixth;
-        else if (typeString == "Neapolitan")
-            newChord.harmonyType = Chord::HarmonyType::Neapolitan;
-        else if (typeString == "pedal")
-            newChord.harmonyType = Chord::HarmonyType::Pedal;
-        else if (typeString == "power")
-            newChord.harmonyType = Chord::HarmonyType::Power;
-        else if (typeString == "suspended-fourth")
-            newChord.harmonyType = Chord::HarmonyType::SuspendedFourth;
-        else if (typeString == "suspended-second")
-            newChord.harmonyType = Chord::HarmonyType::SuspendedSecond;
-        else if (typeString == "Tristan")
-            newChord.harmonyType = Chord::HarmonyType::Tristan;
-        else
-            ; // TODO: error: this is not possible
+        newChord.harmonyType = GetHarmonyTypeFromString(typeString);
+
         newChord.brackets = GetBoolAttribute(kindElement, "bracket-degrees", newChord.brackets);
         newChord.parentheses = GetBoolAttribute(kindElement, "parentheses-degrees", newChord.parentheses);
         newChord.stackDegrees = GetBoolAttribute(kindElement, "stack-degrees", newChord.stackDegrees);
@@ -728,6 +827,10 @@ void MusicXMLParser::ParseHarmonyElement(XMLElement* harmonyElement, float& curr
         }
         previousElement = previousElement->NextSiblingElement();
     }
+
+    // bass note
+    XMLElement* frameElement = harmonyElement->FirstChildElement("frame");
+    ParseFrameElement(frameElement, newChord);
 
     newChord.beatPosition = currentTimeInMeasure; // note: harmony elements don't increment the time
     newChord.CalculateChordName();
@@ -917,82 +1020,87 @@ void MusicXMLParser::ParseNoteElement(XMLElement* noteElement, float& currentTim
 
         // technical
         XMLElement* technical = notations->FirstChildElement("technical");
-        if (technical)
-        {
-            // hammer ons
-            XMLNode* previousHammerOnElement = technical->FirstChildElement("hammer-on");
-            while (true)
-            {
-                if (previousHammerOnElement) {
-                    XMLElement* hammerOnElement = previousHammerOnElement->ToElement();
-                    if (hammerOnElement)
-                    {
-                        TABSlur tabSlur = TABSlur();
-                        tabSlur.slurType = TABSlur::SlurType::HammerOn;
-                        tabSlur.id = GetNumberAttribute(hammerOnElement, "number");
-                        tabSlur.placement = GetAboveBelowAttribute(hammerOnElement, "placement");
-                        tabSlur.type = GetStartStopAttribute(hammerOnElement, "type");
-                        if (hammerOnElement->GetText()) {
-                            tabSlur.text = hammerOnElement->GetText();
-                        }
-                        currentNote->tabSlurs.push_back(tabSlur);
-                    }
-                }
-                else
-                {
-                    break;
-                }
-                previousHammerOnElement = previousHammerOnElement->NextSiblingElement("hammer-on");
-            }
-
-            // pull offs
-            XMLNode* previousPullOffElement = technical->FirstChildElement("pull-off");
-            while (true)
-            {
-                if (previousPullOffElement) {
-                    XMLElement* pullOffElement = previousPullOffElement->ToElement();
-                    if (pullOffElement)
-                    {
-                        TABSlur tabSlur = TABSlur();
-                        tabSlur.slurType = TABSlur::SlurType::PullOff;
-                        tabSlur.id = GetNumberAttribute(pullOffElement, "number");
-                        tabSlur.placement = GetAboveBelowAttribute(pullOffElement, "placement");
-                        tabSlur.type = GetStartStopAttribute(pullOffElement, "type");
-                        if (pullOffElement->GetText()) {
-                            tabSlur.text = pullOffElement->GetText();
-                        }
-                        currentNote->tabSlurs.push_back(tabSlur);
-                    }
-                }
-                else
-                {
-                    break;
-                }
-                previousPullOffElement = previousPullOffElement->NextSiblingElement("pull_off");
-            }
-
-            // - TAB only -
-            if (currentNote->type == Note::NoteType::Tab and isTab) {
-
-                // string
-                XMLElement* string = technical->FirstChildElement("string");
-                if (string)
-                {
-                    currentNote->string = ToInt(string->GetText());
-                }
-
-                // fret
-                XMLElement* fret = technical->FirstChildElement("fret");
-                if (fret)
-                {
-                    currentNote->fret = ToInt(fret->GetText());
-                }
-            }
-        }
+        ParseTechnicalElement(technical, currentNote, isTab);
     }
 
     currentNote->measureIndex = measureNumber - 1;
     currentMeasures[currentNote->staff - 1]->notes.push_back(currentNote);
+}
+
+void MusicXMLParser::ParseTechnicalElement(XMLElement* technicalElement, Note* currentNote, bool isTab)
+{
+    if (technicalElement)
+    {
+        // hammer ons
+        XMLNode* previousHammerOnElement = technicalElement->FirstChildElement("hammer-on");
+        while (true)
+        {
+            if (previousHammerOnElement) {
+                XMLElement* hammerOnElement = previousHammerOnElement->ToElement();
+                if (hammerOnElement)
+                {
+                    TABSlur tabSlur = TABSlur();
+                    tabSlur.slurType = TABSlur::SlurType::HammerOn;
+                    tabSlur.id = GetNumberAttribute(hammerOnElement, "number");
+                    tabSlur.placement = GetAboveBelowAttribute(hammerOnElement, "placement");
+                    tabSlur.type = GetStartStopAttribute(hammerOnElement, "type");
+                    if (hammerOnElement->GetText()) {
+                        tabSlur.text = hammerOnElement->GetText();
+                    }
+                    currentNote->tabSlurs.push_back(tabSlur);
+                }
+            }
+            else
+            {
+                break;
+            }
+            previousHammerOnElement = previousHammerOnElement->NextSiblingElement("hammer-on");
+        }
+
+        // pull offs
+        XMLNode* previousPullOffElement = technicalElement->FirstChildElement("pull-off");
+        while (true)
+        {
+            if (previousPullOffElement) {
+                XMLElement* pullOffElement = previousPullOffElement->ToElement();
+                if (pullOffElement)
+                {
+                    TABSlur tabSlur = TABSlur();
+                    tabSlur.slurType = TABSlur::SlurType::PullOff;
+                    tabSlur.id = GetNumberAttribute(pullOffElement, "number");
+                    tabSlur.placement = GetAboveBelowAttribute(pullOffElement, "placement");
+                    tabSlur.type = GetStartStopAttribute(pullOffElement, "type");
+                    if (pullOffElement->GetText()) {
+                        tabSlur.text = pullOffElement->GetText();
+                    }
+                    currentNote->tabSlurs.push_back(tabSlur);
+                }
+            }
+            else
+            {
+                break;
+            }
+            previousPullOffElement = previousPullOffElement->NextSiblingElement("pull_off");
+        }
+
+        // - TAB only -
+        if (currentNote->type == Note::NoteType::Tab && isTab) {
+
+            // string
+            XMLElement* string = technicalElement->FirstChildElement("string");
+            if (string)
+            {
+                currentNote->string = ToInt(string->GetText());
+            }
+
+            // fret
+            XMLElement* fret = technicalElement->FirstChildElement("fret");
+            if (fret)
+            {
+                currentNote->fret = ToInt(fret->GetText());
+            }
+        }
+    }
 }
 
 // main file parsing
@@ -1130,28 +1238,6 @@ Song* MusicXMLParser::ParseMusicXML(const std::string& data, std::string& error)
                     }
                     previousScorePartElement = previousScorePartElement->NextSiblingElement("score-part");
                 }
-
-                // old score part
-                /*XMLElement* scorePart = partList->FirstChildElement("score-part");
-                if (scorePart)
-                {
-                    Instrument* instrument = new Instrument();
-                    songData->instruments.push_back(instrument);
-
-                    // part id
-                    instrument->id = scorePart->Attribute("id");
-
-                    // part name
-                    XMLElement* partName = scorePart->FirstChildElement("part-name");
-                    if (partName)
-                    {
-                        instrument->name.string = partName->GetText();
-                    }
-                }
-                else
-                {
-                    error = "ERROR no score-part";
-                }*/
             }
             else
             {
@@ -1172,23 +1258,6 @@ Song* MusicXMLParser::ParseMusicXML(const std::string& data, std::string& error)
                         error = "Instrument " + id + " does not exist";
                         return song;
                     }
-
-                    //currentInst->staves.push_back(new Staff());
-                    /*LOGD("Part id: %s", id.c_str());
-                    Instrument* currentInst = songData->GetInstrument(id);
-                    if (currentInst != nullptr) {
-                        LOGD("Instrument is not null");
-                        Staff *s = new Staff();
-                        if (s != nullptr) {
-                            LOGD("Staff is not null");
-                            currentInst->staves.push_back(s);
-                            LOGD("Pushed back staff");
-                        } else {
-                            LOGD("Staff is null");
-                        }
-                    } else {
-                        LOGD("Instrument is null");
-                    */
 
                     // measures
 
@@ -1333,40 +1402,6 @@ Song* MusicXMLParser::ParseMusicXML(const std::string& data, std::string& error)
                                         previousClefElement = previousClefElement->NextSiblingElement("clef");
                                     }
                                 }
-
-                                /*// clef
-                                XMLElement* clef = attributes->FirstChildElement("clef");
-                                if (clef)
-                                {
-                                    XMLElement* sign = clef->FirstChildElement("sign");
-                                    if (sign)
-                                    {
-                                        currentMeasure->clef.sign = sign->GetText();
-                                        if (currentMeasure->clef.sign == "TAB")
-                                        {
-                                            if (firstMeasure) {
-                                                currentInst->staves.push_back(new TabStaff());
-                                                isTab = true;
-                                            }
-                                        }
-                                        else
-                                        {
-                                            if (firstMeasure)
-                                                currentInst->staves.push_back(new Staff());
-                                        }
-                                    }
-
-                                    XMLElement* line = clef->FirstChildElement("line");
-                                    if (line)
-                                        currentMeasure->clef.line = ToInt(line->GetText());
-
-                                    currentMeasure->showClef = true;
-                                }
-                                else
-                                {
-                                    if (firstMeasure)
-                                        currentInst->staves.push_back(new Staff());
-                                }*/
 
                                 // transpose
                                 XMLElement* transposeElement = attributes->FirstChildElement("transpose");

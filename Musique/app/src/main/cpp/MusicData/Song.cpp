@@ -474,12 +474,10 @@ float Song::GetSongWidth()
     return songWidth;
 }
 
-float Song::GetPositionXInSong(float beatPositionInSong, int currentMeasureIndex)
+float Song::GetPositionXInMeasure(float beatPositionInSong, int currentMeasureIndex)
 {
     float position = 0.0f;
 
-    float measurePositionX = GetMeasurePositionX(currentMeasureIndex);
-    position += measurePositionX;
     position += m_MeasureBeginWidths[currentMeasureIndex];
     // add the measure's beginning width <--
 
@@ -533,6 +531,16 @@ float Song::GetPositionXInSong(float beatPositionInSong, int currentMeasureIndex
         time += noteData.duration;
         previousNoteWidth = noteData.width;
     }
+
+    return position;
+}
+
+float Song::GetPositionXInSong(float beatPositionInSong, int currentMeasureIndex)
+{
+    float position = GetPositionXInMeasure(beatPositionInSong, currentMeasureIndex);
+
+    float measurePositionX = GetMeasurePositionX(currentMeasureIndex);
+    position += measurePositionX;
 
     return position;
 }

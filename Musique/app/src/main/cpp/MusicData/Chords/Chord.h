@@ -7,6 +7,7 @@
 #include "../Pitch.h"
 #include "ChordDegree.h"
 #include "../Duration.h"
+#include "ChordDiagram.h"
 
 class Chord : public TextualElement {
 
@@ -42,6 +43,8 @@ public:
     bool useSymbols = false;
 
     std::string harmonyTypeText = "";
+
+    ChordDiagram chordDiagram;
 
     enum class HarmonyType {
         None = 0,

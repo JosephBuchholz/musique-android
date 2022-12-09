@@ -5,6 +5,8 @@
 #include "../AndroidDebug.h"
 
 typedef float Alter;
+typedef unsigned int StringValue;
+typedef unsigned int FretValue;
 
 enum class NoteValue {
     None = 0, Whole, Half, Quarter, Eighth, Sixteenth, ThirtySecond
@@ -21,6 +23,10 @@ enum class StartStopType {
 
 enum class AboveBelowType {
     None = 0, Above, Below
+};
+
+enum class RightLeftType {
+    None = 0, Right, Left
 };
 
 enum class Justify {
