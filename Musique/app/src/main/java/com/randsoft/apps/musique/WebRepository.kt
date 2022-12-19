@@ -23,7 +23,7 @@ class WebRepository {
 
         // retrofit networking stuff
         val retrofit: Retrofit = Retrofit.Builder()
-            .baseUrl("http://192.168.1.76:8000/")
+            .baseUrl("https://music.escriben.org/")
             .addConverterFactory(ScalarsConverterFactory.create())
             .addConverterFactory(GsonConverterFactory.create())
             .build()

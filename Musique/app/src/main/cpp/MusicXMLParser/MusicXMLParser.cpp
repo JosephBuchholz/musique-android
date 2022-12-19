@@ -648,7 +648,47 @@ void MusicXMLParser::ParseIdentificationElement(XMLElement* idElement, Song* son
 
 void MusicXMLParser::ParseDefaultsElement(XMLElement* defaultsElement)
 {
-    // TODO: implement
+    MusicDisplayConstants displayConstants = MusicDisplayConstants();
+    if (defaultsElement)
+    {
+        XMLElement* pageLayoutElement = defaultsElement->FirstChildElement("page-layout");
+        if (pageLayoutElement)
+        {
+            displayConstants.pageWidth = GetFloatValue("page-width", pageLayoutElement, displayConstants.pageWidth); // required
+            displayConstants.pageHeight = GetFloatValue("page-height", pageLayoutElement, displayConstants.pageHeight); // required
+
+            XMLElement* pageLayoutMarginsElement = defaultsElement->FirstChildElement("page-margins");
+            if (pageLayoutMarginsElement)
+            {
+                displayConstants.leftMargin = GetFloatValue("left-margin", pageLayoutMarginsElement, displayConstants.leftMargin); // required
+                displayConstants.rightMargin = GetFloatValue("right-margin", pageLayoutMarginsElement, displayConstants.rightMargin); // required
+                displayConstants.topMargin = GetFloatValue("top-margin", pageLayoutMarginsElement, displayConstants.topMargin); // required
+                displayConstants.bottomMargin = GetFloatValue("bottom-margin", pageLayoutMarginsElement, displayConstants.bottomMargin); // required
+            }
+        }
+
+        XMLElement* systemLayoutElement = defaultsElement->FirstChildElement("system-layout");
+        if (systemLayoutElement)
+        {
+            displayConstants.systemDistance = GetFloatValue("system-distance", systemLayoutElement, displayConstants.systemDistance);
+            displayConstants.topSystemDistance = GetFloatValue("top-system-distance", systemLayoutElement, displayConstants.topSystemDistance);
+
+            XMLElement* systemLayoutMarginsElement = defaultsElement->FirstChildElement("system-margins");
+            if (systemLayoutMarginsElement)
+            {
+                displayConstants.systemLeftMargin = GetFloatValue("left-margin", systemLayoutMarginsElement, displayConstants.systemLeftMargin); // required
+                displayConstants.systemRightMargin = GetFloatValue("right-margin", systemLayoutMarginsElement, displayConstants.systemRightMargin); // required
+            }
+        }
+
+        XMLElement* staffLayoutElement = defaultsElement->FirstChildElement("staff-layout");
+        if (staffLayoutElement)
+        {
+            displayConstants.staffDistance = GetFloatValue("staff-distance", staffLayoutElement, displayConstants.staffDistance);
+        }
+
+
+    }
 }
 
 void MusicXMLParser::ParseCreditElement(XMLElement* creditElement)
@@ -843,6 +883,11 @@ void MusicXMLParser::ParseNoteElement(XMLElement* noteElement, float& currentTim
     if (isTab) {
         currentNote->type = Note::NoteType::Tab;
     }
+
+    currentNote->defaultX = GetFloatAttribute(noteElement, "default-x", currentNote->defaultX);
+    currentNote->defaultY = GetFloatAttribute(noteElement, "default-y", currentNote->defaultY);
+    currentNote->relativeX = GetFloatAttribute(noteElement, "relative-x", currentNote->relativeX);
+    currentNote->relativeY = GetFloatAttribute(noteElement, "relative-y", currentNote->relativeY);
 
     // staff
     XMLElement* staffElement = noteElement->FirstChildElement("staff");
@@ -1210,7 +1255,7 @@ Song* MusicXMLParser::ParseMusicXML(const std::string& data, std::string& error)
                                 instrument->midiInstrument.channel = ToInt(channelElement->GetText()) - 1;
                             }
 
-                            // midi channel
+                            // midi program
                             XMLElement* programElement = midiInstrumentElement->FirstChildElement("midi-program");
                             if (programElement)
                             {
@@ -1270,7 +1315,23 @@ Song* MusicXMLParser::ParseMusicXML(const std::string& data, std::string& error)
                         if (previousMeasureElement)
                         {
                             XMLElement* measure = previousMeasureElement->ToElement();
-                            int measureNumber = ToInt(measure->Attribute("number"));
+
+                            int measureNumber = GetNumberAttribute(measure, "number", 0);
+                            float measureWidth = GetFloatAttribute(measure, "width", 1.0f);
+                            LOGW("measureWidth: %f", measureWidth);
+
+                            bool startNewSystem = false;
+                            bool startNewPage = false;
+
+                            // print
+                            XMLElement* print = measure->FirstChildElement("print");
+                            if (print)
+                            {
+                                startNewSystem = GetBoolAttribute(print, "new-system", startNewSystem);
+                                startNewPage = GetBoolAttribute(print, "new-page", startNewPage);
+                                startNewSystem |= startNewPage;
+                            }
+
                             std::vector<Measure*> currentMeasures;
                             if (!firstMeasure)
                             {
@@ -1281,6 +1342,11 @@ Song* MusicXMLParser::ParseMusicXML(const std::string& data, std::string& error)
                                     newMeasure->number = measureNumber;
                                     newMeasure->index = measureNumber - 1;
                                     newMeasure->staff = i+1;
+                                    newMeasure->defaultMeasureWidth = measureWidth;
+
+                                    newMeasure->startNewSystem = startNewSystem;
+                                    newMeasure->startNewPage = startNewPage;
+
                                     currentMeasures.push_back(newMeasure);
                                 }
                             }

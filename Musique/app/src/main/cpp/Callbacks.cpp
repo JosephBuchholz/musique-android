@@ -2,6 +2,7 @@
 
 #include <jni.h>
 #include "AndroidDebug.h"
+#include "JNIHelpers/JNIHelper.h"
 
 extern JavaVM* theJvm;
 
@@ -150,18 +151,18 @@ jobject ConvertRenderDataToObject(JNIEnv* env, const RenderData& renderData)
         jfieldID fieldIdPaint = env->GetFieldID(lineClass, "paint",
                                                 "Lcom/randsoft/apps/musique/renderdata/Paint;");
         int index = 0;
-        for (auto line : renderData.Lines) {
+        for (const std::shared_ptr<Line>& line : renderData.Lines) {
             jobject newLine = env->NewObject(lineClass, lineConstructor);
 
-            env->SetFloatField(newLine, fieldIdStartX, line.startX);
-            env->SetFloatField(newLine, fieldIdStartY, line.startY);
-            env->SetFloatField(newLine, fieldIdEndX, line.endX);
-            env->SetFloatField(newLine, fieldIdEndY, line.endY);
+            env->SetFloatField(newLine, fieldIdStartX, line->startX);
+            env->SetFloatField(newLine, fieldIdStartY, line->startY);
+            env->SetFloatField(newLine, fieldIdEndX, line->endX);
+            env->SetFloatField(newLine, fieldIdEndY, line->endY);
 
-            jobject paintObject = env->NewObject(paintClass, paintConstructor, line.paint.color);
-            env->SetFloatField(paintObject, paintFieldIdStrokeWidth, line.paint.strokeWidth);
-            env->SetIntField(paintObject, paintFieldIdStrokeCap, (int)line.paint.strokeCap);
-            env->SetFloatField(paintObject, paintFieldIdTextSize, line.paint.textSize);
+            jobject paintObject = env->NewObject(paintClass, paintConstructor, line->paint.color);
+            env->SetFloatField(paintObject, paintFieldIdStrokeWidth, line->paint.strokeWidth);
+            env->SetIntField(paintObject, paintFieldIdStrokeCap, (int)line->paint.strokeCap);
+            env->SetFloatField(paintObject, paintFieldIdTextSize, line->paint.textSize);
 
             env->SetObjectField(newLine, fieldIdPaint, paintObject);
 
@@ -217,6 +218,40 @@ jobject ConvertRenderDataToObject(JNIEnv* env, const RenderData& renderData)
 
     // set texts array field in renderDataObject
     env->SetObjectField(renderDataObject, fieldIdTexts, textsArray);
+
+    // SMUFL GLYPHS
+
+    // getting glyphs array field in renderDataObject
+    jfieldID fieldIdGlyphs = env->GetFieldID(renderDataClass, "glyphs",
+                                             "[Lcom/randsoft/apps/musique/renderdata/SMuFLGlyph;");
+
+    // creating new SMuFLGlyph Array
+    jclass glyphClass = env->FindClass("com/randsoft/apps/musique/renderdata/SMuFLGlyph");
+    jobjectArray glyphsArray = CreateNewObjectArray(env, renderData.SMuFLGlyphs.size(), glyphClass);
+
+    {
+        int index = 0;
+        for (auto glyph : renderData.SMuFLGlyphs) {
+            jobject newGlyph = CreateNewObject(env, glyphClass);
+
+            SetFloatField(env, newGlyph, "x", glyph.x);
+            SetFloatField(env, newGlyph, "y", glyph.y);
+            SetIntField(env, newGlyph, "codePoint", (int)glyph.codePoint);
+
+            jobject paintObject = env->NewObject(paintClass, paintConstructor, glyph.paint.color);
+            env->SetFloatField(paintObject, paintFieldIdStrokeWidth, glyph.paint.strokeWidth);
+            env->SetIntField(paintObject, paintFieldIdStrokeCap, (int)glyph.paint.strokeCap);
+            env->SetFloatField(paintObject, paintFieldIdTextSize, glyph.paint.textSize);
+
+            SetObjectField(env, newGlyph, "paint", paintObject, "Lcom/randsoft/apps/musique/renderdata/Paint;");
+
+            SetElementInObjectArray(env, glyphsArray, index, newGlyph);
+            index++;
+        }
+    }
+
+    // set glyphs array field in renderDataObject
+    env->SetObjectField(renderDataObject, fieldIdGlyphs, glyphsArray);
 
     // BITMAPS
 

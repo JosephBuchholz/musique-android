@@ -45,10 +45,10 @@ class SettingsDialogFragment : DialogFragment() {
             val view = layoutInflater.inflate(R.layout.settings_dialog, null)
 
             layoutDropdown = view.findViewById(R.id.layout_dropdown) as Spinner
-            layoutDropdown.setSelection(settings.musicLayout.ordinal)
+            layoutDropdown.setSelection(settings.musicLayout.ordinal-1)
             layoutDropdown.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
                 override fun onItemSelected(adapterView: AdapterView<*>?, view: View?, position: Int, id: Long) {
-                    val type = Settings.MusicLayout.getByValue(position)
+                    val type = Settings.MusicLayout.getByValue(position+1)
                     if (type != null)
                         settings.musicLayout = type
                 }

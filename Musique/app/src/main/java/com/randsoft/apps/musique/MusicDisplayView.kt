@@ -46,8 +46,11 @@ class MusicDisplayView(context: Context, attrs: AttributeSet? = null): View(cont
     var deviceHeight: Int = 0
     var deviceDpi: Int = 0
 
-    var typefacePlain = ResourcesCompat.getFont(context, R.font.open_sans)
-    var typefaceItalic = ResourcesCompat.getFont(context, R.font.open_sans_italic)
+    var typefacePlain = ResourcesCompat.getFont(context, R.font.times)
+    var typefaceItalic = ResourcesCompat.getFont(context, R.font.timesi)
+
+    var musicTypeface = ResourcesCompat.getFont(context, R.font.bravura)
+
 
     private val backgroundPaint = Paint().apply {
         color = 0xffffffff.toInt()
@@ -103,7 +106,7 @@ class MusicDisplayView(context: Context, attrs: AttributeSet? = null): View(cont
     private fun renderOnToBitmap()
     {
         if (renderData != null) {
-            Log.w(TAG, "START RENDER ${renderData?.lines?.size}")
+            Log.v(TAG, "START RENDER ${renderData?.lines?.size}")
             val density = resources.displayMetrics.density
             val sizeX = 5000 * scale // in tenths
             val sizeY = 5000 * scale // in tenths
@@ -143,57 +146,114 @@ class MusicDisplayView(context: Context, attrs: AttributeSet? = null): View(cont
                 drawText(mainCanvas, text, paint, 0.0f, 0.0f)
             }
 
-            for (bitmap in renderData?.bitmaps!!) {
+            for (glyph in renderData?.glyphs!!) { // SMuFL glyphs
+
+                // create paint
                 val paint = Paint().apply {
-                    color = bitmap.paint.color
+                    color = glyph.paint.color
+                    typeface = musicTypeface
                 }
 
-                val resourceId = getResourceID(bitmap.assetId) // resource id of the bitmap
-                val drawable =
-                    ContextCompat.getDrawable(context, resourceId) // the drawable of the bitmap
+                // position
+                val x = ((glyph.x) * scale)
+                val y = ((glyph.y) * scale)
 
-                // calculate centers of bitmaps
-                var centerX = (drawable!!.intrinsicWidth.toFloat() / density)
-                var centerY = 0.0f
-                if (bitmap.assetId == AssetID.QuarterNote.ordinal || bitmap.assetId == AssetID.EightNote.ordinal) {
-                    centerX = 5.65f
-                    centerY = 5.0f
-                } else if (bitmap.assetId == AssetID.WholeNote.ordinal ||
-                    bitmap.assetId == AssetID.HalfNoteNoteHead.ordinal ||
-                    bitmap.assetId == AssetID.QuarterNoteNoteHead.ordinal
-                ) {
-                    centerX = (drawable.intrinsicWidth.toFloat() / density)
-                    centerY = (drawable.intrinsicHeight.toFloat() / density) / 2.0f
-                } else if (bitmap.assetId == AssetID.Sharp.ordinal ||
-                    bitmap.assetId == AssetID.Natural.ordinal
-                ) {
-                    centerX = (drawable.intrinsicWidth.toFloat() / density)
-                    centerY = (drawable.intrinsicHeight.toFloat() / density) / 2.0f
-                } else if (bitmap.assetId == AssetID.Flat.ordinal) {
-                    centerX = (drawable.intrinsicWidth.toFloat() / density)
-                    centerY = (drawable.intrinsicHeight.toFloat() / density) * 0.25f
-                } else if (bitmap.assetId == AssetID.TrebleClef.ordinal) {
-                    centerY = 17.0f
-                } else if (bitmap.assetId == AssetID.QuarterRest.ordinal) {
-                    centerX = (drawable.intrinsicWidth.toFloat() / density)
-                    centerY = (drawable.intrinsicHeight.toFloat() / density) / 2.0f
-                } else if (bitmap.assetId == AssetID.WholeRest.ordinal) {
-                    centerX = (drawable.intrinsicWidth.toFloat() / density)
-                    centerY = (drawable.intrinsicHeight.toFloat() / density)
+                paint.textSize = 40.0f * scale // text size equals the standard staff height (according to SMuFL specification)
+
+                // draw
+                mainCanvas.drawText(Character.toChars(glyph.codePoint), 0, 1, (x * scale), (y), paint)
+            }
+
+            for (bitmap in renderData?.bitmaps!!) {
+
+                if (bitmap.assetId == AssetID.TrebleClef.ordinal || bitmap.assetId == AssetID.TABClef.ordinal)
+                {
+                    //resources.getString(R.raw.glyphnames)
+
+                    val paint = Paint().apply {
+                        color = bitmap.paint.color
+                    }
+
+                    var text: Text = Text("", ((bitmap.x) * scale), ((bitmap.y) * scale), bitmap.paint);
+                    //mainCanvas.drawText("", );
+                    //drawText(mainCanvas, text, paint);
+
+                    paint.textSize = 40.0f * scale // text size equals the standard staff height (according to SMuFL specification)
+                    //paint.setTextSize(TypedValue.COMPLEX_UNIT_SP, 66.6f) // scale textSize to the right size
+
+                    // calculate bounds of the text
+                    var textBounds = Rect()
+                    paint.getTextBounds(text.text, 0, text.text.length, textBounds)
+                    paint.typeface = musicTypeface;
+
+                    val textHeight = -textBounds.top // text height
+
+                    // draw
+                    var px = 0.0f;
+                    var py = 0.0f;
+                    var char = 0;
+                    var tab = 0xE06D;
+                    var treble = 0xE052;
+                    if (bitmap.assetId == AssetID.TABClef.ordinal)
+                        char = tab
+                    else
+                        char = treble
+
+                    mainCanvas.drawText(Character.toChars(char), 0, 1, (text.x * scale) + px, (text.y * scale) /*+ (textHeight / 2.0f)*/ + py, paint)
                 }
+                else {
+                    val paint = Paint().apply {
+                        color = bitmap.paint.color
+                    }
 
-                val left =
-                    (((bitmap.x) * scale) - (((drawable.intrinsicWidth.toFloat() / density) - centerX) * bitmapSizeScale) + 0.0f).toInt()
-                val top =
-                    (((bitmap.y) * scale) - (((drawable.intrinsicHeight.toFloat() / density) - centerY) * bitmapSizeScale) + 0.0f).toInt()
-                val right =
-                    ((drawable.intrinsicWidth.toFloat() / density) * bitmap.sx * bitmapSizeScale).toInt() + left
-                val bottom =
-                    ((drawable.intrinsicHeight.toFloat() / density) * bitmap.sy * bitmapSizeScale).toInt() + top
+                    val resourceId = getResourceID(bitmap.assetId) // resource id of the bitmap
+                    val drawable =
+                        ContextCompat.getDrawable(context, resourceId) // the drawable of the bitmap
 
-                drawable.setTint(paint.color)
-                drawable.setBounds(left, top, right, bottom)
-                drawable.draw(mainCanvas)
+                    // calculate centers of bitmaps
+                    var centerX = (drawable!!.intrinsicWidth.toFloat() / density)
+                    var centerY = 0.0f
+                    if (bitmap.assetId == AssetID.QuarterNote.ordinal || bitmap.assetId == AssetID.EightNote.ordinal) {
+                        centerX = 5.65f
+                        centerY = 5.0f
+                    } else if (bitmap.assetId == AssetID.WholeNote.ordinal ||
+                        bitmap.assetId == AssetID.HalfNoteNoteHead.ordinal ||
+                        bitmap.assetId == AssetID.QuarterNoteNoteHead.ordinal
+                    ) {
+                        centerX = (drawable.intrinsicWidth.toFloat() / density)
+                        centerY = (drawable.intrinsicHeight.toFloat() / density) / 2.0f
+                    } else if (bitmap.assetId == AssetID.Sharp.ordinal ||
+                        bitmap.assetId == AssetID.Natural.ordinal
+                    ) {
+                        centerX = (drawable.intrinsicWidth.toFloat() / density)
+                        centerY = (drawable.intrinsicHeight.toFloat() / density) / 2.0f
+                    } else if (bitmap.assetId == AssetID.Flat.ordinal) {
+                        centerX = (drawable.intrinsicWidth.toFloat() / density)
+                        centerY = (drawable.intrinsicHeight.toFloat() / density) * 0.25f
+                    } else if (bitmap.assetId == AssetID.TrebleClef.ordinal) {
+                        centerY = 17.0f
+
+                    } else if (bitmap.assetId == AssetID.QuarterRest.ordinal) {
+                        centerX = (drawable.intrinsicWidth.toFloat() / density)
+                        centerY = (drawable.intrinsicHeight.toFloat() / density) / 2.0f
+                    } else if (bitmap.assetId == AssetID.WholeRest.ordinal) {
+                        centerX = (drawable.intrinsicWidth.toFloat() / density)
+                        centerY = (drawable.intrinsicHeight.toFloat() / density)
+                    }
+
+                    val left =
+                        (((bitmap.x) * scale) - (((drawable.intrinsicWidth.toFloat() / density) - centerX) * bitmapSizeScale) + 0.0f).toInt()
+                    val top =
+                        (((bitmap.y) * scale) - (((drawable.intrinsicHeight.toFloat() / density) - centerY) * bitmapSizeScale) + 0.0f).toInt()
+                    val right =
+                        ((drawable.intrinsicWidth.toFloat() / density) * bitmap.sx * bitmapSizeScale).toInt() + left
+                    val bottom =
+                        ((drawable.intrinsicHeight.toFloat() / density) * bitmap.sy * bitmapSizeScale).toInt() + top
+
+                    drawable.setTint(paint.color)
+                    drawable.setBounds(left, top, right, bottom)
+                    drawable.draw(mainCanvas)
+                }
             }
 
             // render cubic bezier curves

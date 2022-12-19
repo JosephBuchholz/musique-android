@@ -235,6 +235,10 @@ class MainActivity : AppCompatActivity(), MusicDisplayFragment.Callbacks,
         updateInstrumentInfoNative(info, index)
     }
 
+    override fun onSettingsChanged(settings: SettingsDialogFragment.Settings) {
+        onSettingsChangedNative(settings);
+    }
+
     // ---- Calls to Native C++ ----
 
     private external fun startRendering()
@@ -249,6 +253,7 @@ class MainActivity : AppCompatActivity(), MusicDisplayFragment.Callbacks,
     private external fun onUpdatePrintLayoutNative(attributes: PrintAttributes): Boolean
     private external fun onCalculateNumPagesNative(): Int
     private external fun updateInstrumentInfoNative(instrumentInfo: InstrumentInfo, index: Int)
+    private external fun onSettingsChangedNative(settings: SettingsDialogFragment.Settings)
 
     private external fun setViewModelData(viewModelData: ViewModelData)
     private external fun onMidiStart()

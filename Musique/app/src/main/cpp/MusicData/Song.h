@@ -5,6 +5,7 @@
 #include <array>
 #include "../AndroidDebug.h"
 #include "SongData.h"
+#include "../Settings.h"
 
 class Song {
 
@@ -14,6 +15,8 @@ public:
     ~Song();
 
     Instrument* GetInstrument(const std::string& id);
+
+    void OnLayoutChanged(Settings::MusicLayout layout);
 
     void OnUpdate();
 
@@ -28,13 +31,23 @@ public:
     float GetPositionXInSong(float beatPositionInSong, int currentMeasureIndex);
     float GetPositionXInMeasure(float beatPositionInSong, int currentMeasureIndex);
 
+    float GetSystemPositionY(int measureIndex);
+    float GetSystemHeight(int measureIndex);
+
     float GetNoteMinWidthInFront(Note* note); // the minimum amount of space needed in front of the note
     float GetNoteMinWidthBehind(Note* note); // the minimum amount of space needed behind the note
+
+    Measure* GetMeasure(int measureIndex);
+
+    bool DoesMeasureStartNewSystem(int measureIndex);
+    bool DoesMeasureStartNewPage(int measureIndex);
 
 private:
     void CalculateNoteBeatPositionsInSong();
 
 public:
+
+    Settings settings;
 
     std::string musicXMLVersion = "1.0";
 

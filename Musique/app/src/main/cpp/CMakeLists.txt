@@ -27,6 +27,7 @@ add_library( # Sets the name of the library.
         App.cpp
         MusicData/Song.cpp
         MusicData/SongData.cpp
+        MusicData/Note.cpp
         MusicData/Measure.cpp
         MusicData/Staff.cpp
         MusicData/Instrument.cpp

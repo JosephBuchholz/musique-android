@@ -5,6 +5,7 @@
 #include "Midi.h"
 #include "Callbacks.h"
 #include "Settings.h"
+#include "RenderableMusicData/RenderableSong.h"
 
 class App {
 
@@ -25,27 +26,33 @@ public:
     void LoadSongFromString(const std::string& string);
     bool OnUpdatePrintLayout();
     int OnCalculateNumPages();
-    void RenderMusicToPage(RenderData& renderData, int page);
+    void RenderMusicToPage(int page);
+    void UpdateSettings(const Settings& s) { settings = s; OnLayoutChanged(); }
+    void OnLayoutChanged();
 
     void Render();
     void RenderHorizontalLayout();
-    void RenderVerticalLayout();
+    void CalculateRenderForVerticalLayout();
+    void CalculateRenderForPagedLayout();
+    void RenderWithRenderData();
 
-    void RenderNote(RenderData& renderData, const Note* note, Measure* measure, float measurePositionX, const Staff* staff, float staffYPosition, float instYPosition, int measureNumber, float ls, float mainPositionX, float mainPositionY, int noteIndex);
-    void RenderRest(RenderData& renderData, const Note* note, float measurePositionX, int lines, float ls, float offsetX, float offsetY);
-    void RenderTabNote(RenderData& renderData, const Note* note, float measurePositionX, int lines, float ls, float offsetX, float offsetY);
-    void RenderDirection(RenderData& renderData, const Direction& direction, float positionY, Measure* measure, float measureXPosition, float offsetX, float offsetY);
-    void RenderLyric(RenderData& renderData, const Lyric& lyric, float positionY, const Measure* measure, const Note* note, float offsetX, float offsetY);
-    void RenderChord(RenderData& renderData, const Chord& chord, float positionY, const Measure* measure, float measureXPosition, float offsetX, float offsetY);
-    void RenderTimeSignature(RenderData& renderData, const Measure* measure, float measurePosition, float ls, float offsetX, float offsetY);
-    void RenderKeySignature(RenderData& renderData, const Measure* measure, float measurePosition, float ls, int lines, float offsetX, float offsetY);
-    void RenderClef(RenderData& renderData, const Measure* measure, float measurePosition, float ls, int lines, float offsetX, float offsetY);
-    void RenderNoteStemAndFlagAndBeam(RenderData& renderData, const Note* note, float notePositionX, float notePositionY);
+    void RenderNote(const Note* note, Measure* measure, float measurePositionX, const Staff* staff, float staffYPosition, float instYPosition, int measureNumber, float ls, float mainPositionX, float mainPositionY, int noteIndex);
+    void RenderRest(const Note* note, float measurePositionX, int lines, float ls, float offsetX, float offsetY);
+    void RenderTabNote(const Note* note, float measurePositionX, int lines, float ls, float offsetX, float offsetY);
+    void RenderDirection(const Direction& direction, float positionY, Measure* measure, float measureXPosition, float offsetX, float offsetY);
+    void RenderLyric(const Lyric& lyric, float positionY, const Measure* measure, const Note* note, float offsetX, float offsetY);
+    void RenderChord(const Chord& chord, float positionY, const Measure* measure, float measureXPosition, float offsetX, float offsetY);
+    void RenderTimeSignature(const Measure* measure, float measurePosition, float ls, float offsetX, float offsetY);
+    void RenderKeySignature(const Measure* measure, float measurePosition, float ls, int lines, float offsetX, float offsetY);
+    void RenderClef(const Measure* measure, float measurePosition, float ls, int lines, float offsetX, float offsetY);
+    void RenderNoteStemAndFlagAndBeam(const Note* note, float notePositionX, float notePositionY);
 
 private:
     void DeleteSong();
 
 private:
+
+    bool layoutCalculated = false;
 
     bool isUpdating = false;
 
@@ -92,6 +99,9 @@ private:
     float currentTempo = 120.0f; // beats per minute
 
     Song* song = new Song();
+    RenderableSong renderableSong = RenderableSong();
+    RenderData renderData = RenderData();
+
     std::string songString = "";
 
     float displayWidth = 1000.0f;
@@ -101,9 +111,6 @@ private:
 
     float beamStartX = 0.0f;
     float beamStartY = 0.0f;
-
-    float lineSpacing = 10.0f;
-    float tabLineSpacing = 13.33f;
 
     bool startRendering = false;
 

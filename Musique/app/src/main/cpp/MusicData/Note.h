@@ -8,57 +8,28 @@
 #include "Beam.h"
 #include "Accidental.h"
 #include "Lyric.h"
+#include "../MusicDisplayConstants.h"
 
 class Note {
+    friend class Song;
+    friend class MusicXMLParser;
 
 public:
     ~Note() {}
 
-    static bool IsNoteIsHigher(Note* note1, Note* note2)
-    {
-        if (note1->pitch.GetPitchValue() > note2->pitch.GetPitchValue())
-        {
-            return true;
-        }
-        else
-        {
-            return false;
-        }
-    }
+    static bool IsNoteIsHigher(Note* note1, Note* note2);
 
-    void OnPlay() {
-        isPlaying = true;
-    }
+    void OnPlay();
+    void OnStop();
 
-    void OnStop() {
-        isPlaying = false;
-    }
+    float GetMinWidth();
 
-    float GetMinWidth() {
-        float width = 0.0f;
-        width += duration.duration * 5.0f * 10.0f; // should do a bit more calculations here
-        if (!lyrics.empty())
-            width += 20.0f;
-        return width;
-    }
+    void CalculateDurationTypeFromString(const std::string& s);
 
-    void CalculateDurationTypeFromString(const std::string& s) {
-        if (s == "whole") {
-            durationType = NoteDurationType::Whole;
-        } else if (s == "half") {
-            durationType = NoteDurationType::Half;
-        } else if (s == "quarter") {
-            durationType = NoteDurationType::Quarter;
-        } else if (s == "eighth") {
-            durationType = NoteDurationType::Eighth;
-        } else if (s == "16th") {
-            durationType = NoteDurationType::Sixteenth;
-        } else if (s == "32nd") {
-            durationType = NoteDurationType::ThirtySecond;
-        } else {
-            durationType = NoteDurationType::None;
-        }
-    }
+protected:
+    void CalculatePositionAsPaged(const MusicDisplayConstants& displayConstants);
+
+public:
 
     enum class NoteType {
         None = 0, Standard, Tab
@@ -96,10 +67,24 @@ public:
 
     bool isChord = false; // weather or not the note is played at the same time as the previous note
 
-
     // -- Tab Only --
+
     int string = 0;
     int fret = 0;
 
     std::vector<TABSlur> tabSlurs; // hammer ons and pull offs
+
+    // -- Positioning Attributes --
+
+    float positionX = 0.0f; // relative to measure
+    float positionY = 0.0f; // relative to measure
+
+protected:
+
+    // -- Positioning Attributes From MusicXML --
+
+    float defaultX = 0.0f;
+    float defaultY = 0.0f;
+    float relativeX = 0.0f;
+    float relativeY = 0.0f;
 };

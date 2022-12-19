@@ -2,7 +2,7 @@ package com.randsoft.apps.musique.renderdata
 
 import com.randsoft.apps.musique.AssetID
 
-class RenderBitmap(
+data class RenderBitmap(
     var assetId: Int = AssetID.None.ordinal,
     var x: Float = 0.0f,
     var y: Float = 0.0f,

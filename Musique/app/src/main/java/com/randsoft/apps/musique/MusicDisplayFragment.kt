@@ -62,6 +62,7 @@ class MusicDisplayFragment : Fragment(), PrintHandler.Callbacks, SettingsDialogF
         fun onCalculateNumPages(): Int
         fun onUpdatePrintLayout(attributes: PrintAttributes): Boolean
         fun updateInstrumentInfo(info: InstrumentInfo, index: Int)
+        fun onSettingsChanged(settings: SettingsDialogFragment.Settings);
     }
 
     private var callbacks: Callbacks? = null
@@ -199,7 +200,8 @@ class MusicDisplayFragment : Fragment(), PrintHandler.Callbacks, SettingsDialogF
     }
 
     override fun onSettingsChanged(settings: SettingsDialogFragment.Settings) {
-        Log.e(TAG, "SETTINGS CHANGED");
+        Log.i(TAG, "SETTINGS CHANGED");
+        callbacks?.onSettingsChanged(settings);
     }
 
     inner class InstrumentControlViewHolder(view: View) : RecyclerView.ViewHolder(view) {

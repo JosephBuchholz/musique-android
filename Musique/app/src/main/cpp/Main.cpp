@@ -188,4 +188,16 @@ extern "C" {
             app->UpdateInstrumentInfo(instrumentInfo, int(index));
         }
     }
+
+    JNIEXPORT void JNICALL
+    Java_com_randsoft_apps_musique_MainActivity_onSettingsChangedNative(JNIEnv* env, jobject instance, jobject settings) {
+        if (app != nullptr) {
+            Settings newSettings = Settings();
+            jfieldID musicLayoutField = env->GetFieldID(env->GetObjectClass(settings), "musicLayout", "Lcom/randsoft/apps/musique/SettingsDialogFragment$Settings$MusicLayout;");
+            jobject musicLayoutObject = env->GetObjectField(settings, musicLayoutField);
+            jint musicLayoutInt = env->CallIntMethod(musicLayoutObject, env->GetMethodID(env->GetObjectClass(musicLayoutObject), "ordinal", "()I"));
+            newSettings.musicLayout = (Settings::MusicLayout)musicLayoutInt;
+            app->UpdateSettings(newSettings);
+        }
+    }
 }
