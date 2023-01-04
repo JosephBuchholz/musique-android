@@ -96,7 +96,12 @@ float Measure::GetNotePositionInMeasure(float width, int noteIndex) const {
 
 // update to use width
 float Measure::GetKeySignaturePositionInMeasure(float width) const {
-    float position = GetClefPositionInMeasure(width) + 17.0f + 20.0f;
+    float position;
+
+    if (showKeySignature)
+        position = GetClefPositionInMeasure(width) + 17.0f + 20.0f;
+    else
+        position = GetClefPositionInMeasure(width);
 
     return position;
 }
@@ -104,7 +109,12 @@ float Measure::GetKeySignaturePositionInMeasure(float width) const {
 // update to use width
 float Measure::GetTimeSignaturePositionInMeasure(float width) const {
 
-    float position = GetKeySignaturePositionInMeasure(width) + 20.0f + 20.0f;
+    float position;
+
+    if (showTimeSignature)
+        position = GetKeySignaturePositionInMeasure(width) + 20.0f + 20.0f;
+    else
+        position = GetKeySignaturePositionInMeasure(width);
 
     return position;
 }
@@ -159,9 +169,14 @@ int Measure::GetLetterNumber(const std::string& s) const {
     return num;
 }
 
-void Measure::CalculateWidthAsPaged()
+void Measure::CalculateAsPaged(const MusicDisplayConstants& displayConstants)
 {
     measureWidth = defaultMeasureWidth;
+
+    if (defStaffDistance == -1.0f) // use the value in displayConstants
+        staffDistance = displayConstants.staffDistance;
+    else
+        staffDistance = defStaffDistance;
 }
 
 // from the bottom staff line

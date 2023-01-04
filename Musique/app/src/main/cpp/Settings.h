@@ -8,7 +8,7 @@ public:
     enum class MusicLayout
     {
         None = 0, Horizontal, Vertical, Paged
-    } musicLayout = MusicLayout::Vertical;
+    } musicLayout = MusicLayout::Paged;
 
-    MusicDisplayConstants displayConstants;
+    Orientation pagesOrientation = Orientation::Horizontal;
 };

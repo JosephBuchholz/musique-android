@@ -179,8 +179,103 @@ void Song::OnUpdate()
         //m_MinNoteData.clear();
         m_MeasureWidths.clear();
         m_MeasureBeginWidths.clear();
-        LOGE("paged");
-        // calculate positions
+        LOGI("Paged");
+
+        for (Credit& credit : credits)
+        {
+            credit.CalculatePositionAsPaged();
+        }
+
+        // calculate positions for notes
+        for (auto* instrument : instruments)
+        {
+            for (auto* staff : instrument->staves)
+            {
+                staff->CalculateAsPaged(displayConstants);
+
+                int measureIndex = 0;
+                for (auto* measure : staff->measures)
+                {
+                    measure->CalculateAsPaged(displayConstants);
+                    if (measureIndex >= m_MeasureWidths.size())
+                    {
+                        m_MeasureBeginWidths.push_back(0.0f);
+                        m_MeasureWidths.push_back(measure->measureWidth);
+                    }
+
+                    if (staff->type == Staff::StaffType::Tab)
+                        measure->showKeySignature = false;
+                    //LOGE("width: %f, default: %f, index: %d", measure->measureWidth, measure->defaultMeasureWidth, measureIndex);
+
+                    for (auto* note : measure->notes)
+                    {
+                        if (!note->isRest) // musescore specific code
+                            note->CalculatePositionAsPaged(displayConstants);
+                    }
+
+                    measureIndex++;
+                }
+            }
+        }
+
+        // sort all the notes by their beat positions and put them in an array of time space points
+        m_TimeSpacePoints.clear();
+        for (auto* instrument : instruments) {
+            for (auto* staff : instrument->staves) {
+                int measureIndex = 0;
+                for (auto* measure : staff->measures) {
+                    TimeSpacePoint beginMeasurePoint = TimeSpacePoint();
+                    beginMeasurePoint.beatPosition = measure->beatPosition;
+                    beginMeasurePoint.position = 0.0f;
+                    beginMeasurePoint.measureIndex = measureIndex;
+                    TimeSpacePoint endMeasurePoint = TimeSpacePoint();
+                    endMeasurePoint.beatPosition = measure->beatPosition + measure->duration.duration;
+                    endMeasurePoint.position = measure->measureWidth;
+                    endMeasurePoint.measureIndex = measureIndex;
+
+                    //AddTimeSpacePoint(beginMeasurePoint);
+                    AddTimeSpacePoint(endMeasurePoint);
+
+                    for (Note* note : measure->notes) {
+
+                        int insertIndex = 0;
+                        bool added = false;
+                        for (TimeSpacePoint point : m_TimeSpacePoints) {
+                            if (note->beatPositionInSong < point.beatPosition) // note should come before this point
+                            {
+                                TimeSpacePoint newPoint = TimeSpacePoint();
+                                newPoint.beatPosition = note->beatPositionInSong;
+                                newPoint.position = note->positionX;
+                                newPoint.measureIndex = measureIndex;
+                                m_TimeSpacePoints.insert(m_TimeSpacePoints.begin() + insertIndex, newPoint); // insert note at insertIndex
+                                added = true;
+                                break;
+                            }
+                            else if (note->beatPositionInSong == point.beatPosition) // note is not needed to make a new point
+                            {
+                                added = true;
+                                break;
+                            } // else note should come after orderedNote
+
+                            insertIndex++;
+                        }
+
+                        if (!added)
+                        {
+                            TimeSpacePoint newPoint = TimeSpacePoint();
+                            newPoint.beatPosition = note->beatPositionInSong;
+                            newPoint.position = note->positionX;
+                            newPoint.measureIndex = measureIndex;
+                            m_TimeSpacePoints.push_back(newPoint);
+                        }
+                    }
+
+                    measureIndex++;
+                }
+            }
+        }
+
+        // calculate positions for everything else
         for (auto* instrument : instruments)
         {
             for (auto* staff : instrument->staves)
@@ -188,17 +283,38 @@ void Song::OnUpdate()
                 int measureIndex = 0;
                 for (auto* measure : staff->measures)
                 {
-                    measure->CalculateWidthAsPaged();
-                    if (measureIndex >= m_MeasureWidths.size())
+
+                    for (auto& direction : measure->directions)
                     {
-                        m_MeasureBeginWidths.push_back(0.0f);
-                        m_MeasureWidths.push_back(measure->measureWidth);
+                        float defaultX = GetPositionXInMeasure(direction.beatPositionInSong, measureIndex);
+                        float defaultY = -20.0f;
+
+                        for (auto& word : direction.words)
+                        {
+                            word.CalculatePositionAsPaged(displayConstants, defaultX, defaultY);
+                        }
+
+                        for (auto& rehearsals : direction.rehearsals)
+                        {
+                            rehearsals.CalculatePositionAsPaged(displayConstants, defaultX, defaultY);
+                        }
                     }
-                    LOGE("width: %f, default: %f, index: %d", measure->measureWidth, measure->defaultMeasureWidth, measureIndex);
+
+                    for (auto& chord : measure->chords)
+                    {
+                        float defaultX = GetPositionXInMeasure(chord.beatPositionInSong, measureIndex);
+                        float defaultY = -40.0f;
+
+                        chord.CalculatePositionAsPaged(displayConstants, defaultX, defaultY);
+                    }
 
                     for (auto* note : measure->notes)
                     {
-                        note->CalculatePositionAsPaged(settings.displayConstants);
+                        if (note->isRest) // musescore specific code
+                        {
+                            note->positionX = GetPositionXInMeasure(note->beatPositionInSong, measureIndex);
+                            note->positionY = 0.0f;
+                        }
                     }
 
                     measureIndex++;
@@ -208,7 +324,6 @@ void Song::OnUpdate()
     }
     else if (settings.musicLayout == Settings::MusicLayout::Vertical || settings.musicLayout == Settings::MusicLayout::Horizontal)
     {
-        LOGE("vertical or horizontal");
         // sort all the notes by their stop times(beatPositionInSong + duration) from smallest to largest
         std::vector<Note*> orderedNotes;
         for (auto* instrument : instruments) {
@@ -451,21 +566,21 @@ void Song::OnUpdate()
                         if (note->isRest) { // is a rest
                             float ls;
                             if (note->type == Note::NoteType::Tab)
-                                ls = settings.displayConstants.tabLineSpacing;
+                                ls = displayConstants.tabLineSpacing;
                             else
-                                ls = settings.displayConstants.lineSpacing;
+                                ls = displayConstants.lineSpacing;
                             note->positionX = GetPositionXInMeasure(note->beatPositionInSong, measureIndex);
                             note->positionY = ((ls * float(staff->lines - 1)) / 2.0f);
                         }
                         else if (note->type == Note::NoteType::Tab) // is a tab note
                         {
                             note->positionX = GetPositionXInMeasure(note->beatPositionInSong, measureIndex);
-                            note->positionY = (settings.displayConstants.tabLineSpacing * float(note->string - 1));
+                            note->positionY = (displayConstants.tabLineSpacing * float(note->string - 1));
                         }
                         else // is a standard note
                         {
                             note->positionX = GetPositionXInMeasure(note->beatPositionInSong, measureIndex);
-                            note->positionY = (settings.displayConstants.lineSpacing * measure->CalculateNoteYPositionRelativeToMeasure(noteIndex));
+                            note->positionY = (displayConstants.lineSpacing * measure->CalculateNoteYPositionRelativeToMeasure(noteIndex));
                         }
 
                         noteIndex++;
@@ -478,6 +593,30 @@ void Song::OnUpdate()
     }
 
     LOGD("done updating song data");
+}
+
+void Song::AddTimeSpacePoint(TimeSpacePoint point)
+{
+    bool added = false;
+    int insertIndex = 0;
+    for (TimeSpacePoint compare : m_TimeSpacePoints) {
+        if (point.beatPosition < compare.beatPosition) // point should come before compare
+        {
+            m_TimeSpacePoints.insert(m_TimeSpacePoints.begin() + insertIndex, point); // insert point at insertIndex
+            added = true;
+            break;
+        }
+        else if (point.beatPosition == compare.beatPosition) // point is not needed
+        {
+            added = true;
+            break;
+        } // else point should come after compare
+
+        insertIndex++;
+    }
+
+    if (!added)
+        m_TimeSpacePoints.push_back(point);
 }
 
 void Song::CalculateNoteBeatPositionsInSong()
@@ -570,58 +709,88 @@ float Song::GetPositionXInMeasure(float beatPositionInSong, int currentMeasureIn
 {
     float position = 0.0f;
 
-    position += m_MeasureBeginWidths[currentMeasureIndex];
-    // add the measure's beginning width <--
-
-    /*float measureBeatPosition = 0.0f;
-    if (!instruments.empty())
+    if (settings.musicLayout == Settings::MusicLayout::Paged)
     {
-        if (!instruments[0]->staves.empty())
+        //LOGD("GetPositionXInMeasure! %f", beatPositionInSong);
+        TimeSpacePoint previousPoint = TimeSpacePoint();
+        for (const TimeSpacePoint& point : m_TimeSpacePoints)
         {
-            if (!instruments[0]->staves[0]->measures.empty())
+            if (currentMeasureIndex == point.measureIndex)
             {
-                measureBeatPosition = instruments[0]->staves[0]->measures[0]->beatPosition;
-            }
-        }
-    }*/
-
-    float pos = 0.0f; // debug var
-    float time = 0.0f;
-
-    float previousNoteWidth = 0.0f;
-    float previousNoteBeatPosition = 0.0f;
-    float previousNoteDuration = 0.0f;
-    for (auto noteData : m_MinNoteData)
-    {
-        if (time >= GetMeasureBeatPosition(currentMeasureIndex)) // should be equal first time that it is true
-        {
-            if (previousNoteBeatPosition == 0.0f) // first time, set to the start of the measure
-            {
-                previousNoteBeatPosition = GetMeasureBeatPosition(currentMeasureIndex);
-            }
-
-            if (noteData.beatPositionInSong >= beatPositionInSong) // noteData.beatPositionInSong is past(or equal to) beatPositionInSong(what we want the x position of)
-            {
-                if (previousNoteDuration == 0.0f) // noteData is the first in the list so the position is just 0.0f
+                if (beatPositionInSong < point.beatPosition)
                 {
+                    float posRange = (point.beatPosition - previousPoint.beatPosition);
+                    if (posRange == 0)
+                        LOGE("divide by 0!!!!!!!!!!");
+                    float percentage = (beatPositionInSong - previousPoint.beatPosition) / posRange;
+                    position = (point.position - previousPoint.position) * percentage;
+                    break;
+                }
+                else if (beatPositionInSong == point.beatPosition)
+                {
+                    position = point.position;
+                    break;
+                }
+            }
+
+            previousPoint = point;
+        }
+    }
+    else
+    {
+        position += m_MeasureBeginWidths[currentMeasureIndex];
+        // add the measure's beginning width <--
+
+        /*float measureBeatPosition = 0.0f;
+        if (!instruments.empty())
+        {
+            if (!instruments[0]->staves.empty())
+            {
+                if (!instruments[0]->staves[0]->measures.empty())
+                {
+                    measureBeatPosition = instruments[0]->staves[0]->measures[0]->beatPosition;
+                }
+            }
+        }*/
+
+        float pos = 0.0f; // debug var
+        float time = 0.0f;
+
+        float previousNoteWidth = 0.0f;
+        float previousNoteBeatPosition = 0.0f;
+        float previousNoteDuration = 0.0f;
+        for (auto noteData: m_MinNoteData)
+        {
+            if (time >= GetMeasureBeatPosition(currentMeasureIndex)) // should be equal first time that it is true
+            {
+                if (previousNoteBeatPosition == 0.0f) // first time, set to the start of the measure
+                {
+                    previousNoteBeatPosition = GetMeasureBeatPosition(currentMeasureIndex);
+                }
+
+                if (noteData.beatPositionInSong >= beatPositionInSong) // noteData.beatPositionInSong is past(or equal to) beatPositionInSong(what we want the x position of)
+                {
+                    if (previousNoteDuration == 0.0f) // noteData is the first in the list so the position is just 0.0f
+                    {
+                        break; // done
+                    }
+
+                    // calculates how much of the previous note's width should be taken away from the position
+                    float diff = (beatPositionInSong - previousNoteBeatPosition); // num of beats between beatPositionInSong and previousNoteBeatPosition
+                    float howMuch = (diff / previousNoteDuration); // the percentage of previousNoteWidth that needs to be added to previousNoteX to get the x of beatPositionInSong
+                    float howMuchToSub = 1.0f - howMuch; // the percentage of previousNoteWidth that needs to be subtracted from currentNoteX to get the x of beatPositionInSong
+                    position -= (previousNoteWidth * howMuchToSub); // get the percentage of previousNoteWidth and subtract
                     break; // done
                 }
 
-                // calculates how much of the previous note's width should be taken away from the position
-                float diff = (beatPositionInSong - previousNoteBeatPosition); // num of beats between beatPositionInSong and previousNoteBeatPosition
-                float howMuch = (diff/previousNoteDuration); // the percentage of previousNoteWidth that needs to be added to previousNoteX to get the x of beatPositionInSong
-                float howMuchToSub = 1.0f - howMuch; // the percentage of previousNoteWidth that needs to be subtracted from currentNoteX to get the x of beatPositionInSong
-                position -= (previousNoteWidth * howMuchToSub); // get the percentage of previousNoteWidth and subtract
-                break; // done
+                position += noteData.width;
+                previousNoteBeatPosition = noteData.beatPositionInSong;
+                previousNoteDuration = noteData.duration;
             }
-
-            position += noteData.width;
-            previousNoteBeatPosition = noteData.beatPositionInSong;
-            previousNoteDuration = noteData.duration;
+            pos += noteData.width;
+            time += noteData.duration;
+            previousNoteWidth = noteData.width;
         }
-        pos += noteData.width;
-        time += noteData.duration;
-        previousNoteWidth = noteData.width;
     }
 
     return position;
@@ -686,4 +855,46 @@ float Song::GetSystemPositionY(int measureIndex) // TODO: needs finnished
 float Song::GetSystemHeight(int measureIndex)
 {
     return 150.0f;
+}
+
+int Song::GetSystemIndex(int measureIndex)
+{
+    int systemIndex = 0;
+
+    if (instruments.empty())
+        return 0;
+    if (instruments[0]->staves.empty())
+        return 0;
+
+    for (auto* measure : instruments[0]->staves[0]->measures)
+    {
+        if (measure->startNewSystem)
+            systemIndex++;
+
+        if (measure->index == measureIndex)
+            break;
+    }
+
+    return systemIndex;
+}
+
+int Song::GetPageIndex(int measureIndex)
+{
+    int pageIndex = 0;
+
+    if (instruments.empty())
+        return 0;
+    if (instruments[0]->staves.empty())
+        return 0;
+
+    for (auto* measure : instruments[0]->staves[0]->measures)
+    {
+        if (measure->startNewPage)
+            pageIndex++;
+
+        if (measure->index == measureIndex)
+            break;
+    }
+
+    return pageIndex;
 }

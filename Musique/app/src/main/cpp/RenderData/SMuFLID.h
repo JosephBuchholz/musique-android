@@ -45,6 +45,31 @@ enum class SMuFLID : uint32_t
     accidentalParensRight = 0xE26B,
     accidentalBracketLeft = 0xE26C,
     accidentalBracketRight = 0xE26D,
+
+    restMaxima = 0xE4E0,
+    restLonga = 0xE4E1,
+    restDoubleWhole = 0xE4E2,
+    restWhole = 0xE4E3,
+    restHalf = 0xE4E4,
+    restQuarter = 0xE4E5,
+    rest8th = 0xE4E6,
+    rest16th = 0xE4E7,
+    rest32nd = 0xE4E8,
+    rest64th = 0xE4E9,
+    rest128th = 0xE4EA,
+    rest256th = 0xE4EB,
+    rest512th = 0xE4EC,
+    rest1024th = 0xE4ED,
+    restHBar = 0xE4EE,
+    restHBarLeft = 0xE4EF,
+    restHBarMiddle = 0xE4F0,
+    restHBarRight = 0xE4F1,
+    restQuarterOld = 0xE4F2,
+    restDoubleWholeLegerLine = 0xE4F3,
+    restWholeLegerLine = 0xE4F4,
+    restHalfLegerLine = 0xE4F5,
+    restQuarterZ = 0xE4F6,
+
 };
 
 static SMuFLID GetClefSMuFLID(Clef clef, int staffLines)
@@ -78,6 +103,22 @@ static SMuFLID GetNoteHeadSMuFLID(Note::NoteDurationType type)
         case Note::NoteDurationType::Eighth: return SMuFLID::noteheadBlack;
         case Note::NoteDurationType::Sixteenth: return SMuFLID::noteheadBlack;
         case Note::NoteDurationType::ThirtySecond: return SMuFLID::noteheadBlack;
+    }
+
+    return SMuFLID::None;
+}
+
+static SMuFLID GetRestSMuFLID(Note::NoteDurationType type)
+{
+    switch (type)
+    {
+        case Note::NoteDurationType::None: return SMuFLID::None;
+        case Note::NoteDurationType::Whole: return SMuFLID::restWhole;
+        case Note::NoteDurationType::Half: return SMuFLID::restHalf;
+        case Note::NoteDurationType::Quarter: return SMuFLID::restQuarter;
+        case Note::NoteDurationType::Eighth: return SMuFLID::rest8th;
+        case Note::NoteDurationType::Sixteenth: return SMuFLID::rest16th;
+        case Note::NoteDurationType::ThirtySecond: return SMuFLID::rest32nd;
     }
 
     return SMuFLID::None;

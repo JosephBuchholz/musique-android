@@ -8,15 +8,24 @@
 #include "ChordDegree.h"
 #include "../Duration.h"
 #include "ChordDiagram.h"
+#include "../../MusicDisplayConstants.h"
 
 class Chord : public TextualElement {
+    friend class Song;
+    friend class MusicXMLParser;
 
 public:
     Chord() {}
 
     void CalculateChordName();
 
+protected:
+    void CalculatePositionAsPaged(const MusicDisplayConstants& displayConstants, float defaultX, float defaultY);
+
 public:
+
+    float positionX = 0.0f;
+    float positionY = 0.0f;
 
     int staff = 1;
 

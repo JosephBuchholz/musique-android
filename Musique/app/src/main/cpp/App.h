@@ -6,6 +6,7 @@
 #include "Callbacks.h"
 #include "Settings.h"
 #include "RenderableMusicData/RenderableSong.h"
+#include "Vec2.h"
 
 class App {
 
@@ -39,10 +40,10 @@ public:
     void RenderNote(const Note* note, Measure* measure, float measurePositionX, const Staff* staff, float staffYPosition, float instYPosition, int measureNumber, float ls, float mainPositionX, float mainPositionY, int noteIndex);
     void RenderRest(const Note* note, float measurePositionX, int lines, float ls, float offsetX, float offsetY);
     void RenderTabNote(const Note* note, float measurePositionX, int lines, float ls, float offsetX, float offsetY);
-    void RenderDirection(const Direction& direction, float positionY, Measure* measure, float measureXPosition, float offsetX, float offsetY);
+    void RenderDirection(const Direction& direction, float measurePositionY, Measure* measure, float measureXPosition, float offsetX, float offsetY);
     void RenderLyric(const Lyric& lyric, float positionY, const Measure* measure, const Note* note, float offsetX, float offsetY);
-    void RenderChord(const Chord& chord, float positionY, const Measure* measure, float measureXPosition, float offsetX, float offsetY);
-    void RenderTimeSignature(const Measure* measure, float measurePosition, float ls, float offsetX, float offsetY);
+    void RenderChord(const Chord& chord, float measurePositionY, const Measure* measure, float measureXPosition, float offsetX, float offsetY);
+    void RenderTimeSignature(const Measure* measure, float measurePosition, float ls, int lines, float offsetX, float offsetY);
     void RenderKeySignature(const Measure* measure, float measurePosition, float ls, int lines, float offsetX, float offsetY);
     void RenderClef(const Measure* measure, float measurePosition, float ls, int lines, float offsetX, float offsetY);
     void RenderNoteStemAndFlagAndBeam(const Note* note, float notePositionX, float notePositionY);
@@ -67,16 +68,11 @@ private:
 
     Paint TextPaint;
     Paint TabTextPaint;
+    Paint InstNameTextPaint;
 
     int normalColor = 0xff000000;
     int highlightedColor = 0xff1188ee;
     int playedColor = 0xff1188ee;
-
-    enum class DisplayMode {
-        None = 0, Linear, Vertical
-    };
-
-    DisplayMode displayMode = DisplayMode::Linear;
 
     int jcount = 0;
     int icount = 0;
@@ -101,6 +97,9 @@ private:
     Song* song = new Song();
     RenderableSong renderableSong = RenderableSong();
     RenderData renderData = RenderData();
+
+    std::vector<Vec2<float>> pagePositions;
+    std::vector<Vec2<float>> systemPositions;
 
     std::string songString = "";
 

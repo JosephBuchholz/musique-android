@@ -55,3 +55,9 @@ void Chord::CalculateChordName()
         chordName.string += bassSeparator.string + bassPitch.step;
     }
 }
+
+void Chord::CalculatePositionAsPaged(const MusicDisplayConstants& displayConstants, float defaultX, float defaultY)
+{
+    positionX = defaultX;
+    positionY = defaultY;
+}

@@ -1,14 +1,14 @@
 #pragma once
 
-#include "BaseElement.h"
+#include "../BaseElement.h"
 
 #include "Rehearsal.h"
 #include "Words.h"
-#include "MetronomeMark.h"
+#include "../MetronomeMark.h"
 
-#include "Types.h"
+#include "../Types.h"
 
-#include <vector>
+#include "../../../../../../../../../../../AppData/Local/Android/Sdk/ndk/23.1.7779620/toolchains/llvm/prebuilt/windows-x86_64/sysroot/usr/include/c++/v1/vector"
 
 class Direction : public BaseElement {
 public:

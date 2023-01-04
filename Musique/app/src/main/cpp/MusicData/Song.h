@@ -6,6 +6,7 @@
 #include "../AndroidDebug.h"
 #include "SongData.h"
 #include "../Settings.h"
+#include "Credit.h"
 
 class Song {
 
@@ -34,6 +35,9 @@ public:
     float GetSystemPositionY(int measureIndex);
     float GetSystemHeight(int measureIndex);
 
+    int GetSystemIndex(int measureIndex);
+    int GetPageIndex(int measureIndex);
+
     float GetNoteMinWidthInFront(Note* note); // the minimum amount of space needed in front of the note
     float GetNoteMinWidthBehind(Note* note); // the minimum amount of space needed behind the note
 
@@ -43,9 +47,20 @@ public:
     bool DoesMeasureStartNewPage(int measureIndex);
 
 private:
+    struct TimeSpacePoint
+    {
+        float beatPosition = 0.0f;
+        float position = 0.0f;
+        int measureIndex = 0;
+    };
+
     void CalculateNoteBeatPositionsInSong();
 
+    void AddTimeSpacePoint(TimeSpacePoint point);
+
 public:
+
+    MusicDisplayConstants displayConstants = MusicDisplayConstants();
 
     Settings settings;
 
@@ -53,8 +68,11 @@ public:
 
     SongData songData = SongData();
 
+    std::vector<SystemLayout> systemLayouts;
 
     std::vector<Instrument*> instruments;
+
+    std::vector<Credit> credits;
 
     // creators, like composers or arrangers
     struct Creator {
@@ -111,4 +129,6 @@ private:
         int measureIndex = 0;
     };
     std::vector<NoteData> m_MinNoteData; // the widths, beat positions, and durations of the smallest notes
+
+    std::vector<TimeSpacePoint> m_TimeSpacePoints;
 };

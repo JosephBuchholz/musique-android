@@ -32,17 +32,53 @@ unsigned int ToUnsignedInt(const std::string& value)
 
 float ToFloat(const std::string& value)
 {
-    return std::atof(value.c_str());
+    return (float)std::atof(value.c_str());
 }
 
 // ---- Is Value Functions ----
 
 bool IsInt(const std::string& value)
 {
-    return true; // TODO: needs implemented
+    for (char c : value)
+    {
+        if (isdigit(c) || c == '-') // c is a digit or a negative sign '-'
+            continue;
+        else
+            return false;
+    }
+
+    return true;
 }
 
 bool IsUnsignedInt(const std::string& value)
 {
-    return true; // TODO: needs implemented
+    for (char c : value)
+    {
+        if (isdigit(c)) // c is a digit (and not a negative sign '-')
+            continue;
+        else
+            return false;
+    }
+
+    return true;
+}
+
+bool IsFloat(const std::string& value)
+{
+    bool hasDot = false;
+
+    for (int i = 0; i < value.length(); i++) // random crashes here????
+    {
+        char c = value[i];
+        if (isdigit(c) || c == '-') // c is a digit or a negative sign '-'
+            continue;
+        else if (c == '.' && !hasDot) // c has only one decimal point
+        {
+            hasDot = true;
+            continue;
+        }
+        else
+            return false;
+    }
+    return true; // is a float
 }

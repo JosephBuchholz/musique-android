@@ -14,3 +14,5 @@ float ToFloat(const std::string& value);
 
 bool IsInt(const std::string& value);
 bool IsUnsignedInt(const std::string& value);
+
+bool IsFloat(const std::string& value);

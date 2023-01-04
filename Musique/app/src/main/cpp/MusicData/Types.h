@@ -33,6 +33,10 @@ enum class Justify {
     None = 0, Left, Right, Center
 };
 
+enum class Orientation {
+    None = 0, Vertical, Horizontal
+};
+
 struct Date {
     int year = 1900;
     int month = 1;
@@ -51,12 +55,43 @@ struct FontSize {
 
     void SetCSSSize(const std::string& s)
     {
-        size = 1.0f;
-        LOGW("Haven't implemented css font sizes");
+        if (s == "xx-small")
+            cssSize = CSSSize::XXSmall;
+        else if (s == "x-small")
+            cssSize = CSSSize::XXSmall;
+        else if (s == "small")
+            cssSize = CSSSize::XXSmall;
+        else if (s == "medium")
+            cssSize = CSSSize::XXSmall;
+        else if (s == "large")
+            cssSize = CSSSize::XXSmall;
+        else if (s == "x-large")
+            cssSize = CSSSize::XXSmall;
+        else if (s == "xx-large")
+            cssSize = CSSSize::XXSmall;
+        else
+            cssSize = CSSSize::None;
+
+        float medium = 10.0f;
+        switch (cssSize)
+        {
+            case CSSSize::XXSmall: size = medium * 3.0f/5.0f; break;
+            case CSSSize::XSmall: size = medium * 3.0f/4.0f; break;
+            case CSSSize::Small: size = medium * 8.0f/9.0f; break;
+            case CSSSize::Medium: size = medium; break;
+            case CSSSize::Large: size = medium * 6.0f/5.0f; break;
+            case CSSSize::XLarge: size = medium * 3.0f/2.0f; break;
+            case CSSSize::XXLarge: size = medium * 2.0f/1.0f; break;
+            default: size = medium; break;
+        }
+
         isCSSSize = true;
     }
 
-    float size = 0.0f;
+    float size = 10.0f;
+    enum class CSSSize {
+        None = 0, XXSmall, XSmall, Small, Medium, Large, XLarge, XXLarge
+    } cssSize = CSSSize::None;
     bool isCSSSize = false;
 };
 

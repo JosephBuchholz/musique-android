@@ -50,17 +50,17 @@ void Note::CalculatePositionAsPaged(const MusicDisplayConstants& displayConstant
 {
     if (isRest) // is a rest
     {
-        positionX = defaultX;
-        positionY = defaultY;
+        positionX = defX + relX;
+        positionY = -defY + -relY;
     }
     else if (type == Note::NoteType::Tab) // is a tab note
     {
-        positionX = defaultX;
+        positionX = defX + relX;
         positionY = (displayConstants.tabLineSpacing * float(string - 1));
     }
     else // is a standard note
     {
-        positionX = defaultX;
-        positionY = defaultY;
+        positionX = defX + relX;
+        positionY = -defY + -relY;
     }
 }

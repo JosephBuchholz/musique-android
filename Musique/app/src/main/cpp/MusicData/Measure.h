@@ -4,7 +4,7 @@
 #include "KeySignature.h"
 #include "Clef.h"
 #include "Transpose.h"
-#include "Direction.h"
+#include "Directions/Direction.h"
 #include "SoundEvent.h"
 #include "Chords/Chord.h"
 #include <vector>
@@ -69,7 +69,7 @@ public:
     }*/
 
 protected:
-    void CalculateWidthAsPaged();
+    void CalculateAsPaged(const MusicDisplayConstants& displayConstants);
 
 public:
 
@@ -89,6 +89,8 @@ public:
     int number = 1;
     int index = 0;
 
+    float staffDistance = 0.0f;
+
     Duration duration = Duration(); // (hard coded) the duration of the measure
     float beatPosition = 0.0f; // the position in beats in the song
 
@@ -106,6 +108,8 @@ protected:
 
     // as stated in the file (these are in tenths)
     float defaultMeasureWidth = -1.0f; // negative means that it wasn't mentioned in the file
+
+    float defStaffDistance = -1.0f; // if negative then use the default value in displayConstants
 
     bool startNewSystem = false;
     bool startNewPage = false;

@@ -46,8 +46,10 @@ class MusicDisplayView(context: Context, attrs: AttributeSet? = null): View(cont
     var deviceHeight: Int = 0
     var deviceDpi: Int = 0
 
-    var typefacePlain = ResourcesCompat.getFont(context, R.font.times)
-    var typefaceItalic = ResourcesCompat.getFont(context, R.font.timesi)
+    private var typefacePlain = ResourcesCompat.getFont(context, R.font.times)
+    private var typefaceItalic = ResourcesCompat.getFont(context, R.font.timesi)
+    private var typefaceBold = ResourcesCompat.getFont(context, R.font.timesbd)
+    private var typefaceBoldItalic = ResourcesCompat.getFont(context, R.font.timesbi)
 
     var musicTypeface = ResourcesCompat.getFont(context, R.font.bravura)
 
@@ -132,11 +134,17 @@ class MusicDisplayView(context: Context, attrs: AttributeSet? = null): View(cont
                 //typeface.style = Typeface.BOLD
                 val paint = Paint().apply {
                     color = text.paint.color
-                    textSize = text.paint.textSize // 30.0 text size =about= 22.0 normal size
+                    textSize = text.paint.textSize //* 2.0f // 30.0 text size =about= 22.0 normal size
                     textAlign = Paint.Align.values()[text.paint.align]
                     isAntiAlias = true
                 }
 
+                if (text.paint.isItalic && text.paint.isBold) {
+                    paint.typeface = typefaceBoldItalic
+                }
+                if (!text.paint.isItalic && text.paint.isBold) {
+                    paint.typeface = typefaceBold
+                }
                 if (text.paint.isItalic) {
                     paint.typeface = typefaceItalic
                 }
@@ -161,7 +169,7 @@ class MusicDisplayView(context: Context, attrs: AttributeSet? = null): View(cont
                 paint.textSize = 40.0f * scale // text size equals the standard staff height (according to SMuFL specification)
 
                 // draw
-                mainCanvas.drawText(Character.toChars(glyph.codePoint), 0, 1, (x * scale), (y), paint)
+                mainCanvas.drawText(Character.toChars(glyph.codePoint), 0, 1, (x), (y), paint)
             }
 
             for (bitmap in renderData?.bitmaps!!) {

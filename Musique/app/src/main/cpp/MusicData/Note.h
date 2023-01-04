@@ -83,8 +83,9 @@ protected:
 
     // -- Positioning Attributes From MusicXML --
 
-    float defaultX = 0.0f;
-    float defaultY = 0.0f;
-    float relativeX = 0.0f;
-    float relativeY = 0.0f;
+    float defX = 0.0f;
+    float defY = 0.0f;
+
+    float relX = 0.0f;
+    float relY = 0.0f;
 };

@@ -3,7 +3,8 @@
 float Instrument::GetMiddleHeight(float lineSpacing, float tabLineSpacing, int start, int end)
 {
     float height = 0.0f;
-    int i = 0;
+
+    /*int i = 0;
     for (auto* staff : staves) {
         float ls = lineSpacing;
         if (staff->type == Staff::StaffType::Tab)
@@ -14,7 +15,22 @@ float Instrument::GetMiddleHeight(float lineSpacing, float tabLineSpacing, int s
         if (i != staves.size()-1)
             height += staff->GetBelowHeight(ls, start, end);
         i++;
+    }*/
+
+    int i = 0;
+    for (auto* staff : staves) {
+        float ls = lineSpacing;
+        if (staff->type == Staff::StaffType::Tab)
+            ls = tabLineSpacing;
+
+        height += staff->GetMiddleHeight(ls);
+
+        if (i != 0)
+            height += staff->measures[start]->staffDistance;
+
+        i++;
     }
+
     return height;
 }
 

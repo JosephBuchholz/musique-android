@@ -6,6 +6,14 @@ struct Scaling
     float tenths;
 };
 
+struct SystemLayout {
+    float systemDistance = 127.0f;
+    float topSystemDistance = 127.0f;
+
+    float systemLeftMargin = 0.0f;
+    float systemRightMargin = 0.0f;
+};
+
 struct MusicDisplayConstants
 {
     // all in tenths
@@ -13,19 +21,15 @@ struct MusicDisplayConstants
     float lineSpacing = 10.0f;
     float tabLineSpacing = 13.33f;
 
-    float pageWidth = 1760.0f;
-    float pageHeight = 1360.0f;
+    float pageWidth = 1233.87f;
+    float pageHeight = 1596.77f;
 
     float leftMargin = 80.0f;
     float rightMargin = 80.0f;
     float topMargin = 80.0f;
     float bottomMargin = 80.0f;
 
-    float systemDistance = 127.0f;
-    float topSystemDistance = 127.0f;
-
-    float systemLeftMargin = 0.0f;
-    float systemRightMargin = 0.0f;
+    SystemLayout systemLayout = SystemLayout();
 
     float staffDistance = 80.0f;
 

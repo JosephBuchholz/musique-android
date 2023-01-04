@@ -112,25 +112,29 @@ Chord::HarmonyType MusicXMLParser::GetHarmonyTypeFromString(const std::string& s
 
 // ---- Get Value Functions ----
 
-std::string MusicXMLParser::GetStringValue(XMLElement* element, std::string defaultValue)
+std::string MusicXMLParser::GetStringValue(XMLElement* element, std::string defaultValue, bool required)
 {
     if (element) {
         return element->GetText();
     }
+
+    AddErrorIf(required, "Required parse value error", "Failed to get string value when required");
     return defaultValue;
 }
 
-std::string MusicXMLParser::GetStringValue(const std::string& elementName, XMLElement* elementParent, std::string defaultValue)
+std::string MusicXMLParser::GetStringValue(const std::string& elementName, XMLElement* elementParent, std::string defaultValue, bool required)
 {
     XMLElement* element = elementParent->FirstChildElement(elementName.c_str());
     if (element)
     {
         return GetStringValue(element, defaultValue);
     }
+
+    AddErrorIf(required, "Required parse value error", "Failed to get string value when required");
     return defaultValue;
 }
 
-float MusicXMLParser::GetFloatValue(XMLElement* element, float defaultValue)
+float MusicXMLParser::GetFloatValue(XMLElement* element, float defaultValue, bool required)
 {
     if (element) {
         const char* s = element->GetText();
@@ -145,60 +149,72 @@ float MusicXMLParser::GetFloatValue(XMLElement* element, float defaultValue)
         }
         return value;
     }
+
+    AddErrorIf(required, "Required parse value error", "Failed to get float value when required");
     return defaultValue;
 }
 
-float MusicXMLParser::GetFloatValue(const std::string& elementName, XMLElement* elementParent, float defaultValue)
+float MusicXMLParser::GetFloatValue(const std::string& elementName, XMLElement* elementParent, float defaultValue, bool required)
 {
     XMLElement* element = elementParent->FirstChildElement(elementName.c_str());
     if (element)
     {
         return GetFloatValue(element, defaultValue);
     }
+
+    AddErrorIf(required, "Required parse value error", "Failed to get float value when required");
     return defaultValue;
 }
 
-int MusicXMLParser::GetIntValue(XMLElement* element, int defaultValue)
+int MusicXMLParser::GetIntValue(XMLElement* element, int defaultValue, bool required)
 {
     if (element) {
         std::string c = element->GetText();
         if (IsInt(c))
             return ToInt(c);
     }
+
+    AddErrorIf(required, "Required parse value error", "Failed to get int value when required");
     return defaultValue;
 }
 
-int MusicXMLParser::GetIntValue(const std::string& elementName, XMLElement* elementParent, int defaultValue)
+int MusicXMLParser::GetIntValue(const std::string& elementName, XMLElement* elementParent, int defaultValue, bool required)
 {
     XMLElement* element = elementParent->FirstChildElement(elementName.c_str());
     if (element)
     {
         return GetIntValue(element, defaultValue);
     }
+
+    AddErrorIf(required, "Required parse value error", "Failed to get int value when required");
     return defaultValue;
 }
 
-unsigned int MusicXMLParser::GetUnsignedIntValue(XMLElement* element, unsigned int defaultValue)
+unsigned int MusicXMLParser::GetUnsignedIntValue(XMLElement* element, unsigned int defaultValue, bool required)
 {
     if (element) {
         std::string c = element->GetText();
         if (IsUnsignedInt(c))
             return ToUnsignedInt(c);
     }
+
+    AddErrorIf(required, "Required parse value error", "Failed to get unsigned int value when required");
     return defaultValue;
 }
 
-unsigned int MusicXMLParser::GetUnsignedIntValue(const std::string& elementName, XMLElement* elementParent, unsigned int defaultValue)
+unsigned int MusicXMLParser::GetUnsignedIntValue(const std::string& elementName, XMLElement* elementParent, unsigned int defaultValue, bool required)
 {
     XMLElement* element = elementParent->FirstChildElement(elementName.c_str());
     if (element)
     {
         return GetUnsignedIntValue(element, defaultValue);
     }
+
+    AddErrorIf(required, "Required parse value error", "Failed to get unsigned int value when required");
     return defaultValue;
 }
 
-StartStopType MusicXMLParser::GetStartStopValue(XMLElement* element, StartStopType defaultValue)
+StartStopType MusicXMLParser::GetStartStopValue(XMLElement* element, StartStopType defaultValue, bool required)
 {
     if (element) {
         const char* c = element->GetText();
@@ -210,10 +226,12 @@ StartStopType MusicXMLParser::GetStartStopValue(XMLElement* element, StartStopTy
             return StartStopType::Continue;
         }
     }
+
+    AddErrorIf(required, "Required parse value error", "Failed to get value when required");
     return defaultValue;
 }
 
-StartStopType MusicXMLParser::GetStartStopValue(const std::string& elementName, XMLElement* elementParent, StartStopType defaultValue)
+StartStopType MusicXMLParser::GetStartStopValue(const std::string& elementName, XMLElement* elementParent, StartStopType defaultValue, bool required)
 {
     XMLElement* element = elementParent->FirstChildElement(elementName.c_str());
     if (element) {
@@ -226,48 +244,69 @@ StartStopType MusicXMLParser::GetStartStopValue(const std::string& elementName, 
             return StartStopType::Continue;
         }
     }
+
+    AddErrorIf(required, "Required parse value error", "Failed to get value when required");
     return defaultValue;
 }
 
 // ---- Get Attribute Functions ----
 
-bool MusicXMLParser::GetBoolAttribute(XMLElement* element, const char* s, bool defaultValue)
+bool MusicXMLParser::GetBoolAttribute(XMLElement* element, const char* s, bool defaultValue, bool required)
 {
     const char* attribute = element->Attribute(s);
     if (attribute) {
         return FromYesNoToBool(attribute);
     }
+
+    AddErrorIf(required, "Required parse attribute error", "Failed to get attribute when required");
     return defaultValue;
 }
 
-float MusicXMLParser::GetFloatAttribute(XMLElement* element, const char* s, float defaultValue)
+float MusicXMLParser::GetFloatAttribute(XMLElement* element, const char* s, float defaultValue, bool required)
 {
     const char* attribute = element->Attribute(s);
     if (attribute) {
         return ToFloat(attribute);
     }
+
+    AddErrorIf(required, "Required parse attribute error", "Failed to get attribute when required");
     return defaultValue;
 }
 
-std::string MusicXMLParser::GetStringAttribute(XMLElement* element, const char* s, std::string defaultValue)
+std::string MusicXMLParser::GetStringAttribute(XMLElement* element, const char* s, std::string defaultValue, bool required)
 {
     const char* attribute = element->Attribute(s);
     if (attribute) {
         return attribute;
     }
+
+    AddErrorIf(required, "Required parse attribute error", "Failed to get attribute when required");
     return defaultValue;
 }
 
-int MusicXMLParser::GetNumberAttribute(XMLElement* element, const char* s, int defaultValue)
+int MusicXMLParser::GetNumberAttribute(XMLElement* element, const char* s, int defaultValue, bool required)
 {
     const char* attribute = element->Attribute(s);
     if (attribute) {
         return ToInt(attribute);
     }
+
+    AddErrorIf(required, "Required parse attribute error", "Failed to get attribute when required");
     return defaultValue;
 }
 
-AboveBelowType MusicXMLParser::GetAboveBelowAttribute(XMLElement* element, const char* s, AboveBelowType defaultValue)
+unsigned int MusicXMLParser::GetUnsignedIntAttribute(XMLElement* element, const char* s, unsigned int defaultValue, bool required)
+{
+    const char* attribute = element->Attribute(s);
+    if (attribute) {
+        return ToUnsignedInt(attribute);
+    }
+
+    AddErrorIf(required, "Required parse attribute error", "Failed to get attribute when required");
+    return defaultValue;
+}
+
+AboveBelowType MusicXMLParser::GetAboveBelowAttribute(XMLElement* element, const char* s, AboveBelowType defaultValue, bool required)
 {
     const char* attribute = element->Attribute(s);
     if (attribute) {
@@ -277,10 +316,12 @@ AboveBelowType MusicXMLParser::GetAboveBelowAttribute(XMLElement* element, const
             return AboveBelowType::Below;
         }
     }
+
+    AddErrorIf(required, "Required parse attribute error", "Failed to get attribute when required");
     return defaultValue;
 }
 
-StartStopType MusicXMLParser::GetStartStopAttribute(XMLElement* element, const char* s, StartStopType defaultValue)
+StartStopType MusicXMLParser::GetStartStopAttribute(XMLElement* element, const char* s, StartStopType defaultValue, bool required)
 {
     const char* attribute = element->Attribute(s);
     if (attribute) {
@@ -292,10 +333,12 @@ StartStopType MusicXMLParser::GetStartStopAttribute(XMLElement* element, const c
             return StartStopType::Continue;
         }
     }
+
+    AddErrorIf(required, "Required parse attribute error", "Failed to get attribute when required");
     return defaultValue;
 }
 
-RightLeftType MusicXMLParser::GetRightLeftAttribute(XMLElement* element, const char* s, RightLeftType defaultValue)
+RightLeftType MusicXMLParser::GetRightLeftAttribute(XMLElement* element, const char* s, RightLeftType defaultValue, bool required)
 {
     const char* attribute = element->Attribute(s);
     if (attribute) {
@@ -305,26 +348,44 @@ RightLeftType MusicXMLParser::GetRightLeftAttribute(XMLElement* element, const c
             return RightLeftType::Left;
         }
     }
+
+    AddErrorIf(required, "Required parse attribute error", "Failed to get attribute when required");
     return defaultValue;
 }
 
-FontFamily MusicXMLParser::GetFontFamilyAttribute(XMLElement* element, const char* s, FontFamily defaultValue)
+FontFamily MusicXMLParser::GetFontFamilyAttribute(XMLElement* element, const char* s, FontFamily defaultValue, bool required)
 {
     const char* attribute = element->Attribute(s);
     FontFamily fontFamily = defaultValue;
     if (attribute) {
         fontFamily.fonts.push_back(attribute); // TODO: need to parse out comma sperated values
     }
+
+    AddErrorIf(required, "Required parse attribute error", "Failed to get attribute when required");
     return fontFamily;
 }
 
-FontSize MusicXMLParser::GetFontSizeAttribute(XMLElement* element, const char* s, FontSize defaultValue)
+FontSize MusicXMLParser::GetFontSizeAttribute(XMLElement* element, const char* s, FontSize defaultValue, bool required)
 {
-    // TODO: needs implemented
-    return defaultValue;
+    FontSize fontSize = defaultValue;
+
+    //std::string value = GetStringAttribute(element, s, ToString(fontSize.size));
+
+    //fontSize.size = ToFloat(value);
+    /*if (IsFloat(value)) // is a decimal value
+    {
+        fontSize.size = ToFloat(value);
+    }
+    else // is a css value
+    {
+        fontSize.SetCSSSize(value);
+    }*/
+
+    AddErrorIf(required, "Required parse attribute error", "Failed to get attribute when required");
+    return fontSize;
 }
 
-FontStyle MusicXMLParser::GetFontStyleAttribute(XMLElement* element, const char* s, FontStyle defaultValue)
+FontStyle MusicXMLParser::GetFontStyleAttribute(XMLElement* element, const char* s, FontStyle defaultValue, bool required)
 {
     const char* attribute = element->Attribute(s);
     if (attribute) {
@@ -334,10 +395,12 @@ FontStyle MusicXMLParser::GetFontStyleAttribute(XMLElement* element, const char*
             return FontStyle::Italic;
         }
     }
+
+    AddErrorIf(required, "Required parse attribute error", "Failed to get attribute when required");
     return defaultValue;
 }
 
-FontWeight MusicXMLParser::GetFontWeightAttribute(XMLElement* element, const char* s, FontWeight defaultValue)
+FontWeight MusicXMLParser::GetFontWeightAttribute(XMLElement* element, const char* s, FontWeight defaultValue, bool required)
 {
     const char* attribute = element->Attribute(s);
     if (attribute) {
@@ -347,6 +410,25 @@ FontWeight MusicXMLParser::GetFontWeightAttribute(XMLElement* element, const cha
             return FontWeight::Bold;
         }
     }
+
+    AddErrorIf(required, "Required parse attribute error", "Failed to get attribute when required");
+    return defaultValue;
+}
+
+Justify MusicXMLParser::GetJustifyAttribute(XMLElement* element, const char* s, Justify defaultValue, bool required)
+{
+    const char* attribute = element->Attribute(s);
+    if (attribute) {
+        if (strcmp(attribute, "left") == 0) {
+            return Justify::Left;
+        } else if (strcmp(attribute, "center") == 0) {
+            return Justify::Center;
+        } else if (strcmp(attribute, "right") == 0) {
+            return Justify::Left;
+        }
+    }
+
+    AddErrorIf(required, "Required parse attribute error", "Failed to get attribute when required");
     return defaultValue;
 }
 
@@ -396,7 +478,7 @@ Lyric MusicXMLParser::ParseLyric(XMLElement* lyricElement)
                 }
                 else
                 {
-                    LOGE("didn't recognize element in LYRIC");
+                    AddError("Unrecognized element", "Didn't recognize element in LYRIC");
                 }
             }
             else
@@ -448,6 +530,12 @@ void MusicXMLParser::ParseTextualElement(XMLElement* element, TextualElement& ne
         newElement.fontStyle = GetFontStyleAttribute(element, "font-style");
         newElement.fontWeight = GetFontWeightAttribute(element, "font-weight");
 
+        newElement.linesThrough = GetUnsignedIntAttribute(element, "line-through");
+        newElement.overline = GetUnsignedIntAttribute(element, "overline");
+        newElement.underline = GetUnsignedIntAttribute(element, "underline");
+
+        newElement.justify = GetJustifyAttribute(element, "justify");
+
         ParseVisibleElement(element, newElement);
     }
 }
@@ -458,8 +546,7 @@ Rehearsal MusicXMLParser::ParseRehearsal(XMLElement* element)
 
     if (element)
     {
-        rehearsal.text.string = element->GetText();
-        ParseTextualElement(element, rehearsal);
+        rehearsal = ParseWords(element);
     }
 
     return rehearsal;
@@ -472,6 +559,58 @@ Words MusicXMLParser::ParseWords(XMLElement* element)
     if (element)
     {
         words.text.string = element->GetText();
+
+        words.defX = GetFloatAttribute(element, "default-x", words.defX);
+        words.defY = GetFloatAttribute(element, "default-y", words.defY);
+
+        if (words.defX == 0.0f)
+            words.noDefX = true;
+        else
+            words.noDefX = false;
+
+        if (words.defY == 0.0f)
+            words.noDefY = true;
+        else
+            words.noDefY = false;
+
+        words.relX = GetFloatAttribute(element, "default-x", words.relX);
+        words.relY = GetFloatAttribute(element, "default-y", words.relY);
+
+        std::string enclosureString = GetStringAttribute(element, "enclosure", "");
+
+        Words::EnclosureShape enclosure = Words::EnclosureShape::None;
+
+        if (enclosureString == "rectangle")
+            enclosure = Words::EnclosureShape::Rectangle;
+        else if (enclosureString == "square")
+            enclosure = Words::EnclosureShape::Square;
+        else if (enclosureString == "oval")
+            enclosure = Words::EnclosureShape::Oval;
+        else if (enclosureString == "circle")
+            enclosure = Words::EnclosureShape::Circle;
+        else if (enclosureString == "bracket")
+            enclosure = Words::EnclosureShape::Bracket;
+        else if (enclosureString == "inverted-bracket")
+            enclosure = Words::EnclosureShape::InvertedBracket;
+        else if (enclosureString == "triangle")
+            enclosure = Words::EnclosureShape::Triangle;
+        else if (enclosureString == "diamond")
+            enclosure = Words::EnclosureShape::Diamond;
+        else if (enclosureString == "pentagon")
+            enclosure = Words::EnclosureShape::Pentagon;
+        else if (enclosureString == "hexagon")
+            enclosure = Words::EnclosureShape::Hexagon;
+        else if (enclosureString == "heptagon")
+            enclosure = Words::EnclosureShape::Heptagon;
+        else if (enclosureString == "octagon")
+            enclosure = Words::EnclosureShape::Octagon;
+        else if (enclosureString == "nonagon")
+            enclosure = Words::EnclosureShape::Nonagon;
+        else if (enclosureString == "decagon")
+            enclosure = Words::EnclosureShape::Decagon;
+        else if (enclosureString == "none")
+            enclosure = Words::EnclosureShape::None;
+
         ParseTextualElement(element, words);
     }
 
@@ -646,38 +785,39 @@ void MusicXMLParser::ParseIdentificationElement(XMLElement* idElement, Song* son
     }
 }
 
-void MusicXMLParser::ParseDefaultsElement(XMLElement* defaultsElement)
+MusicDisplayConstants MusicXMLParser::ParseDefaultsElement(XMLElement* defaultsElement)
 {
     MusicDisplayConstants displayConstants = MusicDisplayConstants();
+
     if (defaultsElement)
     {
         XMLElement* pageLayoutElement = defaultsElement->FirstChildElement("page-layout");
         if (pageLayoutElement)
         {
-            displayConstants.pageWidth = GetFloatValue("page-width", pageLayoutElement, displayConstants.pageWidth); // required
-            displayConstants.pageHeight = GetFloatValue("page-height", pageLayoutElement, displayConstants.pageHeight); // required
+            displayConstants.pageWidth = GetFloatValue("page-width", pageLayoutElement, displayConstants.pageWidth, true); // required
+            displayConstants.pageHeight = GetFloatValue("page-height", pageLayoutElement, displayConstants.pageHeight, true); // required
 
-            XMLElement* pageLayoutMarginsElement = defaultsElement->FirstChildElement("page-margins");
+            XMLElement* pageLayoutMarginsElement = pageLayoutElement->FirstChildElement("page-margins");
             if (pageLayoutMarginsElement)
             {
-                displayConstants.leftMargin = GetFloatValue("left-margin", pageLayoutMarginsElement, displayConstants.leftMargin); // required
-                displayConstants.rightMargin = GetFloatValue("right-margin", pageLayoutMarginsElement, displayConstants.rightMargin); // required
-                displayConstants.topMargin = GetFloatValue("top-margin", pageLayoutMarginsElement, displayConstants.topMargin); // required
-                displayConstants.bottomMargin = GetFloatValue("bottom-margin", pageLayoutMarginsElement, displayConstants.bottomMargin); // required
+                displayConstants.leftMargin = GetFloatValue("left-margin", pageLayoutMarginsElement, displayConstants.leftMargin, true); // required
+                displayConstants.rightMargin = GetFloatValue("right-margin", pageLayoutMarginsElement, displayConstants.rightMargin, true); // required
+                displayConstants.topMargin = GetFloatValue("top-margin", pageLayoutMarginsElement, displayConstants.topMargin, true); // required
+                displayConstants.bottomMargin = GetFloatValue("bottom-margin", pageLayoutMarginsElement, displayConstants.bottomMargin, true); // required
             }
         }
 
         XMLElement* systemLayoutElement = defaultsElement->FirstChildElement("system-layout");
         if (systemLayoutElement)
         {
-            displayConstants.systemDistance = GetFloatValue("system-distance", systemLayoutElement, displayConstants.systemDistance);
-            displayConstants.topSystemDistance = GetFloatValue("top-system-distance", systemLayoutElement, displayConstants.topSystemDistance);
+            displayConstants.systemLayout.systemDistance = GetFloatValue("system-distance", systemLayoutElement, displayConstants.systemLayout.systemDistance);
+            displayConstants.systemLayout.topSystemDistance = GetFloatValue("top-system-distance", systemLayoutElement, displayConstants.systemLayout.topSystemDistance);
 
-            XMLElement* systemLayoutMarginsElement = defaultsElement->FirstChildElement("system-margins");
+            XMLElement* systemLayoutMarginsElement = systemLayoutElement->FirstChildElement("system-margins");
             if (systemLayoutMarginsElement)
             {
-                displayConstants.systemLeftMargin = GetFloatValue("left-margin", systemLayoutMarginsElement, displayConstants.systemLeftMargin); // required
-                displayConstants.systemRightMargin = GetFloatValue("right-margin", systemLayoutMarginsElement, displayConstants.systemRightMargin); // required
+                displayConstants.systemLayout.systemLeftMargin = GetFloatValue("left-margin", systemLayoutMarginsElement, displayConstants.systemLayout.systemLeftMargin, true); // required
+                displayConstants.systemLayout.systemRightMargin = GetFloatValue("right-margin", systemLayoutMarginsElement, displayConstants.systemLayout.systemRightMargin, true); // required
             }
         }
 
@@ -686,14 +826,35 @@ void MusicXMLParser::ParseDefaultsElement(XMLElement* defaultsElement)
         {
             displayConstants.staffDistance = GetFloatValue("staff-distance", staffLayoutElement, displayConstants.staffDistance);
         }
-
-
     }
+
+    return displayConstants;
 }
 
-void MusicXMLParser::ParseCreditElement(XMLElement* creditElement)
+Credit MusicXMLParser::ParseCreditElement(XMLElement* creditElement)
 {
-    // TODO: implement
+    Credit credit = Credit();
+
+    if (creditElement)
+    {
+        ParseBaseElement(creditElement, credit);
+
+        credit.pageNumber = GetUnsignedIntAttribute(creditElement, "page", credit.pageNumber);
+
+        XMLElement* creditWordsElement = creditElement->FirstChildElement("credit-words");
+        if (creditWordsElement)
+        {
+            CreditWords words = CreditWords();
+            ParseTextualElement(creditWordsElement, words);
+            words.text = GetStringValue(creditWordsElement, words.text);
+            words.defaultX = GetFloatAttribute(creditWordsElement, "default-x", words.defaultX);
+            words.defaultY = GetFloatAttribute(creditWordsElement, "default-y", words.defaultY);
+
+            credit.words = words;
+        }
+    }
+
+    return credit;
 }
 
 void MusicXMLParser::ParseFrameElement(XMLElement* frameElement, Chord& chord)
@@ -884,10 +1045,11 @@ void MusicXMLParser::ParseNoteElement(XMLElement* noteElement, float& currentTim
         currentNote->type = Note::NoteType::Tab;
     }
 
-    currentNote->defaultX = GetFloatAttribute(noteElement, "default-x", currentNote->defaultX);
-    currentNote->defaultY = GetFloatAttribute(noteElement, "default-y", currentNote->defaultY);
-    currentNote->relativeX = GetFloatAttribute(noteElement, "relative-x", currentNote->relativeX);
-    currentNote->relativeY = GetFloatAttribute(noteElement, "relative-y", currentNote->relativeY);
+    currentNote->defX = GetFloatAttribute(noteElement, "default-x", currentNote->defX);
+    currentNote->defY = GetFloatAttribute(noteElement, "default-y", currentNote->defY);
+
+    currentNote->relX = GetFloatAttribute(noteElement, "relative-x", currentNote->relX);
+    currentNote->relY = GetFloatAttribute(noteElement, "relative-y", currentNote->relY);
 
     // staff
     XMLElement* staffElement = noteElement->FirstChildElement("staff");
@@ -1151,23 +1313,26 @@ void MusicXMLParser::ParseTechnicalElement(XMLElement* technicalElement, Note* c
 // main file parsing
 Song* MusicXMLParser::ParseMusicXML(const std::string& data, std::string& error)
 {
-    LOGW("STARTING TO PARSE");
+    LOGI("STARTING TO PARSE");
     Song* song = new Song();
-    LOGW("Created song data");
+    MusicDisplayConstants displayConstants;
+    LOGI("Created song data");
 
     tinyxml2::XMLDocument doc;
     const char *d = data.c_str();
     tinyxml2::XMLError xmlError = doc.Parse(d);
-    LOGW("parced document with tinyxml2");
+    LOGD("parced document with tinyxml2");
     if (xmlError != tinyxml2::XMLError::XML_SUCCESS) {
         LOGE("error: %i", xmlError);
         error = "XMLERROR: " + ToString(int(xmlError));
+        AddError("XML Error", ToString(int(xmlError)));
     }
 
     if (doc.Error())
     {
         LOGE("doc error: %s: %s", doc.ErrorName(), doc.ErrorStr());
         error = "XML DOC ERROR";
+        AddError(doc.ErrorName(), doc.ErrorStr());
         //error = doc.ErrorDesc();
     }
     else
@@ -1199,14 +1364,24 @@ Song* MusicXMLParser::ParseMusicXML(const std::string& data, std::string& error)
             XMLElement* defaultsElement = root->FirstChildElement("defaults");
             if (defaultsElement)
             {
-                ParseDefaultsElement(defaultsElement);
+                displayConstants = ParseDefaultsElement(defaultsElement);
             }
 
-            // credit
-            XMLElement* creditElement = root->FirstChildElement("credit");
-            if (creditElement)
+            // credits
+            XMLNode* previousCreditNode = root->FirstChildElement("credit");
+            while (true)
             {
-                ParseCreditElement(creditElement);
+                if (previousCreditNode)
+                {
+                    XMLElement* creditElement = previousCreditNode->ToElement();
+                    song->credits.push_back(ParseCreditElement(creditElement));
+                }
+                else
+                {
+                    break;
+                }
+
+                previousCreditNode = previousCreditNode->NextSiblingElement("credit");
             }
 
             // part list
@@ -1287,6 +1462,7 @@ Song* MusicXMLParser::ParseMusicXML(const std::string& data, std::string& error)
             else
             {
                 error = "ERROR no part-list";
+                AddError("Parse Failed", "No part-list");
             }
 
 
@@ -1301,15 +1477,21 @@ Song* MusicXMLParser::ParseMusicXML(const std::string& data, std::string& error)
                     Instrument* currentInst = song->GetInstrument(id);
                     if (currentInst == nullptr) {
                         error = "Instrument " + id + " does not exist";
+                        AddError("Error", "Instrument " + id + " does not exist");
                         return song;
                     }
 
                     // measures
 
+                    int measureIndex = 0;
+
                     bool firstMeasure = true;
                     bool isTab = false;
+                    bool stavesCreated = false;
+
                     XMLNode* previousMeasureElement = part->FirstChildElement("measure");
                     std::vector<Measure*> previousMeasures;
+
                     while (true)
                     {
                         if (previousMeasureElement)
@@ -1318,10 +1500,48 @@ Song* MusicXMLParser::ParseMusicXML(const std::string& data, std::string& error)
 
                             int measureNumber = GetNumberAttribute(measure, "number", 0);
                             float measureWidth = GetFloatAttribute(measure, "width", 1.0f);
-                            LOGW("measureWidth: %f", measureWidth);
+                            //LOGW("number: %d, measureWidth: %f", measureNumber, measureWidth);
 
                             bool startNewSystem = false;
                             bool startNewPage = false;
+
+                            std::vector<Measure*> currentMeasures;
+
+                            // adding staves
+                            if (firstMeasure)
+                            {
+                                XMLElement* attributes = measure->FirstChildElement("attributes");
+                                if (attributes)
+                                {
+                                    // staves
+                                    int numStaves = 1;
+                                    XMLElement* stavesElement = attributes->FirstChildElement("staves");
+                                    if (stavesElement)
+                                    {
+                                        numStaves = ToInt(stavesElement->GetText());
+                                    }
+
+                                    // adding staves
+                                    for (int i = 0; i < numStaves; i++)
+                                    {
+                                        currentInst->staves.push_back(new Staff());
+                                    }
+
+                                    stavesCreated = true;
+                                }
+                            }
+
+                            // creating measures for each staff
+                            for (int i = 0; i < currentInst->staves.size(); i++)
+                            {
+                                Measure* newMeasure = new Measure();
+                                newMeasure->number = measureNumber;
+                                newMeasure->index = measureNumber - 1;
+                                newMeasure->staff = i+1;
+                                newMeasure->defaultMeasureWidth = measureWidth;
+
+                                currentMeasures.push_back(newMeasure);
+                            }
 
                             // print
                             XMLElement* print = measure->FirstChildElement("print");
@@ -1330,24 +1550,38 @@ Song* MusicXMLParser::ParseMusicXML(const std::string& data, std::string& error)
                                 startNewSystem = GetBoolAttribute(print, "new-system", startNewSystem);
                                 startNewPage = GetBoolAttribute(print, "new-page", startNewPage);
                                 startNewSystem |= startNewPage;
-                            }
+                                for (auto m : currentMeasures) { m->startNewSystem = startNewSystem; m->startNewPage = startNewPage; }
 
-                            std::vector<Measure*> currentMeasures;
-                            if (!firstMeasure)
-                            {
-                                // creating measures for each staff
-                                for (int i = 0; i < currentInst->staves.size(); i++)
+                                if (firstMeasure || startNewSystem)
                                 {
-                                    Measure* newMeasure = new Measure();
-                                    newMeasure->number = measureNumber;
-                                    newMeasure->index = measureNumber - 1;
-                                    newMeasure->staff = i+1;
-                                    newMeasure->defaultMeasureWidth = measureWidth;
+                                    SystemLayout systemLayout = displayConstants.systemLayout;
 
-                                    newMeasure->startNewSystem = startNewSystem;
-                                    newMeasure->startNewPage = startNewPage;
+                                    XMLElement* systemLayoutElement = print->FirstChildElement("system-layout");
+                                    if (systemLayoutElement)
+                                    {
+                                        systemLayout.systemDistance = GetFloatValue("system-distance", systemLayoutElement, systemLayout.systemDistance);
+                                        systemLayout.topSystemDistance = GetFloatValue("top-system-distance", systemLayoutElement, systemLayout.topSystemDistance);
 
-                                    currentMeasures.push_back(newMeasure);
+                                        XMLElement* systemLayoutMarginsElement = systemLayoutElement->FirstChildElement("system-margins");
+                                        if (systemLayoutMarginsElement)
+                                        {
+                                            systemLayout.systemLeftMargin = GetFloatValue("left-margin", systemLayoutMarginsElement, systemLayout.systemLeftMargin, true); // required
+                                            systemLayout.systemRightMargin = GetFloatValue("right-margin", systemLayoutMarginsElement, systemLayout.systemRightMargin, true); // required
+                                        }
+                                    }
+
+                                    //LOGE("systemLayout; i: %d, leftMargin: %f", song->systemLayouts.size(), systemLayout.systemLeftMargin);
+
+                                    song->systemLayouts.push_back(systemLayout);
+                                }
+
+                                XMLElement* staffLayoutElement = print->FirstChildElement("staff-layout");
+                                if (staffLayoutElement)
+                                {
+                                    unsigned int staffNumber = GetUnsignedIntAttribute(staffLayoutElement, "number", 1); // the number of the staff that this layout applies to
+
+                                    // staff distance (the distance from the bottom line of the previous staff to the top line of the current staff)
+                                    currentMeasures[staffNumber-1]->defStaffDistance = GetFloatValue("staff-distance", staffLayoutElement, currentMeasures[staffNumber-1]->defStaffDistance);
                                 }
                             }
 
@@ -1357,31 +1591,6 @@ Song* MusicXMLParser::ParseMusicXML(const std::string& data, std::string& error)
                             XMLElement* attributes = measure->FirstChildElement("attributes");
                             if (attributes)
                             {
-                                // staves
-                                int numStaves = 1;
-                                XMLElement* stavesElement = attributes->FirstChildElement("staves");
-                                if (stavesElement)
-                                {
-                                    numStaves = ToInt(stavesElement->GetText());
-                                }
-
-                                if (firstMeasure)
-                                {
-                                    // adding staves
-                                    for (int i = 0; i < numStaves; i++)
-                                    {
-                                        currentInst->staves.push_back(new Staff());
-                                    }
-
-                                    // creating measures for each staff
-                                    for (int i = 0; i < currentInst->staves.size(); i++)
-                                    {
-                                        Measure* newMeasure = new Measure();
-                                        newMeasure->staff = i+1;
-                                        currentMeasures.push_back(newMeasure);
-                                    }
-                                }
-
                                 // divisions
                                 XMLElement* divisions = attributes->FirstChildElement("divisions");
                                 if (divisions) {
@@ -1593,6 +1802,7 @@ Song* MusicXMLParser::ParseMusicXML(const std::string& data, std::string& error)
                                             else
                                             {
                                                 error = "Error divisions is zero";
+                                                AddError("Invalid value", "Divisions is zero");
                                             }
 
                                             currentTimeInMeasure -= duration;
@@ -1600,6 +1810,7 @@ Song* MusicXMLParser::ParseMusicXML(const std::string& data, std::string& error)
                                         else
                                         {
                                             error = "backup element has no duration";
+                                            AddError("Missing Element", "Backup element has no duration");
                                         }
                                     }
                                     else if (strcmp(value, "harmony") == 0) // harmony element (i.e. chords)
@@ -1621,6 +1832,7 @@ Song* MusicXMLParser::ParseMusicXML(const std::string& data, std::string& error)
                                             else
                                             {
                                                 error = "Error divisions is zero";
+                                                AddError("Invalid value", "Divisions is zero");
                                             }
 
                                             currentTimeInMeasure += duration;
@@ -1628,6 +1840,7 @@ Song* MusicXMLParser::ParseMusicXML(const std::string& data, std::string& error)
                                         else
                                         {
                                             error = "backup element has no duration";
+                                            AddError("Missing Element", "Forward element has no duration");
                                         }
                                     }
                                     else if (strcmp(value, "direction") == 0) // direction
@@ -1693,6 +1906,7 @@ Song* MusicXMLParser::ParseMusicXML(const std::string& data, std::string& error)
 
                             previousMeasures = currentMeasures;
                             firstMeasure = false;
+                            measureIndex++;
                         }
                         else
                         {
@@ -1721,11 +1935,31 @@ Song* MusicXMLParser::ParseMusicXML(const std::string& data, std::string& error)
         else
         {
             error = "ERROR no root";
+            AddError("Parse Error", "Failed to parse root element");
         }
     }
 
-    LOGD("Finnished");
+    song->displayConstants = displayConstants;
+
+    LOGD("Finished");
     doc.Clear();
 
+    PrintErrors();
+
     return song;
+}
+
+void MusicXMLParser::PrintErrors()
+{
+    for (const auto& error : m_Errors)
+    {
+        if (error.errorLevel == ErrorLevel::Error)
+            LOGE("[%s] %s: %s", error.parentName.c_str(), error.title.c_str(), error.desc.c_str());
+        else if (error.errorLevel == ErrorLevel::Warning)
+            LOGW("[%s] %s: %s", error.parentName.c_str(), error.title.c_str(), error.desc.c_str());
+        else if (error.errorLevel == ErrorLevel::Fatal)
+            LOGF("[%s] %s: %s", error.parentName.c_str(), error.title.c_str(), error.desc.c_str());
+        else
+            LOGV("[%s] %s: %s", error.parentName.c_str(), error.title.c_str(), error.desc.c_str());
+    }
 }

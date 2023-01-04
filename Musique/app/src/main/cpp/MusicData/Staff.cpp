@@ -1,14 +1,14 @@
 #include "Staff.h"
 
-float Staff::GetMiddleHeight(float lineSpacing, int start, int end)
+float Staff::GetMiddleHeight(float lineSpacing) const
 {
-    float maxHeight = 0.0f;
+    /*float maxHeight = 0.0f;
     for (int i = start; i <= end; i++) {
         float height = measures[i]->GetMiddleHeight(lines, lineSpacing);
         if (height > maxHeight)
             maxHeight = height;
-    }
-    return maxHeight;
+    }*/
+    return (lineSpacing * float(lines - 1));
 }
 
 float Staff::GetAboveHeight(float lineSpacing, int start, int end)
@@ -36,7 +36,7 @@ float Staff::GetBelowHeight(float lineSpacing, int start, int end)
 float Staff::GetTotalHeight(float lineSpacing, int start, int end)
 {
     return GetAboveHeight(lineSpacing, start, end) +
-                  GetMiddleHeight(lineSpacing, start, end) +
+                  GetMiddleHeight(lineSpacing) +
                   GetBelowHeight(lineSpacing, start, end);
 }
 
@@ -49,4 +49,54 @@ float Staff::GetTotalBeatWidth()
     }
 
     return width;
+}
+
+// gets the next(for example if the measure is repeated) beat position of the given measure
+float Staff::GetMeasureNextBeatPosition(int measureIndex, float currentBeatPosition) {
+    float position = 0.0f;
+
+    Measure* measure = measures[measureIndex];
+
+    if (measure->nextBeatPosition == -1 || measure->nextBeatPosition < currentBeatPosition) { // calculate new beat position
+        int i = 0;
+        for (auto* m : measures) {
+
+            if (i == measureIndex) {
+                break;
+            } else {
+                position += m->GetDuration();
+            }
+
+            i++;
+        }
+
+        measure->nextBeatPosition = position;
+    } else { // use old beat position
+        position = measure->nextBeatPosition;
+    }
+
+    return position;
+}
+
+float Staff::GetMeasureBeatPosition(int measureIndex) {
+    float position = 0.0f;
+
+    int i = 0;
+    for (auto* m : measures) {
+
+        if (i == measureIndex) {
+            break;
+        } else {
+            position += m->GetDuration();
+        }
+
+        i++;
+    }
+
+    return position;
+}
+
+void Staff::CalculateAsPaged(const MusicDisplayConstants& displayConstants)
+{
+
 }
