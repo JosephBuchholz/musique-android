@@ -27,7 +27,7 @@ public:
     void LoadSongFromString(const std::string& string);
     bool OnUpdatePrintLayout();
     int OnCalculateNumPages();
-    void RenderMusicToPage(int page);
+    void RenderMusicToPage(int page, RenderData& pageRenderData, float pageX, float pageY);
     void UpdateSettings(const Settings& s) { settings = s; OnLayoutChanged(); }
     void OnLayoutChanged();
 
@@ -37,16 +37,16 @@ public:
     void CalculateRenderForPagedLayout();
     void RenderWithRenderData();
 
-    void RenderNote(const Note* note, Measure* measure, float measurePositionX, const Staff* staff, float staffYPosition, float instYPosition, int measureNumber, float ls, float mainPositionX, float mainPositionY, int noteIndex);
-    void RenderRest(const Note* note, float measurePositionX, int lines, float ls, float offsetX, float offsetY);
-    void RenderTabNote(const Note* note, float measurePositionX, int lines, float ls, float offsetX, float offsetY);
-    void RenderDirection(const Direction& direction, float measurePositionY, Measure* measure, float measureXPosition, float offsetX, float offsetY);
-    void RenderLyric(const Lyric& lyric, float positionY, const Measure* measure, const Note* note, float offsetX, float offsetY);
-    void RenderChord(const Chord& chord, float measurePositionY, const Measure* measure, float measureXPosition, float offsetX, float offsetY);
-    void RenderTimeSignature(const Measure* measure, float measurePosition, float ls, int lines, float offsetX, float offsetY);
-    void RenderKeySignature(const Measure* measure, float measurePosition, float ls, int lines, float offsetX, float offsetY);
-    void RenderClef(const Measure* measure, float measurePosition, float ls, int lines, float offsetX, float offsetY);
-    void RenderNoteStemAndFlagAndBeam(const Note* note, float notePositionX, float notePositionY);
+    void RenderNote(RenderData& renderData, const Note* note, Measure* measure, float measurePositionX, const Staff* staff, float staffYPosition, float instYPosition, int measureNumber, float ls, float mainPositionX, float mainPositionY, int noteIndex);
+    void RenderRest(RenderData& renderData, const Note* note, float measurePositionX, int lines, float ls, float offsetX, float offsetY);
+    void RenderTabNote(RenderData& renderData, const Note* note, float measurePositionX, int lines, float ls, float offsetX, float offsetY);
+    void RenderDirection(RenderData& renderData, const Direction& direction, float measurePositionY, Measure* measure, float measureXPosition, float offsetX, float offsetY);
+    void RenderLyric(RenderData& renderData, const Lyric& lyric, float notePositionX, float measurePositionY, const Measure* measure, const Note* note, float offsetX, float offsetY);
+    void RenderChord(RenderData& renderData, const Chord& chord, float measurePositionY, const Measure* measure, float measureXPosition, float offsetX, float offsetY);
+    void RenderTimeSignature(RenderData& renderData, const Measure* measure, float measurePosition, float ls, int lines, float offsetX, float offsetY);
+    void RenderKeySignature(RenderData& renderData, const Measure* measure, float measurePosition, float ls, int lines, float offsetX, float offsetY);
+    void RenderClef(RenderData& renderData, const Measure* measure, float measurePosition, float ls, int lines, float offsetX, float offsetY);
+    void RenderNoteStemAndFlagAndBeam(RenderData& renderData, const Note* note, float notePositionX, float notePositionY);
 
 private:
     void DeleteSong();
@@ -96,7 +96,7 @@ private:
 
     Song* song = new Song();
     RenderableSong renderableSong = RenderableSong();
-    RenderData renderData = RenderData();
+    RenderData m_RenderData = RenderData();
 
     std::vector<Vec2<float>> pagePositions;
     std::vector<Vec2<float>> systemPositions;

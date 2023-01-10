@@ -12,6 +12,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.Observer
+import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.randsoft.apps.musique.api.GetSongApi
@@ -38,6 +39,8 @@ class SongListFragment() : Fragment() {
     private lateinit var openButton: Button
     private lateinit var songListRecyclerView: RecyclerView
 
+    private lateinit var viewModel: SongListFragmentViewModel
+
     private val openDocument = registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         if (readPermissionGranted) {
             if (uri != null) {
@@ -51,6 +54,8 @@ class SongListFragment() : Fragment() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        viewModel = ViewModelProvider(this).get(SongListFragmentViewModel::class.java)
+
         readPermissionGranted = requireArguments().getBoolean(ARG_READ_PERMISSION_GRANTED)
 
         fileHandler = FileHandler(requireContext())
@@ -60,6 +65,7 @@ class SongListFragment() : Fragment() {
             this,
             Observer { songItems ->
                 Log.d(TAG, "Got data: $songItems")
+                viewModel.songItems = songItems
                 songListRecyclerView.adapter = SongListAdapter(songItems)
             })
     }
@@ -89,18 +95,20 @@ class SongListFragment() : Fragment() {
 
         songListRecyclerView = view.findViewById(R.id.song_list_recycler_view)
         songListRecyclerView.layoutManager = LinearLayoutManager(context)
-        songListRecyclerView.adapter = SongListAdapter(emptyList())
+        songListRecyclerView.adapter = SongListAdapter(viewModel.songItems)
 
         return view
     }
 
-    inner class SongListViewHolder(var view: View) : RecyclerView.ViewHolder(view) {
+    inner class SongListViewHolder(var view: View) : RecyclerView.ViewHolder(view), PartPickerDialogFragment.Callbacks {
 
         private lateinit var songItem: SongItem
 
         private var titleTextView: TextView = view.findViewById(R.id.song_item_title)
         private var artistsTextView: TextView = view.findViewById(R.id.song_item_artists)
         private var instrumentsTextView: TextView = view.findViewById(R.id.song_item_instruments)
+
+        private var partPickerDialogFragment: PartPickerDialogFragment? = null
 
         fun bind(songItem: SongItem) {
             this.songItem = songItem
@@ -125,13 +133,30 @@ class SongListFragment() : Fragment() {
             instrumentsTextView.text = instrumentsString
 
             view.setOnClickListener {
-                val responseLiveData: LiveData<String> = WebRepository().getFile(songItem.id)
-                responseLiveData.observe(
-                       this@SongListFragment,
-                        Observer { string ->
-                            callbacks?.onSongOpened(string)
-                        })
+                if (songItem.files.size >= 2) // 2 or more files, so give the user a choice
+                {
+                    partPickerDialogFragment = PartPickerDialogFragment.newInstance(this, songItem.files)
+                    partPickerDialogFragment?.show(parentFragmentManager, "PartPickerDialog")
+                }
+                else // else just open the song
+                {
+                    openSong(0)
+                }
             }
+        }
+
+        override fun onPartPicked(partIndex: Int) {
+            openSong(partIndex)
+        }
+
+        fun openSong(partIndex: Int)
+        {
+            val responseLiveData: LiveData<String> = WebRepository().getFile(songItem.id, partIndex)
+            responseLiveData.observe(
+                this@SongListFragment,
+                Observer { string ->
+                    callbacks?.onSongOpened(string)
+                })
         }
     }
 

@@ -6,4 +6,7 @@ class MainActivityViewModel : ViewModel() {
 
     var isShowingMusicDisplayFragment = false
     var isShowingSongListFragment = false
+
+    var songIsOpen = false
+    var songString = ""
 }

@@ -38,7 +38,7 @@ class WebRepository {
 
         getFileRequest.enqueue(object : Callback<GetSongResponse> {
             override fun onFailure(call: Call<GetSongResponse>, t: Throwable) {
-                Log.e(TAG, "Failed to call method 'all' on web request", t)
+                Log.e(TAG, "Failed to call method 'all' on web request $t")
             }
 
             override fun onResponse(call: Call<GetSongResponse>, response: Response<GetSongResponse>) {

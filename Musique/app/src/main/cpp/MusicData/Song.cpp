@@ -211,6 +211,11 @@ void Song::OnUpdate()
                     {
                         if (!note->isRest) // musescore specific code
                             note->CalculatePositionAsPaged(displayConstants);
+
+                        for (auto& lyric : note->lyrics)
+                        {
+                            lyric.CalculatePositionAsPaged(displayConstants);
+                        }
                     }
 
                     measureIndex++;
@@ -897,4 +902,46 @@ int Song::GetPageIndex(int measureIndex)
     }
 
     return pageIndex;
+}
+
+int Song::GetFirstMeasureOnPage(int pageIndex)
+{
+    int measureIndex = 0;
+
+    if (instruments.empty())
+        return 0;
+    if (instruments[0]->staves.empty())
+        return 0;
+
+    int i = 0;
+    for (auto* measure : instruments[0]->staves[0]->measures)
+    {
+        if (measure->startNewPage)
+            i++;
+
+        if (i == pageIndex)
+            break;
+
+        measureIndex++;
+    }
+
+    return measureIndex;
+}
+
+int Song::GetNumPages()
+{
+    int numPages = 1;
+
+    if (instruments.empty())
+        return 0;
+    if (instruments[0]->staves.empty())
+        return 0;
+
+    for (auto* measure : instruments[0]->staves[0]->measures)
+    {
+        if (measure->startNewPage)
+            numPages++;
+    }
+
+    return numPages;
 }

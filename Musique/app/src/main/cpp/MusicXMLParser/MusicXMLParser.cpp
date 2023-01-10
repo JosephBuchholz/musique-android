@@ -455,6 +455,12 @@ Lyric MusicXMLParser::ParseLyric(XMLElement* lyricElement)
     Lyric lyric = Lyric();
     if (lyricElement)
     {
+        lyric.defX = GetFloatAttribute(lyricElement, "default-x", lyric.defX);
+        lyric.defY = GetFloatAttribute(lyricElement, "default-y", lyric.defY);
+
+        lyric.relX = GetFloatAttribute(lyricElement, "relative-x", lyric.relX);
+        lyric.relY = GetFloatAttribute(lyricElement, "relative-y", lyric.relY);
+
         lyric.number = GetNumberAttribute(lyricElement, "number", lyric.number);
 
         // loop through all syllabic and text elements
@@ -861,7 +867,7 @@ void MusicXMLParser::ParseFrameElement(XMLElement* frameElement, Chord& chord)
 {
     if (frameElement)
     {
-        ChordDiagram chordDiagram;
+        /*ChordDiagram chordDiagram;
 
         XMLElement* rootStepElement = frameElement->FirstChildElement("root-step");
 
@@ -900,7 +906,7 @@ void MusicXMLParser::ParseFrameElement(XMLElement* frameElement, Chord& chord)
             previousElement = previousElement->NextSiblingElement();
         }
 
-        chord.chordDiagram = chordDiagram;
+        chord.chordDiagram = chordDiagram;*/
     }
 }
 
@@ -1030,8 +1036,8 @@ void MusicXMLParser::ParseHarmonyElement(XMLElement* harmonyElement, float& curr
     }
 
     // bass note
-    XMLElement* frameElement = harmonyElement->FirstChildElement("frame");
-    ParseFrameElement(frameElement, newChord);
+    //XMLElement* frameElement = harmonyElement->FirstChildElement("frame");
+    //ParseFrameElement(frameElement, newChord);
 
     newChord.beatPosition = currentTimeInMeasure; // note: harmony elements don't increment the time
     newChord.CalculateChordName();
@@ -1313,6 +1319,7 @@ void MusicXMLParser::ParseTechnicalElement(XMLElement* technicalElement, Note* c
 // main file parsing
 Song* MusicXMLParser::ParseMusicXML(const std::string& data, std::string& error)
 {
+    m_Errors.clear();
     LOGI("STARTING TO PARSE");
     Song* song = new Song();
     MusicDisplayConstants displayConstants;
@@ -1333,6 +1340,7 @@ Song* MusicXMLParser::ParseMusicXML(const std::string& data, std::string& error)
         LOGE("doc error: %s: %s", doc.ErrorName(), doc.ErrorStr());
         error = "XML DOC ERROR";
         AddError(doc.ErrorName(), doc.ErrorStr());
+        LOGD("---------------------------Document:\n\n%s\n\n", data.c_str());
         //error = doc.ErrorDesc();
     }
     else

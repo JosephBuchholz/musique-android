@@ -38,6 +38,10 @@ public:
     int GetSystemIndex(int measureIndex);
     int GetPageIndex(int measureIndex);
 
+    int GetFirstMeasureOnPage(int pageIndex);
+
+    int GetNumPages();
+
     float GetNoteMinWidthInFront(Note* note); // the minimum amount of space needed in front of the note
     float GetNoteMinWidthBehind(Note* note); // the minimum amount of space needed behind the note
 

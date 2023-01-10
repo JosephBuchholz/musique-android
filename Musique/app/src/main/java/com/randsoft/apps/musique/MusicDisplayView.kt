@@ -403,12 +403,70 @@ class MusicDisplayView(context: Context, attrs: AttributeSet? = null): View(cont
             val mainCanvas = page.canvas
             //mainCanvas.drawPaint(backgroundPaint)
 
+            Log.d(TAG, "drawing page ${page.info.pageNumber}");
             val pageRenderData: RenderData = printRenderData?.pages?.get(page.info.pageNumber)!!
+
+            var pageWidth = tenthsToPoints(1233.87f, pageRenderData.scaling)
+            var pageHeight = tenthsToPoints(1596.77f, pageRenderData.scaling)
+            var pagePositionX: Float = (page.info.pageWidth - pageWidth) / 2.0f
+            var pagePositionY: Float = (page.info.pageHeight - pageHeight) / 2.0f
 
             scale = tenthsToPoints(1.0f, pageRenderData.scaling)
             bitmapSizeScale = scale
 
             for (line in pageRenderData.lines) {
+                val paint = Paint().apply {
+                    color = line.paint.color
+                    strokeWidth = line.paint.strokeWidth * scale
+                    isAntiAlias = true
+                    strokeCap = Paint.Cap.values()[line.paint.strokeCap]
+                }
+                drawLine(mainCanvas, line, paint, pagePositionX, pagePositionY)
+            }
+
+            for (text in pageRenderData.texts) {
+                //typeface.style = Typeface.BOLD
+                val paint = Paint().apply {
+                    color = text.paint.color
+                    textSize = text.paint.textSize //* 2.0f // 30.0 text size =about= 22.0 normal size
+                    textAlign = Paint.Align.values()[text.paint.align]
+                    isAntiAlias = true
+                }
+
+                if (text.paint.isItalic && text.paint.isBold) {
+                    paint.typeface = typefaceBoldItalic
+                }
+                if (!text.paint.isItalic && text.paint.isBold) {
+                    paint.typeface = typefaceBold
+                }
+                if (text.paint.isItalic) {
+                    paint.typeface = typefaceItalic
+                }
+                else {
+                    paint.typeface = typefacePlain
+                }
+                drawText(mainCanvas, text, paint, pagePositionX, pagePositionY)
+            }
+
+            for (glyph in pageRenderData.glyphs) { // SMuFL glyphs
+
+                // create paint
+                val paint = Paint().apply {
+                    color = glyph.paint.color
+                    typeface = musicTypeface
+                }
+
+                // position
+                val x = ((glyph.x) * scale)
+                val y = ((glyph.y) * scale)
+
+                paint.textSize = 40.0f * scale // text size equals the standard staff height (according to SMuFL specification)
+
+                // draw
+                mainCanvas.drawText(Character.toChars(glyph.codePoint), 0, 1, x + pagePositionX, y + pagePositionY, paint)
+            }
+
+            /*for (line in pageRenderData.lines) {
                 val paint = Paint().apply {
                     color = line.paint.color
                     strokeWidth = line.paint.strokeWidth * scale
@@ -434,7 +492,7 @@ class MusicDisplayView(context: Context, attrs: AttributeSet? = null): View(cont
                     paint.typeface = typefacePlain
                 }
                 drawText(mainCanvas, text, paint, 0.0f, 0.0f)
-            }
+            }*/
 
             for (bitmap in pageRenderData.bitmaps) {
                 val paint = Paint().apply {
@@ -523,6 +581,7 @@ class MusicDisplayView(context: Context, attrs: AttributeSet? = null): View(cont
                     i++
                 }
             }
+
         }
     }
 

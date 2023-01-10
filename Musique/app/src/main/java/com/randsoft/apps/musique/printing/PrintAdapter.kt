@@ -64,11 +64,12 @@ class PrintAdapter(private val context: Context) : PrintDocumentAdapter()
             return
         }
 
-        var pages = callbacks?.onCalculateNumPages()!! // calculate num pages here
-        if (pages > 0) {
+        totalPages = callbacks?.onCalculateNumPages()!! // calculate num pages here
+        Log.w(TAG, "pages: $totalPages");
+        if (totalPages > 0) {
             PrintDocumentInfo.Builder("print_output.pdf")
                 .setContentType(PrintDocumentInfo.CONTENT_TYPE_DOCUMENT)
-                .setPageCount(pages)
+                .setPageCount(totalPages)
                 .build().also { info ->
                     callback.onLayoutFinished(info, layoutChanged) // done
                 }
@@ -87,9 +88,13 @@ class PrintAdapter(private val context: Context) : PrintDocumentAdapter()
         Log.i(TAG, "onWrite");
 
         for (i in 0 until totalPages) {
+            Log.d(TAG, "i: $i, totalPages: $totalPages");
             if (isInPageRanges(pageRanges, i)) {
+                Log.d(TAG, "is in range: i: $i");
                 writtenPages.add(writtenPages.size, i)
                 pdfDocument?.startPage(i)?.also { page ->
+
+                    Log.d(TAG, "page: $i, writtenPages Size: ${writtenPages.size}");
 
                     // if the job was canceled
                     if (cancellationSignal?.isCanceled == true) {

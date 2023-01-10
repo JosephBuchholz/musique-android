@@ -69,8 +69,10 @@ class MainActivity : AppCompatActivity(), MusicDisplayFragment.Callbacks,
             Log.d(TAG, "driver has started")
         }
 
-        // initializing native view model
+        // initializing view model
         viewModel = ViewModelProvider(this).get(MainActivityViewModel::class.java)
+        if (viewModel.songIsOpen)
+            onSongOpened(viewModel.songString)
 
         // initializing native view model
         nativeViewModel = ViewModelProvider(this).get(NativeViewModel::class.java)
@@ -138,10 +140,11 @@ class MainActivity : AppCompatActivity(), MusicDisplayFragment.Callbacks,
             viewModel.isShowingSongListFragment = true
         } else {
             if (viewModel.isShowingSongListFragment) {
-                songListFragment = supportFragmentManager.findFragmentByTag(TAG_SONG_LIST_FRAGMENT) as SongListFragment
+                songListFragment = supportFragmentManager.findFragmentByTag(TAG_SONG_LIST_FRAGMENT) as SongListFragment?
             }
-            else if (viewModel.isShowingMusicDisplayFragment) {
-                musicDisplayFragment = supportFragmentManager.findFragmentByTag(TAG_MUSIC_DISPLAY_FRAGMENT) as MusicDisplayFragment
+
+            if (viewModel.isShowingMusicDisplayFragment) {
+                musicDisplayFragment = supportFragmentManager.findFragmentByTag(TAG_MUSIC_DISPLAY_FRAGMENT) as MusicDisplayFragment?
             }
         }
 
@@ -170,15 +173,22 @@ class MainActivity : AppCompatActivity(), MusicDisplayFragment.Callbacks,
     }
 
     override fun onSongOpened(string: String) {
-        musicDisplayFragment = MusicDisplayFragment.newInstance()
-        supportFragmentManager
-            .beginTransaction()
-            .replace(R.id.fragment_container, musicDisplayFragment!!, TAG_MUSIC_DISPLAY_FRAGMENT)
-            .addToBackStack(null)
-            .commit()
-        viewModel.isShowingMusicDisplayFragment = true
+
+        if (supportFragmentManager.findFragmentByTag(TAG_MUSIC_DISPLAY_FRAGMENT) == null)
+        {
+            musicDisplayFragment = MusicDisplayFragment.newInstance()
+            supportFragmentManager
+                .beginTransaction()
+                .replace(R.id.fragment_container, musicDisplayFragment!!, TAG_MUSIC_DISPLAY_FRAGMENT)
+                .addToBackStack(null)
+                .commit()
+            viewModel.isShowingMusicDisplayFragment = true
+        }
 
         loadSongFromString(string)
+
+        viewModel.songIsOpen = true
+        viewModel.songString = string
     }
 
     override fun onDestroy() {
@@ -348,6 +358,7 @@ class MainActivity : AppCompatActivity(), MusicDisplayFragment.Callbacks,
     companion object {
         // Used to load the native c++, 'musique', library on application startup.
         init {
+            Log.e(TAG, "Loading C++ Lib")
             System.loadLibrary("musique")
         }
     }
