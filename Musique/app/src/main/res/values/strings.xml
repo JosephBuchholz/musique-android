@@ -4,6 +4,8 @@
     <string name="cancel">Cancel</string>
     <string name="ok">OK</string>
 
+    <string name="open_button_cont_desc">Open</string>
+
     <string-array name="music_layout_values">
         <item>"Horizontal"</item>
         <item>"Vertical"</item>

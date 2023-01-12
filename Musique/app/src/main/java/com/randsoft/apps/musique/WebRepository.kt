@@ -32,6 +32,26 @@ class WebRepository {
         getSongApi = retrofit.create(GetSongApi::class.java)
     }
 
+    fun performSearch(query: String): LiveData<List<SongItem>> {
+        val responseLiveData: MutableLiveData<List<SongItem>> = MutableLiveData()
+        val searchRequest: Call<GetSongResponse> = getSongApi.performSearch("song/get/?key=ABC123&method=search&query=$query") // request to get a file of a particular song
+
+        searchRequest.enqueue(object : Callback<GetSongResponse> {
+            override fun onFailure(call: Call<GetSongResponse>, t: Throwable) {
+                Log.e(TAG, "Failed to call method 'search' on web request $t")
+            }
+
+            override fun onResponse(call: Call<GetSongResponse>, response: Response<GetSongResponse>) {
+                Log.d(TAG, "Got a response")
+                val songResponse = response.body()
+                val songItems: List<SongItem> = songResponse?.songs ?: mutableListOf()
+                responseLiveData.value = songItems
+            }
+        })
+
+        return responseLiveData
+    }
+
     fun getAll(): LiveData<List<SongItem>> {
         val responseLiveData: MutableLiveData<List<SongItem>> = MutableLiveData()
         val getFileRequest: Call<GetSongResponse> = getSongApi.getAll("song/get/?key=ABC123&method=all") // request to get a file of a particular song

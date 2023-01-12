@@ -10,5 +10,8 @@ interface GetSongApi
     fun getAll(@Url url: String): Call<GetSongResponse>
 
     @GET
+    fun performSearch(@Url url: String): Call<GetSongResponse>
+
+    @GET
     fun get(@Url url: String): Call<String>
 }

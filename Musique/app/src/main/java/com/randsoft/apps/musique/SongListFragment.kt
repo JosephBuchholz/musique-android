@@ -3,12 +3,13 @@ package com.randsoft.apps.musique
 import android.content.Context
 import android.os.Bundle
 import android.util.Log
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
+import android.view.*
 import android.widget.Button
+import android.widget.ImageButton
 import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.widget.SearchView
+import androidx.appcompat.widget.SearchView.OnQueryTextListener
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.Observer
@@ -36,7 +37,9 @@ class SongListFragment() : Fragment() {
 
     private var callbacks: Callbacks? = null
 
-    private lateinit var openButton: Button
+    private lateinit var openButton: ImageButton
+    private lateinit var browseButton: Button
+    private lateinit var searchView: SearchView
     private lateinit var songListRecyclerView: RecyclerView
 
     private lateinit var viewModel: SongListFragmentViewModel
@@ -92,6 +95,44 @@ class SongListFragment() : Fragment() {
             Log.i(TAG, "Open button was clicked")
             openDocument.launch(arrayOf("*/*"))
         }
+
+        browseButton = view.findViewById(R.id.browse_button)
+        browseButton.setOnClickListener {
+            Log.i(TAG, "Browse button was clicked")
+            val responseLiveData: LiveData<List<SongItem>> = WebRepository().getAll()
+            responseLiveData.observe(
+                viewLifecycleOwner,
+                Observer { songItems ->
+                    Log.d(TAG, "Got data: $songItems")
+                    viewModel.songItems = songItems
+                    songListRecyclerView.adapter = SongListAdapter(songItems)
+                })
+        }
+
+        searchView = view.findViewById(R.id.search_view)
+        searchView.isIconified = false
+        searchView.setOnQueryTextListener(object : OnQueryTextListener {
+            override fun onQueryTextSubmit(query: String?): Boolean {
+
+                if (query != null)
+                {
+                    val responseLiveData: LiveData<List<SongItem>> = WebRepository().performSearch(query)
+                    responseLiveData.observe(
+                        viewLifecycleOwner,
+                        Observer { songItems ->
+                            Log.d(TAG, "Got data: $songItems")
+                            viewModel.songItems = songItems
+                            songListRecyclerView.adapter = SongListAdapter(songItems)
+                        })
+                }
+
+                return true
+            }
+
+            override fun onQueryTextChange(newText: String?): Boolean {
+                return false
+            }
+        })
 
         songListRecyclerView = view.findViewById(R.id.song_list_recycler_view)
         songListRecyclerView.layoutManager = LinearLayoutManager(context)
@@ -149,7 +190,7 @@ class SongListFragment() : Fragment() {
             openSong(partIndex)
         }
 
-        fun openSong(partIndex: Int)
+        private fun openSong(partIndex: Int)
         {
             val responseLiveData: LiveData<String> = WebRepository().getFile(songItem.id, partIndex)
             responseLiveData.observe(

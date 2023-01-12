@@ -59,6 +59,9 @@ class MainActivity : AppCompatActivity(), MusicDisplayFragment.Callbacks,
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        //layoutInflater.inflate(R.layout.song_list_fragment_tool_bar)
+
+
         // initializing native c++
         initNative()
 
