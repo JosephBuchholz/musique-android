@@ -7,8 +7,12 @@
 #include "Directions/Direction.h"
 #include "SoundEvent.h"
 #include "Chords/Chord.h"
+#include "Barline.h"
 #include <vector>
 
+/**
+ * A class that represents a measure.
+ */
 class Measure {
     friend class Staff;
     friend class Song;
@@ -98,10 +102,17 @@ public:
     std::vector<Direction> directions; // the directions contained in this measure
     std::vector<SoundEvent> soundEvents; // the sound events contained in this measure
     std::vector<Chord> chords; // the chords contained in this measure
+    std::vector<Barline> barlines; // the barlines contained in this measure
 
     int divisions = 1;
 
     float measureWidth = 0.0f;
+
+    bool startsMultiMeasureRest = false;
+    bool useSymbolsForMultiMeasureRest = false; // only used when 'startsMultiMeasureRest' is true
+    unsigned int numberOfMeasuresInMultiMeasureRest = 0; // only used when 'startsMultiMeasureRest' is true
+
+    bool isPartOfMultiMeasureRest = false; // if this is true and 'startsMultiMeasureRest' is not, then this measure should not be rendered
 
 protected:
     // -- Constants In MusicXML --

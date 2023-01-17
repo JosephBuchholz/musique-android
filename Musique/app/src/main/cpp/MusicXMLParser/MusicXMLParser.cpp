@@ -369,9 +369,9 @@ FontSize MusicXMLParser::GetFontSizeAttribute(XMLElement* element, const char* s
 {
     FontSize fontSize = defaultValue;
 
-    //std::string value = GetStringAttribute(element, s, ToString(fontSize.size));
-
+    fontSize.size = GetFloatAttribute(element, s, fontSize.size);
     //fontSize.size = ToFloat(value);
+
     /*if (IsFloat(value)) // is a decimal value
     {
         fontSize.size = ToFloat(value);
@@ -424,7 +424,7 @@ Justify MusicXMLParser::GetJustifyAttribute(XMLElement* element, const char* s, 
         } else if (strcmp(attribute, "center") == 0) {
             return Justify::Center;
         } else if (strcmp(attribute, "right") == 0) {
-            return Justify::Left;
+            return Justify::Right;
         }
     }
 
@@ -1045,12 +1045,8 @@ void MusicXMLParser::ParseHarmonyElement(XMLElement* harmonyElement, float& curr
     currentMeasures[newChord.staff - 1]->chords.push_back(newChord);
 }
 
-void MusicXMLParser::ParseNoteElement(XMLElement* noteElement, float& currentTimeInMeasure, bool isTab, Note* currentNote, Note* previousNote, std::vector<Measure*> currentMeasures, int measureNumber, std::string& error)
+void MusicXMLParser::ParseNoteElement(XMLElement* noteElement, float& currentTimeInMeasure, std::vector<bool> staffIsTabInfo, Note* currentNote, Note* previousNote, std::vector<Measure*> currentMeasures, int measureNumber, std::string& error)
 {
-    if (isTab) {
-        currentNote->type = Note::NoteType::Tab;
-    }
-
     currentNote->defX = GetFloatAttribute(noteElement, "default-x", currentNote->defX);
     currentNote->defY = GetFloatAttribute(noteElement, "default-y", currentNote->defY);
 
@@ -1066,6 +1062,10 @@ void MusicXMLParser::ParseNoteElement(XMLElement* noteElement, float& currentTim
     else
     {
         currentNote->staff = 1;
+    }
+
+    if (staffIsTabInfo[currentNote->staff-1]) {
+        currentNote->type = Note::NoteType::Tab;
     }
 
     // chord
@@ -1233,7 +1233,20 @@ void MusicXMLParser::ParseNoteElement(XMLElement* noteElement, float& currentTim
 
         // technical
         XMLElement* technical = notations->FirstChildElement("technical");
-        ParseTechnicalElement(technical, currentNote, isTab);
+        ParseTechnicalElement(technical, currentNote, staffIsTabInfo[currentNote->staff-1]);
+    }
+
+    // dot
+    XMLElement* dotElement = noteElement->FirstChildElement("dot"); // TODO: modify to allow the parsing of multiple dots
+    if (dotElement)
+    {
+        AugmentationDot dot = AugmentationDot();
+
+        ParseVisibleElement(dotElement, dot);
+
+        dot.placement = GetAboveBelowAttribute(dotElement, "placement", dot.placement);
+
+        currentNote->dots.push_back(dot);
     }
 
     currentNote->measureIndex = measureNumber - 1;
@@ -1314,6 +1327,73 @@ void MusicXMLParser::ParseTechnicalElement(XMLElement* technicalElement, Note* c
             }
         }
     }
+}
+
+Barline MusicXMLParser::ParseBarlineElement(XMLElement* barlineElement)
+{
+    Barline barline = Barline();
+
+    if (barlineElement)
+    {
+        std::string barlineLocationString = GetStringAttribute(barlineElement, "location", "right");
+
+        if (barlineLocationString == "right")
+            barline.location = Barline::Location::Right;
+        else if (barlineLocationString == "left")
+            barline.location = Barline::Location::Left;
+        else if (barlineLocationString == "middle")
+            barline.location = Barline::Location::Middle;
+
+        XMLElement* barStyleElement = barlineElement->FirstChildElement("bar-style");
+        if (barStyleElement)
+        {
+            std::string barStyleString = GetStringValue(barStyleElement, "", true);
+
+            if (barStyleString == "dashed")
+                barline.barlineStyle = Barline::BarlineStyle::Dashed;
+            else if (barStyleString == "dotted")
+                barline.barlineStyle = Barline::BarlineStyle::Dotted;
+            else if (barStyleString == "heavy")
+                barline.barlineStyle = Barline::BarlineStyle::Heavy;
+            else if (barStyleString == "heavy-heavy")
+                barline.barlineStyle = Barline::BarlineStyle::HeavyHeavy;
+            else if (barStyleString == "heavy-light")
+                barline.barlineStyle = Barline::BarlineStyle::HeavyLight;
+            else if (barStyleString == "light-heavy")
+                barline.barlineStyle = Barline::BarlineStyle::LightHeavy;
+            else if (barStyleString == "light-light")
+                barline.barlineStyle = Barline::BarlineStyle::LightLight;
+            else if (barStyleString == "none")
+                barline.barlineStyle = Barline::BarlineStyle::NoBarline;
+            else if (barStyleString == "regular")
+                barline.barlineStyle = Barline::BarlineStyle::Regular;
+            else if (barStyleString == "short")
+                barline.barlineStyle = Barline::BarlineStyle::Short;
+            else if (barStyleString == "tick")
+                barline.barlineStyle = Barline::BarlineStyle::Tick;
+            else
+                barline.barlineStyle = Barline::BarlineStyle::None;
+        }
+
+        XMLElement* repeatElement = barlineElement->FirstChildElement("repeat");
+        if (repeatElement)
+        {
+            std::string directionString = GetStringAttribute(repeatElement, "direction", "", true);
+
+            if (directionString == "backward")
+                barline.facing = Barline::Direction::Backward;
+            else if (directionString == "forward")
+                barline.facing = Barline::Direction::Forward;
+            else
+                barline.facing = Barline::Direction::None;
+
+            barline.repeatCount = GetUnsignedIntAttribute(repeatElement, "times", barline.repeatCount);
+
+            barline.isRepeatBarLine = true;
+        }
+    }
+
+    return barline;
 }
 
 // main file parsing
@@ -1494,8 +1574,13 @@ Song* MusicXMLParser::ParseMusicXML(const std::string& data, std::string& error)
                     int measureIndex = 0;
 
                     bool firstMeasure = true;
-                    bool isTab = false;
+                    std::vector<bool> staffIsTabInfo;
                     bool stavesCreated = false;
+
+//                    bool multiMeasureRest = false; // whether the measure is part of a multi measure rest
+//                    unsigned int numberOfMeasuresInMultiMeasureRest = 0; // number of measures left in multi measure rest
+//                    unsigned int measureThatStartedMultiMeasureRest = 0; // the index of the measure that started the multi measure res
+
 
                     XMLNode* previousMeasureElement = part->FirstChildElement("measure");
                     std::vector<Measure*> previousMeasures;
@@ -1533,6 +1618,8 @@ Song* MusicXMLParser::ParseMusicXML(const std::string& data, std::string& error)
                                     for (int i = 0; i < numStaves; i++)
                                     {
                                         currentInst->staves.push_back(new Staff());
+
+                                        staffIsTabInfo.push_back(false);
                                     }
 
                                     stavesCreated = true;
@@ -1550,6 +1637,12 @@ Song* MusicXMLParser::ParseMusicXML(const std::string& data, std::string& error)
 
                                 currentMeasures.push_back(newMeasure);
                             }
+
+                            /*if (multiMeasureRest)
+                            {
+                                if (measureIndex - measureThatStartedMultiMeasureRest < numberOfMeasuresInMultiMeasureRest)
+
+                            }*/
 
                             // print
                             XMLElement* print = measure->FirstChildElement("print");
@@ -1667,7 +1760,7 @@ Song* MusicXMLParser::ParseMusicXML(const std::string& data, std::string& error)
                                                 {
                                                     if (firstMeasure) {
                                                         currentInst->staves[clefNumber-1]->type = Staff::StaffType::Tab;
-                                                        isTab = true;
+                                                        staffIsTabInfo[clefNumber-1] = true;
                                                     }
                                                 }
                                             }
@@ -1754,6 +1847,41 @@ Song* MusicXMLParser::ParseMusicXML(const std::string& data, std::string& error)
                                             }
                                             previousStaffTuning = previousStaffTuning->NextSiblingElement("staff-tuning");
                                         }
+
+                                        tabStaff->capo = GetUnsignedIntValue("capo", staffDetails, tabStaff->capo);
+                                    }
+                                } // staff details
+
+                                // measure style
+                                XMLElement* measureStyleElement = attributes->FirstChildElement("measure-style");
+                                if (measureStyleElement)
+                                {
+                                    int staffNumber = GetNumberAttribute(measureStyleElement, "number", -1);
+
+                                    // measure style
+                                    XMLElement* multipleRestElement = measureStyleElement->FirstChildElement("multiple-rest");
+                                    if (multipleRestElement)
+                                    {
+                                        unsigned int numberOfMeasures = GetUnsignedIntValue(multipleRestElement, 1);
+                                        bool useSymbols = GetBoolAttribute(multipleRestElement, "use-symbols", false);
+
+                                        if (staffNumber == -1) // applies to all the staves
+                                        {
+                                            for (auto m : currentMeasures)
+                                            {
+                                                m->startsMultiMeasureRest = true;
+                                                m->isPartOfMultiMeasureRest = true;
+                                                m->useSymbolsForMultiMeasureRest = useSymbols;
+                                                m->numberOfMeasuresInMultiMeasureRest = numberOfMeasures;
+                                            }
+                                        }
+                                        else // applies only to the specified staff
+                                        {
+                                            currentMeasures[staffNumber-1]->startsMultiMeasureRest = true;
+                                            currentMeasures[staffNumber-1]->isPartOfMultiMeasureRest = true;
+                                            currentMeasures[staffNumber-1]->useSymbolsForMultiMeasureRest = useSymbols;
+                                            currentMeasures[staffNumber-1]->numberOfMeasuresInMultiMeasureRest - numberOfMeasures;
+                                        }
                                     }
                                 }
                             }
@@ -1792,7 +1920,7 @@ Song* MusicXMLParser::ParseMusicXML(const std::string& data, std::string& error)
                                     if (strcmp(value, "note") == 0) // note
                                     {
                                         Note* currentNote = new Note();
-                                        ParseNoteElement(element, currentTimeInMeasure, isTab, currentNote, previousNote, currentMeasures, measureNumber, error);
+                                        ParseNoteElement(element, currentTimeInMeasure, staffIsTabInfo, currentNote, previousNote, currentMeasures, measureNumber, error);
                                         previousNote = currentNote;
                                     }
                                     else if (strcmp(value, "backup") == 0) // backup time in measure
@@ -1874,6 +2002,12 @@ Song* MusicXMLParser::ParseMusicXML(const std::string& data, std::string& error)
                                             currentMeasures[0]->soundEvents.push_back(event);
                                             for (auto m : currentMeasures) { m->soundEvents.push_back(event); }
                                         }
+                                    }
+                                    else if (strcmp(value, "barline") == 0) // barline
+                                    {
+                                        Barline barline = ParseBarlineElement(element);
+
+                                        for (auto m : currentMeasures) { m->barlines.push_back(barline); }
                                     }
                                 }
                                 else

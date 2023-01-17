@@ -51,7 +51,6 @@ float Staff::GetTotalBeatWidth()
     return width;
 }
 
-// gets the next(for example if the measure is repeated) beat position of the given measure
 float Staff::GetMeasureNextBeatPosition(int measureIndex, float currentBeatPosition) {
     float position = 0.0f;
 

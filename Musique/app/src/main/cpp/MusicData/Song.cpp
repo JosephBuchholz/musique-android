@@ -710,6 +710,13 @@ float Song::GetSongWidth()
     return songWidth;
 }
 
+/**
+ * Converts a beatPosition into a normal x position relative to the left-hand side of the measure.
+ *
+ * @param beatPositionInSong the beat position to be converted
+ * @param currentMeasureIndex the index of the measure that the beat position is at
+ * @return the x position in tenths
+ */
 float Song::GetPositionXInMeasure(float beatPositionInSong, int currentMeasureIndex)
 {
     float position = 0.0f;
@@ -801,6 +808,13 @@ float Song::GetPositionXInMeasure(float beatPositionInSong, int currentMeasureIn
     return position;
 }
 
+/**
+ * Converts a beatPosition into a normal x position.
+ *
+ * @param beatPositionInSong the beat position to be converted
+ * @param currentMeasureIndex the index of the measure that the beat position is at
+ * @return the x position in tenths
+ */
 float Song::GetPositionXInSong(float beatPositionInSong, int currentMeasureIndex)
 {
     float position = GetPositionXInMeasure(beatPositionInSong, currentMeasureIndex);
@@ -811,6 +825,12 @@ float Song::GetPositionXInSong(float beatPositionInSong, int currentMeasureIndex
     return position;
 }
 
+/**
+ * Gets the measure at the given index (this will be the measure in the first instrument and staff).
+ *
+ * @param measureIndex the index of the measure
+ * @return a pointer to the measure
+ */
 Measure* Song::GetMeasure(int measureIndex)
 {
     if (!instruments.empty())
@@ -820,18 +840,36 @@ Measure* Song::GetMeasure(int measureIndex)
     return nullptr;
 }
 
+/**
+ * Finds whether the measure at the given index is at the start of the system (i.e. it starts a new system)
+ *
+ * @param measureIndex the index of the measure
+ * @return weather the measure starts a new system
+ */
 bool Song::DoesMeasureStartNewSystem(int measureIndex)
 {
     Measure* measure = GetMeasure(measureIndex);
     return measure->startNewSystem;
 }
 
+/**
+ * Finds whether the measure at the given index is at the start of the page (i.e. it starts a new page)
+ *
+ * @param measureIndex the index of the measure
+ * @return weather the measure starts a new page
+ */
 bool Song::DoesMeasureStartNewPage(int measureIndex)
 {
     Measure* measure = GetMeasure(measureIndex);
     return measure->startNewPage;
 }
 
+/**
+ * Gets the y position of a system
+ *
+ * @param measureIndex the index of the first measure in the system
+ * @return the y position of the system
+ */
 float Song::GetSystemPositionY(int measureIndex) // TODO: needs finnished
 {
     float instYPosition = 0.0f;
@@ -857,11 +895,23 @@ float Song::GetSystemPositionY(int measureIndex) // TODO: needs finnished
     return instYPosition * (measureIndex/4);
 }
 
+/**
+ * Calculates the height of a system (not implemented yet)
+ *
+ * @param measureIndex the index of the measure
+ * @return the height of the system
+ */
 float Song::GetSystemHeight(int measureIndex)
 {
     return 150.0f;
 }
 
+/**
+ * Finds the index of the system that the given measure appears on.
+ *
+ * @param measureIndex the index of the measure
+ * @return the index of the system
+ */
 int Song::GetSystemIndex(int measureIndex)
 {
     int systemIndex = 0;
@@ -883,6 +933,12 @@ int Song::GetSystemIndex(int measureIndex)
     return systemIndex;
 }
 
+/**
+ * Finds the index of the page that the given measure appears on.
+ *
+ * @param measureIndex the index of the measure
+ * @return the index of the page
+ */
 int Song::GetPageIndex(int measureIndex)
 {
     int pageIndex = 0;
@@ -904,6 +960,12 @@ int Song::GetPageIndex(int measureIndex)
     return pageIndex;
 }
 
+/**
+ * Finds the index of the first measure that appears on the given page index
+ *
+ * @param pageIndex the index of the page
+ * @return the index of the measure
+ */
 int Song::GetFirstMeasureOnPage(int pageIndex)
 {
     int measureIndex = 0;
@@ -928,6 +990,11 @@ int Song::GetFirstMeasureOnPage(int pageIndex)
     return measureIndex;
 }
 
+/**
+ * Calculates the number of pages needed to render in paged mode.
+ *
+ * @return the number of pages
+ */
 int Song::GetNumPages()
 {
     int numPages = 1;

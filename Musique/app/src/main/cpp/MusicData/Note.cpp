@@ -63,4 +63,9 @@ void Note::CalculatePositionAsPaged(const MusicDisplayConstants& displayConstant
         positionX = defX + relX;
         positionY = -defY + -relY;
     }
+
+    for (auto& dot : dots)
+    {
+        dot.CalculatePositionAsPaged(displayConstants, ((positionY / displayConstants.lineSpacing) - floor(positionY / displayConstants.lineSpacing)) == 0.0f);
+    }
 }

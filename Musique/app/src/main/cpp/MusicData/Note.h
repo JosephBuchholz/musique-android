@@ -9,7 +9,11 @@
 #include "Accidental.h"
 #include "Lyric.h"
 #include "../MusicDisplayConstants.h"
+#include "AugmentationDot.h"
 
+/**
+ * Class that represents a note, whether it is TAB or not.
+ */
 class Note {
     friend class Song;
     friend class MusicXMLParser;
@@ -50,6 +54,8 @@ public:
     int measureIndex = 0; // the measure that this note is in
 
     std::vector<Slur> slurs;
+
+    std::vector<AugmentationDot> dots;
 
     NoteStem noteStem = NoteStem();
 

@@ -113,7 +113,7 @@ void UpdateSongData(const SongData& songData)
     env->CallVoidMethod(mainActivityRefObj, callback, songDataObject);
 }
 
-jobject ConvertRenderDataToObject(JNIEnv* env, const RenderData& renderData)
+jobject ConvertPaintToObject(JNIEnv* env, const Paint& paint)
 {
     // Paint class
     jclass paintClass = env->FindClass("com/randsoft/apps/musique/renderdata/Paint");
@@ -124,7 +124,30 @@ jobject ConvertRenderDataToObject(JNIEnv* env, const RenderData& renderData)
     jfieldID paintFieldIdIsItalic = env->GetFieldID(paintClass, "isItalic", "Z");
     jfieldID paintFieldIdIsBold = env->GetFieldID(paintClass, "isBold", "Z");
     jfieldID paintFieldIdAlign = env->GetFieldID(paintClass, "align", "I");
+    jfieldID paintFieldIdIsTablature = env->GetFieldID(paintClass, "isTablature", "Z");
+    jfieldID paintFieldIdIsAntiAlias = env->GetFieldID(paintClass, "isAntiAlias", "Z");
+    jfieldID paintFieldIdStrikeThruText = env->GetFieldID(paintClass, "strikeThruText", "Z");
+    jfieldID paintFieldIdCenterTextVertically = env->GetFieldID(paintClass, "centerTextVertically", "Z");
 
+    // set paint fields
+    jobject paintObject = env->NewObject(paintClass, paintConstructor, paint.color);
+    env->SetFloatField(paintObject, paintFieldIdStrokeWidth, paint.strokeWidth);
+    env->SetIntField(paintObject, paintFieldIdStrokeCap, (int)paint.strokeCap);
+    env->SetFloatField(paintObject, paintFieldIdTextSize, paint.textSize);
+    env->SetBooleanField(paintObject, paintFieldIdIsItalic, paint.isItalic);
+    env->SetBooleanField(paintObject, paintFieldIdIsBold, paint.isBold);
+    env->SetIntField(paintObject, paintFieldIdAlign, (int)paint.align);
+
+    env->SetBooleanField(paintObject, paintFieldIdIsTablature, paint.isTablature);
+    env->SetBooleanField(paintObject, paintFieldIdIsAntiAlias, paint.isAntiAlias);
+    env->SetBooleanField(paintObject, paintFieldIdStrikeThruText, paint.strikeThruText);
+    env->SetBooleanField(paintObject, paintFieldIdCenterTextVertically, paint.centerTextVertically);
+
+    return paintObject;
+}
+
+jobject ConvertRenderDataToObject(JNIEnv* env, const RenderData& renderData)
+{
     // creating new RenderData object
     jclass renderDataClass = env->FindClass("com/randsoft/apps/musique/renderdata/RenderData");
     jmethodID constructor = env->GetMethodID(renderDataClass, "<init>", "()V");
@@ -159,11 +182,7 @@ jobject ConvertRenderDataToObject(JNIEnv* env, const RenderData& renderData)
             env->SetFloatField(newLine, fieldIdEndX, line->endX);
             env->SetFloatField(newLine, fieldIdEndY, line->endY);
 
-            jobject paintObject = env->NewObject(paintClass, paintConstructor, line->paint.color);
-            env->SetFloatField(paintObject, paintFieldIdStrokeWidth, line->paint.strokeWidth);
-            env->SetIntField(paintObject, paintFieldIdStrokeCap, (int)line->paint.strokeCap);
-            env->SetFloatField(paintObject, paintFieldIdTextSize, line->paint.textSize);
-
+            jobject paintObject = ConvertPaintToObject(env, line->paint);
             env->SetObjectField(newLine, fieldIdPaint, paintObject);
 
             env->SetObjectArrayElement(linesArray, index, newLine);
@@ -201,14 +220,7 @@ jobject ConvertRenderDataToObject(JNIEnv* env, const RenderData& renderData)
             env->SetFloatField(newText, fieldIdX, text.x);
             env->SetFloatField(newText, fieldIdY, text.y);
 
-            jobject paintObject = env->NewObject(paintClass, paintConstructor, text.paint.color);
-            env->SetFloatField(paintObject, paintFieldIdStrokeWidth, text.paint.strokeWidth);
-            env->SetIntField(paintObject, paintFieldIdStrokeCap, (int)text.paint.strokeCap);
-            env->SetFloatField(paintObject, paintFieldIdTextSize, text.paint.textSize);
-            env->SetBooleanField(paintObject, paintFieldIdIsItalic, text.paint.isItalic);
-            env->SetBooleanField(paintObject, paintFieldIdIsBold, text.paint.isBold);
-            env->SetIntField(paintObject, paintFieldIdAlign, (int)text.paint.align);
-
+            jobject paintObject = ConvertPaintToObject(env, text.paint);
             env->SetObjectField(newText, fieldIdPaint, paintObject);
 
             env->SetObjectArrayElement(textsArray, index, newText);
@@ -238,11 +250,7 @@ jobject ConvertRenderDataToObject(JNIEnv* env, const RenderData& renderData)
             SetFloatField(env, newGlyph, "y", glyph.y);
             SetIntField(env, newGlyph, "codePoint", (int)glyph.codePoint);
 
-            jobject paintObject = env->NewObject(paintClass, paintConstructor, glyph.paint.color);
-            env->SetFloatField(paintObject, paintFieldIdStrokeWidth, glyph.paint.strokeWidth);
-            env->SetIntField(paintObject, paintFieldIdStrokeCap, (int)glyph.paint.strokeCap);
-            env->SetFloatField(paintObject, paintFieldIdTextSize, glyph.paint.textSize);
-
+            jobject paintObject = ConvertPaintToObject(env, glyph.paint);
             SetObjectField(env, newGlyph, "paint", paintObject, "Lcom/randsoft/apps/musique/renderdata/Paint;");
 
             SetElementInObjectArray(env, glyphsArray, index, newGlyph);
@@ -284,11 +292,7 @@ jobject ConvertRenderDataToObject(JNIEnv* env, const RenderData& renderData)
             env->SetFloatField(newBitmap, fieldIdSy, bitmap.sy);
             env->SetIntField(newBitmap, fieldIdAssetId, (int)bitmap.assetId);
 
-            jobject paintObject = env->NewObject(paintClass, paintConstructor, bitmap.paint.color);
-            env->SetFloatField(paintObject, paintFieldIdStrokeWidth, bitmap.paint.strokeWidth);
-            env->SetIntField(paintObject, paintFieldIdStrokeCap, (int)bitmap.paint.strokeCap);
-            env->SetFloatField(paintObject, paintFieldIdTextSize, bitmap.paint.textSize);
-
+            jobject paintObject = ConvertPaintToObject(env, bitmap.paint);
             env->SetObjectField(newBitmap, fieldIdPaint, paintObject);
 
             env->SetObjectArrayElement(bitmapsArray, index, newBitmap);
@@ -335,11 +339,7 @@ jobject ConvertRenderDataToObject(JNIEnv* env, const RenderData& renderData)
             env->SetFloatField(newCurve, fieldIdX4, curve.x4);
             env->SetFloatField(newCurve, fieldIdY4, curve.y4);
 
-            jobject paintObject = env->NewObject(paintClass, paintConstructor, curve.paint.color);
-            env->SetFloatField(paintObject, paintFieldIdStrokeWidth, curve.paint.strokeWidth);
-            env->SetIntField(paintObject, paintFieldIdStrokeCap, (int)curve.paint.strokeCap);
-            env->SetFloatField(paintObject, paintFieldIdTextSize, curve.paint.textSize);
-
+            jobject paintObject = ConvertPaintToObject(env, curve.paint);
             env->SetObjectField(newCurve, fieldIdPaint, paintObject);
 
             env->SetObjectArrayElement(cubicCurvesArray, index, newCurve);

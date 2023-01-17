@@ -1,3 +1,7 @@
+/**
+ * This file defines the class `App` which controls how the sheet music is displayed and acts like an interface between Kotlin and C++
+ */
+
 #pragma once
 #include "AndroidDebug.h"
 #include "MusicData/Song.h"
@@ -37,16 +41,24 @@ public:
     void CalculateRenderForPagedLayout();
     void RenderWithRenderData();
 
-    void RenderNote(RenderData& renderData, const Note* note, Measure* measure, float measurePositionX, const Staff* staff, float staffYPosition, float instYPosition, int measureNumber, float ls, float mainPositionX, float mainPositionY, int noteIndex);
+private:
+    void RenderLineOfMeasures(RenderData& renderData, unsigned int startMeasure, unsigned int endMeasure, Staff* staff, float systemPositionX, float staffPositionY, float lineSpacing);
+
+    void RenderNote(RenderData& renderData, const Note* note, Measure* measure, float measurePositionX, const Staff* staff, float measurePositionY, int measureNumber, float ls, float mainPositionX, float mainPositionY, int noteIndex);
     void RenderRest(RenderData& renderData, const Note* note, float measurePositionX, int lines, float ls, float offsetX, float offsetY);
     void RenderTabNote(RenderData& renderData, const Note* note, float measurePositionX, int lines, float ls, float offsetX, float offsetY);
     void RenderDirection(RenderData& renderData, const Direction& direction, float measurePositionY, Measure* measure, float measureXPosition, float offsetX, float offsetY);
-    void RenderLyric(RenderData& renderData, const Lyric& lyric, float notePositionX, float measurePositionY, const Measure* measure, const Note* note, float offsetX, float offsetY);
+    void RenderLyric(RenderData& renderData, const Lyric& lyric, float notePositionX, float measurePositionY, float offsetX, float offsetY);
     void RenderChord(RenderData& renderData, const Chord& chord, float measurePositionY, const Measure* measure, float measureXPosition, float offsetX, float offsetY);
     void RenderTimeSignature(RenderData& renderData, const Measure* measure, float measurePosition, float ls, int lines, float offsetX, float offsetY);
     void RenderKeySignature(RenderData& renderData, const Measure* measure, float measurePosition, float ls, int lines, float offsetX, float offsetY);
     void RenderClef(RenderData& renderData, const Measure* measure, float measurePosition, float ls, int lines, float offsetX, float offsetY);
     void RenderNoteStemAndFlagAndBeam(RenderData& renderData, const Note* note, float notePositionX, float notePositionY);
+
+    void RenderBarlines(RenderData& renderData, const std::vector<Barline>& barlines, float measurePositionX, float measurePositionY, float measureWidth, int lineCount, float lineSpacing);
+    void RenderBarline(RenderData& renderData, const Barline& barline, float barlinePositionX, float barlinePositionY, float barlineHeight, int lineCount, float lineSpacing);
+
+    void RenderMultiMeasureRest(RenderData& renderData, unsigned int measureRestCount, float measurePositionX, float measurePositionY, float measureWidth, int lineCount, float lineSpacing);
 
 private:
     void DeleteSong();
@@ -63,6 +75,7 @@ private:
     Paint NoteStemPaint;
     Paint NoteBeamPaint;
     Paint BarLinePaint;
+    Paint HeavyBarLinePaint;
 
     Paint TabSlurPaint;
 

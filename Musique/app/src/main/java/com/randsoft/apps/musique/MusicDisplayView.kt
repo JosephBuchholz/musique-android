@@ -51,6 +51,8 @@ class MusicDisplayView(context: Context, attrs: AttributeSet? = null): View(cont
     private var typefaceBold = ResourcesCompat.getFont(context, R.font.timesbd)
     private var typefaceBoldItalic = ResourcesCompat.getFont(context, R.font.timesbi)
 
+    private var tablatureTypeface = ResourcesCompat.getFont(context, R.font.open_sans)
+
     var musicTypeface = ResourcesCompat.getFont(context, R.font.bravura)
 
 
@@ -105,6 +107,258 @@ class MusicDisplayView(context: Context, attrs: AttributeSet? = null): View(cont
         }
     }
 
+    /**
+     * Draws an array of lines on the given canvas
+     *
+     * @param canvas the canvas to draw on
+     * @param lines the array of lines to draw
+     * @param offsetX how much to offset the lines in the x direction
+     * @param offsetY how much to offset the lines in the y direction
+     */
+    private fun drawLines(canvas: Canvas, lines: Array<Line>, offsetX: Float = 0.0f, offsetY: Float = 0.0f)
+    {
+        for (line in lines) {
+            val paint = Paint().apply {
+                color = line.paint.color
+                strokeWidth = line.paint.strokeWidth * scale
+                isAntiAlias = true
+                strokeCap = Paint.Cap.values()[line.paint.strokeCap]
+            }
+
+            drawLine(canvas, line, paint, offsetX, offsetY)
+        }
+    }
+
+    /**
+     * Draws an array of text objects on the given canvas
+     *
+     * @param canvas the canvas to draw on
+     * @param texts the array of text objects to draw
+     * @param offsetX how much to offset the lines in the x direction
+     * @param offsetY how much to offset the lines in the y direction
+     */
+    private fun drawTexts(canvas: Canvas, texts: Array<Text>, offsetX: Float = 0.0f, offsetY: Float = 0.0f)
+    {
+        for (text in texts) {
+
+            val paint = Paint().apply {
+                color = text.paint.color
+                textSize = text.paint.textSize //* 2.0f // 30.0 text size =about= 22.0 normal size
+                textAlign = Paint.Align.values()[text.paint.align]
+                isAntiAlias = true
+            }
+
+
+            /*if (text.paint.align == 0)
+                paint.textAlign = Paint.Align.LEFT;
+            else if (text.paint.align == 1)
+                paint.textAlign = Paint.Align.CENTER;
+            else if (text.paint.align == 2)
+                paint.textAlign = Paint.Align.RIGHT;*/
+
+            paint.textSize = pointsToTenths(text.paint.textSize, Scaling())
+
+            if (text.paint.isTablature) {
+                paint.typeface = tablatureTypeface
+                paint.textSize = text.paint.textSize
+            }
+            else if (text.paint.isItalic && text.paint.isBold) {
+                paint.typeface = typefaceBoldItalic
+            }
+            else if (!text.paint.isItalic && text.paint.isBold) {
+                paint.typeface = typefaceBold
+            }
+            else if (text.paint.isItalic) {
+                paint.typeface = typefaceItalic
+            }
+            else {
+                paint.typeface = typefacePlain
+            }
+
+            drawText(canvas, text, paint, offsetX, offsetY)
+        }
+    }
+
+    /**
+     * Draws an array of glyphs on the given canvas
+     *
+     * @param canvas the canvas to draw on
+     * @param glyphs the array of glyphs to draw
+     * @param offsetX how much to offset the lines in the x direction
+     * @param offsetY how much to offset the lines in the y direction
+     */
+    private fun drawGlyphs(canvas: Canvas, glyphs: Array<SMuFLGlyph>, offsetX: Float = 0.0f, offsetY: Float = 0.0f)
+    {
+        for (glyph in glyphs) { // SMuFL glyphs
+
+            // create paint
+            val paint = Paint().apply {
+                color = glyph.paint.color
+                typeface = musicTypeface
+            }
+
+            // position
+            val x = ((glyph.x) * scale)
+            val y = ((glyph.y) * scale)
+
+            paint.textSize = 40.0f * scale // text size equals the standard staff height (according to SMuFL specification)
+
+            // draw
+            canvas.drawText(Character.toChars(glyph.codePoint), 0, 1, (x) + offsetX, (y) + offsetY, paint)
+        }
+    }
+
+    /**
+     * Draws an array of bitmaps on the given canvas
+     *
+     * @param canvas the canvas to draw on
+     * @param bitmaps the array of bitmaps to draw
+     * @param offsetX how much to offset the lines in the x direction
+     * @param offsetY how much to offset the lines in the y direction
+     */
+    private fun drawBitmaps(canvas: Canvas, bitmaps: Array<RenderBitmap>, offsetX: Float = 0.0f, offsetY: Float = 0.0f) // TODO: use offsetX and offsetY
+    {
+        val density = resources.displayMetrics.density
+
+        for (bitmap in bitmaps) {
+
+            if (bitmap.assetId == AssetID.TrebleClef.ordinal || bitmap.assetId == AssetID.TABClef.ordinal)
+            {
+                //resources.getString(R.raw.glyphnames)
+
+                val paint = Paint().apply {
+                    color = bitmap.paint.color
+                }
+
+                var text: Text = Text("", ((bitmap.x) * scale), ((bitmap.y) * scale), bitmap.paint);
+                //mainCanvas.drawText("", );
+                //drawText(mainCanvas, text, paint);
+
+                paint.textSize = 40.0f * scale // text size equals the standard staff height (according to SMuFL specification)
+                //paint.setTextSize(TypedValue.COMPLEX_UNIT_SP, 66.6f) // scale textSize to the right size
+
+                // calculate bounds of the text
+                var textBounds = Rect()
+                paint.getTextBounds(text.text, 0, text.text.length, textBounds)
+                paint.typeface = musicTypeface;
+
+                val textHeight = -textBounds.top // text height
+
+                // draw
+                var px = 0.0f;
+                var py = 0.0f;
+                var char = 0;
+                var tab = 0xE06D;
+                var treble = 0xE052;
+                if (bitmap.assetId == AssetID.TABClef.ordinal)
+                    char = tab
+                else
+                    char = treble
+
+                canvas.drawText(Character.toChars(char), 0, 1, (text.x * scale) + px, (text.y * scale) /*+ (textHeight / 2.0f)*/ + py, paint)
+            }
+            else {
+                val paint = Paint().apply {
+                    color = bitmap.paint.color
+                }
+
+                val resourceId = getResourceID(bitmap.assetId) // resource id of the bitmap
+                val drawable =
+                    ContextCompat.getDrawable(context, resourceId) // the drawable of the bitmap
+
+                // calculate centers of bitmaps
+                var centerX = (drawable!!.intrinsicWidth.toFloat() / density)
+                var centerY = 0.0f
+                if (bitmap.assetId == AssetID.QuarterNote.ordinal || bitmap.assetId == AssetID.EightNote.ordinal) {
+                    centerX = 5.65f
+                    centerY = 5.0f
+                } else if (bitmap.assetId == AssetID.WholeNote.ordinal ||
+                    bitmap.assetId == AssetID.HalfNoteNoteHead.ordinal ||
+                    bitmap.assetId == AssetID.QuarterNoteNoteHead.ordinal
+                ) {
+                    centerX = (drawable.intrinsicWidth.toFloat() / density)
+                    centerY = (drawable.intrinsicHeight.toFloat() / density) / 2.0f
+                } else if (bitmap.assetId == AssetID.Sharp.ordinal ||
+                    bitmap.assetId == AssetID.Natural.ordinal
+                ) {
+                    centerX = (drawable.intrinsicWidth.toFloat() / density)
+                    centerY = (drawable.intrinsicHeight.toFloat() / density) / 2.0f
+                } else if (bitmap.assetId == AssetID.Flat.ordinal) {
+                    centerX = (drawable.intrinsicWidth.toFloat() / density)
+                    centerY = (drawable.intrinsicHeight.toFloat() / density) * 0.25f
+                } else if (bitmap.assetId == AssetID.TrebleClef.ordinal) {
+                    centerY = 17.0f
+
+                } else if (bitmap.assetId == AssetID.QuarterRest.ordinal) {
+                    centerX = (drawable.intrinsicWidth.toFloat() / density)
+                    centerY = (drawable.intrinsicHeight.toFloat() / density) / 2.0f
+                } else if (bitmap.assetId == AssetID.WholeRest.ordinal) {
+                    centerX = (drawable.intrinsicWidth.toFloat() / density)
+                    centerY = (drawable.intrinsicHeight.toFloat() / density)
+                }
+
+                val left =
+                    (((bitmap.x) * scale) - (((drawable.intrinsicWidth.toFloat() / density) - centerX) * bitmapSizeScale) + 0.0f).toInt()
+                val top =
+                    (((bitmap.y) * scale) - (((drawable.intrinsicHeight.toFloat() / density) - centerY) * bitmapSizeScale) + 0.0f).toInt()
+                val right =
+                    ((drawable.intrinsicWidth.toFloat() / density) * bitmap.sx * bitmapSizeScale).toInt() + left
+                val bottom =
+                    ((drawable.intrinsicHeight.toFloat() / density) * bitmap.sy * bitmapSizeScale).toInt() + top
+
+                drawable.setTint(paint.color)
+                drawable.setBounds(left, top, right, bottom)
+                drawable.draw(canvas)
+            }
+        }
+    }
+
+    /**
+     * Draws an array of cubic curves on the given canvas
+     *
+     * @param canvas the canvas to draw on
+     * @param cubicCurves the array of cubic curves to draw
+     * @param offsetX how much to offset the lines in the x direction
+     * @param offsetY how much to offset the lines in the y direction
+     */
+    private fun drawCubicCurves(canvas: Canvas, cubicCurves: Array<CubicCurve>, offsetX: Float = 0.0f, offsetY: Float = 0.0f) // TODO: use offsetX and offsetY
+    {
+        // render cubic bezier curves
+        for (curve in cubicCurves) {
+            val paint = Paint().apply {
+                color = curve.paint.color
+                strokeWidth = curve.paint.strokeWidth
+                isAntiAlias = true
+                strokeCap = Paint.Cap.values()[curve.paint.strokeCap]
+                style = Paint.Style.STROKE
+            }
+
+            var path = Path()
+            var s = 5.0f;
+            var start = PointF(curve.x1 * scale + positionX, curve.y1 * scale + positionY)
+            var point1 = PointF(curve.x2 * scale + positionX, curve.y2 * scale + positionY)
+            var point2 = PointF(curve.x3 * scale + positionX, curve.y3 * scale + positionY)
+            var end = PointF(curve.x4 * scale + positionX, curve.y4 * scale + positionY)
+
+            path.moveTo(start.x, start.y)
+            path.cubicTo(point1.x, point1.y, point2.x, point2.y, end.x, end.y)
+
+            canvas.drawPath(path, paint)
+
+            var i = 0;
+            while (i < 2) {
+                point1 = PointF(point1.x, point1.y - 1.0f * scale)
+                point2 = PointF(point2.x, point2.y - 1.0f * scale)
+                path.reset()
+                path.moveTo(start.x, start.y)
+                path.cubicTo(point1.x, point1.y, point2.x, point2.y, end.x, end.y)
+
+                canvas.drawPath(path, paint)
+                i++
+            }
+        }
+    }
+
     private fun renderOnToBitmap()
     {
         if (renderData != null) {
@@ -120,184 +374,11 @@ class MusicDisplayView(context: Context, attrs: AttributeSet? = null): View(cont
             val mainCanvas = Canvas(mainBitmap!!)
             //mainCanvas.drawPaint(backgroundPaint)
 
-            for (line in renderData?.lines!!) {
-                val paint = Paint().apply {
-                    color = line.paint.color
-                    strokeWidth = line.paint.strokeWidth * scale
-                    isAntiAlias = true
-                    strokeCap = Paint.Cap.values()[line.paint.strokeCap]
-                }
-                drawLine(mainCanvas, line, paint, 0.0f, 0.0f)
-            }
-
-            for (text in renderData?.texts!!) {
-                //typeface.style = Typeface.BOLD
-                val paint = Paint().apply {
-                    color = text.paint.color
-                    textSize = text.paint.textSize //* 2.0f // 30.0 text size =about= 22.0 normal size
-                    textAlign = Paint.Align.values()[text.paint.align]
-                    isAntiAlias = true
-                }
-
-                if (text.paint.isItalic && text.paint.isBold) {
-                    paint.typeface = typefaceBoldItalic
-                }
-                if (!text.paint.isItalic && text.paint.isBold) {
-                    paint.typeface = typefaceBold
-                }
-                if (text.paint.isItalic) {
-                    paint.typeface = typefaceItalic
-                }
-                else {
-                    paint.typeface = typefacePlain
-                }
-                drawText(mainCanvas, text, paint, 0.0f, 0.0f)
-            }
-
-            for (glyph in renderData?.glyphs!!) { // SMuFL glyphs
-
-                // create paint
-                val paint = Paint().apply {
-                    color = glyph.paint.color
-                    typeface = musicTypeface
-                }
-
-                // position
-                val x = ((glyph.x) * scale)
-                val y = ((glyph.y) * scale)
-
-                paint.textSize = 40.0f * scale // text size equals the standard staff height (according to SMuFL specification)
-
-                // draw
-                mainCanvas.drawText(Character.toChars(glyph.codePoint), 0, 1, (x), (y), paint)
-            }
-
-            for (bitmap in renderData?.bitmaps!!) {
-
-                if (bitmap.assetId == AssetID.TrebleClef.ordinal || bitmap.assetId == AssetID.TABClef.ordinal)
-                {
-                    //resources.getString(R.raw.glyphnames)
-
-                    val paint = Paint().apply {
-                        color = bitmap.paint.color
-                    }
-
-                    var text: Text = Text("", ((bitmap.x) * scale), ((bitmap.y) * scale), bitmap.paint);
-                    //mainCanvas.drawText("", );
-                    //drawText(mainCanvas, text, paint);
-
-                    paint.textSize = 40.0f * scale // text size equals the standard staff height (according to SMuFL specification)
-                    //paint.setTextSize(TypedValue.COMPLEX_UNIT_SP, 66.6f) // scale textSize to the right size
-
-                    // calculate bounds of the text
-                    var textBounds = Rect()
-                    paint.getTextBounds(text.text, 0, text.text.length, textBounds)
-                    paint.typeface = musicTypeface;
-
-                    val textHeight = -textBounds.top // text height
-
-                    // draw
-                    var px = 0.0f;
-                    var py = 0.0f;
-                    var char = 0;
-                    var tab = 0xE06D;
-                    var treble = 0xE052;
-                    if (bitmap.assetId == AssetID.TABClef.ordinal)
-                        char = tab
-                    else
-                        char = treble
-
-                    mainCanvas.drawText(Character.toChars(char), 0, 1, (text.x * scale) + px, (text.y * scale) /*+ (textHeight / 2.0f)*/ + py, paint)
-                }
-                else {
-                    val paint = Paint().apply {
-                        color = bitmap.paint.color
-                    }
-
-                    val resourceId = getResourceID(bitmap.assetId) // resource id of the bitmap
-                    val drawable =
-                        ContextCompat.getDrawable(context, resourceId) // the drawable of the bitmap
-
-                    // calculate centers of bitmaps
-                    var centerX = (drawable!!.intrinsicWidth.toFloat() / density)
-                    var centerY = 0.0f
-                    if (bitmap.assetId == AssetID.QuarterNote.ordinal || bitmap.assetId == AssetID.EightNote.ordinal) {
-                        centerX = 5.65f
-                        centerY = 5.0f
-                    } else if (bitmap.assetId == AssetID.WholeNote.ordinal ||
-                        bitmap.assetId == AssetID.HalfNoteNoteHead.ordinal ||
-                        bitmap.assetId == AssetID.QuarterNoteNoteHead.ordinal
-                    ) {
-                        centerX = (drawable.intrinsicWidth.toFloat() / density)
-                        centerY = (drawable.intrinsicHeight.toFloat() / density) / 2.0f
-                    } else if (bitmap.assetId == AssetID.Sharp.ordinal ||
-                        bitmap.assetId == AssetID.Natural.ordinal
-                    ) {
-                        centerX = (drawable.intrinsicWidth.toFloat() / density)
-                        centerY = (drawable.intrinsicHeight.toFloat() / density) / 2.0f
-                    } else if (bitmap.assetId == AssetID.Flat.ordinal) {
-                        centerX = (drawable.intrinsicWidth.toFloat() / density)
-                        centerY = (drawable.intrinsicHeight.toFloat() / density) * 0.25f
-                    } else if (bitmap.assetId == AssetID.TrebleClef.ordinal) {
-                        centerY = 17.0f
-
-                    } else if (bitmap.assetId == AssetID.QuarterRest.ordinal) {
-                        centerX = (drawable.intrinsicWidth.toFloat() / density)
-                        centerY = (drawable.intrinsicHeight.toFloat() / density) / 2.0f
-                    } else if (bitmap.assetId == AssetID.WholeRest.ordinal) {
-                        centerX = (drawable.intrinsicWidth.toFloat() / density)
-                        centerY = (drawable.intrinsicHeight.toFloat() / density)
-                    }
-
-                    val left =
-                        (((bitmap.x) * scale) - (((drawable.intrinsicWidth.toFloat() / density) - centerX) * bitmapSizeScale) + 0.0f).toInt()
-                    val top =
-                        (((bitmap.y) * scale) - (((drawable.intrinsicHeight.toFloat() / density) - centerY) * bitmapSizeScale) + 0.0f).toInt()
-                    val right =
-                        ((drawable.intrinsicWidth.toFloat() / density) * bitmap.sx * bitmapSizeScale).toInt() + left
-                    val bottom =
-                        ((drawable.intrinsicHeight.toFloat() / density) * bitmap.sy * bitmapSizeScale).toInt() + top
-
-                    drawable.setTint(paint.color)
-                    drawable.setBounds(left, top, right, bottom)
-                    drawable.draw(mainCanvas)
-                }
-            }
-
-            // render cubic bezier curves
-            for (curve in renderData?.cubicCurves!!) {
-                val paint = Paint().apply {
-                    color = curve.paint.color
-                    strokeWidth = curve.paint.strokeWidth
-                    isAntiAlias = true
-                    strokeCap = Paint.Cap.values()[curve.paint.strokeCap]
-                    style = Paint.Style.STROKE
-                }
-
-                var path = Path()
-                var s = 5.0f;
-                var start = PointF(curve.x1 * scale + positionX, curve.y1 * scale + positionY)
-                var point1 = PointF(curve.x2 * scale + positionX, curve.y2 * scale + positionY)
-                var point2 = PointF(curve.x3 * scale + positionX, curve.y3 * scale + positionY)
-                var end = PointF(curve.x4 * scale + positionX, curve.y4 * scale + positionY)
-
-                path.moveTo(start.x, start.y)
-                path.cubicTo(point1.x, point1.y, point2.x, point2.y, end.x, end.y)
-
-                mainCanvas.drawPath(path, paint)
-
-                var i = 0;
-                while (i < 2) {
-                    point1 = PointF(point1.x, point1.y - 1.0f * scale)
-                    point2 = PointF(point2.x, point2.y - 1.0f * scale)
-                    path.reset()
-                    path.moveTo(start.x, start.y)
-                    path.cubicTo(point1.x, point1.y, point2.x, point2.y, end.x, end.y)
-
-                    mainCanvas.drawPath(path, paint)
-                    i++
-                }
-            }
+            drawLines(mainCanvas, renderData?.lines!!)
+            drawTexts(mainCanvas, renderData?.texts!!)
+            drawGlyphs(mainCanvas, renderData?.glyphs!!)
+            drawBitmaps(mainCanvas, renderData?.bitmaps!!)
+            drawCubicCurves(mainCanvas, renderData?.cubicCurves!!)
         }
         else
         {
@@ -391,7 +472,11 @@ class MusicDisplayView(context: Context, attrs: AttributeSet? = null): View(cont
         return millimetersToPoints(millimeters); // convert to points
     }
 
-    private var margin = 72.0f; // in points (1/72 inch)
+    /*private fun pointsToSp(points: Float)
+    {
+        var px =
+        return px / context.resources.displayMetrics.scaledDensity
+    }*/
 
     fun drawPage(page: PdfDocument.Page)
     {
@@ -414,174 +499,11 @@ class MusicDisplayView(context: Context, attrs: AttributeSet? = null): View(cont
             scale = tenthsToPoints(1.0f, pageRenderData.scaling)
             bitmapSizeScale = scale
 
-            for (line in pageRenderData.lines) {
-                val paint = Paint().apply {
-                    color = line.paint.color
-                    strokeWidth = line.paint.strokeWidth * scale
-                    isAntiAlias = true
-                    strokeCap = Paint.Cap.values()[line.paint.strokeCap]
-                }
-                drawLine(mainCanvas, line, paint, pagePositionX, pagePositionY)
-            }
-
-            for (text in pageRenderData.texts) {
-                //typeface.style = Typeface.BOLD
-                val paint = Paint().apply {
-                    color = text.paint.color
-                    textSize = text.paint.textSize //* 2.0f // 30.0 text size =about= 22.0 normal size
-                    textAlign = Paint.Align.values()[text.paint.align]
-                    isAntiAlias = true
-                }
-
-                if (text.paint.isItalic && text.paint.isBold) {
-                    paint.typeface = typefaceBoldItalic
-                }
-                if (!text.paint.isItalic && text.paint.isBold) {
-                    paint.typeface = typefaceBold
-                }
-                if (text.paint.isItalic) {
-                    paint.typeface = typefaceItalic
-                }
-                else {
-                    paint.typeface = typefacePlain
-                }
-                drawText(mainCanvas, text, paint, pagePositionX, pagePositionY)
-            }
-
-            for (glyph in pageRenderData.glyphs) { // SMuFL glyphs
-
-                // create paint
-                val paint = Paint().apply {
-                    color = glyph.paint.color
-                    typeface = musicTypeface
-                }
-
-                // position
-                val x = ((glyph.x) * scale)
-                val y = ((glyph.y) * scale)
-
-                paint.textSize = 40.0f * scale // text size equals the standard staff height (according to SMuFL specification)
-
-                // draw
-                mainCanvas.drawText(Character.toChars(glyph.codePoint), 0, 1, x + pagePositionX, y + pagePositionY, paint)
-            }
-
-            /*for (line in pageRenderData.lines) {
-                val paint = Paint().apply {
-                    color = line.paint.color
-                    strokeWidth = line.paint.strokeWidth * scale
-                    isAntiAlias = true
-                    strokeCap = Paint.Cap.values()[line.paint.strokeCap]
-                }
-                drawLine(mainCanvas, line, paint, 0.0f, 0.0f)
-            }
-
-            for (text in pageRenderData.texts) {
-                //typeface.style = Typeface.BOLD
-                val paint = Paint().apply {
-                    color = text.paint.color
-                    textSize = text.paint.textSize // 30.0 text size =about= 22.0 normal size
-                    textAlign = Paint.Align.values()[text.paint.align]
-                    isAntiAlias = true
-                }
-
-                if (text.paint.isItalic) {
-                    paint.typeface = typefaceItalic
-                }
-                else {
-                    paint.typeface = typefacePlain
-                }
-                drawText(mainCanvas, text, paint, 0.0f, 0.0f)
-            }*/
-
-            for (bitmap in pageRenderData.bitmaps) {
-                val paint = Paint().apply {
-                    color = bitmap.paint.color
-                }
-
-                val resourceId = getResourceID(bitmap.assetId) // resource id of the bitmap
-                val drawable =
-                    ContextCompat.getDrawable(context, resourceId) // the drawable of the bitmap
-
-                // calculate centers of bitmaps
-                var centerX = (drawable!!.intrinsicWidth.toFloat() / density)
-                var centerY = 0.0f
-                if (bitmap.assetId == AssetID.QuarterNote.ordinal || bitmap.assetId == AssetID.EightNote.ordinal) {
-                    centerX = 5.65f
-                    centerY = 5.0f
-                } else if (bitmap.assetId == AssetID.WholeNote.ordinal ||
-                    bitmap.assetId == AssetID.HalfNoteNoteHead.ordinal ||
-                    bitmap.assetId == AssetID.QuarterNoteNoteHead.ordinal
-                ) {
-                    centerX = (drawable.intrinsicWidth.toFloat() / density)
-                    centerY = (drawable.intrinsicHeight.toFloat() / density) / 2.0f
-                } else if (bitmap.assetId == AssetID.Sharp.ordinal ||
-                    bitmap.assetId == AssetID.Natural.ordinal
-                ) {
-                    centerX = (drawable.intrinsicWidth.toFloat() / density)
-                    centerY = (drawable.intrinsicHeight.toFloat() / density) / 2.0f
-                } else if (bitmap.assetId == AssetID.Flat.ordinal) {
-                    centerX = (drawable.intrinsicWidth.toFloat() / density)
-                    centerY = (drawable.intrinsicHeight.toFloat() / density) * 0.25f
-                } else if (bitmap.assetId == AssetID.TrebleClef.ordinal) {
-                    centerY = 17.0f
-                } else if (bitmap.assetId == AssetID.QuarterRest.ordinal) {
-                    centerX = (drawable.intrinsicWidth.toFloat() / density)
-                    centerY = (drawable.intrinsicHeight.toFloat() / density) / 2.0f
-                } else if (bitmap.assetId == AssetID.WholeRest.ordinal) {
-                    centerX = (drawable.intrinsicWidth.toFloat() / density)
-                    centerY = (drawable.intrinsicHeight.toFloat() / density)
-                }
-
-                val left =
-                    (((bitmap.x) * scale) - (((drawable.intrinsicWidth.toFloat() / density) - centerX) * bitmapSizeScale) + 0.0f).toInt()
-                val top =
-                    (((bitmap.y) * scale) - (((drawable.intrinsicHeight.toFloat() / density) - centerY) * bitmapSizeScale) + 0.0f).toInt()
-                val right =
-                    ((drawable.intrinsicWidth.toFloat() / density) * bitmap.sx * bitmapSizeScale).toInt() + left
-                val bottom =
-                    ((drawable.intrinsicHeight.toFloat() / density) * bitmap.sy * bitmapSizeScale).toInt() + top
-
-                drawable.setTint(paint.color)
-                drawable.setBounds(left, top, right, bottom)
-                drawable.draw(mainCanvas)
-            }
-
-            // render cubic bezier curves
-            for (curve in pageRenderData.cubicCurves) {
-                val paint = Paint().apply {
-                    color = curve.paint.color
-                    strokeWidth = curve.paint.strokeWidth
-                    isAntiAlias = true
-                    strokeCap = Paint.Cap.values()[curve.paint.strokeCap]
-                    style = Paint.Style.STROKE
-                }
-
-                var path = Path()
-                var s = 5.0f;
-                var start = PointF(curve.x1 * scale + positionX, curve.y1 * scale + positionY)
-                var point1 = PointF(curve.x2 * scale + positionX, curve.y2 * scale + positionY)
-                var point2 = PointF(curve.x3 * scale + positionX, curve.y3 * scale + positionY)
-                var end = PointF(curve.x4 * scale + positionX, curve.y4 * scale + positionY)
-
-                path.moveTo(start.x, start.y)
-                path.cubicTo(point1.x, point1.y, point2.x, point2.y, end.x, end.y)
-
-                mainCanvas.drawPath(path, paint)
-
-                var i = 0;
-                while (i < 2) {
-                    point1 = PointF(point1.x, point1.y - 1.0f * scale)
-                    point2 = PointF(point2.x, point2.y - 1.0f * scale)
-                    path.reset()
-                    path.moveTo(start.x, start.y)
-                    path.cubicTo(point1.x, point1.y, point2.x, point2.y, end.x, end.y)
-
-                    mainCanvas.drawPath(path, paint)
-                    i++
-                }
-            }
-
+            drawLines(mainCanvas, pageRenderData.lines, pagePositionX, pagePositionY)
+            drawTexts(mainCanvas, pageRenderData.texts, pagePositionX, pagePositionY)
+            drawGlyphs(mainCanvas, pageRenderData.glyphs, pagePositionX, pagePositionY)
+            drawBitmaps(mainCanvas, pageRenderData.bitmaps, pagePositionX, pagePositionY)
+            drawCubicCurves(mainCanvas, pageRenderData.cubicCurves, pagePositionX, pagePositionY)
         }
     }
 

@@ -14,7 +14,11 @@ public:
     float GetBelowHeight(float lineSpacing, float tabLineSpacing, int start, int end);
     float GetTotalHeight(float lineSpacing, float tabLineSpacing, int start, int end);
 
-    // gets the number of measures
+    /**
+     * Gets the number of measures
+     *
+     * @return the number of measures
+     */
     int GetMeasureCount();
 
 public:

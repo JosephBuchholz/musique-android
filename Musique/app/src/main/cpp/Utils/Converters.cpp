@@ -9,6 +9,15 @@ std::string ToString(int value)
     return string;
 }
 
+std::string ToString(unsigned int value)
+{
+    char* cstring = new char('0');
+    sprintf(cstring, "%d", value);
+    std::string string = cstring;
+    delete cstring;
+    return string;
+}
+
 std::string ToString(float value)
 {
     //char* string = new char('0');
@@ -25,14 +34,25 @@ int ToInt(const std::string& value)
     return std::atoi(value.c_str());
 }
 
+int ToInt(const char value)
+{
+    return int(value) - 48; // 48 is the ascii code for 0
+}
+
 unsigned int ToUnsignedInt(const std::string& value)
 {
     return std::atoi(value.c_str());
 }
 
+double ToDouble(const std::string& value)
+{
+    //return (float)std::strtod(value.c_str(), nullptr);
+    return std::atof(value.c_str());
+}
+
 float ToFloat(const std::string& value)
 {
-    return (float)std::atof(value.c_str());
+    return (float)ToDouble(value);
 }
 
 // ---- Is Value Functions ----
@@ -63,7 +83,7 @@ bool IsUnsignedInt(const std::string& value)
     return true;
 }
 
-bool IsFloat(const std::string& value)
+/*bool IsFloat(const std::string& value)
 {
     bool hasDot = false;
 
@@ -81,4 +101,4 @@ bool IsFloat(const std::string& value)
             return false;
     }
     return true; // is a float
-}
+}*/

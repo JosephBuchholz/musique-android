@@ -9,4 +9,8 @@ data class Paint(
     var isItalic: Boolean = false
     var isBold: Boolean = false
     var align: Int = 0
+    var isTablature: Boolean = false
+    var isAntiAlias: Boolean = false
+    var strikeThruText: Boolean = false
+    var centerTextVertically: Boolean = false
 }

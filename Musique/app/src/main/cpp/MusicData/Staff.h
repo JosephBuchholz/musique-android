@@ -22,7 +22,13 @@ public:
 
     float GetTotalBeatWidth();
 
-    // gets the next(for example if the measure is repeated) beat position of the given measure
+    /**
+     * Gets the next (for example if the measure is repeated) beat position of the given measure.
+     *
+     * @param measureIndex the index of the measure
+     * @param currentBeatPosition the current beat position in song
+     * @return the next beat position
+     */
     float GetMeasureNextBeatPosition(int measureIndex, float currentBeatPosition);
 
     float GetMeasureBeatPosition(int measureIndex);
@@ -43,6 +49,8 @@ public:
     int lines = 5;
 
     float maxDistance = 0.0f; // the distance from the top line to the bottom line of the previous staff
+
+    unsigned int capo = 0; // 0 means no capo
 
     // -- Tab Only --
 

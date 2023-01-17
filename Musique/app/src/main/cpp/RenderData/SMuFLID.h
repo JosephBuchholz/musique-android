@@ -4,6 +4,22 @@
 enum class SMuFLID : uint32_t
 {
     None = 0,
+
+    repeatLeft = 0xE040,
+    repeatRight = 0xE041,
+    repeatRightLeft = 0xE042,
+    repeatDots = 0xE043,
+    repeatDot = 0xE044,
+    dalSegno = 0xE045,
+    daCapo = 0xE046,
+    segno = 0xE047,
+    coda = 0xE048,
+    codaSquare = 0xE049,
+    segnoSerpent1 = 0xE04A,
+    segnoSerpent2 = 0xE04B,
+    leftRepeatSmall = 0xE04C,
+    rightRepeatSmall = 0xE04D,
+
     GClef = 0xE050,
     GClef8vb = 0xE052,
     GClef8va = 0xE053,
@@ -30,6 +46,27 @@ enum class SMuFLID : uint32_t
     timeSig9 = 0xE089,
     timeSigCommon = 0xE08A,
     timeSigCutCommon = 0xE08B,
+
+    augmentationDot = 0xE1E7,
+
+    flag8thUp = 0xE240,
+    flag8thDown = 0xE241,
+    flag16thUp = 0xE242,
+    flag16thDown = 0xE243,
+    flag32ndUp = 0xE244,
+    flag32ndDown = 0xE245,
+    flag64thUp = 0xE246,
+    flag64thDown = 0xE247,
+    flag128thUp = 0xE248,
+    flag128thDown = 0xE249,
+    flag256thUp = 0xE24A,
+    flag256thDown = 0xE24B,
+    flag512thUp = 0xE24C,
+    flag512thDown = 0xE24D,
+    flag1024thUp = 0xE24E,
+    flag1024thDown = 0xE24F,
+    flagInternalUp = 0xE250,
+    flagInternalDown = 0xE251,
 
     accidentalFlat = 0xE260,
     accidentalNatural = 0xE261,
@@ -119,6 +156,19 @@ static SMuFLID GetRestSMuFLID(Note::NoteDurationType type)
         case Note::NoteDurationType::Eighth: return SMuFLID::rest8th;
         case Note::NoteDurationType::Sixteenth: return SMuFLID::rest16th;
         case Note::NoteDurationType::ThirtySecond: return SMuFLID::rest32nd;
+    }
+
+    return SMuFLID::None;
+}
+
+static SMuFLID GetNoteFlagSMuFLID(Note::NoteDurationType type, bool isUp)
+{
+    switch (type)
+    {
+        case Note::NoteDurationType::Eighth: if (isUp) return SMuFLID::flag8thUp; else return SMuFLID::flag8thDown;
+        case Note::NoteDurationType::Sixteenth: if (isUp) return SMuFLID::flag16thUp; else return SMuFLID::flag16thDown;
+        case Note::NoteDurationType::ThirtySecond: if (isUp) return SMuFLID::flag32ndUp; else return SMuFLID::flag32ndDown;
+        default: return SMuFLID::None;
     }
 
     return SMuFLID::None;

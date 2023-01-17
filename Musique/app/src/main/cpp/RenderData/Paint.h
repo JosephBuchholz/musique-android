@@ -16,6 +16,10 @@ struct Paint {
         align = paint.align;
         isItalic = paint.isItalic;
         isBold = paint.isBold;
+        isTablature = paint.isTablature;
+        isAntiAlias = paint.isAntiAlias;
+        strikeThruText = paint.strikeThruText;
+        centerTextVertically = paint.centerTextVertically;
     }
 
     enum class Cap {
@@ -34,4 +38,8 @@ struct Paint {
     Align align = Align::Center;
     bool isItalic = false;
     bool isBold = false;
+    bool isTablature = false;
+    bool isAntiAlias = false;
+    bool strikeThruText = false;
+    bool centerTextVertically = false;
 };

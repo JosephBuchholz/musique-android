@@ -22,6 +22,9 @@ enum class ErrorLevel {
     None = 0, Error, Warning, Fatal
 };
 
+/**
+ * Represents a parsing error.
+ */
 class ParseError
 {
 public:
@@ -41,10 +44,20 @@ public:
 
 static std::vector<ParseError> m_Errors = std::vector<ParseError>();
 
+/**
+ * A 'singleton' that parses musicxml formatted files
+ */
 class MusicXMLParser
 {
 public:
 
+    /**
+     * Parses a musicxml formatted file (.musicxml)
+     *
+     * @param data[in] the string data to be parsed
+     * @param error[out] will contain an error if there was one
+     * @return a pointer to a Song object with the parsed data
+     */
     static Song* ParseMusicXML(const std::string& data, std::string& error); // parses MusicXML data
 
     // ---- Conversions ----
@@ -107,8 +120,9 @@ private:
     static Credit ParseCreditElement(XMLElement* creditElement);
     static void ParseFrameElement(XMLElement* frameElement, Chord& chord);
     static void ParseHarmonyElement(XMLElement* harmonyElement, float& currentTimeInMeasure, std::vector<Measure*> currentMeasures);
-    static void ParseNoteElement(XMLElement* noteElement, float& currentTimeInMeasure, bool isTab, Note* currentNote, Note* previousNote, std::vector<Measure*> currentMeasures, int measureNumber, std::string& error);
+    static void ParseNoteElement(XMLElement* noteElement, float& currentTimeInMeasure, std::vector<bool> staffIsTabInfo, Note* currentNote, Note* previousNote, std::vector<Measure*> currentMeasures, int measureNumber, std::string& error);
     static void ParseTechnicalElement(XMLElement* technicalElement, Note* currentNote, bool isTab);
+    static Barline ParseBarlineElement(XMLElement* barlineElement);
 
     static void AddError(std::string title, std::string desc, ErrorLevel errorLevel = ErrorLevel::Error) { m_Errors.emplace_back(title, desc, "MusicXMLParser", errorLevel); }
     static void AddErrorIf(bool condition, std::string title, std::string desc, ErrorLevel errorLevel = ErrorLevel::Error) { if (condition) m_Errors.emplace_back(title, desc, "MusicXMLParser", errorLevel); }
