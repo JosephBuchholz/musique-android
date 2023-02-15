@@ -8,6 +8,8 @@
 #include "../MusicData/Types.h"
 //#include "../Utils/Converters.h"
 
+#include "XMLHelper.h"
+
 
 //#include "libs/tinyxml/tinyxml.h"
 //#include "libs/tinyxml/tinystr.h"
@@ -49,6 +51,7 @@ static std::vector<ParseError> m_Errors = std::vector<ParseError>();
  */
 class MusicXMLParser
 {
+    friend class XMLHelper;
 public:
 
     /**
@@ -66,9 +69,13 @@ public:
     static Date FromStringToDate(const char* string);
 
 private:
+
+    static bool DoesElementExist(const std::string& elementName, XMLElement* elementParent);
+
     // ---- From String ----
 
     static Chord::HarmonyType GetHarmonyTypeFromString(const std::string& string);
+    static NoteValue GetNoteValueTypeFromString(const std::string& string);
 
     // ---- Get Value Functions ----
 
@@ -112,6 +119,7 @@ private:
 
     static Rehearsal ParseRehearsal(XMLElement* element);
     static Words ParseWords(XMLElement* element);
+    static std::shared_ptr<MetronomeMark> ParseMetronomeMark(XMLElement* element);
     static Direction ParseDirection(XMLElement* directionElement);
     static void ParseWorkElement(XMLElement* workElement, std::string& workTitle, int& workNumber);
     static void ParseEncodingElement(XMLElement* encodingElement, Song* song);
@@ -124,6 +132,7 @@ private:
     static void ParseTechnicalElement(XMLElement* technicalElement, Note* currentNote, bool isTab);
     static Barline ParseBarlineElement(XMLElement* barlineElement);
 
+protected:
     static void AddError(std::string title, std::string desc, ErrorLevel errorLevel = ErrorLevel::Error) { m_Errors.emplace_back(title, desc, "MusicXMLParser", errorLevel); }
     static void AddErrorIf(bool condition, std::string title, std::string desc, ErrorLevel errorLevel = ErrorLevel::Error) { if (condition) m_Errors.emplace_back(title, desc, "MusicXMLParser", errorLevel); }
 

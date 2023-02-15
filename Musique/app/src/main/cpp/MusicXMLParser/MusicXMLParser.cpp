@@ -1,5 +1,6 @@
 #include "MusicXMLParser.h"
 #include "../Utils/Converters.h"
+#include <memory>
 
 // ---- Conversions ----
 
@@ -33,6 +34,20 @@ Date MusicXMLParser::FromStringToDate(const char* string)
     free(copy); // free the copied string
 
     return date;
+}
+
+// ---- Other ----
+
+bool MusicXMLParser::DoesElementExist(const std::string& elementName, XMLElement* elementParent)
+{
+    XMLElement* element = elementParent->FirstChildElement(elementName.c_str());
+
+    if (element)
+    {
+        return true;
+    }
+
+    return false;
 }
 
 // ---- From String ----
@@ -108,6 +123,41 @@ Chord::HarmonyType MusicXMLParser::GetHarmonyTypeFromString(const std::string& s
     else
         ; // TODO: error: this is not possible
         return Chord::HarmonyType::None;
+}
+
+NoteValue MusicXMLParser::GetNoteValueTypeFromString(const std::string& string)
+{
+    if (string == "1024th")
+        return NoteValue::_1024th;
+    else if (string == "512th")
+        return NoteValue::_512th;
+    else if (string == "256th")
+        return NoteValue::_256th;
+    else if (string == "128th")
+        return NoteValue::_128th;
+    else if (string == "64th")
+        return NoteValue::_64th;
+    else if (string == "32nd")
+        return NoteValue::ThirtySecond;
+    else if (string == "16th")
+        return NoteValue::Sixteenth;
+    else if (string == "eighth")
+        return NoteValue::Eighth;
+    else if (string == "quarter")
+        return NoteValue::Quarter;
+    else if (string == "half")
+        return NoteValue::Half;
+    else if (string == "whole")
+        return NoteValue::Whole;
+    else if (string == "breve")
+        return NoteValue::Breve;
+    else if (string == "long")
+        return NoteValue::Long;
+    else if (string == "maxima")
+        return NoteValue::Maxima;
+    else
+        ; // TODO: error: this is not possible
+    return NoteValue::None;
 }
 
 // ---- Get Value Functions ----
@@ -623,6 +673,35 @@ Words MusicXMLParser::ParseWords(XMLElement* element)
     return words;
 }
 
+std::shared_ptr<MetronomeMark> MusicXMLParser::ParseMetronomeMark(XMLElement* element)
+{
+    std::shared_ptr<MetronomeMark> metronomeMark = std::make_shared<MetronomeMark>();
+
+    if (element)
+    {
+        metronomeMark->defX = GetFloatAttribute(element, "default-x", metronomeMark->defX);
+        metronomeMark->defY = GetFloatAttribute(element, "default-y", metronomeMark->defY);
+
+        metronomeMark->noDefX = (metronomeMark->defX == 0.0f);
+        metronomeMark->noDefY = (metronomeMark->defY == 0.0f);
+
+        metronomeMark->relX = GetFloatAttribute(element, "relative-x", metronomeMark->relX);
+        metronomeMark->relY = GetFloatAttribute(element, "relative-y", metronomeMark->relY);
+
+        metronomeMark->hasParentheses = GetBoolAttribute(element, "parentheses", metronomeMark->hasParentheses);
+
+        std::string beatUnitString = GetStringValue("beat-unit", element, "");
+        NoteUnit mainNoteUnit = NoteUnit();
+        mainNoteUnit.noteValue = GetNoteValueTypeFromString(beatUnitString);
+        mainNoteUnit.isDotted = DoesElementExist("beat-unit-dot", element);
+        metronomeMark->mainNoteUnit = mainNoteUnit;
+
+        metronomeMark->tempo = GetStringValue("per-minute", element, metronomeMark->tempo);
+    }
+
+    return metronomeMark;
+}
+
 Direction MusicXMLParser::ParseDirection(XMLElement* directionElement)
 {
     Direction direction = Direction();
@@ -643,6 +722,13 @@ Direction MusicXMLParser::ParseDirection(XMLElement* directionElement)
             if (wordsElement)
             {
                 direction.words.push_back(ParseWords(wordsElement));
+            }
+
+            // metronome
+            XMLElement* metronomeElement = directionTypeElement->FirstChildElement("metronome");
+            if (metronomeElement)
+            {
+                direction.metronomeMark = ParseMetronomeMark(metronomeElement);
             }
         }
 
@@ -1655,7 +1741,8 @@ Song* MusicXMLParser::ParseMusicXML(const std::string& data, std::string& error)
 
                                 if (firstMeasure || startNewSystem)
                                 {
-                                    SystemLayout systemLayout = displayConstants.systemLayout;
+                                    System system = System();
+                                    System::SystemLayout systemLayout = displayConstants.systemLayout;
 
                                     XMLElement* systemLayoutElement = print->FirstChildElement("system-layout");
                                     if (systemLayoutElement)
@@ -1673,7 +1760,15 @@ Song* MusicXMLParser::ParseMusicXML(const std::string& data, std::string& error)
 
                                     //LOGE("systemLayout; i: %d, leftMargin: %f", song->systemLayouts.size(), systemLayout.systemLeftMargin);
 
-                                    song->systemLayouts.push_back(systemLayout);
+                                    system.layout = systemLayout;
+
+                                    if (firstMeasure)
+                                        system.showTimeSignature = true;
+
+                                    system.showClef = true;
+                                    system.showKeySignature = true;
+
+                                    song->systems.push_back(system);
                                 }
 
                                 XMLElement* staffLayoutElement = print->FirstChildElement("staff-layout");

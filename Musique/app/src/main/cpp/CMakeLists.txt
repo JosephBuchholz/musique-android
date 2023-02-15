@@ -25,17 +25,22 @@ add_library( # Sets the name of the library.
         RenderData/RenderData.cpp
         RenderData/Line.cpp
         App.cpp
+        AppRendering.cpp
         MusicData/Song.cpp
         MusicData/SongData.cpp
-        MusicData/Note.cpp
+        MusicData/Notes/Note.cpp
         MusicData/Measure.cpp
         MusicData/Staff.cpp
         MusicData/Instrument.cpp
         MusicData/Chords/Chord.cpp
-        MusicData/Lyric.cpp
+        MusicData/Notes/Lyric.cpp
         MusicData/Directions/Words.cpp
-        MusicData/AugmentationDot.cpp
+        MusicData/Notes/AugmentationDot.cpp
+        MusicData/Directions/MetronomeMark.cpp
+        RenderMeasurement.cpp
         MusicXMLParser/MusicXMLParser.cpp
+        MusicXMLParser/XMLHelper.cpp
+        JNIHelpers/JNIHelper.cpp
         Utils/Converters.cpp
         libs/tinyxml/tinystr.cpp
         libs/tinyxml/tinyxml.cpp

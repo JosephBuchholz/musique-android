@@ -1,14 +1,14 @@
 #pragma once
 #include <vector>
-#include "Duration.h"
-#include "Pitch.h"
+#include "../Duration.h"
+#include "../Pitch.h"
 #include "TABSlur.h"
 #include "Slur.h"
 #include "NoteStem.h"
 #include "Beam.h"
 #include "Accidental.h"
 #include "Lyric.h"
-#include "../MusicDisplayConstants.h"
+#include "../../MusicDisplayConstants.h"
 #include "AugmentationDot.h"
 
 /**

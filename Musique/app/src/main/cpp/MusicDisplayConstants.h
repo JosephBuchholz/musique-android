@@ -1,17 +1,11 @@
 #pragma once
 
+#include "MusicData/System.h"
+
 struct Scaling
 {
     float millimeters;
     float tenths;
-};
-
-struct SystemLayout {
-    float systemDistance = 127.0f;
-    float topSystemDistance = 127.0f;
-
-    float systemLeftMargin = 0.0f;
-    float systemRightMargin = 0.0f;
 };
 
 struct MusicDisplayConstants
@@ -29,7 +23,7 @@ struct MusicDisplayConstants
     float topMargin = 80.0f;
     float bottomMargin = 80.0f;
 
-    SystemLayout systemLayout = SystemLayout();
+    System::SystemLayout systemLayout = System::SystemLayout();
 
     float staffDistance = 80.0f;
 

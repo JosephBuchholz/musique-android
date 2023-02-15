@@ -1,5 +1,5 @@
 #pragma once
-#include "MusicData/Note.h"
+#include "MusicData/Notes/Note.h"
 #include "MusicData/Clef.h"
 
 /*enum class AssetID {

@@ -7,5 +7,6 @@ class RenderData {
     var bitmaps: Array<RenderBitmap> = emptyArray()
     var cubicCurves: Array<CubicCurve> = emptyArray()
     var glyphs: Array<SMuFLGlyph> = emptyArray()
+    var spannableTexts: Array<SpannableText> = emptyArray()
     var scaling: Scaling = Scaling()
 }

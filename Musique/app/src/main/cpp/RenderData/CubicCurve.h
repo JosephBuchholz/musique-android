@@ -2,7 +2,9 @@
 
 #include "Paint.h"
 
-// a cubic bezier curve
+/**
+ * An object that holds data needed to render cubic bezier curve.
+ */
 struct CubicCurve {
 
     CubicCurve() {}

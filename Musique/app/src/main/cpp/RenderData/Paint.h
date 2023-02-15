@@ -1,5 +1,9 @@
 #pragma once
 
+/**
+ * An object that holds data needed to describe how a specific object
+ * should be rendered (for example: color, font, or stroke width).
+ */
 struct Paint {
 
     Paint() {}
@@ -42,4 +46,5 @@ struct Paint {
     bool isAntiAlias = false;
     bool strikeThruText = false;
     bool centerTextVertically = false;
+    bool useMusicFont = false;
 };

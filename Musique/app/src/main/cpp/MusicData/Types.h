@@ -9,7 +9,7 @@ typedef unsigned int StringValue;
 typedef unsigned int FretValue;
 
 enum class NoteValue {
-    None = 0, Whole, Half, Quarter, Eighth, Sixteenth, ThirtySecond
+    None = 0, Maxima, Long, Breve, Whole, Half, Quarter, Eighth, Sixteenth, ThirtySecond, _64th, _128th, _256th, _512th, _1024th
 };
 
 struct NoteUnit {

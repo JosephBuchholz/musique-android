@@ -2,6 +2,9 @@
 #include "Paint.h"
 #include "SMuFLID.h"
 
+/**
+ * An object that holds data needed to render a SMuFL (Standard Music Font Layout) glyph.
+ */
 struct SMuFLGlyph {
 
     SMuFLGlyph() {}

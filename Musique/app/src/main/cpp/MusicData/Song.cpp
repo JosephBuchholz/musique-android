@@ -2,6 +2,8 @@
 #include "SongData.h"
 #include "../AndroidDebug.h"
 
+#include <algorithm>
+
 Song::Song()
 {
 
@@ -186,7 +188,7 @@ void Song::OnUpdate()
             credit.CalculatePositionAsPaged();
         }
 
-        // calculate positions for notes
+        // calculate positions for notes and measures
         for (auto* instrument : instruments)
         {
             for (auto* staff : instrument->staves)
@@ -194,6 +196,7 @@ void Song::OnUpdate()
                 staff->CalculateAsPaged(displayConstants);
 
                 int measureIndex = 0;
+                int systemIndex = 0;
                 for (auto* measure : staff->measures)
                 {
                     measure->CalculateAsPaged(displayConstants);
@@ -205,20 +208,36 @@ void Song::OnUpdate()
 
                     if (staff->type == Staff::StaffType::Tab)
                         measure->showKeySignature = false;
-                    //LOGE("width: %f, default: %f, index: %d", measure->measureWidth, measure->defaultMeasureWidth, measureIndex);
 
+                    m_MeasureBeginWidths[measureIndex] = std::max(measure->GetBeginningWidth(), m_MeasureBeginWidths[measureIndex]);
+
+                    systems[systemIndex].clefPositionX = std::max(measure->GetClefPositionInMeasure(0.0f), systems[systemIndex].clefPositionX);
+                    systems[systemIndex].keySignaturePositionX = std::max(measure->GetKeySignaturePositionInMeasure(0.0f), systems[systemIndex].keySignaturePositionX);
+                    systems[systemIndex].timeSignaturePositionX = std::max(measure->GetTimeSignaturePositionInMeasure(0.0f), systems[systemIndex].timeSignaturePositionX);
+
+                    int noteIndex = 0;
                     for (auto* note : measure->notes)
                     {
                         if (!note->isRest) // musescore specific code
+                        {
                             note->CalculatePositionAsPaged(displayConstants);
+
+                            if (note->type == Note::NoteType::Standard)
+                                note->positionY = (displayConstants.lineSpacing * measure->CalculateNoteYPositionRelativeToMeasure(noteIndex));
+                        }
 
                         for (auto& lyric : note->lyrics)
                         {
                             lyric.CalculatePositionAsPaged(displayConstants);
                         }
+
+                        noteIndex++;
                     }
 
                     measureIndex++;
+
+                    if (measure->startNewSystem)
+                        systemIndex++;
                 }
             }
         }
@@ -302,6 +321,11 @@ void Song::OnUpdate()
                         for (auto& rehearsals : direction.rehearsals)
                         {
                             rehearsals.CalculatePositionAsPaged(displayConstants, defaultX, defaultY);
+                        }
+
+                        if (direction.metronomeMark != nullptr)
+                        {
+                            direction.metronomeMark->CalculatePositionAsPaged(displayConstants, defaultX, defaultY);
                         }
                     }
 

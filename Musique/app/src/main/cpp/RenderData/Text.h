@@ -3,6 +3,9 @@
 #include <string>
 #include "Paint.h"
 
+/**
+ * An object that holds data needed to render text.
+ */
 struct Text {
 
     Text() {}

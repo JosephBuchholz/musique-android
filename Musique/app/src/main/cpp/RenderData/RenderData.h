@@ -7,7 +7,11 @@
 #include "RenderBitmap.h"
 #include "CubicCurve.h"
 #include "SMuFLGlyph.h"
+#include "SpannableText.h"
 
+/**
+ * An object that holds data to render something to the screen.
+ */
 struct RenderData {
 
     ~RenderData()
@@ -37,6 +41,10 @@ public:
         Texts.push_back(text);
     }
 
+    void AddSpannableText(std::shared_ptr<SpannableText> text) {
+        SpannableTexts.push_back(text);
+    }
+
     void AddBitmap(const RenderBitmap& bitmap) {
         Bitmaps.push_back(bitmap);
     }
@@ -54,4 +62,5 @@ public:
     std::vector<RenderBitmap> Bitmaps;
     std::vector<CubicCurve> CubicCurves;
     std::vector<SMuFLGlyph> SMuFLGlyphs;
+    std::vector<std::shared_ptr<SpannableText>> SpannableTexts;
 };

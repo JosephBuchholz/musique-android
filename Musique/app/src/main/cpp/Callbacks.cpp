@@ -14,7 +14,7 @@ extern jobject mainActivityRefObj;
 jmethodID updateViewModelCallback;
 jmethodID writeMidiCallback;
 
-static JNIEnv* GetEnv() {
+JNIEnv* GetEnv() {
     JNIEnv* env;
     theJvm->AttachCurrentThread(&env, nullptr);
     if (env == nullptr) {
@@ -52,6 +52,9 @@ void UpdateFrameData(const FrameData& frameData)
     // setting 'playProgress' field
     fieldId = env->GetFieldID(frameDataClass, "playProgress", "F");
     env->SetFloatField(frameDataObject, fieldId, frameData.playProgress);
+
+    // setting 'isPlaying' field
+    JNIHelper::SetBoolField(env, frameDataObject, "isPlaying", frameData.isPlaying);
 
     // calling callback
     env->CallVoidMethod(mainActivityRefObj, callback, frameDataObject);
@@ -128,6 +131,7 @@ jobject ConvertPaintToObject(JNIEnv* env, const Paint& paint)
     jfieldID paintFieldIdIsAntiAlias = env->GetFieldID(paintClass, "isAntiAlias", "Z");
     jfieldID paintFieldIdStrikeThruText = env->GetFieldID(paintClass, "strikeThruText", "Z");
     jfieldID paintFieldIdCenterTextVertically = env->GetFieldID(paintClass, "centerTextVertically", "Z");
+    jfieldID paintFieldIdUseMusicFont = env->GetFieldID(paintClass, "useMusicFont", "Z");
 
     // set paint fields
     jobject paintObject = env->NewObject(paintClass, paintConstructor, paint.color);
@@ -142,8 +146,63 @@ jobject ConvertPaintToObject(JNIEnv* env, const Paint& paint)
     env->SetBooleanField(paintObject, paintFieldIdIsAntiAlias, paint.isAntiAlias);
     env->SetBooleanField(paintObject, paintFieldIdStrikeThruText, paint.strikeThruText);
     env->SetBooleanField(paintObject, paintFieldIdCenterTextVertically, paint.centerTextVertically);
+    env->SetBooleanField(paintObject, paintFieldIdUseMusicFont, paint.useMusicFont);
 
     return paintObject;
+}
+
+jobject ConvertSpannableTextToObject(JNIEnv* env, const std::shared_ptr<SpannableText>& spannableText)
+{
+    jobject newText = JNIHelper::CreateNewObject(env, "com/randsoft/apps/musique/renderdata/SpannableText");
+
+    //SetStringField(env, newText, "text", spannableText.text);
+
+    jfieldID fieldId = env->GetFieldID(env->GetObjectClass(newText), "text", "Ljava/lang/String;");
+    //std::u16string s;
+    //env->NewString(spannableText.text, 10);
+    //env->SetObjectField(newText, fieldId, env->NewStringUTF(spannableText.text.c_str()));
+    JNIHelper::SetStringUTF16Field(env, newText, "text", spannableText->text, spannableText->textSize);
+
+    JNIHelper::SetFloatField(env, newText, "x", spannableText->x);
+    JNIHelper::SetFloatField(env, newText, "y", spannableText->y);
+    JNIHelper::SetObjectField(env, newText, "mainPaint", ConvertPaintToObject(env, spannableText->mainPaint), "Lcom/randsoft/apps/musique/renderdata/Paint;");
+
+    jobjectArray spanArray = JNIHelper::CreateNewObjectArray(env, spannableText->spans.size(), "com/randsoft/apps/musique/renderdata/TextSpan");
+
+    int i = 0;
+    for (const TextSpan& span : spannableText->spans)
+    {
+        jobject newSpan = JNIHelper::CreateNewObject(env, "com/randsoft/apps/musique/renderdata/TextSpan");
+        JNIHelper::SetIntField(env, newSpan, "startIndex", (int)span.startIndex);
+        JNIHelper::SetIntField(env, newSpan, "endIndex", (int)span.endIndex);
+        JNIHelper::SetObjectField(env, newSpan, "paint", ConvertPaintToObject(env, span.paint), "Lcom/randsoft/apps/musique/renderdata/Paint;");
+
+        JNIHelper::SetElementInObjectArray(env, spanArray, i, newSpan);
+        i++;
+    }
+
+    JNIHelper::SetObjectField(env, newText, "spans", spanArray, "[Lcom/randsoft/apps/musique/renderdata/TextSpan;");
+
+    return newText;
+}
+
+jobjectArray ConvertSpannableTextVectorToObjectArray(JNIEnv* env, const std::vector<std::shared_ptr<SpannableText>>& spannableTexts)
+{
+    // creating new SpannableText Array
+    jobjectArray textsArray = JNIHelper::CreateNewObjectArray(env, spannableTexts.size(), "com/randsoft/apps/musique/renderdata/SpannableText");
+
+    // adding elements
+    int index = 0;
+    for (const auto& text : spannableTexts) {
+        //jobject newText = CreateNewObject(env, "com/randsoft/apps/musique/renderdata/SpannableText");
+
+        jobject newText = ConvertSpannableTextToObject(env, text);
+
+        JNIHelper::SetElementInObjectArray(env, textsArray, index, newText);
+        index++;
+    }
+
+    return textsArray;
 }
 
 jobject ConvertRenderDataToObject(JNIEnv* env, const RenderData& renderData)
@@ -231,6 +290,9 @@ jobject ConvertRenderDataToObject(JNIEnv* env, const RenderData& renderData)
     // set texts array field in renderDataObject
     env->SetObjectField(renderDataObject, fieldIdTexts, textsArray);
 
+    // SPANNABLE TEXTS
+    JNIHelper::SetObjectField(env, renderDataObject, "spannableTexts", ConvertSpannableTextVectorToObjectArray(env, renderData.SpannableTexts), "[Lcom/randsoft/apps/musique/renderdata/SpannableText;");
+
     // SMUFL GLYPHS
 
     // getting glyphs array field in renderDataObject
@@ -239,21 +301,21 @@ jobject ConvertRenderDataToObject(JNIEnv* env, const RenderData& renderData)
 
     // creating new SMuFLGlyph Array
     jclass glyphClass = env->FindClass("com/randsoft/apps/musique/renderdata/SMuFLGlyph");
-    jobjectArray glyphsArray = CreateNewObjectArray(env, renderData.SMuFLGlyphs.size(), glyphClass);
+    jobjectArray glyphsArray = JNIHelper::CreateNewObjectArray(env, renderData.SMuFLGlyphs.size(), glyphClass);
 
     {
         int index = 0;
         for (auto glyph : renderData.SMuFLGlyphs) {
-            jobject newGlyph = CreateNewObject(env, glyphClass);
+            jobject newGlyph = JNIHelper::CreateNewObject(env, glyphClass);
 
-            SetFloatField(env, newGlyph, "x", glyph.x);
-            SetFloatField(env, newGlyph, "y", glyph.y);
-            SetIntField(env, newGlyph, "codePoint", (int)glyph.codePoint);
+            JNIHelper::SetFloatField(env, newGlyph, "x", glyph.x);
+            JNIHelper::SetFloatField(env, newGlyph, "y", glyph.y);
+            JNIHelper::SetIntField(env, newGlyph, "codePoint", (int)glyph.codePoint);
 
             jobject paintObject = ConvertPaintToObject(env, glyph.paint);
-            SetObjectField(env, newGlyph, "paint", paintObject, "Lcom/randsoft/apps/musique/renderdata/Paint;");
+            JNIHelper::SetObjectField(env, newGlyph, "paint", paintObject, "Lcom/randsoft/apps/musique/renderdata/Paint;");
 
-            SetElementInObjectArray(env, glyphsArray, index, newGlyph);
+            JNIHelper::SetElementInObjectArray(env, glyphsArray, index, newGlyph);
             index++;
         }
     }

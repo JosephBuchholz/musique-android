@@ -4,6 +4,10 @@
 #include "FrameData/FrameData.h"
 #include "ViewModelData.h"
 #include "MusicData/SongData.h"
+#include <jni.h>
+
+JNIEnv* GetEnv();
+jobject ConvertPaintToObject(JNIEnv* env, const Paint& paint);
 
 void UpdateRender(const RenderData& renderData);
 

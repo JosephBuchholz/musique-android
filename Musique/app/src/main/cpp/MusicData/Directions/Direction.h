@@ -4,11 +4,13 @@
 
 #include "Rehearsal.h"
 #include "Words.h"
-#include "../MetronomeMark.h"
+#include "MetronomeMark.h"
 
 #include "../Types.h"
 
-#include "../../../../../../../../../../../AppData/Local/Android/Sdk/ndk/23.1.7779620/toolchains/llvm/prebuilt/windows-x86_64/sysroot/usr/include/c++/v1/vector"
+#include <vector>
+
+#include <memory>
 
 class Direction : public BaseElement {
 public:
@@ -21,7 +23,7 @@ public:
 
     std::vector<Rehearsal> rehearsals;
     std::vector<Words> words;
-    MetronomeMark* metronomeMark = nullptr;
+    std::shared_ptr<MetronomeMark> metronomeMark = nullptr;
 
     AboveBelowType placement = AboveBelowType::Above;
 };

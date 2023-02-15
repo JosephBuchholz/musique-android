@@ -1,7 +1,7 @@
 #pragma once
 
-#include "VisibleElement.h"
-#include "../MusicDisplayConstants.h"
+#include "../VisibleElement.h"
+#include "../../MusicDisplayConstants.h"
 
 /**
  * Class that represents an augmentation dot that lengthens a note by its duration value * 1.5.

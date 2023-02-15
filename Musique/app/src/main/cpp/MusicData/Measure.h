@@ -1,5 +1,5 @@
 #pragma once
-#include "Note.h"
+#include "Notes/Note.h"
 #include "TimeSignature.h"
 #include "KeySignature.h"
 #include "Clef.h"
@@ -74,6 +74,11 @@ public:
 
 protected:
     void CalculateAsPaged(const MusicDisplayConstants& displayConstants);
+
+private:
+    float MeausreClefWidth() const;
+    float MeausreKeySignatureWidth() const;
+    float MeausreTimeSignatureWidth() const;
 
 public:
 

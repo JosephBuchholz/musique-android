@@ -8,4 +8,6 @@ public:
     float playLinePositionY = 0.0f;
     float playLineHeight = 0.0f;
     float playProgress = 0.0f;
+
+    bool isPlaying = false;
 };

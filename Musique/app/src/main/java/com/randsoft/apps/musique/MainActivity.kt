@@ -22,6 +22,7 @@ import com.randsoft.apps.musique.databinding.ActivityMainBinding
 import com.randsoft.apps.musique.framedata.FrameData
 import com.randsoft.apps.musique.renderdata.PrintRenderData
 import com.randsoft.apps.musique.renderdata.RenderData
+import com.randsoft.apps.musique.renderdata.SMuFLGlyph
 import com.randsoft.apps.musique.songdata.InstrumentInfo
 import com.randsoft.apps.musique.songdata.SongData
 import kotlinx.coroutines.Dispatchers
@@ -309,6 +310,14 @@ class MainActivity : AppCompatActivity(), MusicDisplayFragment.Callbacks,
         nativeViewModel.viewModelData = viewModelData
     }
 
+    private fun measureGlyph(glyph: SMuFLGlyph): Float {
+        if (musicDisplayFragment != null) {
+            return musicDisplayFragment!!.measureGlyph(glyph)
+        }
+
+        return 0.0f
+    }
+
     // -- Callbacks For Midi --
 
     private fun writeMidi(byteArray: ByteArray) {
@@ -361,7 +370,7 @@ class MainActivity : AppCompatActivity(), MusicDisplayFragment.Callbacks,
     companion object {
         // Used to load the native c++, 'musique', library on application startup.
         init {
-            Log.e(TAG, "Loading C++ Lib")
+            Log.i(TAG, "Loading C++ Lib")
             System.loadLibrary("musique")
         }
     }

@@ -7,6 +7,7 @@
 #include "SongData.h"
 #include "../Settings.h"
 #include "Credit.h"
+#include "System.h"
 
 class Song {
 
@@ -72,9 +73,10 @@ public:
 
     SongData songData = SongData();
 
-    std::vector<SystemLayout> systemLayouts;
+    //std::vector<System::SystemLayout> systemLayouts;
 
     std::vector<Instrument*> instruments;
+    std::vector<System> systems;
 
     std::vector<Credit> credits;
 

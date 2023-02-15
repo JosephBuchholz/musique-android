@@ -1,4 +1,5 @@
 #include "Measure.h"
+#include "../RenderMeasurement.h"
 
 float Measure::GetMiddleHeight(float staffLineCount, float lineSpacing)
 {
@@ -98,8 +99,10 @@ float Measure::GetNotePositionInMeasure(float width, int noteIndex) const {
 float Measure::GetKeySignaturePositionInMeasure(float width) const {
     float position;
 
+    float clefWidth = MeausreClefWidth();
+
     if (showKeySignature)
-        position = GetClefPositionInMeasure(width) + 17.0f + 20.0f;
+        position = GetClefPositionInMeasure(width) + 10.0f + clefWidth;
     else
         position = GetClefPositionInMeasure(width);
 
@@ -111,8 +114,10 @@ float Measure::GetTimeSignaturePositionInMeasure(float width) const {
 
     float position;
 
+    float keySignatureWidth = MeausreKeySignatureWidth();
+
     if (showTimeSignature)
-        position = GetKeySignaturePositionInMeasure(width) + 20.0f + 20.0f;
+        position = GetKeySignaturePositionInMeasure(width) + keySignatureWidth + 10.0f;
     else
         position = GetKeySignaturePositionInMeasure(width);
 
@@ -128,6 +133,9 @@ float Measure::GetClefPositionInMeasure(float width) const {
 
 float Measure::GetPitchYPosition(Pitch pitch) const {
     float position = 0.0f;
+
+    // transpose pitch
+    // pitch.octave += transpose.octaveChange;
 
     int y = GetLetterNumber(pitch.step) + pitch.octave*7; // the y position of pitch of the note
 
@@ -202,4 +210,23 @@ float Measure::GetClefLineYPosition(MusicDisplayConstants displayConstants, int 
     }
 
     return fromTopLine;
+}
+
+float Measure::MeausreClefWidth() const
+{
+    return RenderMeasurement::MeasureGlyph(GetClefSMuFLID(clef, 6)); // TODO: use actual staff lines
+}
+
+float Measure::MeausreKeySignatureWidth() const
+{
+    // TODO: make better to find the actual width and not the approx. width
+    float width = (float)std::abs(keySignature.fifths) * RenderMeasurement::MeasureGlyph(SMuFLID::accidentalSharp);
+    return width;
+}
+
+float Measure::MeausreTimeSignatureWidth() const
+{
+    float topNumWidth = RenderMeasurement::MeasureGlyph(GetTimeSignatureSMuFLID(timeSignature.notes));
+    float bottomNumWidth = RenderMeasurement::MeasureGlyph(GetTimeSignatureSMuFLID(timeSignature.noteType));
+    return std::max(topNumWidth, bottomNumWidth);
 }

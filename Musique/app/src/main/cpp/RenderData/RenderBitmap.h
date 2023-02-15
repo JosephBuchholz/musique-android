@@ -2,6 +2,9 @@
 #include "Paint.h"
 #include "../AssetID.h"
 
+/**
+ * An object that holds data needed to render a bitmap.
+ */
 struct RenderBitmap {
 
     RenderBitmap() {}

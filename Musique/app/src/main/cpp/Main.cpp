@@ -3,6 +3,7 @@
 #include "AndroidDebug.h"
 #include "Callbacks.h"
 #include "App.h"
+#include "JNIHelpers/JNIHelper.h"
 
 // got some help from: https://github.com/android/ndk-samples/tree/main/native-midi/app/src/main/cpp
 
@@ -88,6 +89,8 @@ extern "C" {
         env->GetJavaVM(&theJvm);
 
         mainActivityRefObj = env->NewGlobalRef(instance);
+        JNIHelper::SetMainCallbackObject(mainActivityRefObj);
+
         jclass classMainActivity = env->FindClass("com/randsoft/apps/musique/MainActivity");
         updateRenderCallback = env->GetMethodID(classMainActivity, "onUpdateRender",
                                                 "(Lcom/randsoft/apps/musique/renderdata/RenderData;)V");

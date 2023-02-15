@@ -6,4 +6,5 @@ class FrameData {
     var playLinePositionY = 0.0f
     var playLineHeight = 0.0f
     var playProgress = 0.0f
+    var isPlaying = false;
 }

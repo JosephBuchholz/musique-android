@@ -1,6 +1,9 @@
 #pragma once
 #include "Paint.h"
 
+/**
+ * An object that holds data needed to render a line.
+ */
 struct Line {
 
     Line() {}

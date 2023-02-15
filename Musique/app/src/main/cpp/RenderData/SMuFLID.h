@@ -1,7 +1,11 @@
 #pragma once
 #include "../MusicData/Clef.h"
+#include "../MusicData/Notes/Note.h"
 
-enum class SMuFLID : uint32_t
+/**
+ * An enum that maps SMuFL glyph names to SMuFL code points.
+ */
+enum class SMuFLID : uint16_t
 {
     None = 0,
 
@@ -107,6 +111,30 @@ enum class SMuFLID : uint32_t
     restHalfLegerLine = 0xE4F5,
     restQuarterZ = 0xE4F6,
 
+    metNoteDoubleWhole = 0xECA0,
+    metNoteDoubleWholeSquare = 0xECA1,
+    metNoteWhole = 0xECA2,
+    metNoteHalfUp = 0xECA3,
+    metNoteHalfDown = 0xECA4,
+    metNoteQuarterUp = 0xECA5,
+    metNoteQuarterDown = 0xECA6,
+    metNote8thUp = 0xECA7,
+    metNote8thDown = 0xECA8,
+    metNote16thUp = 0xECA9,
+    metNote16thDown = 0xECAA,
+    metNote32ndUp = 0xECAB,
+    metNote32ndDown = 0xECAC,
+    metNote64thUp = 0xECAD,
+    metNote64thDown = 0xECAE,
+    metNote128thUp = 0xECAF,
+    metNote128thDown = 0xECB0,
+    metNote256thUp = 0xECB1,
+    metNote256thDown = 0xECB2,
+    metNote512thUp = 0xECB3,
+    metNote512thDown = 0xECB4,
+    metNote1024thUp = 0xECB5,
+    metNote1024thDown = 0xECB6,
+    metAugmentationDot = 0xECB7
 };
 
 static SMuFLID GetClefSMuFLID(Clef clef, int staffLines)
@@ -143,6 +171,27 @@ static SMuFLID GetNoteHeadSMuFLID(Note::NoteDurationType type)
     }
 
     return SMuFLID::None;
+}
+
+static SMuFLID GetMetronomeNoteSMuFLID(NoteValue type)
+{
+    switch (type)
+    {
+        case NoteValue::Breve: return SMuFLID::metNoteDoubleWhole;
+        case NoteValue::Whole: return SMuFLID::metNoteWhole;
+        case NoteValue::Half: return SMuFLID::metNoteHalfUp;
+        case NoteValue::Quarter: return SMuFLID::metNoteQuarterUp;
+        case NoteValue::Eighth: return SMuFLID::metNote8thUp;
+        case NoteValue::Sixteenth: return SMuFLID::metNote16thUp;
+        case NoteValue::ThirtySecond: return SMuFLID::metNote32ndUp;
+        case NoteValue::_64th: return SMuFLID::metNote64thUp;
+        case NoteValue::_128th: return SMuFLID::metNote128thUp;
+        case NoteValue::_256th: return SMuFLID::metNote256thUp;
+        case NoteValue::_512th: return SMuFLID::metNote512thUp;
+        case NoteValue::_1024th: return SMuFLID::metNote1024thUp;
+
+        default: return SMuFLID::None;
+    }
 }
 
 static SMuFLID GetRestSMuFLID(Note::NoteDurationType type)

@@ -1,11 +1,11 @@
 #pragma once
 #include <vector>
 
-#include "Text.h"
-#include "Types.h"
+#include "../Text.h"
+#include "../Types.h"
 
-#include "TextualElement.h"
-#include "../MusicDisplayConstants.h"
+#include "../TextualElement.h"
+#include "../../MusicDisplayConstants.h"
 
 class Lyric : public TextualElement {
     friend class Song;

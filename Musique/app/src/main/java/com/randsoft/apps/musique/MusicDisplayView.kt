@@ -6,13 +6,14 @@ import android.graphics.*
 import android.graphics.Paint
 import android.graphics.pdf.PdfDocument
 import android.os.Build
+import android.text.Spannable
+import android.text.SpannableStringBuilder
+import android.text.style.ForegroundColorSpan
 import android.util.AttributeSet
 import android.util.DisplayMetrics
 import android.util.Log
-import android.util.TypedValue
-import android.view.MotionEvent
-import android.view.View
-import android.view.WindowManager
+import android.view.*
+import android.view.GestureDetector.SimpleOnGestureListener
 import androidx.core.content.ContextCompat
 import androidx.core.content.res.ResourcesCompat
 import androidx.core.graphics.drawable.DrawableCompat
@@ -23,7 +24,12 @@ import java.util.*
 
 private const val TAG = "MusicDisplayView"
 
-// view that displays sheet music and tab
+const val SCALE_MAX = 4.0f
+const val SCALE_MIN = 0.2f
+
+/**
+ * A view that displays Sheet Music and Tablature.
+ */
 class MusicDisplayView(context: Context, attrs: AttributeSet? = null): View(context, attrs) {
 
     var renderData: RenderData? = null
@@ -35,6 +41,7 @@ class MusicDisplayView(context: Context, attrs: AttributeSet? = null): View(cont
     // equal to a tenth of a gap between two lines in standard notation
     var scale = 1.0f
     var bitmapSizeScale = scale
+    var mainScale = scale
 
     private var positionX = 150.0f
     private var positionY = 150.0f
@@ -54,6 +61,7 @@ class MusicDisplayView(context: Context, attrs: AttributeSet? = null): View(cont
     private var tablatureTypeface = ResourcesCompat.getFont(context, R.font.open_sans)
 
     var musicTypeface = ResourcesCompat.getFont(context, R.font.bravura)
+    var musicTextTypeface = ResourcesCompat.getFont(context, R.font.bravura_text)
 
 
     private val backgroundPaint = Paint().apply {
@@ -82,6 +90,49 @@ class MusicDisplayView(context: Context, attrs: AttributeSet? = null): View(cont
 
     private var bitmaps: MutableMap<Int, Bitmap?> = mutableMapOf()
 
+    // touch/gesture variables
+
+    private var scaleGestureDetector: ScaleGestureDetector = ScaleGestureDetector(context, object : ScaleGestureDetector.OnScaleGestureListener {
+        override fun onScaleBegin(detector: ScaleGestureDetector): Boolean {
+            return true;
+        }
+
+        override fun onScaleEnd(detector: ScaleGestureDetector) {
+            /*scale = mainScale
+            bitmapSizeScale = scale
+            mainScale = 1.0f*/
+
+            renderDataChanged = true
+            invalidate()
+        }
+
+        override fun onScale(detector: ScaleGestureDetector): Boolean {
+            Log.d(TAG, "scale")
+
+            mainScale *= detector.scaleFactor
+            mainScale = Math.max(SCALE_MIN, Math.min(mainScale, SCALE_MAX))
+
+            invalidate()
+            return true;
+        }
+    })
+
+    private var gestureDetector: GestureDetector = GestureDetector(context, object : SimpleOnGestureListener() {
+        override fun onScroll(
+            e1: MotionEvent?,
+            e2: MotionEvent?,
+            distanceX: Float,
+            distanceY: Float
+        ): Boolean {
+
+            positionX -= distanceX;
+            positionY -= distanceY;
+
+            invalidate()
+            return true
+        }
+    })
+
     override fun onAttachedToWindow() {
         super.onAttachedToWindow()
         Log.d(TAG, "onAttachedToWindow----------------------------------")
@@ -105,6 +156,21 @@ class MusicDisplayView(context: Context, attrs: AttributeSet? = null): View(cont
             deviceHeight = displayMetrics.heightPixels
             deviceDpi = displayMetrics.densityDpi
         }
+    }
+
+    fun measureGlyph(glyph: SMuFLGlyph): Float
+    {
+        // create paint
+        val paint = Paint().apply {
+            color = glyph.paint.color
+            typeface = musicTypeface
+        }
+
+        paint.textSize = 40.0f * scale // text size equals the standard staff height (according to SMuFL specification)
+
+        val width = paint.measureText(Character.toChars(glyph.codePoint), 0, 1) / scale
+        Log.e(TAG, "measured width: ${width}")
+        return width
     }
 
     /**
@@ -134,8 +200,8 @@ class MusicDisplayView(context: Context, attrs: AttributeSet? = null): View(cont
      *
      * @param canvas the canvas to draw on
      * @param texts the array of text objects to draw
-     * @param offsetX how much to offset the lines in the x direction
-     * @param offsetY how much to offset the lines in the y direction
+     * @param offsetX how much to offset the text in the x direction
+     * @param offsetY how much to offset the text in the y direction
      */
     private fun drawTexts(canvas: Canvas, texts: Array<Text>, offsetX: Float = 0.0f, offsetY: Float = 0.0f)
     {
@@ -161,6 +227,19 @@ class MusicDisplayView(context: Context, attrs: AttributeSet? = null): View(cont
             if (text.paint.isTablature) {
                 paint.typeface = tablatureTypeface
                 paint.textSize = text.paint.textSize
+
+                // add a white rectangle behind the text so that it is more visible
+                val rectPaint = Paint().apply {
+                    color = 0xFFFFFFFF.toInt()
+                    isAntiAlias = true
+                }
+
+                var rectX = (text.x * scale) + offsetX
+                var rectY = (text.y * scale) + offsetY
+
+                var rect = Rect()
+                paint.getTextBounds(text.text, 0, text.text.length, rect)
+                canvas.drawRect(rectX - (rect.width()/2.0f), rectY - (rect.height()/2.0f), rectX + (rect.width()/2.0f), rectY + (rect.height()/2.0f), rectPaint)
             }
             else if (text.paint.isItalic && text.paint.isBold) {
                 paint.typeface = typefaceBoldItalic
@@ -173,6 +252,7 @@ class MusicDisplayView(context: Context, attrs: AttributeSet? = null): View(cont
             }
             else {
                 paint.typeface = typefacePlain
+                //paint.typeface = musicTypeface
             }
 
             drawText(canvas, text, paint, offsetX, offsetY)
@@ -184,8 +264,8 @@ class MusicDisplayView(context: Context, attrs: AttributeSet? = null): View(cont
      *
      * @param canvas the canvas to draw on
      * @param glyphs the array of glyphs to draw
-     * @param offsetX how much to offset the lines in the x direction
-     * @param offsetY how much to offset the lines in the y direction
+     * @param offsetX how much to offset the glyphs in the x direction
+     * @param offsetY how much to offset the glyphs in the y direction
      */
     private fun drawGlyphs(canvas: Canvas, glyphs: Array<SMuFLGlyph>, offsetX: Float = 0.0f, offsetY: Float = 0.0f)
     {
@@ -209,12 +289,111 @@ class MusicDisplayView(context: Context, attrs: AttributeSet? = null): View(cont
     }
 
     /**
+     * Draws an array of spannable text objects on the given canvas
+     *
+     * @param canvas the canvas to draw on
+     * @param texts the array of text objects to draw
+     * @param offsetX how much to offset the text in the x direction
+     * @param offsetY how much to offset the text in the y direction
+     */
+    private fun drawSpannableTexts(canvas: Canvas, texts: Array<SpannableText>, offsetX: Float = 0.0f, offsetY: Float = 0.0f)
+    {
+        /*val p = com.randsoft.apps.musique.renderdata.Paint(0xff000000.toInt())
+        p.useMusicFont = true
+        p.textSize = 30.0f
+        val p2 = com.randsoft.apps.musique.renderdata.Paint(0xff0000FF.toInt())
+        p2.useMusicFont = false
+        p2.isBold = true
+        p2.textSize = 30.0f
+        var spans: Array<TextSpan> = arrayOf(TextSpan(0, 1, p), TextSpan(1, 7, p2))
+        var text: SpannableText = SpannableText(Char(0xECA5) + " = 120", 200.0f, 30.0f, com.randsoft.apps.musique.renderdata.Paint(0xff000000.toInt()), spans)*/
+        Log.e(TAG, "TEXT size: ${texts.size}")
+        for (text in texts) {
+            Log.e(TAG, "text: ${text.text}")
+
+            val mainPaint = Paint().apply {
+                color = text.mainPaint.color
+                textSize = text.mainPaint.textSize //* 2.0f // 30.0 text size =about= 22.0 normal size
+                textAlign = Paint.Align.values()[text.mainPaint.align]
+                isAntiAlias = true
+            }
+
+            mainPaint.textSize = pointsToTenths(text.mainPaint.textSize, Scaling())
+
+            if (text.mainPaint.isTablature) {
+                mainPaint.typeface = tablatureTypeface
+                mainPaint.textSize = text.mainPaint.textSize
+            }
+            else if (text.mainPaint.isItalic && text.mainPaint.isBold) {
+                mainPaint.typeface = typefaceBoldItalic
+            }
+            else if (!text.mainPaint.isItalic && text.mainPaint.isBold) {
+                mainPaint.typeface = typefaceBold
+            }
+            else if (text.mainPaint.isItalic) {
+                mainPaint.typeface = typefaceItalic
+            }
+            else {
+                mainPaint.typeface = typefacePlain
+                //paint.typeface = musicTypeface
+            }
+
+            var textX = text.x
+            val textY = text.y
+
+            //drawDebugPoint(canvas, PointF(text.x, text.y))
+
+            for (span in text.spans)
+            {
+                val paint = Paint().apply {
+                    color = span.paint.color
+                    textSize = span.paint.textSize //* 2.0f // 30.0 text size =about= 22.0 normal size
+                    textAlign = Paint.Align.values()[span.paint.align]
+                    isAntiAlias = true
+                }
+
+                if (span.paint.useMusicFont)
+                {
+                    paint.typeface = musicTextTypeface
+                }
+                else if (span.paint.isTablature) {
+                    paint.typeface = tablatureTypeface
+                    paint.textSize = span.paint.textSize
+                }
+                else if (span.paint.isItalic && span.paint.isBold) {
+                    paint.typeface = typefaceBoldItalic
+                }
+                else if (!span.paint.isItalic && span.paint.isBold) {
+                    paint.typeface = typefaceBold
+                }
+                else if (span.paint.isItalic) {
+                    paint.typeface = typefaceItalic
+                }
+                else {
+                    paint.typeface = typefacePlain
+                }
+
+                var string = ""
+                if (span.endIndex <= text.text.length)
+                    string = text.text.substring(span.startIndex, span.endIndex)
+                else if (span.startIndex < text.text.length)
+                    string = text.text.substring(span.startIndex, text.text.length)
+
+                Log.e(TAG, "span string: $string")
+
+                canvas.drawText(string, textX + offsetX, textY + offsetY, paint)
+                textX += (paint.measureText(string, 0, string.length) / scale);
+            }
+        }
+    }
+
+    /**
      * Draws an array of bitmaps on the given canvas
      *
      * @param canvas the canvas to draw on
      * @param bitmaps the array of bitmaps to draw
-     * @param offsetX how much to offset the lines in the x direction
-     * @param offsetY how much to offset the lines in the y direction
+     * @param offsetX how much to offset the bitmaps in the x direction
+     * @param offsetY how much to offset the bitmaps in the y direction
      */
     private fun drawBitmaps(canvas: Canvas, bitmaps: Array<RenderBitmap>, offsetX: Float = 0.0f, offsetY: Float = 0.0f) // TODO: use offsetX and offsetY
     {
@@ -318,8 +497,8 @@ class MusicDisplayView(context: Context, attrs: AttributeSet? = null): View(cont
      *
      * @param canvas the canvas to draw on
      * @param cubicCurves the array of cubic curves to draw
-     * @param offsetX how much to offset the lines in the x direction
-     * @param offsetY how much to offset the lines in the y direction
+     * @param offsetX how much to offset the curves in the x direction
+     * @param offsetY how much to offset the curves in the y direction
      */
     private fun drawCubicCurves(canvas: Canvas, cubicCurves: Array<CubicCurve>, offsetX: Float = 0.0f, offsetY: Float = 0.0f) // TODO: use offsetX and offsetY
     {
@@ -379,6 +558,33 @@ class MusicDisplayView(context: Context, attrs: AttributeSet? = null): View(cont
             drawGlyphs(mainCanvas, renderData?.glyphs!!)
             drawBitmaps(mainCanvas, renderData?.bitmaps!!)
             drawCubicCurves(mainCanvas, renderData?.cubicCurves!!)
+            drawSpannableTexts(mainCanvas, renderData?.spannableTexts!!)
+
+            // debugging/testing
+            /*val string: String = Char(0xECA5) + " = 120";
+            val text1: String = Char(0xECAB).toString();
+            val text2: String = " = 120";
+
+            val paint = Paint().apply {
+                color = 0xFF000000.toInt()
+                textSize = 30.0f // 2.0f // 30.0 text size =about= 22.0 normal size
+                typeface = musicTypeface
+                isAntiAlias = true
+            }
+
+            var stringBuilder: SpannableStringBuilder = SpannableStringBuilder(string)
+            stringBuilder.setSpan(ForegroundColorSpan(Color.rgb(255, 0, 0)), 0, 1, Spannable.SPAN_INCLUSIVE_INCLUSIVE);
+            stringBuilder.setSpan(ForegroundColorSpan(Color.rgb(0, 0, 255)), 2, 7, Spannable.SPAN_INCLUSIVE_INCLUSIVE);
+
+            mainCanvas.drawText(stringBuilder.toString(), 40.0f, 30.0f, paint)
+
+            var x = 40.0f;
+            var y = 60.0f;
+            paint.typeface = musicTypeface
+            mainCanvas.drawText(text1, x, y, paint)
+            x += paint.measureText(text1, 0, text1.length)
+            paint.typeface = typefaceBold
+            mainCanvas.drawText(text2, x, y, paint)*/
         }
         else
         {
@@ -397,22 +603,33 @@ class MusicDisplayView(context: Context, attrs: AttributeSet? = null): View(cont
         return false // they are not different
     }
 
+    override fun onTouchEvent(event: MotionEvent): Boolean {
+        scaleGestureDetector.onTouchEvent(event)
+        gestureDetector.onTouchEvent(event)
+
+        return true
+    }
+
     @SuppressLint("DrawAllocation")
     override fun onDraw(canvas: Canvas) {
         canvas.drawPaint(backgroundPaint) // fill canvas
 
-        // calculate positionX (the position of the sheet music)
-        if (frameData != null) {
-            if ((frameData!!.playLinePosition * scale) + positionX >= deviceWidth.toFloat() / 3.0f) {
-                positionX += (deviceWidth.toFloat() / 3.0f) - ((frameData!!.playLinePosition * scale) + positionX)
-            } else if ((frameData!!.playLinePosition * scale) + positionX <= deviceWidth.toFloat() / 8.0f) {
-                positionX += (deviceWidth.toFloat() / 8.0f) - ((frameData!!.playLinePosition * scale) + positionX)
-            }
 
-            if ((frameData!!.playLinePositionY * scale) + positionY >= deviceHeight.toFloat() / 3.0f) {
-                positionY += (deviceHeight.toFloat() / 3.0f) - ((frameData!!.playLinePositionY * scale) + positionY)
-            } else if ((frameData!!.playLinePositionY * scale) + positionY <= deviceHeight.toFloat() / 8.0f) {
-                positionY += (deviceHeight.toFloat() / 8.0f) - ((frameData!!.playLinePositionY * scale) + positionY)
+        // calculate positionX and positionY (the position of the sheet music)
+        if (frameData != null) {
+            if (frameData!!.isPlaying)
+            {
+                if ((frameData!!.playLinePosition * scale) + positionX >= deviceWidth.toFloat() / 3.0f) {
+                    positionX += (deviceWidth.toFloat() / 3.0f) - ((frameData!!.playLinePosition * scale) + positionX)
+                } else if ((frameData!!.playLinePosition * scale) + positionX <= deviceWidth.toFloat() / 8.0f) {
+                    positionX += (deviceWidth.toFloat() / 8.0f) - ((frameData!!.playLinePosition * scale) + positionX)
+                }
+
+                if ((frameData!!.playLinePositionY * scale) + positionY >= deviceHeight.toFloat() / 3.0f) {
+                    positionY += (deviceHeight.toFloat() / 3.0f) - ((frameData!!.playLinePositionY * scale) + positionY)
+                } else if ((frameData!!.playLinePositionY * scale) + positionY <= deviceHeight.toFloat() / 8.0f) {
+                    positionY += (deviceHeight.toFloat() / 8.0f) - ((frameData!!.playLinePositionY * scale) + positionY)
+                }
             }
         }
 
@@ -427,7 +644,8 @@ class MusicDisplayView(context: Context, attrs: AttributeSet? = null): View(cont
             {
                 // translate bitmap
                 val mat = Matrix()
-                mat.setTranslate(mainBitmapPositionX + positionX, mainBitmapPositionY + positionY)
+                mat.setScale(mainScale, mainScale)
+                mat.postTranslate(mainBitmapPositionX + positionX, mainBitmapPositionY + positionY)
 
                 // draw the bitmap that has renderData rendered on it
                 canvas.drawBitmap(mainBitmap!!, mat, visiblePaint)
@@ -438,14 +656,14 @@ class MusicDisplayView(context: Context, attrs: AttributeSet? = null): View(cont
         if (frameData != null) {
             val paint = Paint().apply {
                 color = 0xff0044dd.toInt()
-                strokeWidth = 1.25f * scale
+                strokeWidth = 1.25f * scale * mainScale
                 isAntiAlias = true
                 strokeCap = Paint.Cap.SQUARE
             }
 
             // draw play line
             //canvas.drawLine((0.0f * scale), (0.0f * scale), (frameData!!.playLinePosition * scale), ((frameData!!.playLinePositionY + frameData!!.playLineHeight) * scale), paint)
-            drawLine(canvas, Line(frameData!!.playLinePosition, frameData!!.playLinePositionY, frameData!!.playLinePosition, frameData!!.playLinePositionY + frameData!!.playLineHeight), paint)
+            drawLine(canvas, Line(frameData!!.playLinePosition * mainScale, frameData!!.playLinePositionY * mainScale, frameData!!.playLinePosition * mainScale, (frameData!!.playLinePositionY + frameData!!.playLineHeight) * mainScale), paint)
             //drawLine(canvas, Line(0.0f, 0.0f, frameData!!.playLinePosition, frameData!!.playLinePositionY + frameData!!.playLineHeight), paint)
         }
     }
@@ -478,6 +696,11 @@ class MusicDisplayView(context: Context, attrs: AttributeSet? = null): View(cont
         return px / context.resources.displayMetrics.scaledDensity
     }*/
 
+    /**
+     * Draws a page of sheet music on the given page.
+     *
+     * @param page the page to render the sheet music on
+     */
     fun drawPage(page: PdfDocument.Page)
     {
         page.canvas.drawPaint(backgroundPaint) // fill canvas

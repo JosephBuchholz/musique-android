@@ -24,6 +24,7 @@ import com.randsoft.apps.musique.framedata.FrameData
 import com.randsoft.apps.musique.printing.PrintHandler
 import com.randsoft.apps.musique.renderdata.PrintRenderData
 import com.randsoft.apps.musique.renderdata.RenderData
+import com.randsoft.apps.musique.renderdata.SMuFLGlyph
 import com.randsoft.apps.musique.songdata.InstrumentInfo
 import com.randsoft.apps.musique.songdata.SongData
 
@@ -276,6 +277,10 @@ class MusicDisplayFragment : Fragment(), PrintHandler.Callbacks, SettingsDialogF
             musicDisplayView?.renderData = renderData
             musicDisplayView?.invalidate()
         }
+        else
+        {
+            Log.w(TAG, "musicDisplayView is null");
+        }
     }
 
     fun onUpdatePrintRenderData(printRenderData: PrintRenderData) {
@@ -290,6 +295,7 @@ class MusicDisplayFragment : Fragment(), PrintHandler.Callbacks, SettingsDialogF
             onUpdatePlayProgress(frameData.playProgress)
             musicDisplayView?.invalidate()
         }
+
     }
 
     fun onUpdateSongData(songData: SongData) {
@@ -297,6 +303,17 @@ class MusicDisplayFragment : Fragment(), PrintHandler.Callbacks, SettingsDialogF
         val adapter = instrumentControlRecyclerView.adapter as InstrumentControlAdapter
         adapter.instruments = songData.instruments.toList()
         titleTextView.text = songData.songTitle
+    }
+
+    fun measureGlyph(glyph: SMuFLGlyph): Float {
+        if (musicDisplayView != null) {
+            return musicDisplayView!!.measureGlyph(glyph)
+        }
+        else
+        {
+            Log.w(TAG, "musicDisplayView is null");
+            return 0.0f;
+        }
     }
 
     companion object {
