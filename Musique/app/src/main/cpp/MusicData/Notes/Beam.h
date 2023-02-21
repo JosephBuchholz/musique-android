@@ -1,28 +1,26 @@
 #pragma once
-#include <string>
 
-struct Beam {
+#include <vector>
 
-    Beam() {}
+#include "Note.h"
+
+class Note;
+
+class Beam
+{
+public:
+    std::vector<Note*> notes; // the notes that this beam is associated with
+
+    // relative to start of measure and top staff line
+    float beamStartPositionX = 0.0f;
+    float beamStartPositionY = 0.0f;
+
+    float beamEndPositionX = 0.0f;
+    float beamEndPositionY = 0.0f;
 
     enum class BeamType {
-        None = 0, Begin, End, Continue, ForwardHook, BackwardHook
+        None = 0, Normal, ForwardHook, BackwardHook
     };
-
-    static BeamType CalculateBeamTypeFromString(const std::string& string) {
-        if (string == "begin") {
-            return BeamType::Begin;
-        } else if (string == "end") {
-            return BeamType::End;
-        } else if (string == "continue") {
-            return BeamType::Continue;
-        } else if (string == "forward hook") {
-            return BeamType::ForwardHook;
-        } else if (string == "backward hook") {
-            return BeamType::BackwardHook;
-        }
-        return BeamType::None;
-    }
 
     BeamType beamType = BeamType::None;
     int beamLevel = 1;

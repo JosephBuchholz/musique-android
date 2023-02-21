@@ -1,10 +1,13 @@
 package com.randsoft.apps.musique
 
+import android.content.Context
+import android.print.PrintAttributes
 import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import com.randsoft.apps.musique.api.GetSongApi
 import com.randsoft.apps.musique.api.GetSongResponse
+import com.randsoft.apps.musique.songdata.InstrumentInfo
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -18,6 +21,17 @@ private const val TAG = "WebRepositiory"
 class WebRepository {
 
     private val getSongApi: GetSongApi
+
+    interface Callbacks {
+        fun onWebRequestFailed()
+    }
+
+    private var callbacks: Callbacks? = null
+
+    fun setCallbacks(callbacks: Callbacks)
+    {
+        this.callbacks = callbacks
+    }
 
     init {
 
@@ -39,6 +53,8 @@ class WebRepository {
         searchRequest.enqueue(object : Callback<GetSongResponse> {
             override fun onFailure(call: Call<GetSongResponse>, t: Throwable) {
                 Log.e(TAG, "Failed to call method 'search' on web request $t")
+                if (callbacks != null)
+                    callbacks?.onWebRequestFailed()
             }
 
             override fun onResponse(call: Call<GetSongResponse>, response: Response<GetSongResponse>) {
@@ -59,6 +75,9 @@ class WebRepository {
         getFileRequest.enqueue(object : Callback<GetSongResponse> {
             override fun onFailure(call: Call<GetSongResponse>, t: Throwable) {
                 Log.e(TAG, "Failed to call method 'all' on web request $t")
+
+                if (callbacks != null)
+                    callbacks?.onWebRequestFailed()
             }
 
             override fun onResponse(call: Call<GetSongResponse>, response: Response<GetSongResponse>) {
@@ -79,6 +98,9 @@ class WebRepository {
         getFileRequest.enqueue(object : Callback<String> {
             override fun onFailure(call: Call<String>, t: Throwable) {
                 Log.e(TAG, "Failed to call method 'get_file' on web request", t)
+
+                if (callbacks != null)
+                    callbacks?.onWebRequestFailed()
             }
 
             override fun onResponse(call: Call<String>, response: Response<String>) {

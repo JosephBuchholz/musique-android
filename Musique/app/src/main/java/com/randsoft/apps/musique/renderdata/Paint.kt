@@ -14,4 +14,5 @@ data class Paint(
     var strikeThruText: Boolean = false
     var centerTextVertically: Boolean = false
     var useMusicFont: Boolean = false
+    var verticalEnds: Boolean = false;
 }

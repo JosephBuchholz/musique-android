@@ -102,3 +102,10 @@ bool IsUnsignedInt(const std::string& value)
     }
     return true; // is a float
 }*/
+
+// ---- Comparison Functions ----
+
+bool FloatsAreEqual(float x, float y, float limit)
+{
+    return std::abs(x - y) < limit;
+}

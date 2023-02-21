@@ -1,6 +1,7 @@
 #include "Song.h"
 #include "SongData.h"
 #include "../AndroidDebug.h"
+#include "../Utils/Converters.h"
 
 #include <algorithm>
 
@@ -152,6 +153,94 @@ void Song::OnUpdate()
         }
     }*/
 
+    // beam calculations
+    for (auto* instrument : instruments)
+    {
+        for (auto* staff : instrument->staves)
+        {
+            int measureIndex = 0;
+            for (auto* measure : staff->measures)
+            {
+                int noteIndex = 0;
+                const int maxBeamLevel = 4; // TODO: probably should be fixed
+                std::array<Beam, maxBeamLevel> beams; // temp to store/keep track of beams
+                BeamGroup beamGroup; // temp to store/keep track of a beam group
+
+                bool beamGroupIsDone = false;
+
+                for (auto* note : measure->notes)
+                {
+                    for (const NoteBeamData& noteBeamData : note->beamData)
+                    {
+                        if (noteBeamData.beamType == NoteBeamData::BeamType::Begin)
+                        {
+                            if (noteBeamData.beamLevel == 1) // start a new beam group
+                                beamGroup = BeamGroup();
+
+                            Beam beam = Beam();
+                            beam.beamLevel = noteBeamData.beamLevel;
+                            beam.notes.push_back(note);
+                            if (noteBeamData.beamLevel == 1)
+                                beamGroup.notes.push_back(note);
+                            beam.beamType = Beam::BeamType::Normal;
+
+                            beams[noteBeamData.beamLevel - 1] = beam;
+                        }
+                        else if (noteBeamData.beamType == NoteBeamData::BeamType::End)
+                        {
+                            beams[noteBeamData.beamLevel - 1].notes.push_back(note);
+                            if (noteBeamData.beamLevel == 1)
+                                beamGroup.notes.push_back(note);
+
+                            beamGroup.beams.push_back(beams[noteBeamData.beamLevel - 1]);
+
+                            if (noteBeamData.beamLevel == 1) // the end of this beam group
+                                beamGroupIsDone = true;
+                        }
+                        else if (noteBeamData.beamType == NoteBeamData::BeamType::Continue)
+                        {
+                            beams[noteBeamData.beamLevel - 1].notes.push_back(note);
+                            if (noteBeamData.beamLevel == 1)
+                                beamGroup.notes.push_back(note);
+                        }
+                        else if (noteBeamData.beamType == NoteBeamData::BeamType::ForwardHook)
+                        {
+                            Beam beam = Beam();
+                            beam.beamLevel = noteBeamData.beamLevel;
+                            beam.notes.push_back(note);
+                            beam.beamType = Beam::BeamType::ForwardHook;
+
+                            beamGroup.beams.push_back(beam);
+                        }
+                        else if (noteBeamData.beamType == NoteBeamData::BeamType::BackwardHook)
+                        {
+                            Beam beam = Beam();
+                            beam.beamLevel = noteBeamData.beamLevel;
+                            beam.notes.push_back(note);
+                            beam.beamType = Beam::BeamType::BackwardHook;
+
+                            beamGroup.beams.push_back(beam);
+                        }
+                        else
+                        {
+                            LOGW("Beam type is not supported yet.");
+                        }
+                    }
+
+                    if (beamGroupIsDone)
+                    {
+                        measure->beams.push_back(beamGroup);
+                        beamGroupIsDone = false;
+                    }
+
+                    noteIndex++;
+                }
+
+                measureIndex++;
+            }
+        }
+    }
+
     // beat positions
     for (auto* instrument : instruments) {
         for (auto* staff : instrument->staves) {
@@ -262,6 +351,9 @@ void Song::OnUpdate()
 
                     for (Note* note : measure->notes) {
 
+                        if (note->isRest)
+                            continue;
+
                         int insertIndex = 0;
                         bool added = false;
                         for (TimeSpacePoint point : m_TimeSpacePoints) {
@@ -307,7 +399,6 @@ void Song::OnUpdate()
                 int measureIndex = 0;
                 for (auto* measure : staff->measures)
                 {
-
                     for (auto& direction : measure->directions)
                     {
                         float defaultX = GetPositionXInMeasure(direction.beatPositionInSong, measureIndex);
@@ -342,7 +433,48 @@ void Song::OnUpdate()
                         if (note->isRest) // musescore specific code
                         {
                             note->positionX = GetPositionXInMeasure(note->beatPositionInSong, measureIndex);
+                            //LOGE("Rest Position X: %f, BP: %f, m: %d", note->positionX, note->beatPositionInSong, measureIndex);
                             note->positionY = 0.0f;
+                        }
+                    }
+
+
+                    for (BeamGroup& beamGroup : measure->beams)
+                    {
+                        if (!beamGroup.notes.empty())
+                        {
+                            Note* firstNote = beamGroup.notes[0];
+                            Note* lastNote = beamGroup.notes[beamGroup.notes.size() - 1];
+
+                            beamGroup.beamStartPositionX = firstNote->positionX + firstNote->noteStem.stemPositionX;
+                            beamGroup.beamStartPositionY = firstNote->positionY + firstNote->noteStem.stemEndY;
+
+                            beamGroup.beamEndPositionX = lastNote->positionX + lastNote->noteStem.stemPositionX;
+                            beamGroup.beamEndPositionY = lastNote->positionY + lastNote->noteStem.stemEndY;
+                        }
+
+                        for (Beam& beam : beamGroup.beams)
+                        {
+                            if (!beam.notes.empty())
+                            {
+                                Note* firstNote = beam.notes[0];
+                                Note* lastNote = beam.notes[beam.notes.size() - 1];
+
+                                beam.beamStartPositionX = firstNote->positionX + firstNote->noteStem.stemPositionX;
+                                beam.beamStartPositionY = beamGroup.GetPositionYOnBeam(firstNote->positionX);
+
+                                beam.beamEndPositionX = lastNote->positionX + lastNote->noteStem.stemPositionX;
+                                beam.beamEndPositionY = beamGroup.GetPositionYOnBeam(lastNote->positionX);
+                            }
+                            else
+                                LOGE("Beam has no notes associated with it");
+                        }
+
+                        // calculate stem lengths
+                        for (Note* beamNote : beamGroup.notes)
+                        {
+                            float beamPositionYAtNote = beamGroup.GetPositionYOnBeam(beamNote->positionX);
+                            beamNote->noteStem.stemEndY = beamPositionYAtNote - beamNote->positionY;
                         }
                     }
 
@@ -753,20 +885,50 @@ float Song::GetPositionXInMeasure(float beatPositionInSong, int currentMeasureIn
         {
             if (currentMeasureIndex == point.measureIndex)
             {
-                if (beatPositionInSong < point.beatPosition)
+                if (FloatsAreEqual(beatPositionInSong, point.beatPosition))
+                {
+                    position = point.position;
+                    //LOGE("beatPositionInSong == point.beatPosition: %f", position);
+                    //LOGE("beatPositionInSong == point.beatPosition: bpos: %f, pos: %f, pointBP: %f, prePointBP: %f, pMI: %d, prePMI: %d, pointP: %f, prePointP: %f", beatPositionInSong, position, point.beatPosition, previousPoint.beatPosition, point.measureIndex, previousPoint.measureIndex, point.position, previousPoint.position);
+
+                    break;
+                }
+                else if (beatPositionInSong < point.beatPosition)
+                {
+                    float previousBeatPosition = previousPoint.beatPosition;
+                    if (currentMeasureIndex != previousPoint.measureIndex)
+                        previousBeatPosition = 0.0f;
+
+                    float posRange = (point.beatPosition - previousBeatPosition);
+                    if (posRange == 0)
+                        LOGE("divide by 0!!!!!!!!!!");
+                    float percentage = (beatPositionInSong - previousBeatPosition) / posRange;
+                    position = (point.position - previousPoint.position) * percentage;
+                    position += previousPoint.position;
+
+                    //LOGE("beatPositionInSong < point.beatPosition: bpos: %f, pos: %f, posRange: %f, percentage: %f, pointBP: %f, prePointBP: %f, pMI: %d, prePMI: %d, pointP: %f, prePointP: %f", beatPositionInSong, position, posRange, percentage, point.beatPosition, previousPoint.beatPosition, point.measureIndex, previousPoint.measureIndex, point.position, previousPoint.position);
+
+                    break;
+                }
+
+                /*if (beatPositionInSong < point.beatPosition)
                 {
                     float posRange = (point.beatPosition - previousPoint.beatPosition);
                     if (posRange == 0)
                         LOGE("divide by 0!!!!!!!!!!");
                     float percentage = (beatPositionInSong - previousPoint.beatPosition) / posRange;
                     position = (point.position - previousPoint.position) * percentage;
+
+                    LOGE("beatPositionInSong < point.beatPosition: bpos: %f, pos: %f, posRange: %f, percentage: %f, pointBP: %f, prePointBP: %f, pointP: %f, prePointP: %f", beatPositionInSong, position, posRange, percentage, point.beatPosition, previousPoint.beatPosition, point.position, previousPoint.position);
+
                     break;
                 }
-                else if (beatPositionInSong == point.beatPosition)
+                else if (beatPositionInSong == point.beatPosition) // TODO: fix dangerous comparision
                 {
                     position = point.position;
+                    LOGE("beatPositionInSong == point.beatPosition: %f", position);
                     break;
-                }
+                }*/
             }
 
             previousPoint = point;

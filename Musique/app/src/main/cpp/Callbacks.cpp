@@ -132,6 +132,7 @@ jobject ConvertPaintToObject(JNIEnv* env, const Paint& paint)
     jfieldID paintFieldIdStrikeThruText = env->GetFieldID(paintClass, "strikeThruText", "Z");
     jfieldID paintFieldIdCenterTextVertically = env->GetFieldID(paintClass, "centerTextVertically", "Z");
     jfieldID paintFieldIdUseMusicFont = env->GetFieldID(paintClass, "useMusicFont", "Z");
+    jfieldID paintFieldIdVerticalEnds = env->GetFieldID(paintClass, "verticalEnds", "Z");
 
     // set paint fields
     jobject paintObject = env->NewObject(paintClass, paintConstructor, paint.color);
@@ -147,6 +148,7 @@ jobject ConvertPaintToObject(JNIEnv* env, const Paint& paint)
     env->SetBooleanField(paintObject, paintFieldIdStrikeThruText, paint.strikeThruText);
     env->SetBooleanField(paintObject, paintFieldIdCenterTextVertically, paint.centerTextVertically);
     env->SetBooleanField(paintObject, paintFieldIdUseMusicFont, paint.useMusicFont);
+    env->SetBooleanField(paintObject, paintFieldIdVerticalEnds, paint.verticalEnds);
 
     return paintObject;
 }

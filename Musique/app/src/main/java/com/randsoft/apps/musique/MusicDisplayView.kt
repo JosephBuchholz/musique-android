@@ -169,7 +169,7 @@ class MusicDisplayView(context: Context, attrs: AttributeSet? = null): View(cont
         paint.textSize = 40.0f * scale // text size equals the standard staff height (according to SMuFL specification)
 
         val width = paint.measureText(Character.toChars(glyph.codePoint), 0, 1) / scale
-        Log.e(TAG, "measured width: ${width}")
+
         return width
     }
 
@@ -191,7 +191,19 @@ class MusicDisplayView(context: Context, attrs: AttributeSet? = null): View(cont
                 strokeCap = Paint.Cap.values()[line.paint.strokeCap]
             }
 
-            drawLine(canvas, line, paint, offsetX, offsetY)
+            if (line.paint.verticalEnds) {
+                var path = Path();
+                path.moveTo(line.startX, line.startY + (line.paint.strokeWidth / 2))
+                path.lineTo(line.startX, line.startY - (line.paint.strokeWidth / 2))
+                path.lineTo(line.endX, line.endY - (line.paint.strokeWidth / 2))
+                path.lineTo(line.endX, line.endY + (line.paint.strokeWidth / 2))
+                path.lineTo(line.startX, line.startY + (line.paint.strokeWidth / 2))
+
+                canvas.drawPath(path, paint)
+            }
+            else {
+                drawLine(canvas, line, paint, offsetX, offsetY)
+            }
         }
     }
 
@@ -239,7 +251,7 @@ class MusicDisplayView(context: Context, attrs: AttributeSet? = null): View(cont
 
                 var rect = Rect()
                 paint.getTextBounds(text.text, 0, text.text.length, rect)
-                canvas.drawRect(rectX - (rect.width()/2.0f), rectY - (rect.height()/2.0f), rectX + (rect.width()/2.0f), rectY + (rect.height()/2.0f), rectPaint)
+                canvas.drawRect(rectX - (rect.width()/2.0f) * scale, rectY - (rect.height()/2.0f) * scale, rectX + (rect.width()/2.0f) * scale, rectY + (rect.height()/2.0f) * scale, rectPaint)
             }
             else if (text.paint.isItalic && text.paint.isBold) {
                 paint.typeface = typefaceBoldItalic
@@ -307,9 +319,7 @@ class MusicDisplayView(context: Context, attrs: AttributeSet? = null): View(cont
         p2.textSize = 30.0f
         var spans: Array<TextSpan> = arrayOf(TextSpan(0, 1, p), TextSpan(1, 7, p2))
         var text: SpannableText = SpannableText(Char(0xECA5) + " = 120", 200.0f, 30.0f, com.randsoft.apps.musique.renderdata.Paint(0xff000000.toInt()), spans)*/
-        Log.e(TAG, "TEXT size: ${texts.size}")
         for (text in texts) {
-            Log.e(TAG, "text: ${text.text}")
 
             val mainPaint = Paint().apply {
                 color = text.mainPaint.color
@@ -338,8 +348,8 @@ class MusicDisplayView(context: Context, attrs: AttributeSet? = null): View(cont
                 //paint.typeface = musicTypeface
             }
 
-            var textX = text.x
-            val textY = text.y
+            var textX = text.x * scale
+            val textY = text.y * scale
 
             //drawDebugPoint(canvas, PointF(text.x, text.y))
 
@@ -373,13 +383,13 @@ class MusicDisplayView(context: Context, attrs: AttributeSet? = null): View(cont
                     paint.typeface = typefacePlain
                 }
 
+                paint.textSize *= scale
+
                 var string = ""
                 if (span.endIndex <= text.text.length)
                     string = text.text.substring(span.startIndex, span.endIndex)
                 else if (span.startIndex < text.text.length)
                     string = text.text.substring(span.startIndex, text.text.length)
-
-                Log.e(TAG, "span string: $string")
 
                 canvas.drawText(string, textX + offsetX, textY + offsetY, paint)
                 textX += (paint.measureText(string, 0, string.length) / scale);
@@ -727,6 +737,7 @@ class MusicDisplayView(context: Context, attrs: AttributeSet? = null): View(cont
             drawGlyphs(mainCanvas, pageRenderData.glyphs, pagePositionX, pagePositionY)
             drawBitmaps(mainCanvas, pageRenderData.bitmaps, pagePositionX, pagePositionY)
             drawCubicCurves(mainCanvas, pageRenderData.cubicCurves, pagePositionX, pagePositionY)
+            drawSpannableTexts(mainCanvas, pageRenderData.spannableTexts, pagePositionX, pagePositionY)
         }
     }
 

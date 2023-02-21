@@ -6,6 +6,7 @@ import android.util.Log
 import android.view.*
 import android.widget.Button
 import android.widget.ImageButton
+import android.widget.ProgressBar
 import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.widget.SearchView
@@ -27,7 +28,7 @@ private const val TAG = "SongListFragment"
 
 private const val ARG_READ_PERMISSION_GRANTED = "ReadPermissionGrated"
 
-class SongListFragment() : Fragment() {
+class SongListFragment() : Fragment(), WebRepository.Callbacks {
 
     interface Callbacks {
         fun onSongOpened(string: String)
@@ -42,6 +43,9 @@ class SongListFragment() : Fragment() {
     private lateinit var searchView: SearchView
     private lateinit var songListRecyclerView: RecyclerView
 
+    private var loadingProgressBar: ProgressBar? = null
+    private var isLoading = false
+
     private lateinit var viewModel: SongListFragmentViewModel
 
     private val openDocument = registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
@@ -54,6 +58,8 @@ class SongListFragment() : Fragment() {
 
     private lateinit var fileHandler: FileHandler
 
+    private lateinit var webRepository: WebRepository
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -63,10 +69,16 @@ class SongListFragment() : Fragment() {
 
         fileHandler = FileHandler(requireContext())
 
-        val responseLiveData2: LiveData<List<SongItem>> = WebRepository().getAll()
+        webRepository = WebRepository()
+        webRepository.setCallbacks(this)
+
+        val responseLiveData2: LiveData<List<SongItem>> = webRepository.getAll()
+        onStartLoading()
+
         responseLiveData2.observe(
             this,
             Observer { songItems ->
+                onStopLoading()
                 Log.d(TAG, "Got data: $songItems")
                 viewModel.songItems = songItems
                 songListRecyclerView.adapter = SongListAdapter(songItems)
@@ -90,6 +102,9 @@ class SongListFragment() : Fragment() {
     ): View? {
         val view = inflater.inflate(R.layout.song_list_fragment, container, false)
 
+        loadingProgressBar = view.findViewById(R.id.loading_progress_bar)
+        onUpdateLoading()
+
         openButton = view.findViewById(R.id.open_button)
         openButton.setOnClickListener {
             Log.i(TAG, "Open button was clicked")
@@ -99,11 +114,16 @@ class SongListFragment() : Fragment() {
         browseButton = view.findViewById(R.id.browse_button)
         browseButton.setOnClickListener {
             Log.i(TAG, "Browse button was clicked")
-            val responseLiveData: LiveData<List<SongItem>> = WebRepository().getAll()
+
+            onStartLoading()
+
+            val responseLiveData: LiveData<List<SongItem>> = webRepository.getAll()
             responseLiveData.observe(
                 viewLifecycleOwner,
                 Observer { songItems ->
                     Log.d(TAG, "Got data: $songItems")
+                    onStopLoading()
+
                     viewModel.songItems = songItems
                     songListRecyclerView.adapter = SongListAdapter(songItems)
                 })
@@ -116,10 +136,13 @@ class SongListFragment() : Fragment() {
 
                 if (query != null)
                 {
-                    val responseLiveData: LiveData<List<SongItem>> = WebRepository().performSearch(query)
+                    onStartLoading()
+
+                    val responseLiveData: LiveData<List<SongItem>> = webRepository.performSearch(query)
                     responseLiveData.observe(
                         viewLifecycleOwner,
                         Observer { songItems ->
+                            onStopLoading()
                             Log.d(TAG, "Got data: $songItems")
                             viewModel.songItems = songItems
                             songListRecyclerView.adapter = SongListAdapter(songItems)
@@ -192,10 +215,13 @@ class SongListFragment() : Fragment() {
 
         private fun openSong(partIndex: Int)
         {
-            val responseLiveData: LiveData<String> = WebRepository().getFile(songItem.id, partIndex)
+            onStartLoading()
+
+            val responseLiveData: LiveData<String> = webRepository.getFile(songItem.id, partIndex)
             responseLiveData.observe(
                 this@SongListFragment,
                 Observer { string ->
+                    onStopLoading()
                     callbacks?.onSongOpened(string)
                 })
         }
@@ -214,6 +240,38 @@ class SongListFragment() : Fragment() {
             val view = layoutInflater.inflate(R.layout.list_item_song, parent, false)
             return SongListViewHolder(view)
         }
+    }
+
+    private fun onStartLoading()
+    {
+        isLoading = true
+
+        if (loadingProgressBar != null)
+            loadingProgressBar?.visibility = View.VISIBLE
+    }
+
+    private fun onUpdateLoading()
+    {
+        if (loadingProgressBar != null)
+        {
+            if (isLoading)
+                loadingProgressBar?.visibility = View.VISIBLE
+            else
+                loadingProgressBar?.visibility = View.GONE
+        }
+    }
+
+    private fun onStopLoading()
+    {
+        isLoading = false
+
+        if (loadingProgressBar != null)
+            loadingProgressBar?.visibility = View.GONE
+    }
+
+    override fun onWebRequestFailed() {
+        Log.e(TAG, "Web request failed")
+        onStopLoading()
     }
 
     companion object {

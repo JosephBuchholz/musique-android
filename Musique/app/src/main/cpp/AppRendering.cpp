@@ -98,6 +98,30 @@ void App::RenderLineOfMeasures(RenderData& renderData, unsigned int startMeasure
                     noteIndex++;
                 }
 
+                // rendering note beams
+                for (const BeamGroup& beamGroup : measure->beams)
+                {
+                    for (const Beam& beam : beamGroup.beams)
+                    {
+                        const float beamDistance = 8.0f;
+                        const float hookOffset = 10.0f;
+                        float beamYOffset = (beamDistance * float(beam.beamLevel-1));
+
+                        if (beam.beamType == Beam::BeamType::Normal)
+                        {
+                            renderData.AddLine(std::make_shared<Line>(beam.beamStartPositionX + measurePosition, beam.beamStartPositionY + staffPositionY - beamYOffset, beam.beamEndPositionX + measurePosition, beam.beamEndPositionY + staffPositionY - beamYOffset, NoteBeamPaint));
+                        }
+                        else if (beam.beamType == Beam::BeamType::ForwardHook)
+                        {
+                            renderData.AddLine(std::make_shared<Line>(beam.beamStartPositionX + measurePosition, beam.beamStartPositionY + staffPositionY - beamYOffset, beam.beamStartPositionX + measurePosition + hookOffset, beamGroup.GetPositionYOnBeam(beam.beamStartPositionX + hookOffset) + staffPositionY - beamYOffset, NoteBeamPaint));
+                        }
+                        else if (beam.beamType == Beam::BeamType::BackwardHook)
+                        {
+                            renderData.AddLine(std::make_shared<Line>(beam.beamStartPositionX + measurePosition, beam.beamStartPositionY + staffPositionY - beamYOffset, beam.beamStartPositionX + measurePosition - hookOffset, beamGroup.GetPositionYOnBeam(beam.beamStartPositionX - hookOffset) + staffPositionY - beamYOffset, NoteBeamPaint));
+                        }
+                    }
+                }
+
                 // render all chords in this measure
                 for (Chord &chord: measure->chords) {
                     chord.CalculateChordName();
@@ -577,10 +601,31 @@ void App::RenderTabNote(RenderData& renderData, const Note* note, float measureP
             renderData.AddCubicCurve(curve);
         }
 
-        if (slur.type == StartStopType::Start) {
+        if (slur.type == StartStopType::Start)
+        {
             curveStartX = positionX;
             curveStartY = positionY - 6.0f;
         }
+    }
+
+    // note stem
+    if (note->noteStem.stemType != NoteStem::StemType::None)
+    {
+        renderData.AddLine(std::make_shared<Line>(positionX, positionY + note->noteStem.stemStartY, positionX, positionY + note->noteStem.stemEndY, NoteStemPaint));
+    }
+
+    // note flag
+    if (note->beamData.empty() && !note->isChord)
+    {
+        bool isUp = false;
+
+        if (note->noteStem.stemType == NoteStem::StemType::Up) {
+            isUp = true;
+        } else if (note->noteStem.stemType == NoteStem::StemType::Down) {
+            isUp = false;
+        }
+
+        renderData.AddGlyph(SMuFLGlyph(GetNoteFlagSMuFLID(note->durationType, isUp), positionX, positionY + note->noteStem.stemEndY, Paint(normalColor)));
     }
 }
 
@@ -700,54 +745,13 @@ void App::RenderNote(RenderData& renderData, const Note* note, Measure* measure,
 void App::RenderNoteStemAndFlagAndBeam(RenderData& renderData, const Note* note, float notePositionX, float notePositionY)
 {
     // rendering note stem
-    float noteWidth = 11.3f;
-    float stemEndY = 0.0f;
-    float stemPositionX = 0.0f;
-
-    float stemLength = 30.0f;
-    if (note->noteStem.stemType == NoteStem::StemType::Up) {
-        stemPositionX = notePositionX + noteWidth - NoteStemPaint.strokeWidth / 2.0f;
-        renderData.AddLine(std::make_shared<Line>(stemPositionX, notePositionY, stemPositionX, notePositionY - stemLength, NoteStemPaint));
-        stemEndY = notePositionY - stemLength;
-    } else if (note->noteStem.stemType == NoteStem::StemType::Down) {
-        stemPositionX = notePositionX + NoteStemPaint.strokeWidth / 2.0f;
-        renderData.AddLine(std::make_shared<Line>(stemPositionX, notePositionY, stemPositionX, notePositionY + stemLength, NoteStemPaint));
-        stemEndY = notePositionY + stemLength;
-    } else if (note->noteStem.stemType == NoteStem::StemType::Double) {
-        stemPositionX = notePositionX + NoteStemPaint.strokeWidth / 2.0f;
-        renderData.AddLine(std::make_shared<Line>(stemPositionX, notePositionY, stemPositionX, notePositionY + stemLength,NoteStemPaint));
-        stemPositionX = notePositionX + noteWidth - NoteStemPaint.strokeWidth / 2.0f;
-        renderData.AddLine(std::make_shared<Line>(stemPositionX, notePositionY, stemPositionX, notePositionY - stemLength, NoteStemPaint));
-    }
-
-    // rendering note beam
-    if (note->beam.beamType == Beam::BeamType::Begin) {
-        if (note->noteStem.stemType == NoteStem::StemType::Up) {
-            beamStartX = notePositionX + noteWidth;
-            beamStartY = stemEndY - (float)(note->beam.beamLevel-1)*10.0f;
-        } else if (note->noteStem.stemType == NoteStem::StemType::Down) {
-            beamStartX = notePositionX;
-            beamStartY = stemEndY + (float)(note->beam.beamLevel-1)*10.0f;
-        }
-    } else if (note->beam.beamType == Beam::BeamType::Continue) {
-        // do something
-    } else if (note->beam.beamType == Beam::BeamType::End) {
-        float beamEndX = 0.0f;
-        float beamEndY = 0.0f;
-
-        if (note->noteStem.stemType == NoteStem::StemType::Up) {
-            beamEndX = notePositionX + noteWidth;
-            beamEndY = stemEndY + (float)(note->beam.beamLevel-1)*10.0f;
-        } else if (note->noteStem.stemType == NoteStem::StemType::Down) {
-            beamEndX = notePositionX;
-            beamEndY = stemEndY - (float)(note->beam.beamLevel-1)*10.0f;
-        }
-
-        renderData.AddLine(std::make_shared<Line>(beamStartX, beamStartY, beamEndX,beamEndY,NoteBeamPaint));
+    if (note->noteStem.stemType != NoteStem::StemType::None)
+    {
+        renderData.AddLine(std::make_shared<Line>(notePositionX + note->noteStem.stemPositionX, notePositionY + note->noteStem.stemStartY, notePositionX + note->noteStem.stemPositionX, notePositionY + note->noteStem.stemEndY, NoteStemPaint));
     }
 
     // note flag
-    if (note->beam.beamType == Beam::BeamType::None)
+    if (note->beamData.empty() && !note->isChord)
     {
         bool isUp = false;
 
@@ -757,7 +761,7 @@ void App::RenderNoteStemAndFlagAndBeam(RenderData& renderData, const Note* note,
             isUp = false;
         }
 
-        renderData.AddGlyph(SMuFLGlyph(GetNoteFlagSMuFLID(note->durationType, isUp), stemPositionX, stemEndY, Paint(normalColor)));
+        renderData.AddGlyph(SMuFLGlyph(GetNoteFlagSMuFLID(note->durationType, isUp), notePositionX + note->noteStem.stemPositionX, notePositionY + note->noteStem.stemEndY, Paint(normalColor)));
     }
 }
 

@@ -27,3 +27,8 @@ bool IsInt(const std::string& value);
 bool IsUnsignedInt(const std::string& value);
 
 //bool IsFloat(const std::string& value);
+
+// ---- Comparison Functions ----
+
+/// finds if two floats are equal within a certain limit
+bool FloatsAreEqual(float x, float y, float limit = 0.001f);

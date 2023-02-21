@@ -57,11 +57,40 @@ void Note::CalculatePositionAsPaged(const MusicDisplayConstants& displayConstant
     {
         positionX = defX + relX;
         positionY = (displayConstants.tabLineSpacing * float(string - 1));
+
+        if (!isChord)
+        {
+            noteStem.stemPositionX = 0.0f;
+
+            noteStem.stemStartY = displayConstants.tabLineSpacing * 0.75f;
+            noteStem.stemEndY = noteStem.stemStartY + (displayConstants.tabLineSpacing * 2.5f);
+        }
     }
     else // is a standard note
     {
         positionX = defX + relX;
         positionY = -defY + -relY;
+
+        float noteWidth = 11.3f;
+        float stemPositionX = 0.0f;
+
+        float notePositionX = 0.0f;
+        float notePositionY = 0.0f;
+
+        float stemStokeWidth = 0.8333f;
+
+        float stemLength = 30.0f;
+        if (noteStem.stemType == NoteStem::StemType::Up) {
+            noteStem.stemPositionX = notePositionX + noteWidth - stemStokeWidth / 2.0f;
+
+            noteStem.stemStartY = notePositionY;
+            noteStem.stemEndY = notePositionY - stemLength;
+        } else if (noteStem.stemType == NoteStem::StemType::Down) {
+            noteStem.stemPositionX = notePositionX + stemStokeWidth / 2.0f;
+
+            noteStem.stemStartY = notePositionY;
+            noteStem.stemEndY = notePositionY + stemLength;
+        }
     }
 
     for (auto& dot : dots)

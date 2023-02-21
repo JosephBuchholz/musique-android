@@ -19,6 +19,7 @@ App::App()
     NoteBeamPaint = Paint();
     NoteBeamPaint.strokeWidth = 5.0f;
     NoteBeamPaint.strokeCap = Paint::Cap::Butt;
+    NoteBeamPaint.verticalEnds = true;
 
     BarLinePaint = Paint();
     BarLinePaint.strokeWidth = 1.25f;
@@ -104,7 +105,7 @@ void App::LoadSongFromString(const std::string& string)
         LOGI("instruments: %d, staves: %d, measures: %d, notes: %d", song->instruments.size(), numStaves, numMeasures, numNotes);
 
     if (song != nullptr) {
-        song->OnUpdate();
+        //song->OnUpdate();
         UpdateSongData(song->songData);
     }
 

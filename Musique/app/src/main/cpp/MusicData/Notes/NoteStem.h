@@ -22,5 +22,10 @@ struct NoteStem {
 
     StemType stemType = StemType::None;
 
-    float stemEndY = 0.0f; // relative to the center of the note
+    // relative to left side of note (or center of note for tablature)
+    float stemPositionX = 0.0f;
+
+    // relative to the center of the note
+    float stemStartY = 0.0f; // closest to the note
+    float stemEndY = 0.0f; // farthest away from the note
 };

@@ -1,4 +1,5 @@
 #pragma once
+
 #include "Notes/Note.h"
 #include "TimeSignature.h"
 #include "KeySignature.h"
@@ -8,6 +9,8 @@
 #include "SoundEvent.h"
 #include "Chords/Chord.h"
 #include "Barline.h"
+#include "Notes/BeamGroup.h"
+
 #include <vector>
 
 /**
@@ -108,6 +111,7 @@ public:
     std::vector<SoundEvent> soundEvents; // the sound events contained in this measure
     std::vector<Chord> chords; // the chords contained in this measure
     std::vector<Barline> barlines; // the barlines contained in this measure
+    std::vector<BeamGroup> beams; // the beams (beam groups) contained in this measure
 
     int divisions = 1;
 

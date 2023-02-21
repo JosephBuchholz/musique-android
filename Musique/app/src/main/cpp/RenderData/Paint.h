@@ -24,6 +24,7 @@ struct Paint {
         isAntiAlias = paint.isAntiAlias;
         strikeThruText = paint.strikeThruText;
         centerTextVertically = paint.centerTextVertically;
+        verticalEnds = paint.verticalEnds;
     }
 
     enum class Cap {
@@ -47,4 +48,5 @@ struct Paint {
     bool strikeThruText = false;
     bool centerTextVertically = false;
     bool useMusicFont = false;
+    bool verticalEnds = false;
 };

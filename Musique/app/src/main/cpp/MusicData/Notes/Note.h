@@ -5,11 +5,12 @@
 #include "TABSlur.h"
 #include "Slur.h"
 #include "NoteStem.h"
-#include "Beam.h"
+#include "NoteBeamData.h"
 #include "Accidental.h"
 #include "Lyric.h"
 #include "../../MusicDisplayConstants.h"
 #include "AugmentationDot.h"
+#include "Beam.h"
 
 /**
  * Class that represents a note, whether it is TAB or not.
@@ -59,7 +60,7 @@ public:
 
     NoteStem noteStem = NoteStem();
 
-    Beam beam = Beam();
+    std::vector<NoteBeamData> beamData;
 
     Accidental accidental = Accidental();
 

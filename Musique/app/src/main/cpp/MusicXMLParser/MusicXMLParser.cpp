@@ -1295,11 +1295,27 @@ void MusicXMLParser::ParseNoteElement(XMLElement* noteElement, float& currentTim
     }
 
     // beam
-    XMLElement* beamElement = noteElement->FirstChildElement("beam");
-    if (beamElement)
+    XMLNode* previousBeamElement = noteElement->FirstChildElement("beam");
+    while (true)
     {
-        currentNote->beam.beamType = currentNote->beam.CalculateBeamTypeFromString(beamElement->GetText());
-        currentNote->beam.beamLevel = GetNumberAttribute(beamElement, "number", 1);
+        if (previousBeamElement) {
+            XMLElement* beamElement = previousBeamElement->ToElement();
+            if (beamElement)
+            {
+                NoteBeamData noteBeamData = NoteBeamData();
+
+                noteBeamData.beamType = NoteBeamData::CalculateBeamTypeFromString(beamElement->GetText());
+                noteBeamData.beamLevel = GetNumberAttribute(beamElement, "number", 1);
+
+                currentNote->beamData.push_back(noteBeamData);
+            }
+        }
+        else
+        {
+            break;
+        }
+
+        previousBeamElement = previousBeamElement->NextSiblingElement("beam");
     }
 
     // notations

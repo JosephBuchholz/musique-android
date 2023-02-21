@@ -36,6 +36,8 @@ add_library( # Sets the name of the library.
         MusicData/Notes/Lyric.cpp
         MusicData/Directions/Words.cpp
         MusicData/Notes/AugmentationDot.cpp
+        MusicData/Notes/Beam.cpp
+        MusicData/Notes/BeamGroup.cpp
         MusicData/Directions/MetronomeMark.cpp
         RenderMeasurement.cpp
         MusicXMLParser/MusicXMLParser.cpp
