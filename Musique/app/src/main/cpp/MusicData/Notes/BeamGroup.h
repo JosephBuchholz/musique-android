@@ -22,4 +22,6 @@ public:
 
     float beamEndPositionX = 0.0f;
     float beamEndPositionY = 0.0f;
+
+    bool isAboveNote = false;
 };

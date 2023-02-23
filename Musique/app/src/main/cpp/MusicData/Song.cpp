@@ -175,7 +175,12 @@ void Song::OnUpdate()
                         if (noteBeamData.beamType == NoteBeamData::BeamType::Begin)
                         {
                             if (noteBeamData.beamLevel == 1) // start a new beam group
+                            {
                                 beamGroup = BeamGroup();
+
+                                if (note->noteStem.stemType == NoteStem::StemType::Up)
+                                    beamGroup.isAboveNote = true;
+                            }
 
                             Beam beam = Beam();
                             beam.beamLevel = noteBeamData.beamLevel;
@@ -439,6 +444,7 @@ void Song::OnUpdate()
                     }
 
 
+                    // calculate beam positions
                     for (BeamGroup& beamGroup : measure->beams)
                     {
                         if (!beamGroup.notes.empty())

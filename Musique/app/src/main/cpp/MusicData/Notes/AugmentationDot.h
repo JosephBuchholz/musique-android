@@ -17,8 +17,9 @@ protected:
      *
      * @param displayConstants display constants for positioning
      * @param noteIsOnLine whether the note that this dot belongs to is on a staff line
+     * @param isTab whether the note that this dot belongs to is a tablature note
      */
-    void CalculatePositionAsPaged(const MusicDisplayConstants& displayConstants, bool noteIsOnLine);
+    void CalculatePositionAsPaged(const MusicDisplayConstants& displayConstants, bool noteIsOnLine, bool isTab);
 
 public:
     AboveBelowType placement = AboveBelowType::Above; // whether the dot appears above or below the staff line

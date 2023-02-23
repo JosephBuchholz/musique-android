@@ -60,10 +60,27 @@ void Note::CalculatePositionAsPaged(const MusicDisplayConstants& displayConstant
 
         if (!isChord)
         {
+            // note: all stem positions are relative to the note
+
+            float stemLength = displayConstants.tabLineSpacing * 2.5f;
+
+            if (durationType == NoteDurationType::Half) // shorter stem for half notes
+            {
+                stemLength *= 2.0f/3.0f;
+            }
+
             noteStem.stemPositionX = 0.0f;
 
-            noteStem.stemStartY = displayConstants.tabLineSpacing * 0.75f;
-            noteStem.stemEndY = noteStem.stemStartY + (displayConstants.tabLineSpacing * 2.5f);
+            if (noteStem.stemType == NoteStem::StemType::Up)
+            {
+                noteStem.stemStartY = -(displayConstants.tabLineSpacing * 0.75f);
+                noteStem.stemEndY = noteStem.stemStartY - stemLength;
+            }
+            else if (noteStem.stemType == NoteStem::StemType::Down)
+            {
+                noteStem.stemStartY = displayConstants.tabLineSpacing * 0.75f;
+                noteStem.stemEndY = noteStem.stemStartY + stemLength;
+            }
         }
     }
     else // is a standard note
@@ -95,6 +112,6 @@ void Note::CalculatePositionAsPaged(const MusicDisplayConstants& displayConstant
 
     for (auto& dot : dots)
     {
-        dot.CalculatePositionAsPaged(displayConstants, ((positionY / displayConstants.lineSpacing) - floor(positionY / displayConstants.lineSpacing)) == 0.0f);
+        dot.CalculatePositionAsPaged(displayConstants, ((positionY / displayConstants.lineSpacing) - floor(positionY / displayConstants.lineSpacing)) == 0.0f, type == NoteType::Tab);
     }
 }

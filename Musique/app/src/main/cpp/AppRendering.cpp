@@ -107,6 +107,11 @@ void App::RenderLineOfMeasures(RenderData& renderData, unsigned int startMeasure
                         const float hookOffset = 10.0f;
                         float beamYOffset = (beamDistance * float(beam.beamLevel-1));
 
+                        if (beamGroup.isAboveNote)
+                        {
+                            beamYOffset = -beamYOffset;
+                        }
+
                         if (beam.beamType == Beam::BeamType::Normal)
                         {
                             renderData.AddLine(std::make_shared<Line>(beam.beamStartPositionX + measurePosition, beam.beamStartPositionY + staffPositionY - beamYOffset, beam.beamEndPositionX + measurePosition, beam.beamEndPositionY + staffPositionY - beamYOffset, NoteBeamPaint));
@@ -558,7 +563,7 @@ void App::RenderRest(RenderData& renderData, const Note* note, float measurePosi
     }
 }
 
-void App::RenderTabNote(RenderData& renderData, const Note* note, float measurePositionX, int lines, float ls, float offsetX, float offsetY)
+void App::RenderTabNote(RenderData& renderData, const Note* note, const Staff* staff, float measurePositionX, int lines, float ls, float offsetX, float offsetY)
 {
     // calculate color of the note
     int color = normalColor;
@@ -608,24 +613,14 @@ void App::RenderTabNote(RenderData& renderData, const Note* note, float measureP
         }
     }
 
-    // note stem
-    if (note->noteStem.stemType != NoteStem::StemType::None)
+    // rhythm notation
+    if (staff->tablatureDisplayType == Staff::TablatureDisplayType::Full)
     {
-        renderData.AddLine(std::make_shared<Line>(positionX, positionY + note->noteStem.stemStartY, positionX, positionY + note->noteStem.stemEndY, NoteStemPaint));
-    }
+        RenderNoteStem(renderData, note, positionX, positionY);
+        RenderNoteFlag(renderData, note, positionX, positionY);
 
-    // note flag
-    if (note->beamData.empty() && !note->isChord)
-    {
-        bool isUp = false;
-
-        if (note->noteStem.stemType == NoteStem::StemType::Up) {
-            isUp = true;
-        } else if (note->noteStem.stemType == NoteStem::StemType::Down) {
-            isUp = false;
-        }
-
-        renderData.AddGlyph(SMuFLGlyph(GetNoteFlagSMuFLID(note->durationType, isUp), positionX, positionY + note->noteStem.stemEndY, Paint(normalColor)));
+        // aug dot
+        RenderAugmentationDots(renderData, note->dots, positionX, positionY);
     }
 }
 
@@ -638,10 +633,11 @@ void App::RenderNote(RenderData& renderData, const Note* note, Measure* measure,
     }
 
     if (note->isRest) { // is a rest
-        RenderRest(renderData, note, measurePositionX, staff->lines, ls, mainPositionX, mainPositionY + measurePositionY);
+        if (staff->tablatureDisplayType == Staff::TablatureDisplayType::Full)
+            RenderRest(renderData, note, measurePositionX, staff->lines, ls, mainPositionX, mainPositionY + measurePositionY);
     } else if (note->type == Note::NoteType::Tab) // is a tab note
     {
-        RenderTabNote(renderData, note, measurePositionX, staff->lines, ls, mainPositionX, mainPositionY + measurePositionY);
+        RenderTabNote(renderData, note, staff, measurePositionX, staff->lines, ls, mainPositionX, mainPositionY + measurePositionY);
     } else // is a standard note
     {
         // rendering note head
@@ -660,10 +656,7 @@ void App::RenderNote(RenderData& renderData, const Note* note, Measure* measure,
         renderData.AddGlyph(SMuFLGlyph(GetNoteHeadSMuFLID(note->durationType),positionX + mainPositionX, positionY + mainPositionY, Paint(color)));
 
         // aug dot
-        for (const auto& dot : note->dots)
-        {
-            renderData.AddGlyph(SMuFLGlyph(SMuFLID::augmentationDot, dot.positionX + positionX + mainPositionX, dot.positionY + positionY + mainPositionY, Paint(dot.color.color)));
-        }
+        RenderAugmentationDots(renderData, note->dots, positionX + mainPositionX, positionY + mainPositionY);
 
         // ledger lines
         if (measure->CalculateNoteYPositionRelativeToMeasure(noteIndex) >=
@@ -723,7 +716,8 @@ void App::RenderNote(RenderData& renderData, const Note* note, Measure* measure,
             }
         }
 
-        RenderNoteStemAndFlagAndBeam(renderData, note, positionX + mainPositionX, positionY + mainPositionY);
+        RenderNoteStem(renderData, note, positionX + mainPositionX, positionY + mainPositionY);
+        RenderNoteFlag(renderData, note, positionX + mainPositionX, positionY + mainPositionY);
 
         if (note->accidental.accidentalType !=
             Accidental::AccidentalType::None) {
@@ -742,14 +736,8 @@ void App::RenderNote(RenderData& renderData, const Note* note, Measure* measure,
     } // lyrics loop
 }
 
-void App::RenderNoteStemAndFlagAndBeam(RenderData& renderData, const Note* note, float notePositionX, float notePositionY)
+void App::RenderNoteFlag(RenderData& renderData, const Note* note, float notePositionX, float notePositionY)
 {
-    // rendering note stem
-    if (note->noteStem.stemType != NoteStem::StemType::None)
-    {
-        renderData.AddLine(std::make_shared<Line>(notePositionX + note->noteStem.stemPositionX, notePositionY + note->noteStem.stemStartY, notePositionX + note->noteStem.stemPositionX, notePositionY + note->noteStem.stemEndY, NoteStemPaint));
-    }
-
     // note flag
     if (note->beamData.empty() && !note->isChord)
     {
@@ -762,6 +750,24 @@ void App::RenderNoteStemAndFlagAndBeam(RenderData& renderData, const Note* note,
         }
 
         renderData.AddGlyph(SMuFLGlyph(GetNoteFlagSMuFLID(note->durationType, isUp), notePositionX + note->noteStem.stemPositionX, notePositionY + note->noteStem.stemEndY, Paint(normalColor)));
+    }
+}
+
+void App::RenderNoteStem(RenderData& renderData, const Note* note, float notePositionX, float notePositionY)
+{
+    // note stem
+    if (note->noteStem.stemType != NoteStem::StemType::None)
+    {
+        renderData.AddLine(std::make_shared<Line>(notePositionX + note->noteStem.stemPositionX, notePositionY + note->noteStem.stemStartY, notePositionX + note->noteStem.stemPositionX, notePositionY + note->noteStem.stemEndY, NoteStemPaint));
+    }
+}
+
+void App::RenderAugmentationDots(RenderData& renderData, const std::vector<AugmentationDot>& dots, float notePositionX, float notePositionY)
+{
+    // aug dot
+    for (const auto& dot : dots)
+    {
+        renderData.AddGlyph(SMuFLGlyph(SMuFLID::augmentationDot, dot.positionX + notePositionX, dot.positionY + notePositionY, Paint(dot.color.color)));
     }
 }
 

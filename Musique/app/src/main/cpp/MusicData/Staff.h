@@ -55,4 +55,8 @@ public:
     // -- Tab Only --
 
     std::vector<StaffTuning> tunings;
+
+    enum class TablatureDisplayType {
+        None = 0, NoRhythm, Full
+    } tablatureDisplayType = TablatureDisplayType::Full;
 };

@@ -1872,6 +1872,9 @@ Song* MusicXMLParser::ParseMusicXML(const std::string& data, std::string& error)
                                                     if (firstMeasure) {
                                                         currentInst->staves[clefNumber-1]->type = Staff::StaffType::Tab;
                                                         staffIsTabInfo[clefNumber-1] = true;
+
+                                                        if (currentInst->staves.size() > 1) // if there is more than one staff
+                                                            currentInst->staves[clefNumber-1]->tablatureDisplayType = Staff::TablatureDisplayType::NoRhythm;
                                                     }
                                                 }
                                             }
