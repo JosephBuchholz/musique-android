@@ -102,3 +102,11 @@ enum class FontStyle {
 enum class FontWeight {
     None = 0, Normal, Bold
 };
+
+/**
+ * Whether a curve is overhand (tips down) or underhand (tips up). (for slurs and ties)
+ */
+enum class CurveOrientation
+{
+    None = 0, Over, Under
+};

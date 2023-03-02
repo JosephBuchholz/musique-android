@@ -11,6 +11,7 @@
 #include "../../MusicDisplayConstants.h"
 #include "AugmentationDot.h"
 #include "Beam.h"
+#include "Tie.h"
 
 /**
  * Class that represents a note, whether it is TAB or not.
@@ -30,6 +31,10 @@ public:
     float GetMinWidth();
 
     void CalculateDurationTypeFromString(const std::string& s);
+
+    float GetCenterPositionX() const;
+
+    float GetNoteHeadWidth() const;
 
 protected:
     void CalculatePositionAsPaged(const MusicDisplayConstants& displayConstants);
@@ -65,6 +70,8 @@ public:
     Accidental accidental = Accidental();
 
     std::vector<Lyric> lyrics;
+
+    NoteTie tie = NoteTie();
 
     int staff = 1;
     int voice = 1;

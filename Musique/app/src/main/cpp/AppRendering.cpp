@@ -93,7 +93,7 @@ void App::RenderLineOfMeasures(RenderData& renderData, unsigned int startMeasure
             {
                 int noteIndex = 0;
                 for (Note *note: measure->notes) {
-                    RenderNote(renderData, note, measure, measurePosition, staff, staffPositionY, measureNumber, lineSpacing, 0.0f, 0.0f,
+                    RenderNote(renderData, note, measure, measurePosition, staff, staffPositionY, measure->measureWidth, measureNumber, lineSpacing, 0.0f, 0.0f,
                                noteIndex);
                     noteIndex++;
                 }
@@ -563,7 +563,7 @@ void App::RenderRest(RenderData& renderData, const Note* note, float measurePosi
     }
 }
 
-void App::RenderTabNote(RenderData& renderData, const Note* note, const Staff* staff, float measurePositionX, int lines, float ls, float offsetX, float offsetY)
+void App::RenderTabNote(RenderData& renderData, const Note* note, const Staff* staff, float measurePositionX, float measureWidth, int lines, float ls, float offsetX, float offsetY)
 {
     // calculate color of the note
     int color = normalColor;
@@ -619,12 +619,14 @@ void App::RenderTabNote(RenderData& renderData, const Note* note, const Staff* s
         RenderNoteStem(renderData, note, positionX, positionY);
         RenderNoteFlag(renderData, note, positionX, positionY);
 
+        RenderTie(renderData, note, positionX, positionY, measurePositionX + offsetX, offsetY, measureWidth);
+
         // aug dot
         RenderAugmentationDots(renderData, note->dots, positionX, positionY);
     }
 }
 
-void App::RenderNote(RenderData& renderData, const Note* note, Measure* measure, float measurePositionX, const Staff* staff, float measurePositionY, int measureNumber, float ls, float mainPositionX, float mainPositionY, int noteIndex)
+void App::RenderNote(RenderData& renderData, const Note* note, Measure* measure, float measurePositionX, const Staff* staff, float measurePositionY, float measureWidth, int measureNumber, float ls, float mainPositionX, float mainPositionY, int noteIndex)
 {
     // calculate color of the note
     int color = normalColor;
@@ -637,7 +639,7 @@ void App::RenderNote(RenderData& renderData, const Note* note, Measure* measure,
             RenderRest(renderData, note, measurePositionX, staff->lines, ls, mainPositionX, mainPositionY + measurePositionY);
     } else if (note->type == Note::NoteType::Tab) // is a tab note
     {
-        RenderTabNote(renderData, note, staff, measurePositionX, staff->lines, ls, mainPositionX, mainPositionY + measurePositionY);
+        RenderTabNote(renderData, note, staff, measurePositionX, measureWidth, staff->lines, ls, mainPositionX, mainPositionY + measurePositionY);
     } else // is a standard note
     {
         // rendering note head
@@ -716,6 +718,8 @@ void App::RenderNote(RenderData& renderData, const Note* note, Measure* measure,
             }
         }
 
+        RenderTie(renderData, note, note->GetCenterPositionX() + measurePositionX + mainPositionX, positionY + mainPositionY, measurePositionX + mainPositionX, measurePositionY + mainPositionY, measureWidth);
+
         RenderNoteStem(renderData, note, positionX + mainPositionX, positionY + mainPositionY);
         RenderNoteFlag(renderData, note, positionX + mainPositionX, positionY + mainPositionY);
 
@@ -759,6 +763,103 @@ void App::RenderNoteStem(RenderData& renderData, const Note* note, float notePos
     if (note->noteStem.stemType != NoteStem::StemType::None)
     {
         renderData.AddLine(std::make_shared<Line>(notePositionX + note->noteStem.stemPositionX, notePositionY + note->noteStem.stemStartY, notePositionX + note->noteStem.stemPositionX, notePositionY + note->noteStem.stemEndY, NoteStemPaint));
+    }
+}
+
+void App::RenderTie(RenderData& renderData, const Note* note, float noteCenterPositionX, float notePositionY, float measurePositionX, float measurePositionY, float measureWidth)
+{
+    // tie
+    if (note->tie.type == NoteTie::TieType::Start && note->tie.tiedNote != nullptr)
+    {
+        CubicCurve curve = CubicCurve();
+
+        float direction = 1.0f;
+
+        float offsetY = -10.0f;
+
+        if (note->tie.orientation == CurveOrientation::Under)
+            direction = -1.0f;
+
+        if (note->tie.placement == AboveBelowType::Below)
+            offsetY = 10.0f;
+
+
+        float startCurveX = noteCenterPositionX;
+        float startCurveY = notePositionY + offsetY;
+
+        float endCurveX;
+        float endCurveY;
+
+        if (note->tie.tiedNote->measureIndex > note->measureIndex) // if the tied note is in the next measure
+        {
+            if (song->DoesMeasureStartNewSystem(note->tie.tiedNote->measureIndex)) // if the tied note is on the next system
+            {
+                endCurveX = measurePositionX + measureWidth;
+                endCurveY = note->tie.tiedNote->positionY + measurePositionY + offsetY;
+
+                // render second tie object
+                // TODO: finnish 2nd curve
+
+                /*float startCurveX2 = noteCenterPositionX;
+                float startCurveY2 = note->tie.tiedNote->positionY + measurePositionY + offsetY;
+
+                float endCurveX2 = note->tie.tiedNote->GetCenterPositionX() + measurePositionX + measureWidth;
+                float endCurveY2 = note->tie.tiedNote->positionY + measurePositionY + offsetY;
+
+                CubicCurve curve2 = CubicCurve();
+
+                // start
+                curve2.x1 = startCurveX2;
+                curve2.y1 = startCurveY2;
+
+                // curve points
+                curve2.x2 = startCurveX2 + 10.0f;
+                curve2.y2 = startCurveY2 - 10.0f * direction;
+
+                curve2.x3 = endCurveX2 - 10.0f;
+                curve2.y3 = endCurveY2 - 10.0f * direction;
+
+                // end
+                curve2.x4 = endCurveX2;
+                curve2.y4 = endCurveY2;
+
+                curve2.paint = TiePaint;
+
+                renderData.AddCubicCurve(curve2);*/
+            }
+            else
+            {
+                endCurveX = note->tie.tiedNote->GetCenterPositionX() + measurePositionX + measureWidth;
+                endCurveY = note->tie.tiedNote->positionY + measurePositionY + offsetY;
+            }
+        }
+        else
+        {
+            endCurveX = note->tie.tiedNote->GetCenterPositionX() + measurePositionX;
+            endCurveY = note->tie.tiedNote->positionY + measurePositionY + offsetY;
+        }
+
+        //renderData.AddDebugDot(startCurveX, startCurveY);
+        //renderData.AddDebugDot(endCurveX, endCurveY);
+
+        // start
+        curve.x1 = startCurveX;
+        curve.y1 = startCurveY;
+
+        // curve points
+        curve.x2 = startCurveX + 10.0f;
+        curve.y2 = startCurveY - 10.0f * direction;
+
+        curve.x3 = endCurveX - 10.0f;
+        curve.y3 = endCurveY - 10.0f * direction;
+
+        // end
+        curve.x4 = endCurveX;
+        curve.y4 = endCurveY;
+
+        curve.paint = TiePaint;
+
+        renderData.AddCubicCurve(curve);
     }
 }
 

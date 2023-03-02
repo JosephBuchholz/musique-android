@@ -153,6 +153,66 @@ void Song::OnUpdate()
         }
     }*/
 
+    // tie calculations
+    for (auto* instrument : instruments)
+    {
+        for (auto* staff : instrument->staves)
+        {
+            std::vector<Note*> tiedStartNotes;
+
+            int measureIndex = 0;
+            for (auto* measure : staff->measures)
+            {
+                int noteIndex = 0;
+                for (auto* note : measure->notes)
+                {
+                    //LOGV("s: %d", tiedStartNotes.size());
+                    if (note->tie.type == NoteTie::TieType::Start)
+                    {
+                        LOGW("Tie start: s: %d", tiedStartNotes.size());
+                        tiedStartNotes.push_back(note);
+                    }
+                    else if (note->tie.type == NoteTie::TieType::Stop)
+                    {
+                        if (!tiedStartNotes.empty())
+                        {
+                            LOGW("Tie end: s: %d", tiedStartNotes.size());
+
+                            tiedStartNotes[0]->tie.tiedNote = note;
+                            note->tie.tiedNote = tiedStartNotes[0];
+
+                            CurveOrientation orientation;
+                            AboveBelowType placement;
+
+                            if (tiedStartNotes[0]->noteStem.stemType == NoteStem::StemType::Up)
+                            {
+                                orientation = CurveOrientation::Under;
+                                placement = AboveBelowType::Below;
+                            }
+                            else
+                            {
+                                orientation = CurveOrientation::Over;
+                                placement = AboveBelowType::Above;
+                            }
+
+                            tiedStartNotes[0]->tie.orientation = orientation;
+                            note->tie.orientation = orientation;
+
+                            tiedStartNotes[0]->tie.placement = placement;
+                            note->tie.placement = placement;
+
+                            tiedStartNotes.erase(tiedStartNotes.begin());
+                        }
+                    }
+
+                    noteIndex++;
+                }
+
+                measureIndex++;
+            }
+        }
+    }
+
     // beam calculations
     for (auto* instrument : instruments)
     {

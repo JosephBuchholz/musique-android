@@ -410,6 +410,10 @@ jobject ConvertRenderDataToObject(JNIEnv* env, const RenderData& renderData)
             index++;
         }
     }
+
+    // set cubic curves array field in renderDataObject
+    env->SetObjectField(renderDataObject, fieldIdCubicCurves, cubicCurvesArray);
+
     return renderDataObject;
 }
 

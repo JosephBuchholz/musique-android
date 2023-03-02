@@ -32,6 +32,9 @@ App::App()
     TabSlurPaint = Paint();
     TabSlurPaint.strokeWidth = 1.25f;
 
+    TiePaint = Paint();
+    TiePaint.strokeWidth = 1.25f;
+
     TextPaint = Paint();
     TextPaint.textSize = 30.0f;
 
@@ -417,7 +420,7 @@ void App::RenderHorizontalLayout()
 
                             int noteIndex = 0;
                             for (Note *note : measure->notes) {
-                                RenderNote(m_RenderData, note, measure, measurePosition, staff, staffYPosition + instYPosition, measureNumber, ls, 0.0f, 0.0f, noteIndex);
+                                RenderNote(m_RenderData, note, measure, measurePosition, staff, staffYPosition + instYPosition, measure->measureWidth, measureNumber, ls, 0.0f, 0.0f, noteIndex);
                                 noteIndex++;
                             }
 
@@ -593,7 +596,7 @@ void App::CalculateRenderForVerticalLayout()
 
                                     int noteIndex = 0;
                                     for (Note *note: measure->notes) {
-                                        RenderNote(m_RenderData, note, measure, measurePosition, staff, staffYPosition + instYPosition, measureNumber, ls, 0.0f, 0.0f,
+                                        RenderNote(m_RenderData, note, measure, measurePosition, staff, staffYPosition + instYPosition, measure->measureWidth, measureNumber, ls, 0.0f, 0.0f,
                                                    noteIndex);
                                         noteIndex++;
                                     }
@@ -753,13 +756,14 @@ void App::RenderMusicToPage(int page, RenderData& pageRenderData, float pageX, f
 
                         if (song->instruments.size() > 1)
                         {
+                            float textPositionY = instYPosition + (instrument->GetMiddleHeight(song->displayConstants.lineSpacing, song->displayConstants.tabLineSpacing, 0, 1) / 2.0f);
                             if (!drewInstNames)
                             {
-                                pageRenderData.AddText(Text(instrument->name.string, systemPositionX - 10.0f, instYPosition, InstNameTextPaint));
+                                pageRenderData.AddText(Text(instrument->name.string, systemPositionX - 10.0f, textPositionY, InstNameTextPaint));
                             }
                             else
                             {
-                                pageRenderData.AddText(Text(instrument->nameAbbreviation.string, systemPositionX - 10.0f, instYPosition, InstNameTextPaint));
+                                pageRenderData.AddText(Text(instrument->nameAbbreviation.string, systemPositionX - 10.0f, textPositionY, InstNameTextPaint));
                             }
                         }
 

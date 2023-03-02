@@ -1242,7 +1242,14 @@ void MusicXMLParser::ParseNoteElement(XMLElement* noteElement, float& currentTim
     XMLElement* tieElement = noteElement->FirstChildElement("tie");
     if (tieElement)
     {
+        std::string typeString = GetStringAttribute(tieElement, "type", "", true);
 
+        if (typeString == "start")
+            currentNote->tie.type = NoteTie::TieType::Start;
+        else if (typeString == "stop")
+            currentNote->tie.type = NoteTie::TieType::Stop;
+        else
+            currentNote->tie.type = NoteTie::TieType::None;
     }
 
     // voice

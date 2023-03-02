@@ -193,11 +193,11 @@ class MusicDisplayView(context: Context, attrs: AttributeSet? = null): View(cont
 
             if (line.paint.verticalEnds) {
                 var path = Path();
-                path.moveTo(line.startX, line.startY + (line.paint.strokeWidth / 2))
-                path.lineTo(line.startX, line.startY - (line.paint.strokeWidth / 2))
-                path.lineTo(line.endX, line.endY - (line.paint.strokeWidth / 2))
-                path.lineTo(line.endX, line.endY + (line.paint.strokeWidth / 2))
-                path.lineTo(line.startX, line.startY + (line.paint.strokeWidth / 2))
+                path.moveTo((line.startX * scale) + offsetX, ((line.startY + (line.paint.strokeWidth / 2)) * scale) + offsetY)
+                path.lineTo((line.startX * scale) + offsetX, ((line.startY - (line.paint.strokeWidth / 2)) * scale) + offsetY)
+                path.lineTo((line.endX * scale) + offsetX, ((line.endY - (line.paint.strokeWidth / 2)) * scale) + offsetY)
+                path.lineTo((line.endX * scale) + offsetX, ((line.endY + (line.paint.strokeWidth / 2)) * scale) + offsetY)
+                path.lineTo((line.startX * scale) + offsetX, ((line.startY + (line.paint.strokeWidth / 2)) * scale) + offsetY)
 
                 canvas.drawPath(path, paint)
             }
@@ -510,8 +510,9 @@ class MusicDisplayView(context: Context, attrs: AttributeSet? = null): View(cont
      * @param offsetX how much to offset the curves in the x direction
      * @param offsetY how much to offset the curves in the y direction
      */
-    private fun drawCubicCurves(canvas: Canvas, cubicCurves: Array<CubicCurve>, offsetX: Float = 0.0f, offsetY: Float = 0.0f) // TODO: use offsetX and offsetY
+    private fun drawCubicCurves(canvas: Canvas, cubicCurves: Array<CubicCurve>, offsetX: Float = 0.0f, offsetY: Float = 0.0f)
     {
+        Log.e(TAG, "drawing cubic curves: ${cubicCurves.size}");
         // render cubic bezier curves
         for (curve in cubicCurves) {
             val paint = Paint().apply {
@@ -524,10 +525,12 @@ class MusicDisplayView(context: Context, attrs: AttributeSet? = null): View(cont
 
             var path = Path()
             var s = 5.0f;
-            var start = PointF(curve.x1 * scale + positionX, curve.y1 * scale + positionY)
-            var point1 = PointF(curve.x2 * scale + positionX, curve.y2 * scale + positionY)
-            var point2 = PointF(curve.x3 * scale + positionX, curve.y3 * scale + positionY)
-            var end = PointF(curve.x4 * scale + positionX, curve.y4 * scale + positionY)
+            var start = PointF(curve.x1 * scale + offsetX, curve.y1 * scale + offsetY)
+            var point1 = PointF(curve.x2 * scale + offsetX, curve.y2 * scale + offsetY)
+            var point2 = PointF(curve.x3 * scale + offsetX, curve.y3 * scale + offsetY)
+            var end = PointF(curve.x4 * scale + offsetX, curve.y4 * scale + offsetY)
+
+            //Log.e(TAG, "drawing cubic curve: ${}");
 
             path.moveTo(start.x, start.y)
             path.cubicTo(point1.x, point1.y, point2.x, point2.y, end.x, end.y)

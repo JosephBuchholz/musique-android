@@ -57,6 +57,22 @@ public:
         SMuFLGlyphs.push_back(glyph);
     }
 
+    void AddDebugDot(float x, float y)
+    {
+        std::shared_ptr<Line> line = std::make_shared<Line>();
+
+        line->startX = x;
+        line->startY = y;
+
+        line->endX = x + 10.0f;
+        line->endY = y + 10.0f;
+
+        line->paint = Paint(0xFFFF00FF);
+        line->paint.strokeWidth = 10.0f;
+
+        Lines.push_back(line);
+    }
+
     std::vector<std::shared_ptr<Line>> Lines;
     std::vector<Text> Texts;
     std::vector<RenderBitmap> Bitmaps;

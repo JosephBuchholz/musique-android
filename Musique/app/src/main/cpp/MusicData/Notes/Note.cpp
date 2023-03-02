@@ -88,7 +88,7 @@ void Note::CalculatePositionAsPaged(const MusicDisplayConstants& displayConstant
         positionX = defX + relX;
         positionY = -defY + -relY;
 
-        float noteWidth = 11.3f;
+        float noteWidth = GetNoteHeadWidth();
         float stemPositionX = 0.0f;
 
         float notePositionX = 0.0f;
@@ -114,4 +114,17 @@ void Note::CalculatePositionAsPaged(const MusicDisplayConstants& displayConstant
     {
         dot.CalculatePositionAsPaged(displayConstants, ((positionY / displayConstants.lineSpacing) - floor(positionY / displayConstants.lineSpacing)) == 0.0f, type == NoteType::Tab);
     }
+}
+
+float Note::GetCenterPositionX() const
+{
+    if (type == NoteType::Tab)
+        return positionX;
+
+    return positionX + (GetNoteHeadWidth() / 2.0f);
+}
+
+float Note::GetNoteHeadWidth() const // TODO: get actual width
+{
+    return 11.3f;
 }
