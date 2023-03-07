@@ -30,19 +30,19 @@ float Note::GetMinWidth() {
 
 void Note::CalculateDurationTypeFromString(const std::string& s) {
     if (s == "whole") {
-        durationType = NoteDurationType::Whole;
+        durationType = NoteValue::Whole;
     } else if (s == "half") {
-        durationType = NoteDurationType::Half;
+        durationType = NoteValue::Half;
     } else if (s == "quarter") {
-        durationType = NoteDurationType::Quarter;
+        durationType = NoteValue::Quarter;
     } else if (s == "eighth") {
-        durationType = NoteDurationType::Eighth;
+        durationType = NoteValue::Eighth;
     } else if (s == "16th") {
-        durationType = NoteDurationType::Sixteenth;
+        durationType = NoteValue::Sixteenth;
     } else if (s == "32nd") {
-        durationType = NoteDurationType::ThirtySecond;
+        durationType = NoteValue::ThirtySecond;
     } else {
-        durationType = NoteDurationType::None;
+        durationType = NoteValue::None;
     }
 }
 
@@ -64,7 +64,7 @@ void Note::CalculatePositionAsPaged(const MusicDisplayConstants& displayConstant
 
             float stemLength = displayConstants.tabLineSpacing * 2.5f;
 
-            if (durationType == NoteDurationType::Half) // shorter stem for half notes
+            if (durationType == NoteValue::Half) // shorter stem for half notes
             {
                 stemLength *= 2.0f/3.0f;
             }

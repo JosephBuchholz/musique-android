@@ -1,4 +1,6 @@
-#pragma once
+#ifndef MUSIQUE_MIDI_H
+#define MUSIQUE_MIDI_H
+
 #include "Callbacks.h"
 #include "MusicData/Transpose.h"
 
@@ -116,3 +118,5 @@ public:
 private:
     std::array<int, 16> currentMidiInstruments;
 };
+
+#endif // MUSIQUE_MIDI_H

@@ -1,4 +1,6 @@
-#pragma once
+#ifndef MUSIQUE_LYRIC_H
+#define MUSIQUE_LYRIC_H
+
 #include <vector>
 
 #include "../Text.h"
@@ -7,12 +9,25 @@
 #include "../TextualElement.h"
 #include "../../MusicDisplayConstants.h"
 
+#include "../../RenderData/RenderData.h"
+
 class Lyric : public TextualElement {
     friend class Song;
     friend class MusicXMLParser;
 
 public:
     Lyric() {}
+
+    /**
+     * Renders this class
+     *
+     * @param renderData The RenderData object to render to
+     * @param notePositionX
+     * @param measurePositionY
+     * @param offsetX
+     * @param offsetY
+     */
+    void Render(RenderData& renderData, float notePositionX, float measurePositionY, float offsetX = 0.0f, float offsetY = 0.0f) const;
 
 protected:
     void CalculatePositionAsPaged(const MusicDisplayConstants& displayConstants);
@@ -40,3 +55,5 @@ protected:
     float relX = 0.0f;
     float relY = 0.0f;
 };
+
+#endif // MUSIQUE_LYRIC_H

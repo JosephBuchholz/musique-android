@@ -1,4 +1,6 @@
-#pragma once
+#ifndef MUSIQUE_INSTRUMENT_H
+#define MUSIQUE_INSTRUMENT_H
+
 #include "Staff.h"
 #include <vector>
 #include <string>
@@ -31,3 +33,5 @@ public:
 
     std::vector<Staff*> staves;
 };
+
+#endif // MUSIQUE_INSTRUMENT_H

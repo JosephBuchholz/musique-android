@@ -1,4 +1,6 @@
-#pragma once
+#ifndef MUSIQUE_ANDROIDDEBUG_H
+#define MUSIQUE_ANDROIDDEBUG_H
+
 #include <android/log.h>
 
 
@@ -31,3 +33,5 @@
 #define LOGF(...)
 
 #endif
+
+#endif // MUSIQUE_ANDROIDDEBUG_H

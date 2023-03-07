@@ -1,4 +1,6 @@
-#pragma once
+#ifndef MUSIQUE_LINE_H
+#define MUSIQUE_LINE_H
+
 #include "Paint.h"
 
 /**
@@ -20,3 +22,5 @@ struct Line {
 
     Paint paint = Paint();
 };
+
+#endif // MUSIQUE_LINE_H

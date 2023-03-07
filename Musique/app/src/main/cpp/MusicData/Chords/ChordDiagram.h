@@ -1,4 +1,5 @@
-#pragma once
+#ifndef MUSIQUE_CHORDDIAGRAM_H
+#define MUSIQUE_CHORDDIAGRAM_H
 
 #include <vector>
 #include "../TextualElement.h"
@@ -30,3 +31,5 @@ public:
 
     std::vector<ChordDiagramNote> notes;
 };
+
+#endif // MUSIQUE_CHORDDIAGRAM_H

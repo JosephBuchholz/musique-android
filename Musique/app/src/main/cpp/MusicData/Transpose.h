@@ -1,4 +1,6 @@
-#pragma once
+#ifndef MUSIQUE_TRANSPOSE_H
+#define MUSIQUE_TRANSPOSE_H
+
 #include <string>
 
 struct Transpose {
@@ -6,3 +8,5 @@ struct Transpose {
     int chromatic = 0;
     int octaveChange = -1;
 };
+
+#endif // MUSIQUE_TRANSPOSE_H

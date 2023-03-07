@@ -1,4 +1,5 @@
-#pragma once
+#ifndef MUSIQUE_MUSICDISPLAYCONSTANTS_H
+#define MUSIQUE_MUSICDISPLAYCONSTANTS_H
 
 #include "MusicData/System.h"
 
@@ -46,3 +47,5 @@ struct MusicDisplayConstants
     Scaling scaling;
 
 };
+
+#endif // MUSIQUE_MUSICDISPLAYCONSTANTS_H

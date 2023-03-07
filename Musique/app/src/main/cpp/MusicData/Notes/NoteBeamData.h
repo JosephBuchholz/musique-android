@@ -1,4 +1,6 @@
-#pragma once
+#ifndef MUSIQUE_NOTEBEAMDATA_H
+#define MUSIQUE_NOTEBEAMDATA_H
+
 #include <string>
 
 struct NoteBeamData {
@@ -27,3 +29,5 @@ struct NoteBeamData {
     BeamType beamType = BeamType::None;
     int beamLevel = 1;
 };
+
+#endif // MUSIQUE_NOTEBEAMDATA_H

@@ -1,4 +1,6 @@
-#pragma once
+#ifndef MUSIQUE_INSTRUMENTINFO_H
+#define MUSIQUE_INSTRUMENTINFO_H
+
 #include <string>
 
 class InstrumentInfo
@@ -8,3 +10,5 @@ public:
     int volume = 0;
     bool visible = true;
 };
+
+#endif // MUSIQUE_INSTRUMENTINFO_H

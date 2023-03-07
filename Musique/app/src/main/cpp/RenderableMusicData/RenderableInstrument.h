@@ -1,4 +1,5 @@
-#pragma once
+#ifndef MUSIQUE_RENDERABLEINSTRUMENT_H
+#define MUSIQUE_RENDERABLEINSTRUMENT_H
 
 #include "Renderable.h"
 #include "RenderableStaff.h"
@@ -10,3 +11,5 @@ class RenderableInstrument : public Renderable
 public:
     std::vector<RenderableStaff> staves;
 };
+
+#endif // MUSIQUE_RENDERABLEINSTRUMENT_H

@@ -2,7 +2,9 @@
  * This file defines the class `App` which controls how the sheet music is displayed and acts like an interface between Kotlin and C++
  */
 
-#pragma once
+#ifndef MUSIQUE_APP_H
+#define MUSIQUE_APP_H
+
 #include "AndroidDebug.h"
 #include "MusicData/Song.h"
 #include "ViewModelData.h"
@@ -53,11 +55,10 @@ private:
     void RenderRest(RenderData& renderData, const Note* note, float measurePositionX, int lines, float ls, float offsetX, float offsetY);
     void RenderTabNote(RenderData& renderData, const Note* note, const Staff* staff, float measurePositionX, float measureWidth, int lines, float ls, float offsetX, float offsetY);
     void RenderDirection(RenderData& renderData, const Direction& direction, float measurePositionY, Measure* measure, float measureXPosition, float offsetX, float offsetY);
-    void RenderLyric(RenderData& renderData, const Lyric& lyric, float notePositionX, float measurePositionY, float offsetX, float offsetY);
-    void RenderChord(RenderData& renderData, const Chord& chord, float measurePositionY, const Measure* measure, float measureXPosition, float offsetX, float offsetY);
-    void RenderTimeSignature(RenderData& renderData, const Measure* measure, float positionX, float ls, int lines, float offsetX, float offsetY);
-    void RenderKeySignature(RenderData& renderData, const Measure* measure, float positionX, float ls, int lines, float offsetX, float offsetY);
-    void RenderClef(RenderData& renderData, const Measure* measure, float positionX, float ls, int lines, float offsetX, float offsetY);
+    //void RenderLyric(RenderData& renderData, const Lyric& lyric, float notePositionX, float measurePositionY, float offsetX, float offsetY);
+    //void RenderChord(RenderData& renderData, const Chord& chord, float measurePositionY, const Measure* measure, float measureXPosition, float offsetX, float offsetY);
+    void RenderKeySignature(RenderData& renderData, const Measure* measure, const System& system, float positionX, float ls, int lines, float offsetX, float offsetY);
+    void RenderClef(RenderData& renderData, const Measure* measure, const System& system, float positionX, float ls, int lines, float offsetX, float offsetY);
 
     void RenderNoteFlag(RenderData& renderData, const Note* note, float notePositionX, float notePositionY);
     void RenderNoteStem(RenderData& renderData, const Note* note, float notePositionX, float notePositionY);
@@ -146,3 +147,5 @@ private:
 
     float pageWidth = 1024.0f;
 };
+
+#endif // MUSIQUE_APP_H

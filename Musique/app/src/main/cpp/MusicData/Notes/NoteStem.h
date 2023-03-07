@@ -1,4 +1,6 @@
-#pragma once
+#ifndef MUSIQUE_NOTESTEM_H
+#define MUSIQUE_NOTESTEM_H
+
 #include <string>
 
 struct NoteStem {
@@ -29,3 +31,5 @@ struct NoteStem {
     float stemStartY = 0.0f; // closest to the note
     float stemEndY = 0.0f; // farthest away from the note
 };
+
+#endif // MUSIQUE_NOTESTEM_H

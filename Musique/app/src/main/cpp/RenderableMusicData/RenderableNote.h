@@ -1,4 +1,5 @@
-#pragma once
+#ifndef MUSIQUE_RENDERABLENOTE_H
+#define MUSIQUE_RENDERABLENOTE_H
 
 #include "Renderable.h"
 #include "../RenderData/Line.h"
@@ -10,3 +11,5 @@ public:
     Line* stem;
     RenderBitmap* noteHead;
 };
+
+#endif // MUSIQUE_RENDERABLENOTE_H

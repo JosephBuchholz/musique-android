@@ -1,4 +1,5 @@
-#pragma once
+#ifndef MUSIQUE_PAINT_H
+#define MUSIQUE_PAINT_H
 
 /**
  * An object that holds data needed to describe how a specific object
@@ -50,3 +51,5 @@ struct Paint {
     bool useMusicFont = false;
     bool verticalEnds = false;
 };
+
+#endif // MUSIQUE_PAINT_H

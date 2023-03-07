@@ -1,4 +1,6 @@
-#pragma once
+#ifndef MUSIQUE_SLUR_H
+#define MUSIQUE_SLUR_H
+
 #include "../Types.h"
 
 struct Slur {
@@ -7,3 +9,5 @@ struct Slur {
     StartStopType type = StartStopType::None;
     AboveBelowType placement = AboveBelowType::None;
 };
+
+#endif // MUSIQUE_SLUR_H

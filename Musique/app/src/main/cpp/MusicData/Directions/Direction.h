@@ -1,4 +1,5 @@
-#pragma once
+#ifndef MUSIQUE_DIRECTION_H
+#define MUSIQUE_DIRECTION_H
 
 #include "../BaseElement.h"
 
@@ -27,3 +28,5 @@ public:
 
     AboveBelowType placement = AboveBelowType::Above;
 };
+
+#endif // MUSIQUE_DIRECTION_H

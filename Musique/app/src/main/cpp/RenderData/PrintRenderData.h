@@ -1,4 +1,5 @@
-#pragma once
+#ifndef MUSIQUE_PAINTRENDERDATA_H
+#define MUSIQUE_PAINTRENDERDATA_H
 
 #include <vector>
 
@@ -12,3 +13,5 @@ struct PrintRenderData {
 public:
     std::vector<RenderData> pages;
 };
+
+#endif // MUSIQUE_PAINTRENDERDATA_H

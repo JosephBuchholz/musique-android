@@ -1,58 +1,9 @@
-#pragma once
-#include "MusicData/Notes/Note.h"
-#include "MusicData/Clef.h"
+#ifndef MUSIQUE_ASSETID_H
+#define MUSIQUE_ASSETID_H
 
-/*enum class AssetID {
-    None = 0,
-    WholeNote,
-    HalfNote,
-    QuarterNote,
-    EightNote,
-    SixteenthNote,
-    Time1,
-    Time2,
-    Time3,
-    Time4,
-    Time5,
-    Time6,
-    Time7,
-    Time8,
-    Time9,
-    Time0,
-    TrebleClef,
-    BassClef,
-    AltoClef,
-    TABClef,
-    PercussionClef,
-    QuarterNoteNoteHead,
-    HalfNoteNoteHead,
-    XNoteHead,
-    Sharp,
-    Flat,
-    Natural,
-    DoubleSharp,
-    DoubleFlat,
-    WholeRest,
-    HalfRest,
-    QuarterRest,
-    EightRest,
-    SixteenthRest,
-    ThirtySecondRest,
-    KeySignature1Sharp,
-    KeySignature2Sharps,
-    KeySignature3Sharps,
-    KeySignature4Sharps,
-    KeySignature5Sharps,
-    KeySignature6Sharps,
-    KeySignature7Sharps,
-    KeySignature1Flat,
-    KeySignature2Flats,
-    KeySignature3Flats,
-    KeySignature4Flats,
-    KeySignature5Flats,
-    KeySignature6Flats,
-    KeySignature7Flats
-};*/
+#include "MusicData/Types.h"
+#include "MusicData/Clef.h"
+#include "MusicData/Notes/Accidental.h"
 
 enum class AssetID {
     None = 0,
@@ -148,31 +99,31 @@ static AssetID GetTimeSignatureAssetID(int time)
     return AssetID::None;
 }
 
-static AssetID GetNoteAssetID(Note::NoteDurationType type)
+static AssetID GetNoteAssetID(NoteValue type)
 {
     switch (type)
     {
-        case Note::NoteDurationType::None: return AssetID::None;
-        case Note::NoteDurationType::Whole: return AssetID::WholeNote;
-        case Note::NoteDurationType::Half: return AssetID::HalfNote;
-        case Note::NoteDurationType::Quarter: return AssetID::QuarterNote;
-        case Note::NoteDurationType::Eighth: return AssetID::EightNote;
-        case Note::NoteDurationType::Sixteenth: return AssetID::SixteenthNote;
+        case NoteValue::None: return AssetID::None;
+        case NoteValue::Whole: return AssetID::WholeNote;
+        case NoteValue::Half: return AssetID::HalfNote;
+        case NoteValue::Quarter: return AssetID::QuarterNote;
+        case NoteValue::Eighth: return AssetID::EightNote;
+        case NoteValue::Sixteenth: return AssetID::SixteenthNote;
         default: return AssetID::None;
     }
 }
 
-static AssetID GetNoteHeadAssetID(Note::NoteDurationType type)
+static AssetID GetNoteHeadAssetID(NoteValue type)
 {
     switch (type)
     {
-        case Note::NoteDurationType::None: return AssetID::None;
-        case Note::NoteDurationType::Whole: return AssetID::WholeNote;
-        case Note::NoteDurationType::Half: return AssetID::HalfNoteNoteHead;
-        case Note::NoteDurationType::Quarter: return AssetID::QuarterNoteNoteHead;
-        case Note::NoteDurationType::Eighth: return AssetID::QuarterNoteNoteHead;
-        case Note::NoteDurationType::Sixteenth: return AssetID::QuarterNoteNoteHead;
-        case Note::NoteDurationType::ThirtySecond: return AssetID::QuarterNoteNoteHead;
+        case NoteValue::None: return AssetID::None;
+        case NoteValue::Whole: return AssetID::WholeNote;
+        case NoteValue::Half: return AssetID::HalfNoteNoteHead;
+        case NoteValue::Quarter: return AssetID::QuarterNoteNoteHead;
+        case NoteValue::Eighth: return AssetID::QuarterNoteNoteHead;
+        case NoteValue::Sixteenth: return AssetID::QuarterNoteNoteHead;
+        case NoteValue::ThirtySecond: return AssetID::QuarterNoteNoteHead;
     }
 
     return AssetID::None;
@@ -209,3 +160,5 @@ static AssetID GetAccidentalAssetID(Accidental::AccidentalType type)
 
     return AssetID::None;
 }
+
+#endif // MUSIQUE_ASSETID_H

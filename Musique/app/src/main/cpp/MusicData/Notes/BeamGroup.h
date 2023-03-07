@@ -1,4 +1,5 @@
-#pragma once
+#ifndef MUSIQUE_BEAMGROUP_H
+#define MUSIQUE_BEAMGROUP_H
 
 #include <vector>
 
@@ -25,3 +26,5 @@ public:
 
     bool isAboveNote = false;
 };
+
+#endif // MUSIQUE_BEAMGROUP_H

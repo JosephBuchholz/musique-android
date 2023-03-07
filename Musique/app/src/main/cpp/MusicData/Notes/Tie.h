@@ -1,4 +1,5 @@
-#pragma once
+#ifndef MUSIQUE_TIE_H
+#define MUSIQUE_TIE_H
 
 #include "../VisibleElement.h"
 #include "Note.h"
@@ -28,3 +29,5 @@ public:
     float positionX = 0.0f; // relative to the left hand side of the note
     float positionY = 0.0f; // relative to the top line of the staff
 };
+
+#endif // MUSIQUE_TIE_H

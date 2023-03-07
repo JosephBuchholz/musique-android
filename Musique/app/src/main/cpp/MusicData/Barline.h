@@ -1,4 +1,6 @@
-#pragma once
+#ifndef MUSIQUE_BARLINE_H
+#define MUSIQUE_BARLINE_H
+
 #include "VisibleElement.h"
 #include "Types.h"
 
@@ -23,3 +25,5 @@ public:
 
     unsigned int repeatCount = 2;
 };
+
+#endif // MUSIQUE_BARLINE_H

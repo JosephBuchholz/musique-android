@@ -407,9 +407,9 @@ void App::RenderHorizontalLayout()
                                          (ls * float(staff->lines - 1)) + staffYPosition +
                                          instYPosition, BarLinePaint));
 
-                            RenderTimeSignature(m_RenderData, measure, measurePosition, ls, staff->lines, 0.0f, instYPosition + staffYPosition);
-                            RenderClef(m_RenderData, measure, measurePosition, ls, staff->lines, 0.0f, instYPosition + staffYPosition);
-                            RenderKeySignature(m_RenderData, measure, measurePosition, ls, staff->lines, 0.0f, instYPosition + staffYPosition);
+                            //RenderTimeSignature(m_RenderData, measure, measurePosition, ls, staff->lines, 0.0f, instYPosition + staffYPosition);
+                            //RenderClef(m_RenderData, measure, measurePosition, ls, staff->lines, 0.0f, instYPosition + staffYPosition);
+                            //RenderKeySignature(m_RenderData, measure, measurePosition, ls, staff->lines, 0.0f, instYPosition + staffYPosition);
 
                             // render directions
                             for (const Direction& direction : measure->directions)
@@ -429,7 +429,7 @@ void App::RenderHorizontalLayout()
                                 chord.CalculateChordName();
                                 float positionY = staffYPosition +
                                                   instYPosition - 40.0f;
-                                RenderChord(m_RenderData, chord, positionY, measure, 0.0f, 0.0f, measurePosition);
+                                chord.Render(m_RenderData, measurePosition, positionY);
                             }
 
                             currentMeasureRenderedCount++;
@@ -580,12 +580,12 @@ void App::CalculateRenderForVerticalLayout()
                                                  (ls * float(staff->lines - 1)) + staffYPosition +
                                                  instYPosition, BarLinePaint));
 
-                                    RenderTimeSignature(m_RenderData, measure, measurePosition, ls, staff->lines, 0.0f, instYPosition + staffYPosition);
+                                    /*RenderTimeSignature(m_RenderData, measure, measurePosition, ls, staff->lines, 0.0f, instYPosition + staffYPosition);
                                     RenderClef(m_RenderData, measure, measurePosition, ls,
                                                staff->lines, 0.0f, instYPosition + staffYPosition);
                                     RenderKeySignature(m_RenderData, measure, measurePosition, ls,
                                                        staff->lines, 0.0f,
-                                                       instYPosition + staffYPosition);
+                                                       instYPosition + staffYPosition);*/
 
                                     // render directions
                                     for (const Direction &direction: measure->directions) {
@@ -606,8 +606,7 @@ void App::CalculateRenderForVerticalLayout()
                                         chord.CalculateChordName();
                                         float positionY = staffYPosition +
                                                           instYPosition - 40.0f;
-                                        RenderChord(m_RenderData, chord, positionY, measure, 0.0f,
-                                                    0.0f, measurePosition);
+                                        chord.Render(m_RenderData, measurePosition, positionY);
                                     }
 
                                     currentMeasureRenderedCount++;

@@ -1,4 +1,6 @@
-#pragma once
+#ifndef MUSIQUE_RENDERBITMAP_H
+#define MUSIQUE_RENDERBITMAP_H
+
 #include "Paint.h"
 #include "../AssetID.h"
 
@@ -20,3 +22,5 @@ struct RenderBitmap {
     float sy = 1.0f; // scale y
     Paint paint = Paint();
 };
+
+#endif // MUSIQUE_RENDERBITMAP_H

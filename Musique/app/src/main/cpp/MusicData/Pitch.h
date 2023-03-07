@@ -1,4 +1,6 @@
-#pragma once
+#ifndef MUSIQUE_PITCH_H
+#define MUSIQUE_PITCH_H
+
 #include <string>
 
 struct Pitch {
@@ -54,3 +56,5 @@ struct Pitch {
     float alter = 0.0f;
     float freq = 0.0f;
 };
+
+#endif // MUSIQUE_PITCH_H

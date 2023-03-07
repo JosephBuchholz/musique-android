@@ -1,9 +1,17 @@
-#pragma once
+#ifndef MUSIQUE_TIMESIGNATURE_H
+#define MUSIQUE_TIMESIGNATURE_H
 
-struct TimeSignature {
+#include "VisibleElement.h"
+#include "../RenderData/RenderData.h"
 
+class TimeSignature : public VisibleElement {
+
+public:
+    void Render(RenderData& renderData, bool showTimeSignature, float positionX, float measurePositionY, float lineSpacing, int lines, float offsetX = 0.0f, float offsetY = 0.0f) const;
+
+public:
     enum class TimeSignatureDisplayType {
-        Note = 0, Standard, Common, Cut
+        None = 0, Standard, Common, Cut
     };
 
     static TimeSignatureDisplayType GetDisplayTypeFromString(const std::string& string) {
@@ -19,5 +27,6 @@ struct TimeSignature {
 
     int notes = 4;
     int noteType = 4;
-    bool print = true;
 };
+
+#endif // MUSIQUE_TIMESIGNATURE_H

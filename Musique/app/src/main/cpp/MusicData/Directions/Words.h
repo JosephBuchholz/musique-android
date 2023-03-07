@@ -1,4 +1,5 @@
-#pragma once
+#ifndef MUSIQUE_WORDS_H
+#define MUSIQUE_WORDS_H
 
 #include "../TextualElement.h"
 #include "../Types.h"
@@ -37,3 +38,5 @@ protected:
     float relX = 0.0f;
     float relY = 0.0f;
 };
+
+#endif // MUSIQUE_WORDS_H

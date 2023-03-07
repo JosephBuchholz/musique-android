@@ -1,4 +1,6 @@
-#pragma once
+#ifndef MUSIQUE_BASEELEMENT_H
+#define MUSIQUE_BASEELEMENT_H
+
 #include <string>
 
 // the base class of all notation elements
@@ -10,3 +12,5 @@ public:
 public:
     std::string id = "";
 };
+
+#endif // MUSIQUE_BASEELEMENT_H

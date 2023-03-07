@@ -1,4 +1,6 @@
-#pragma once
+#ifndef MUSIQUE_TEXTUALELEMENT_H
+#define MUSIQUE_TEXTUALELEMENT_H
+
 #include "VisibleElement.h"
 #include "Types.h"
 
@@ -20,3 +22,5 @@ public:
     unsigned int overline = 0;
     unsigned int underline = 0;
 };
+
+#endif // MUSIQUE_TEXTUALELEMENT_H

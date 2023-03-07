@@ -1,4 +1,6 @@
-#pragma once
+#ifndef MUSIQUE_SMUFLGLYPH_H
+#define MUSIQUE_SMUFLGLYPH_H
+
 #include "Paint.h"
 #include "SMuFLID.h"
 
@@ -18,3 +20,5 @@ struct SMuFLGlyph {
     float y = 0.0f;
     Paint paint = Paint();
 };
+
+#endif // MUSIQUE_SMUFLGLYPH_H

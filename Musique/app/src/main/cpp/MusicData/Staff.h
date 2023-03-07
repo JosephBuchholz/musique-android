@@ -1,4 +1,6 @@
-#pragma once
+#ifndef MUSIQUE_STAFF_H
+#define MUSIQUE_STAFF_H
+
 #include "Measure.h"
 #include <vector>
 
@@ -60,3 +62,5 @@ public:
         None = 0, NoRhythm, Full
     } tablatureDisplayType = TablatureDisplayType::Full;
 };
+
+#endif // MUSIQUE_STAFF_H

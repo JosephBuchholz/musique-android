@@ -1,4 +1,5 @@
-#pragma once
+#ifndef MUSIQUE_JNIHELPER_H
+#define MUSIQUE_JNIHELPER_H
 
 #include <jni.h>
 #include <string>
@@ -118,3 +119,5 @@ public:
 
     static void SetMainCallbackObject(jobject callbackObj);
 };
+
+#endif // MUSIQUE_JNIHELPER_H

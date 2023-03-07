@@ -1,6 +1,9 @@
-#pragma once
+#ifndef MUSIQUE_SMUFLID_H
+#define MUSIQUE_SMUFLID_H
+
 #include "../MusicData/Clef.h"
-#include "../MusicData/Notes/Note.h"
+#include "../MusicData/Types.h"
+#include "../MusicData/Notes/Accidental.h"
 
 /**
  * An enum that maps SMuFL glyph names to SMuFL code points.
@@ -157,17 +160,17 @@ static SMuFLID GetClefSMuFLID(Clef clef, int staffLines)
     return SMuFLID::None;
 }
 
-static SMuFLID GetNoteHeadSMuFLID(Note::NoteDurationType type)
+static SMuFLID GetNoteHeadSMuFLID(NoteValue type)
 {
     switch (type)
     {
-        case Note::NoteDurationType::None: return SMuFLID::None;
-        case Note::NoteDurationType::Whole: return SMuFLID::noteheadWhole;
-        case Note::NoteDurationType::Half: return SMuFLID::noteheadHalf;
-        case Note::NoteDurationType::Quarter: return SMuFLID::noteheadBlack;
-        case Note::NoteDurationType::Eighth: return SMuFLID::noteheadBlack;
-        case Note::NoteDurationType::Sixteenth: return SMuFLID::noteheadBlack;
-        case Note::NoteDurationType::ThirtySecond: return SMuFLID::noteheadBlack;
+        case NoteValue::None: return SMuFLID::None;
+        case NoteValue::Whole: return SMuFLID::noteheadWhole;
+        case NoteValue::Half: return SMuFLID::noteheadHalf;
+        case NoteValue::Quarter: return SMuFLID::noteheadBlack;
+        case NoteValue::Eighth: return SMuFLID::noteheadBlack;
+        case NoteValue::Sixteenth: return SMuFLID::noteheadBlack;
+        case NoteValue::ThirtySecond: return SMuFLID::noteheadBlack;
     }
 
     return SMuFLID::None;
@@ -194,29 +197,29 @@ static SMuFLID GetMetronomeNoteSMuFLID(NoteValue type)
     }
 }
 
-static SMuFLID GetRestSMuFLID(Note::NoteDurationType type)
+static SMuFLID GetRestSMuFLID(NoteValue type)
 {
     switch (type)
     {
-        case Note::NoteDurationType::None: return SMuFLID::None;
-        case Note::NoteDurationType::Whole: return SMuFLID::restWhole;
-        case Note::NoteDurationType::Half: return SMuFLID::restHalf;
-        case Note::NoteDurationType::Quarter: return SMuFLID::restQuarter;
-        case Note::NoteDurationType::Eighth: return SMuFLID::rest8th;
-        case Note::NoteDurationType::Sixteenth: return SMuFLID::rest16th;
-        case Note::NoteDurationType::ThirtySecond: return SMuFLID::rest32nd;
+        case NoteValue::None: return SMuFLID::None;
+        case NoteValue::Whole: return SMuFLID::restWhole;
+        case NoteValue::Half: return SMuFLID::restHalf;
+        case NoteValue::Quarter: return SMuFLID::restQuarter;
+        case NoteValue::Eighth: return SMuFLID::rest8th;
+        case NoteValue::Sixteenth: return SMuFLID::rest16th;
+        case NoteValue::ThirtySecond: return SMuFLID::rest32nd;
     }
 
     return SMuFLID::None;
 }
 
-static SMuFLID GetNoteFlagSMuFLID(Note::NoteDurationType type, bool isUp)
+static SMuFLID GetNoteFlagSMuFLID(NoteValue type, bool isUp)
 {
     switch (type)
     {
-        case Note::NoteDurationType::Eighth: if (isUp) return SMuFLID::flag8thUp; else return SMuFLID::flag8thDown;
-        case Note::NoteDurationType::Sixteenth: if (isUp) return SMuFLID::flag16thUp; else return SMuFLID::flag16thDown;
-        case Note::NoteDurationType::ThirtySecond: if (isUp) return SMuFLID::flag32ndUp; else return SMuFLID::flag32ndDown;
+        case NoteValue::Eighth: if (isUp) return SMuFLID::flag8thUp; else return SMuFLID::flag8thDown;
+        case NoteValue::Sixteenth: if (isUp) return SMuFLID::flag16thUp; else return SMuFLID::flag16thDown;
+        case NoteValue::ThirtySecond: if (isUp) return SMuFLID::flag32ndUp; else return SMuFLID::flag32ndDown;
         default: return SMuFLID::None;
     }
 
@@ -256,3 +259,5 @@ static SMuFLID GetTimeSignatureSMuFLID(int time)
 
     return SMuFLID::None;
 }
+
+#endif // MUSIQUE_SMUFLID_H

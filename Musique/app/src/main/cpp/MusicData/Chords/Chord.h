@@ -1,4 +1,5 @@
-#pragma once
+#ifndef MUSIQUE_CHORD_H
+#define MUSIQUE_CHORD_H
 
 #include <vector>
 
@@ -9,6 +10,7 @@
 #include "../Duration.h"
 #include "ChordDiagram.h"
 #include "../../MusicDisplayConstants.h"
+#include "../../RenderData/RenderData.h"
 
 class Chord : public TextualElement {
     friend class Song;
@@ -16,6 +18,8 @@ class Chord : public TextualElement {
 
 public:
     Chord() {}
+
+    void Render(RenderData& renderData, float measurePositionX, float measurePositionY, float offsetX = 0.0f, float offsetY = 0.0f) const;
 
     void CalculateChordName();
 
@@ -92,3 +96,5 @@ public:
         Tristan
     } harmonyType = HarmonyType::None;
 };
+
+#endif // MUSIQUE_CHORD_H

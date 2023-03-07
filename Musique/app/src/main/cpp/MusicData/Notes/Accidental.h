@@ -1,4 +1,6 @@
-#pragma once
+#ifndef MUSIQUE_ACCIDENTAL_H
+#define MUSIQUE_ACCIDENTAL_H
+
 #include <string>
 
 struct Accidental {
@@ -32,3 +34,5 @@ struct Accidental {
     bool hasBrackets = false;
     bool hasParentheses = false;
 };
+
+#endif // MUSIQUE_ACCIDENTAL_H

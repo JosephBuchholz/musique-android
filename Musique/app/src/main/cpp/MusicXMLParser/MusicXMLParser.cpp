@@ -1744,6 +1744,12 @@ Song* MusicXMLParser::ParseMusicXML(const std::string& data, std::string& error)
                                 newMeasure->staff = i+1;
                                 newMeasure->defaultMeasureWidth = measureWidth;
 
+                                if (stavesCreated)
+                                {
+                                    if (staffIsTabInfo[i])
+                                        newMeasure->type = Measure::MeasureType::Tab;
+                                }
+
                                 currentMeasures.push_back(newMeasure);
                             }
 
@@ -1843,7 +1849,7 @@ Song* MusicXMLParser::ParseMusicXML(const std::string& data, std::string& error)
                                 {
                                     TimeSignature timeSignature = TimeSignature();
                                     // print object
-                                    timeSignature.print = GetBoolAttribute(timeSignatureElement, "print-object", true);
+                                    timeSignature.printObject = GetBoolAttribute(timeSignatureElement, "print-object", true);
 
                                     const char* symbol = timeSignatureElement->Attribute("symbol");
                                     if (symbol)
@@ -1879,6 +1885,7 @@ Song* MusicXMLParser::ParseMusicXML(const std::string& data, std::string& error)
                                                     if (firstMeasure) {
                                                         currentInst->staves[clefNumber-1]->type = Staff::StaffType::Tab;
                                                         staffIsTabInfo[clefNumber-1] = true;
+                                                        currentMeasures[clefNumber-1]->type = Measure::MeasureType::Tab;
 
                                                         if (currentInst->staves.size() > 1) // if there is more than one staff
                                                             currentInst->staves[clefNumber-1]->tablatureDisplayType = Staff::TablatureDisplayType::NoRhythm;

@@ -1,4 +1,6 @@
-#pragma once
+#ifndef MUSIQUE_VISIBLEELEMENT_H
+#define MUSIQUE_VISIBLEELEMENT_H
+
 #include "PrintableElement.h"
 #include "Types.h"
 
@@ -11,3 +13,5 @@ public:
 public:
     Color color = Color();
 };
+
+#endif // MUSIQUE_VISIBLEELEMENT_H

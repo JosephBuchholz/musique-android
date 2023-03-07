@@ -1,4 +1,6 @@
-#pragma once
+#ifndef MUSIQUE_CALLBACKS_H
+#define MUSIQUE_CALLBACKS_H
+
 #include "RenderData/RenderData.h"
 #include "RenderData/PrintRenderData.h"
 #include "FrameData/FrameData.h"
@@ -22,3 +24,5 @@ void UpdateViewModelData(const ViewModelData& viewModelData);
 void WriteMidi(char* bytes, size_t size);
 void SetMidiVolume(int volume);
 void SetMidiReverb(int reverb);
+
+#endif // MUSIQUE_CALLBACKS_H

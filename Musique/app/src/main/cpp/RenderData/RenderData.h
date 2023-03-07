@@ -1,4 +1,6 @@
-#pragma once
+#ifndef MUSIQUE_RENDERDATA_H
+#define MUSIQUE_RENDERDATA_H
+
 #include <vector>
 #include <memory>
 
@@ -80,3 +82,5 @@ public:
     std::vector<SMuFLGlyph> SMuFLGlyphs;
     std::vector<std::shared_ptr<SpannableText>> SpannableTexts;
 };
+
+#endif // MUSIQUE_RENDERDATA_H

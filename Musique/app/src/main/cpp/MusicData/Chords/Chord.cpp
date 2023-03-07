@@ -1,6 +1,21 @@
 #include "Chord.h"
 #include "../../Utils/Converters.h"
 
+void Chord::Render(RenderData& renderData, float measurePositionX, float measurePositionY, float offsetX, float offsetY) const
+{
+    // paint
+    Paint paint = Paint();
+    paint.textSize = 16.0f;
+    if (fontStyle == FontStyle::Italic)
+        paint.isItalic = true;
+    if (fontWeight == FontWeight::Bold)
+        paint.isBold = true;
+    paint.textSize = fontSize.size;
+
+    // render
+    renderData.AddText(Text(chordName.string, positionX + measurePositionX + offsetX, positionY + measurePositionY + offsetY, Paint(color.color, paint)));
+}
+
 void Chord::CalculateChordName()
 {
     chordName.string = rootPitch.step;

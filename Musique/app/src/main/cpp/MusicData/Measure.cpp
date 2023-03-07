@@ -43,6 +43,7 @@ float Measure::GetBeginningWidth() const {
         width += 17.0f;
         width += 20.0f;
     }
+
     return width;
 }
 
@@ -96,37 +97,41 @@ float Measure::GetNotePositionInMeasure(float width, int noteIndex) const {
 }
 
 // update to use width
-float Measure::GetKeySignaturePositionInMeasure(float width) const {
+float Measure::GetKeySignaturePositionInMeasure(const System& system) const {
     float position;
 
     float clefWidth = MeausreClefWidth();
 
-    if (showKeySignature)
-        position = GetClefPositionInMeasure(width) + 10.0f + clefWidth;
+    if (showKeySignature || system.showKeySignature)
+        position = GetClefPositionInMeasure(system) + 10.0f + clefWidth;
     else
-        position = GetClefPositionInMeasure(width);
+        position = GetClefPositionInMeasure(system);
 
     return position;
 }
 
 // update to use width
-float Measure::GetTimeSignaturePositionInMeasure(float width) const {
-
+float Measure::GetTimeSignaturePositionInMeasure(const System& system) const {
     float position;
 
     float keySignatureWidth = MeausreKeySignatureWidth();
 
-    if (showTimeSignature)
-        position = GetKeySignaturePositionInMeasure(width) + keySignatureWidth + 10.0f;
+    if (showTimeSignature || system.showTimeSignature)
+        position = GetKeySignaturePositionInMeasure(system) + keySignatureWidth + 10.0f;
     else
-        position = GetKeySignaturePositionInMeasure(width);
+        position = GetKeySignaturePositionInMeasure(system);
 
     return position;
 }
 
 // update to use width
-float Measure::GetClefPositionInMeasure(float width) const {
-    float position = 10.0f;
+float Measure::GetClefPositionInMeasure(const System& system) const {
+    float position;
+
+    if (showClef || system.showClef)
+        position = 10.0f;
+    else
+        position = 0.0f;
 
     return position;
 }
@@ -220,7 +225,13 @@ float Measure::MeausreClefWidth() const
 float Measure::MeausreKeySignatureWidth() const
 {
     // TODO: make better to find the actual width and not the approx. width
-    float width = (float)std::abs(keySignature.fifths) * RenderMeasurement::MeasureGlyph(SMuFLID::accidentalSharp);
+    float width;
+
+    if (type == MeasureType::Standard)
+        width = (float)std::abs(keySignature.fifths) * RenderMeasurement::MeasureGlyph(SMuFLID::accidentalSharp);
+    else
+        width = 0.0f;
+
     return width;
 }
 
@@ -229,4 +240,9 @@ float Measure::MeausreTimeSignatureWidth() const
     float topNumWidth = RenderMeasurement::MeasureGlyph(GetTimeSignatureSMuFLID(timeSignature.notes));
     float bottomNumWidth = RenderMeasurement::MeasureGlyph(GetTimeSignatureSMuFLID(timeSignature.noteType));
     return std::max(topNumWidth, bottomNumWidth);
+}
+
+float Measure::GetRepeatBarlinePositionX() const
+{
+    return GetBeginningWidth();
 }

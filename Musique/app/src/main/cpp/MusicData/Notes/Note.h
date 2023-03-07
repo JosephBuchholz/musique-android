@@ -1,4 +1,6 @@
-#pragma once
+#ifndef MUSIQUE_NOTE_H
+#define MUSIQUE_NOTE_H
+
 #include <vector>
 #include "../Duration.h"
 #include "../Pitch.h"
@@ -45,13 +47,9 @@ public:
         None = 0, Standard, Tab
     };
 
-    enum class NoteDurationType {
-        None = 0, Whole, Half, Quarter, Eighth, Sixteenth, ThirtySecond
-    };
-
     bool isPlaying = false;
     NoteType type = NoteType::Standard;
-    NoteDurationType durationType = NoteDurationType::Whole;
+    NoteValue durationType = NoteValue::Whole;
     Duration duration = Duration();
     Pitch pitch = Pitch();
     float beatPosition = 0.0f; // the position of the note in the measure in beats(quarter notes)
@@ -103,3 +101,5 @@ protected:
     float relX = 0.0f;
     float relY = 0.0f;
 };
+
+#endif // MUSIQUE_NOTE_H

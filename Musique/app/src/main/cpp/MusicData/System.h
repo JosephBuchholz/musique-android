@@ -1,4 +1,5 @@
-#pragma once
+#ifndef MUSIQUE_SYSTEM_H
+#define MUSIQUE_SYSTEM_H
 
 /**
  * A class that holds data for a system on a page of sheet music
@@ -26,3 +27,5 @@ public:
     bool showKeySignature = true;
     float keySignaturePositionX = 0.0f; // relative to the start of the start of the system/start of first measure
 };
+
+#endif // MUSIQUE_SYSTEM_H

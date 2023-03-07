@@ -1,4 +1,5 @@
-#pragma once
+#ifndef MUSIQUE_METRONOMENOTE_H
+#define MUSIQUE_METRONOMENOTE_H
 
 #include "../Types.h"
 
@@ -9,3 +10,5 @@ public:
 
 public:
 };
+
+#endif // MUSIQUE_METRONOMENOTE_H

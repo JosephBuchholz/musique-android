@@ -1,4 +1,5 @@
-#pragma once
+#ifndef MUSIQUE_BEAM_H
+#define MUSIQUE_BEAM_H
 
 #include <vector>
 
@@ -25,3 +26,5 @@ public:
     BeamType beamType = BeamType::None;
     int beamLevel = 1;
 };
+
+#endif // MUSIQUE_BEAM_H

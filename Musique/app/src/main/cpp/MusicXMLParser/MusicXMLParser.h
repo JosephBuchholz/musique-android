@@ -1,4 +1,5 @@
-#pragma once
+#ifndef MUSIQUE_MUSICXMLPARSER_H
+#define MUSIQUE_MUSICXMLPARSER_H
 
 #include <string>
 //#include "libs/tinyxml/tinyxml.h"
@@ -138,3 +139,5 @@ protected:
 
     static void PrintErrors();
 };
+
+#endif // MUSIQUE_MUSICXMLPARSER_H

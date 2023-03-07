@@ -1,4 +1,5 @@
-#pragma once
+#ifndef MUSIQUE_MEASURE_H
+#define MUSIQUE_MEASURE_H
 
 #include "Notes/Note.h"
 #include "TimeSignature.h"
@@ -32,9 +33,17 @@ public:
     float CalculateMinWidth(float notesWidth) const;
 
     float GetNotePositionInMeasure(float width, int noteIndex) const;
-    float GetKeySignaturePositionInMeasure(float width) const;
-    float GetTimeSignaturePositionInMeasure(float width) const;
-    float GetClefPositionInMeasure(float width) const;
+
+    float GetKeySignaturePositionInMeasure(const System& system) const;
+    float GetTimeSignaturePositionInMeasure(const System& system) const;
+    float GetClefPositionInMeasure(const System& system) const;
+
+    /**
+     * The x position at which a repeat barline at the beginning of the measure would be
+     *
+     * @return the x position relative to the start of the measure
+     */
+    float GetRepeatBarlinePositionX() const;
 
     float GetPitchYPosition(Pitch pitch) const;
     float CalculateNoteYPositionRelativeToMeasure(int noteIndex) const;
@@ -84,6 +93,12 @@ private:
     float MeausreTimeSignatureWidth() const;
 
 public:
+
+    enum class MeasureType {
+        None = 0, Standard, Tab
+    };
+
+    MeasureType type = MeasureType::Standard;
 
     TimeSignature timeSignature = TimeSignature();
     bool showTimeSignature = false;
@@ -138,3 +153,5 @@ protected:
 
     float nextBeatPosition = -1.0f; // -1.0f means it is not a valid value
 };
+
+#endif // MUSIQUE_MEASURE_H

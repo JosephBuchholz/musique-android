@@ -1,4 +1,5 @@
-#pragma once
+#ifndef MUSIQUE_AUGMENTATIONDOT_H
+#define MUSIQUE_AUGMENTATIONDOT_H
 
 #include "../VisibleElement.h"
 #include "../../MusicDisplayConstants.h"
@@ -27,3 +28,5 @@ public:
     float positionX = 0.0f; // relative to the left hand side of the note
     float positionY = 0.0f; // relative to the top line of the staff
 };
+
+#endif // MUSIQUE_AUGMENTATIONDOT_H

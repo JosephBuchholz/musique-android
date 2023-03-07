@@ -1,4 +1,5 @@
-#pragma once
+#ifndef MUSIQUE_XMLHELPER_H
+#define MUSIQUE_XMLHELPER_H
 
 #include <string>
 #include "../libs/tinyxml2/tinyxml2.h"
@@ -23,3 +24,5 @@ public:
     static unsigned int GetUnsignedIntValue(XMLElement* element, unsigned int defaultValue = 0, bool required = false);
     static unsigned int GetUnsignedIntValue(const std::string& elementName, XMLElement* elementParent, unsigned int defaultValue = 0, bool required = false);
 };
+
+#endif // MUSIQUE_XMLHELPER_H

@@ -1,4 +1,5 @@
-#pragma once
+#ifndef MUSIQUE_DURATION_H
+#define MUSIQUE_DURATION_H
 
 struct Duration {
 
@@ -7,3 +8,5 @@ struct Duration {
 
     float duration = 1.0f;
 };
+
+#endif // MUSIQUE_DURATION_H

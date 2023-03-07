@@ -1,4 +1,5 @@
-#pragma once
+#ifndef MUSIQUE_CUBICCURVE_H
+#define MUSIQUE_CUBICCURVE_H
 
 #include "Paint.h"
 
@@ -27,3 +28,5 @@ struct CubicCurve {
 
     Paint paint = Paint();
 };
+
+#endif // MUSIQUE_CUBICCURVE_H

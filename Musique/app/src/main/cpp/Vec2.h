@@ -1,4 +1,5 @@
-#pragma once
+#ifndef MUSIQUE_VEC2_H
+#define MUSIQUE_VEC2_H
 
 template<typename T>
 struct Vec2
@@ -8,3 +9,5 @@ struct Vec2
 
     T x, y;
 };
+
+#endif // MUSIQUE_VEC2_H

@@ -1,4 +1,6 @@
-#pragma once
+#ifndef MUSIQUE_SONGDATA_H
+#define MUSIQUE_SONGDATA_H
+
 #include "InstrumentInfo.h"
 #include <vector>
 #include <string>
@@ -18,3 +20,5 @@ public:
 private:
 
 };
+
+#endif // MUSIQUE_SONGDATA_H

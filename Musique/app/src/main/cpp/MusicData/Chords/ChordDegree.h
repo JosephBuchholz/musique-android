@@ -1,4 +1,5 @@
-#pragma once
+#ifndef MUSIQUE_CHORDDEGREE_H
+#define MUSIQUE_CHORDDEGREE_H
 
 #include "../PrintableElement.h"
 #include "../String.h"
@@ -35,3 +36,5 @@ public:
     DegreeAlter degreeAlter;
     DegreeType degreeType;
 };
+
+#endif // MUSIQUE_CHORDDEGREE_H

@@ -1,4 +1,5 @@
-#pragma once
+#ifndef MUSIQUE_SETTINGS_H
+#define MUSIQUE_SETTINGS_H
 
 #include "MusicDisplayConstants.h"
 
@@ -12,3 +13,5 @@ public:
 
     Orientation pagesOrientation = Orientation::Horizontal;
 };
+
+#endif // MUSIQUE_SETTINGS_H

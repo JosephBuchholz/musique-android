@@ -1,4 +1,5 @@
-#pragma once
+#ifndef MUSIQUE_SOUNDEVENT_H
+#define MUSIQUE_SOUNDEVENT_H
 
 class SoundEvent {
 public:
@@ -13,3 +14,5 @@ public:
     float dynamics = 1.0f; // 1.0 is about a forte
     int velocity = dynamics * 90; // 90 is about a forte
 };
+
+#endif // MUSIQUE_SOUNDEVENT_H

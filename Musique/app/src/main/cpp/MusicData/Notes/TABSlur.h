@@ -1,4 +1,6 @@
-#pragma once
+#ifndef MUSIQUE_TABSLUR_H
+#define MUSIQUE_TABSLUR_H
+
 #include "../Types.h"
 #include <string>
 
@@ -14,3 +16,5 @@ struct TABSlur {
     AboveBelowType placement = AboveBelowType::None;
     std::string text = "";
 };
+
+#endif // MUSIQUE_TABSLUR_H

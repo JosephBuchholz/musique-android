@@ -1,4 +1,5 @@
-#pragma once
+#ifndef MUSIQUE_RENDERMEASUREMENT_H
+#define MUSIQUE_RENDERMEASUREMENT_H
 
 #include "RenderData/SMuFLGlyph.h"
 #include "RenderData/Text.h"
@@ -18,3 +19,5 @@ public:
     static float MeasureText(const Text& text);
     static float MeasureSpannableText(const SpannableText& text);
 };
+
+#endif // MUSIQUE_RENDERMEASUREMENT_H

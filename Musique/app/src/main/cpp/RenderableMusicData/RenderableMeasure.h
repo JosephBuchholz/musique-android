@@ -1,4 +1,5 @@
-#pragma once
+#ifndef MUSIQUE_RENDERABLEMEASURE_H
+#define MUSIQUE_RENDERABLEMEASURE_H
 
 #include "Renderable.h"
 #include "RenderableNote.h"
@@ -14,3 +15,5 @@ public:
 
     std::vector<std::shared_ptr<Line>> staffLines;
 };
+
+#endif // MUSIQUE_RENDERABLEMEASURE_H

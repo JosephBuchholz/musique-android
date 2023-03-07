@@ -1,4 +1,6 @@
-#pragma once
+#ifndef MUSIQUE_SONG_H
+#define MUSIQUE_SONG_H
+
 #include "Instrument.h"
 #include <vector>
 #include <string>
@@ -138,3 +140,5 @@ private:
 
     std::vector<TimeSpacePoint> m_TimeSpacePoints;
 };
+
+#endif // MUSIQUE_SONG_H

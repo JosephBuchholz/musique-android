@@ -76,11 +76,13 @@ void App::RenderLineOfMeasures(RenderData& renderData, unsigned int startMeasure
                                                       (lineSpacing * float(staff->lines - 1)) + staffPositionY, BarLinePaint));
 
 
-            RenderTimeSignature(renderData, measure, system.timeSignaturePositionX + measurePosition, lineSpacing, staff->lines, 0.0f, staffPositionY);
+            bool showTimeSignature = measure->showTimeSignature || (system.showTimeSignature && song->DoesMeasureStartNewSystem(measure->index));
+            measure->timeSignature.Render(renderData, showTimeSignature, system.timeSignaturePositionX + measurePosition, staffPositionY, lineSpacing, staff->lines);
 
-            RenderKeySignature(renderData, measure, system.keySignaturePositionX + measurePosition, lineSpacing,staff->lines, 0.0f,staffPositionY);
+            if (staff->type == Staff::StaffType::Standard)
+                RenderKeySignature(renderData, measure, system, system.keySignaturePositionX + measurePosition, lineSpacing,staff->lines, 0.0f,staffPositionY);
 
-            RenderClef(renderData, measure, system.clefPositionX + measurePosition, lineSpacing, staff->lines, 0.0f, staffPositionY);
+            RenderClef(renderData, measure, system, system.clefPositionX + measurePosition, lineSpacing, staff->lines, 0.0f, staffPositionY);
 
             // render directions
             for (const Direction &direction: measure->directions) {
@@ -131,8 +133,7 @@ void App::RenderLineOfMeasures(RenderData& renderData, unsigned int startMeasure
                 for (Chord &chord: measure->chords) {
                     chord.CalculateChordName();
                     float measurePositionY = staffPositionY;
-                    RenderChord(renderData, chord, measurePositionY, measure, measurePosition,
-                                0.0f, 0.0f);
+                    chord.Render(renderData, measurePosition, measurePositionY);
                 }
             }
 
@@ -316,9 +317,9 @@ void App::RenderBarline(RenderData& renderData, const Barline& barline, float ba
     }
 }
 
-void App::RenderKeySignature(RenderData& renderData, const Measure* measure, float positionX, float ls, int lines, float offsetX, float offsetY)
+void App::RenderKeySignature(RenderData& renderData, const Measure* measure, const System& system, float positionX, float ls, int lines, float offsetX, float offsetY)
 {
-    if (measure->showKeySignature && measure->keySignature.fifths != 0) {
+    if ((measure->showKeySignature || (system.showKeySignature && song->DoesMeasureStartNewSystem(measure->index))) && measure->keySignature.fifths != 0) {
         float positionY = (ls * float(lines - 1)) + offsetY; // the bottom line + instYPosition
 
         int octaveOffset = 0;
@@ -375,10 +376,10 @@ void App::RenderKeySignature(RenderData& renderData, const Measure* measure, flo
     }
 }
 
-void App::RenderClef(RenderData& renderData, const Measure* measure, float positionX, float ls, int lines, float offsetX, float offsetY)
+void App::RenderClef(RenderData& renderData, const Measure* measure, const System& system, float positionX, float ls, int lines, float offsetX, float offsetY)
 {
     // clef
-    if (measure->showClef) {
+    if (measure->showClef || (system.showClef && song->DoesMeasureStartNewSystem(measure->index))) {
         float positionY = measure->GetClefLineYPosition(song->displayConstants, lines) + offsetY; // the bottom line + instYPosition
         SMuFLGlyph glyph = SMuFLGlyph(GetClefSMuFLID(measure->clef, lines), positionX + offsetX, positionY, Paint(0xff000000));
         renderData.AddGlyph(glyph);
@@ -392,25 +393,7 @@ void App::RenderClef(RenderData& renderData, const Measure* measure, float posit
     }
 }
 
-void App::RenderTimeSignature(RenderData& renderData, const Measure* measure, float positionX, float ls, int lines, float offsetX, float offsetY)
-{
-    // time signature
-    if (measure->showTimeSignature and measure->timeSignature.print) {
-
-        int spaces = lines - 1;
-        float staffMiddle = ((float)spaces/2.0f) * ls;
-        float timeDigitHeight = 10.0f;
-        float positionY = (staffMiddle - timeDigitHeight) + offsetY;
-
-        renderData.AddGlyph(
-                SMuFLGlyph(GetTimeSignatureSMuFLID(measure->timeSignature.notes),positionX + offsetX, positionY,Paint(0xff000000)));
-        positionY += 20.0f;
-        renderData.AddGlyph(
-                SMuFLGlyph(GetTimeSignatureSMuFLID(measure->timeSignature.noteType),positionX + offsetX, positionY,Paint(0xff000000)));
-    }
-}
-
-void App::RenderLyric(RenderData& renderData, const Lyric& lyric, float notePositionX, float measurePositionY, float offsetX, float offsetY)
+/*void App::RenderLyric(RenderData& renderData, const Lyric& lyric, float notePositionX, float measurePositionY, float offsetX, float offsetY)
 {
     Paint paint = Paint();
     paint.textSize = 16.0f;
@@ -425,7 +408,7 @@ void App::RenderLyric(RenderData& renderData, const Lyric& lyric, float notePosi
     float positionY = lyric.positionY + measurePositionY;
 
     renderData.AddText(Text(lyric.text[0].text, positionX + offsetX, positionY + offsetY, Paint(lyric.color.color, paint)));
-}
+}*/
 
 void App::RenderDirection(RenderData& renderData, const Direction& direction, float measurePositionY, Measure* measure, float measureXPosition, float offsetX, float offsetY)
 {
@@ -512,7 +495,7 @@ void App::RenderDirection(RenderData& renderData, const Direction& direction, fl
     }
 }
 
-void App::RenderChord(RenderData& renderData, const Chord& chord, float measurePositionY, const Measure* measure, float measureXPosition, float offsetX, float offsetY)
+/*void App::RenderChord(RenderData& renderData, const Chord& chord, float measurePositionY, const Measure* measure, float measureXPosition, float offsetX, float offsetY)
 {
     Paint paint = Paint();
     paint.textSize = 16.0f;
@@ -526,7 +509,7 @@ void App::RenderChord(RenderData& renderData, const Chord& chord, float measureP
     float positionY = chord.positionY + measurePositionY;
     //LOGE("Chord (%s) is at %f, %f", chord.chordName.string.c_str(), chord.beatPosition, positionX);
     renderData.AddText(Text(chord.chordName.string, positionX + offsetX, positionY + offsetY, Paint(chord.color.color, paint)));
-}
+}*/
 
 void App::RenderRest(RenderData& renderData, const Note* note, float measurePositionX, int lines, float ls, float offsetX, float offsetY)
 {
@@ -554,7 +537,7 @@ void App::RenderRest(RenderData& renderData, const Note* note, float measurePosi
         positionY -= ls;
         renderData.AddGlyph(SMuFLGlyph(GetRestSMuFLID(note->durationType), positionX, positionY, Paint(color)));
     }
-    else if (note->durationType == Note::NoteDurationType::Whole) {
+    else if (note->durationType == NoteValue::Whole) {
         positionY -= ls;
         renderData.AddGlyph(SMuFLGlyph(GetRestSMuFLID(note->durationType), positionX, positionY, Paint(color)));
     }
@@ -732,11 +715,11 @@ void App::RenderNote(RenderData& renderData, const Note* note, Measure* measure,
         }
     }
 
-    for (const auto &lyric: note->lyrics) {
+    for (const auto& lyric: note->lyrics) {
         /*float positionY = (ls * (float) staff->lines) +
                           staffYPosition +
                           instYPosition + 20.0f;*/
-        RenderLyric(renderData, lyric, note->positionX + measurePositionX, measurePositionY, mainPositionX, mainPositionY);
+        lyric.Render(renderData, note->positionX + measurePositionX, measurePositionY, mainPositionX, mainPositionY);
     } // lyrics loop
 }
 

@@ -1,4 +1,5 @@
-#pragma once
+#ifndef MUSIQUE_TYPES_H
+#define MUSIQUE_TYPES_H
 
 #include <vector>
 #include <string>
@@ -110,3 +111,5 @@ enum class CurveOrientation
 {
     None = 0, Over, Under
 };
+
+#endif // MUSIQUE_TYPES_H

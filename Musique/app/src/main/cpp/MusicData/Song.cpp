@@ -365,9 +365,9 @@ void Song::OnUpdate()
 
                     m_MeasureBeginWidths[measureIndex] = std::max(measure->GetBeginningWidth(), m_MeasureBeginWidths[measureIndex]);
 
-                    systems[systemIndex].clefPositionX = std::max(measure->GetClefPositionInMeasure(0.0f), systems[systemIndex].clefPositionX);
-                    systems[systemIndex].keySignaturePositionX = std::max(measure->GetKeySignaturePositionInMeasure(0.0f), systems[systemIndex].keySignaturePositionX);
-                    systems[systemIndex].timeSignaturePositionX = std::max(measure->GetTimeSignaturePositionInMeasure(0.0f), systems[systemIndex].timeSignaturePositionX);
+                    systems[systemIndex].clefPositionX = std::max(measure->GetClefPositionInMeasure(systems[systemIndex]), systems[systemIndex].clefPositionX);
+                    systems[systemIndex].keySignaturePositionX = std::max(measure->GetKeySignaturePositionInMeasure(systems[systemIndex]), systems[systemIndex].keySignaturePositionX);
+                    systems[systemIndex].timeSignaturePositionX = std::max(measure->GetTimeSignaturePositionInMeasure(systems[systemIndex]), systems[systemIndex].timeSignaturePositionX);
 
                     int noteIndex = 0;
                     for (auto* note : measure->notes)

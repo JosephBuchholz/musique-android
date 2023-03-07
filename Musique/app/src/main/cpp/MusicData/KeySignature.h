@@ -1,4 +1,5 @@
-#pragma once
+#ifndef MUSIQUE_KEYSIGNATURE_H
+#define MUSIQUE_KEYSIGNATURE_H
 
 struct KeySignature {
 
@@ -22,3 +23,5 @@ struct KeySignature {
     Mode mode = Mode::None;
     bool print = true;
 };
+
+#endif // MUSIQUE_KEYSIGNATURE_H

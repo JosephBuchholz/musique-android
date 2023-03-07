@@ -1,4 +1,6 @@
-#pragma once
+#ifndef MUSIQUE_STRING_H
+#define MUSIQUE_STRING_H
+
 #include <string>
 
 struct String {
@@ -10,3 +12,5 @@ struct String {
     std::string string = "";
     bool print = true;
 };
+
+#endif // MUSIQUE_STRING_H

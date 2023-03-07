@@ -1,4 +1,5 @@
-#pragma once
+#ifndef MUSIQUE_CONVERTERS_H
+#define MUSIQUE_CONVERTERS_H
 
 #include <string>
 
@@ -32,3 +33,5 @@ bool IsUnsignedInt(const std::string& value);
 
 /// finds if two floats are equal within a certain limit
 bool FloatsAreEqual(float x, float y, float limit = 0.001f);
+
+#endif // MUSIQUE_CONVERTERS_H

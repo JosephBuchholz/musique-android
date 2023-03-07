@@ -1,4 +1,5 @@
-#pragma once
+#ifndef MUSIQUE_SPANNABLETEXT_H
+#define MUSIQUE_SPANNABLETEXT_H
 
 #include <string>
 #include <vector>
@@ -59,3 +60,5 @@ struct SpannableText {
     Paint mainPaint = Paint();
     std::vector<TextSpan> spans;
 };
+
+#endif // MUSIQUE_SPANNABLETEXT_H

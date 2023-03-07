@@ -1,4 +1,5 @@
-#pragma once
+#ifndef MUSIQUE_RENDERTEXT_H
+#define MUSIQUE_RENDERTEXT_H
 
 #include <string>
 #include "Paint.h"
@@ -20,3 +21,5 @@ struct Text {
 
     Paint paint = Paint();
 };
+
+#endif // MUSIQUE_RENDERTEXT_H

@@ -1,4 +1,5 @@
-#pragma once
+#ifndef MUSIQUE_CREDIT_H
+#define MUSIQUE_CREDIT_H
 
 #include "TextualElement.h"
 
@@ -36,6 +37,6 @@ public:
     } creditType = CreditType::None;
 
     CreditWords words;
-
-
 };
+
+#endif // MUSIQUE_CREDIT_H

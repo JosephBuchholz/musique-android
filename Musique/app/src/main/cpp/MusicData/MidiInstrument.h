@@ -1,4 +1,6 @@
-#pragma once
+#ifndef MUSIQUE_MIDIINSTRUMENT_H
+#define MUSIQUE_MIDIINSTRUMENT_H
+
 #include <string>
 
 class MidiInstrument {
@@ -11,3 +13,5 @@ public:
     int volume = 80;
     int pan = 0;
 };
+
+#endif // MUSIQUE_MIDIINSTRUMENT_H
