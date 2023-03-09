@@ -4,12 +4,27 @@
 #include "../VisibleElement.h"
 #include "../../MusicDisplayConstants.h"
 
+#include "../../RenderData/RenderData.h"
+
 /**
  * Class that represents an augmentation dot that lengthens a note by its duration value * 1.5.
  */
 class AugmentationDot : public VisibleElement {
     friend class Note;
     friend class MusicXMLParser;
+
+public:
+
+    /**
+     * Renders this class
+     *
+     * @param[out] renderData The RenderData object to render to
+     * @param[in] notePositionX The x position of the parent note
+     * @param[in] notePositionY The y position of the parent note
+     * @param[in] offsetX offset in x direction
+     * @param[in] offsetY offset in y direction
+     */
+    void Render(RenderData& renderData, float notePositionX, float notePositionY, float offsetX = 0.0f, float offsetY = 0.0f) const;
 
 protected:
 

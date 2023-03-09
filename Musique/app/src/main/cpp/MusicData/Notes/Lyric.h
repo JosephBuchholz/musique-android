@@ -21,11 +21,11 @@ public:
     /**
      * Renders this class
      *
-     * @param renderData The RenderData object to render to
-     * @param notePositionX
-     * @param measurePositionY
-     * @param offsetX
-     * @param offsetY
+     * @param[out] renderData The RenderData object to render to
+     * @param[in] notePositionX The x position of the parent note
+     * @param[in] measurePositionY The y position of the parent measure
+     * @param[in] offsetX offset in x direction
+     * @param[in] offsetY offset in y direction
      */
     void Render(RenderData& renderData, float notePositionX, float measurePositionY, float offsetX = 0.0f, float offsetY = 0.0f) const;
 

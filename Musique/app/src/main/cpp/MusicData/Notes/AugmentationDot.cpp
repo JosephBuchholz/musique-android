@@ -1,5 +1,10 @@
 #include "AugmentationDot.h"
 
+void AugmentationDot::Render(RenderData& renderData, float notePositionX, float notePositionY, float offsetX, float offsetY) const
+{
+    renderData.AddGlyph(SMuFLGlyph(SMuFLID::augmentationDot, positionX + notePositionX + offsetY, positionY + notePositionY + offsetX, Paint(color.color)));
+}
+
 void AugmentationDot::CalculatePositionAsPaged(const MusicDisplayConstants& displayConstants, bool noteIsOnLine, bool isTab)
 {
     positionY = 0.0f;

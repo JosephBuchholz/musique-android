@@ -1,7 +1,6 @@
 #ifndef MUSIQUE_SMUFLID_H
 #define MUSIQUE_SMUFLID_H
 
-#include "../MusicData/Clef.h"
 #include "../MusicData/Types.h"
 #include "../MusicData/Notes/Accidental.h"
 
@@ -140,26 +139,6 @@ enum class SMuFLID : uint16_t
     metAugmentationDot = 0xECB7
 };
 
-static SMuFLID GetClefSMuFLID(Clef clef, int staffLines)
-{
-    if (clef.sign == "G") {
-        return SMuFLID::GClef;
-    } else if (clef.sign == "F") {
-        return SMuFLID::FClef;
-    } else if (clef.sign == "C") {
-        return SMuFLID::CClef;
-    } else if (clef.sign == "TAB") {
-        if (staffLines == 6)
-            return SMuFLID::StringTabClef6;
-        else
-            return SMuFLID::StringTabClef4;
-    } else if (clef.sign == "percussion") {
-        return SMuFLID::unpitchedPercussionClef1;
-    }
-
-    return SMuFLID::None;
-}
-
 static SMuFLID GetNoteHeadSMuFLID(NoteValue type)
 {
     switch (type)
@@ -171,6 +150,7 @@ static SMuFLID GetNoteHeadSMuFLID(NoteValue type)
         case NoteValue::Eighth: return SMuFLID::noteheadBlack;
         case NoteValue::Sixteenth: return SMuFLID::noteheadBlack;
         case NoteValue::ThirtySecond: return SMuFLID::noteheadBlack;
+        default: return SMuFLID::noteheadDoubleWhole;
     }
 
     return SMuFLID::None;
@@ -208,6 +188,7 @@ static SMuFLID GetRestSMuFLID(NoteValue type)
         case NoteValue::Eighth: return SMuFLID::rest8th;
         case NoteValue::Sixteenth: return SMuFLID::rest16th;
         case NoteValue::ThirtySecond: return SMuFLID::rest32nd;
+        default: return SMuFLID::restDoubleWhole;
     }
 
     return SMuFLID::None;

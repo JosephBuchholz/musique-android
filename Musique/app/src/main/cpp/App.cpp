@@ -415,7 +415,7 @@ void App::RenderHorizontalLayout()
                             for (const Direction& direction : measure->directions)
                             {
                                 float positionY = staffYPosition + instYPosition - 20.0f;
-                                RenderDirection(m_RenderData, direction, positionY, measure, 0.0f, 0.0f, measurePosition);
+                                //RenderDirection(m_RenderData, direction, positionY, measure, 0.0f, 0.0f, measurePosition);
                             }
 
                             int noteIndex = 0;
@@ -590,8 +590,8 @@ void App::CalculateRenderForVerticalLayout()
                                     // render directions
                                     for (const Direction &direction: measure->directions) {
                                         float positionY = staffYPosition + instYPosition - 20.0f;
-                                        RenderDirection(m_RenderData, direction, positionY, measure,
-                                                        0.0f, 0.0f, measurePosition);
+                                        //RenderDirection(m_RenderData, direction, positionY, measure,
+                                        //                0.0f, 0.0f, measurePosition);
                                     }
 
                                     int noteIndex = 0;

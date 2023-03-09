@@ -14,8 +14,9 @@
 /**
  * An object that holds data to render something to the screen.
  */
-struct RenderData {
-
+class RenderData
+{
+public:
     ~RenderData()
     {
         /*for (int i = 0; i < Lines.size(); i++)

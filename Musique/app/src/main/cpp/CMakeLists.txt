@@ -29,7 +29,7 @@ add_library( # Sets the name of the library.
         MusicData/Song.cpp
         MusicData/SongData.cpp
         MusicData/Notes/Note.cpp
-        MusicData/Measure.cpp
+        MusicData/Measures/Measure.cpp
         MusicData/Staff.cpp
         MusicData/Instrument.cpp
         MusicData/Chords/Chord.cpp
@@ -39,7 +39,11 @@ add_library( # Sets the name of the library.
         MusicData/Notes/Beam.cpp
         MusicData/Notes/BeamGroup.cpp
         MusicData/Directions/MetronomeMark.cpp
-        MusicData/TimeSignature.cpp
+        MusicData/Directions/Direction.cpp
+        MusicData/Measures/KeySignature.cpp
+        MusicData/Measures/Clef.cpp
+        MusicData/Pitch.cpp
+        MusicData/Measures/TimeSignature.cpp
         RenderMeasurement.cpp
         MusicXMLParser/MusicXMLParser.cpp
         MusicXMLParser/XMLHelper.cpp

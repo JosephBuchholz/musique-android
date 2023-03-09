@@ -1,7 +1,7 @@
 #ifndef MUSIQUE_STAFF_H
 #define MUSIQUE_STAFF_H
 
-#include "Measure.h"
+#include "Measures/Measure.h"
 #include <vector>
 
 struct StaffTuning {

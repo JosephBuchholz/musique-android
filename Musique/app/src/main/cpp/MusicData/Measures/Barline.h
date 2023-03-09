@@ -1,9 +1,16 @@
+/**
+ * This file contains the definition of the `Barline` class.
+ */
+
 #ifndef MUSIQUE_BARLINE_H
 #define MUSIQUE_BARLINE_H
 
-#include "VisibleElement.h"
-#include "Types.h"
+#include "../VisibleElement.h"
+#include "../Types.h"
 
+/**
+ * This class represents a barline in a measure.
+ */
 class Barline : public VisibleElement {
 
 public:

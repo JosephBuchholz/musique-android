@@ -2,7 +2,7 @@
 #define MUSIQUE_ASSETID_H
 
 #include "MusicData/Types.h"
-#include "MusicData/Clef.h"
+#include "MusicData/Measures/Clef.h"
 #include "MusicData/Notes/Accidental.h"
 
 enum class AssetID {
@@ -129,7 +129,7 @@ static AssetID GetNoteHeadAssetID(NoteValue type)
     return AssetID::None;
 }
 
-static AssetID GetClefAssetID(Clef clef)
+/*static AssetID GetClefAssetID(Clef clef)
 {
     if (clef.sign == "G") {
         return AssetID::TrebleClef;
@@ -144,7 +144,7 @@ static AssetID GetClefAssetID(Clef clef)
     }
 
     return AssetID::None;
-}
+}*/
 
 static AssetID GetAccidentalAssetID(Accidental::AccidentalType type)
 {

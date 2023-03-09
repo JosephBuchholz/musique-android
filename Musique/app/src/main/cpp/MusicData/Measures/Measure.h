@@ -1,16 +1,16 @@
 #ifndef MUSIQUE_MEASURE_H
 #define MUSIQUE_MEASURE_H
 
-#include "Notes/Note.h"
+#include "../Notes/Note.h"
 #include "TimeSignature.h"
 #include "KeySignature.h"
 #include "Clef.h"
-#include "Transpose.h"
-#include "Directions/Direction.h"
-#include "SoundEvent.h"
-#include "Chords/Chord.h"
+#include "../Transpose.h"
+#include "../Directions/Direction.h"
+#include "../SoundEvent.h"
+#include "../Chords/Chord.h"
 #include "Barline.h"
-#include "Notes/BeamGroup.h"
+#include "../Notes/BeamGroup.h"
 
 #include <vector>
 
@@ -48,8 +48,6 @@ public:
     float GetPitchYPosition(Pitch pitch) const;
     float CalculateNoteYPositionRelativeToMeasure(int noteIndex) const;
     int GetLetterNumber(const std::string& s) const;
-
-    float GetClefLineYPosition(MusicDisplayConstants displayConstants, int lines) const;
 
     float GetPlayLinePositionInMeasure(float playLineBeatPositionInMeasure, float width) {
         return (playLineBeatPositionInMeasure / duration.duration) * width; // <-- need to be better

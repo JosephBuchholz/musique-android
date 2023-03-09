@@ -54,11 +54,6 @@ private:
     void RenderNote(RenderData& renderData, const Note* note, Measure* measure, float measurePositionX, const Staff* staff, float measurePositionY, float measureWidth, int measureNumber, float ls, float mainPositionX, float mainPositionY, int noteIndex);
     void RenderRest(RenderData& renderData, const Note* note, float measurePositionX, int lines, float ls, float offsetX, float offsetY);
     void RenderTabNote(RenderData& renderData, const Note* note, const Staff* staff, float measurePositionX, float measureWidth, int lines, float ls, float offsetX, float offsetY);
-    void RenderDirection(RenderData& renderData, const Direction& direction, float measurePositionY, Measure* measure, float measureXPosition, float offsetX, float offsetY);
-    //void RenderLyric(RenderData& renderData, const Lyric& lyric, float notePositionX, float measurePositionY, float offsetX, float offsetY);
-    //void RenderChord(RenderData& renderData, const Chord& chord, float measurePositionY, const Measure* measure, float measureXPosition, float offsetX, float offsetY);
-    void RenderKeySignature(RenderData& renderData, const Measure* measure, const System& system, float positionX, float ls, int lines, float offsetX, float offsetY);
-    void RenderClef(RenderData& renderData, const Measure* measure, const System& system, float positionX, float ls, int lines, float offsetX, float offsetY);
 
     void RenderNoteFlag(RenderData& renderData, const Note* note, float notePositionX, float notePositionY);
     void RenderNoteStem(RenderData& renderData, const Note* note, float notePositionX, float notePositionY);

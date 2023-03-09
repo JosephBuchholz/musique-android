@@ -79,16 +79,17 @@ void App::RenderLineOfMeasures(RenderData& renderData, unsigned int startMeasure
             bool showTimeSignature = measure->showTimeSignature || (system.showTimeSignature && song->DoesMeasureStartNewSystem(measure->index));
             measure->timeSignature.Render(renderData, showTimeSignature, system.timeSignaturePositionX + measurePosition, staffPositionY, lineSpacing, staff->lines);
 
-            if (staff->type == Staff::StaffType::Standard)
-                RenderKeySignature(renderData, measure, system, system.keySignaturePositionX + measurePosition, lineSpacing,staff->lines, 0.0f,staffPositionY);
+            bool showKeySignature = (measure->showKeySignature || (system.showKeySignature && song->DoesMeasureStartNewSystem(measure->index)));
+            measure->keySignature.Render(renderData, showKeySignature, system.keySignaturePositionX + measurePosition, lineSpacing, staff->lines, measure->clef, 0.0f, staffPositionY);
 
-            RenderClef(renderData, measure, system, system.clefPositionX + measurePosition, lineSpacing, staff->lines, 0.0f, staffPositionY);
+            bool showClef = measure->showClef || (system.showClef && song->DoesMeasureStartNewSystem(measure->index));
+            measure->clef.Render(renderData, showClef, system.clefPositionX + measurePosition, song->displayConstants, staff->lines, 0.0f, staffPositionY);
 
             // render directions
             for (const Direction &direction: measure->directions) {
                 float measurePositionY = staffPositionY;
-                RenderDirection(renderData, direction, measurePositionY, measure,
-                                measurePosition, 0.0f, 0.0f);
+
+                direction.Render(renderData, measurePosition, measurePositionY);
             }
 
             if (!measure->startsMultiMeasureRest)
@@ -316,200 +317,6 @@ void App::RenderBarline(RenderData& renderData, const Barline& barline, float ba
             break; // do nothing
     }
 }
-
-void App::RenderKeySignature(RenderData& renderData, const Measure* measure, const System& system, float positionX, float ls, int lines, float offsetX, float offsetY)
-{
-    if ((measure->showKeySignature || (system.showKeySignature && song->DoesMeasureStartNewSystem(measure->index))) && measure->keySignature.fifths != 0) {
-        float positionY = (ls * float(lines - 1)) + offsetY; // the bottom line + instYPosition
-
-        int octaveOffset = 0;
-        if (measure->clef.sign == "F")
-            octaveOffset = -2;
-
-        if (measure->keySignature.fifths > 0) // sharps
-        {
-            for (int n = 1; n <= measure->keySignature.fifths; n++) // loop through notes in 5ths ending at C#
-            {
-                float y = 0;
-                switch (n)
-                {
-                    case 1: y = measure->GetPitchYPosition(Pitch("F", 5 + octaveOffset, 0.0f)); break;
-                    case 2: y = measure->GetPitchYPosition(Pitch("C", 5 + octaveOffset, 0.0f)); break;
-                    case 3: y = measure->GetPitchYPosition(Pitch("G", 5 + octaveOffset, 0.0f)); break;
-                    case 4: y = measure->GetPitchYPosition(Pitch("D", 5 + octaveOffset, 0.0f)); break;
-                    case 5: y = measure->GetPitchYPosition(Pitch("A", 4 + octaveOffset, 0.0f)); break;
-                    case 6: y = measure->GetPitchYPosition(Pitch("E", 5 + octaveOffset, 0.0f)); break;
-                    case 7: y = measure->GetPitchYPosition(Pitch("B", 4 + octaveOffset, 0.0f)); break;
-                    default: break;
-                }
-
-                positionY = (ls * y) + offsetY;
-                renderData.AddGlyph(SMuFLGlyph(SMuFLID::accidentalSharp, positionX + offsetX, positionY, Paint(0xff000000)));
-                positionX += 10.0f;
-            }
-        }
-        else // flats
-        {
-            for (int n = -1; n >= measure->keySignature.fifths; n--) // loop through notes in descending 5ths ending at Cb
-            {
-                float y = 0.0f;
-                switch (n)
-                {
-                    case -1: y = measure->GetPitchYPosition(Pitch("B", 4 + octaveOffset, 0.0f)); break;
-                    case -2: y = measure->GetPitchYPosition(Pitch("E", 5 + octaveOffset, 0.0f)); break;
-                    case -3: y = measure->GetPitchYPosition(Pitch("A", 4 + octaveOffset, 0.0f)); break;
-                    case -4: y = measure->GetPitchYPosition(Pitch("D", 5 + octaveOffset, 0.0f)); break;
-                    case -5: y = measure->GetPitchYPosition(Pitch("G", 4 + octaveOffset, 0.0f)); break;
-                    case -6: y = measure->GetPitchYPosition(Pitch("C", 5 + octaveOffset, 0.0f)); break;
-                    case -7: y = measure->GetPitchYPosition(Pitch("F", 4 + octaveOffset, 0.0f)); break;
-                    default: break;
-                }
-
-                positionY = (ls * y) + offsetY;
-                renderData.AddGlyph(SMuFLGlyph(SMuFLID::accidentalFlat, positionX + offsetX, positionY, Paint(0xff000000)));
-                positionX += 8.5f;
-            }
-        }
-        // TODO: add naturals
-
-        //renderData.AddBitmap(RenderBitmap(GetKeySignatureAssetID(measure->keySignature.fifths),positionX, positionY, 1.0f, 1.0f,Paint(0xff000000)));
-    }
-}
-
-void App::RenderClef(RenderData& renderData, const Measure* measure, const System& system, float positionX, float ls, int lines, float offsetX, float offsetY)
-{
-    // clef
-    if (measure->showClef || (system.showClef && song->DoesMeasureStartNewSystem(measure->index))) {
-        float positionY = measure->GetClefLineYPosition(song->displayConstants, lines) + offsetY; // the bottom line + instYPosition
-        SMuFLGlyph glyph = SMuFLGlyph(GetClefSMuFLID(measure->clef, lines), positionX + offsetX, positionY, Paint(0xff000000));
-        renderData.AddGlyph(glyph);
-        /*float glyphWidth = RenderMeasurement::MeasureGlyph(glyph);
-        renderData.AddLine(std::make_shared<Line>(positionX + offsetX, positionY, positionX + offsetX + glyphWidth, positionY, Paint(HeavyBarLinePaint)));
-        LOGE("glyphWidth: %f", glyphWidth);*/
-
-        //float positionX = measure->GetClefPositionInMeasure(song->GetMeasureWidth(measure->index)) + measurePosition + offsetX;
-        //float positionY = (ls * float(lines - 1)) + offsetY; // the bottom line + instYPosition
-        //renderData.AddBitmap(RenderBitmap(GetClefAssetID(measure->clef), positionX,positionY, 1.0f, 1.0f,Paint(0xff000000)));
-    }
-}
-
-/*void App::RenderLyric(RenderData& renderData, const Lyric& lyric, float notePositionX, float measurePositionY, float offsetX, float offsetY)
-{
-    Paint paint = Paint();
-    paint.textSize = 16.0f;
-    if (lyric.fontStyle == FontStyle::Italic)
-        paint.isItalic = true;
-    if (lyric.fontWeight == FontWeight::Bold)
-        paint.isBold = true;
-    paint.textSize = lyric.fontSize.size;
-
-    //float positionX = song->GetPositionXInSong(note->beatPositionInSong, measure->index);
-    float positionX = lyric.positionX + notePositionX;
-    float positionY = lyric.positionY + measurePositionY;
-
-    renderData.AddText(Text(lyric.text[0].text, positionX + offsetX, positionY + offsetY, Paint(lyric.color.color, paint)));
-}*/
-
-void App::RenderDirection(RenderData& renderData, const Direction& direction, float measurePositionY, Measure* measure, float measureXPosition, float offsetX, float offsetY)
-{
-    if (!direction.rehearsals.empty())
-    {
-        Rehearsal rehearsal = direction.rehearsals[0];
-        Paint paint = Paint();
-        paint.textSize = 16.0f;
-        if (rehearsal.fontStyle == FontStyle::Italic)
-            paint.isItalic = true;
-        if (rehearsal.fontWeight == FontWeight::Bold)
-            paint.isBold = true;
-        paint.textSize = rehearsal.fontSize.size;
-        //float positionX = song->GetPositionXInMeasure(direction.beatPositionInSong, measure->index) + measureXPosition;
-        float positionX = rehearsal.positionX + measureXPosition;
-        float positionY = rehearsal.positionY + measurePositionY;
-
-        renderData.AddText(Text(rehearsal.text.string, positionX + offsetX, positionY + offsetY, Paint(rehearsal.color.color, paint)));
-    }
-    else if (!direction.words.empty())
-    {
-        Words words = direction.words[0];
-        Paint paint = Paint();
-        paint.textSize = 16.0f;
-        if (words.fontStyle == FontStyle::Italic)
-            paint.isItalic = true;
-        if (words.fontWeight == FontWeight::Bold)
-            paint.isBold = true;
-        paint.textSize = words.fontSize.size;
-
-        //float positionX = song->GetPositionXInSong(direction.beatPositionInSong, measure->index);
-        float positionX = words.positionX + measureXPosition;
-        float positionY = words.positionY + measurePositionY;
-
-        renderData.AddText(Text(words.text.string, positionX + offsetX, positionY + offsetY, Paint(words.color.color, paint)));
-    }
-    else if (direction.metronomeMark != nullptr)
-    {
-        float positionX = direction.metronomeMark->positionX + measureXPosition;
-        float positionY = direction.metronomeMark->positionY + measurePositionY;
-        //std::string string = direction.metronomeMark->tempo + (char)0xECA6;
-        std::string string = " = " + direction.metronomeMark->tempo;
-        //std::u16string s = direction.metronomeMark->tempo;
-        //LOGE("metronomeMark: %s", string.c_str());
-
-        //std::u16string s;
-        //s.append((char16_t)0xECA6);
-        std::vector<uint16_t> chars;
-        chars.push_back((uint16_t)GetMetronomeNoteSMuFLID(direction.metronomeMark->mainNoteUnit.noteValue));
-        if (direction.metronomeMark->mainNoteUnit.isDotted)
-            chars.push_back((uint16_t)SMuFLID::metAugmentationDot);
-
-        for (auto& c : string)
-        {
-            if (c == '\0')
-                break;
-            chars.push_back(c);
-        }
-
-        std::vector<TextSpan> spans;
-        Paint glyphPaint = Paint(direction.metronomeMark->color.color);
-        glyphPaint.useMusicFont = true;
-        glyphPaint.textSize = 40.0f;
-        glyphPaint.align = Paint::Align::Left;
-
-        Paint paint = Paint(direction.metronomeMark->color.color);
-        paint.isBold = true;
-        paint.textSize = 26.0f;
-        paint.align = Paint::Align::Left;
-
-        if (direction.metronomeMark->mainNoteUnit.isDotted)
-        {
-            spans.emplace_back(0, 2, glyphPaint);
-            spans.emplace_back(2, 10, paint);
-        }
-        else
-        {
-            spans.emplace_back(0, 1, glyphPaint);
-            spans.emplace_back(1, 10, paint);
-        }
-
-        renderData.AddSpannableText(std::make_shared<SpannableText>(chars, positionX + offsetX, positionY + offsetY, spans, Paint(direction.metronomeMark->color.color)));
-        //renderData.AddText(Text(string, positionX + offsetX, positionY + offsetY, Paint(direction.metronomeMark->color.color)));
-    }
-}
-
-/*void App::RenderChord(RenderData& renderData, const Chord& chord, float measurePositionY, const Measure* measure, float measureXPosition, float offsetX, float offsetY)
-{
-    Paint paint = Paint();
-    paint.textSize = 16.0f;
-    if (chord.fontStyle == FontStyle::Italic)
-        paint.isItalic = true;
-    if (chord.fontWeight == FontWeight::Bold)
-        paint.isBold = true;
-    paint.textSize = chord.fontSize.size;
-    //float positionX = song->GetPositionXInMeasure(chord.beatPositionInSong, measure->index) + measureXPosition;
-    float positionX = chord.positionX + measureXPosition;
-    float positionY = chord.positionY + measurePositionY;
-    //LOGE("Chord (%s) is at %f, %f", chord.chordName.string.c_str(), chord.beatPosition, positionX);
-    renderData.AddText(Text(chord.chordName.string, positionX + offsetX, positionY + offsetY, Paint(chord.color.color, paint)));
-}*/
 
 void App::RenderRest(RenderData& renderData, const Note* note, float measurePositionX, int lines, float ls, float offsetX, float offsetY)
 {
@@ -851,7 +658,7 @@ void App::RenderAugmentationDots(RenderData& renderData, const std::vector<Augme
     // aug dot
     for (const auto& dot : dots)
     {
-        renderData.AddGlyph(SMuFLGlyph(SMuFLID::augmentationDot, dot.positionX + notePositionX, dot.positionY + notePositionY, Paint(dot.color.color)));
+        dot.Render(renderData, notePositionX, notePositionY);
     }
 }
 

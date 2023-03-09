@@ -1,5 +1,5 @@
 #include "Measure.h"
-#include "../RenderMeasurement.h"
+#include "../../RenderMeasurement.h"
 
 float Measure::GetMiddleHeight(float staffLineCount, float lineSpacing)
 {
@@ -192,34 +192,9 @@ void Measure::CalculateAsPaged(const MusicDisplayConstants& displayConstants)
         staffDistance = defStaffDistance;
 }
 
-// from the bottom staff line
-float Measure::GetClefLineYPosition(MusicDisplayConstants displayConstants, int lines) const
-{
-    float clefYPosition = 0.0f;
-    float fromTopLine = 0.0f;
-    int spaces = (lines - 1);
-
-    if (clef.sign == "G" || clef.sign == "F" || clef.sign == "C") {
-        clefYPosition = (float)(clef.line - 1) * displayConstants.lineSpacing;
-        fromTopLine = (spaces*displayConstants.lineSpacing) - clefYPosition;
-    }
-    else if (clef.sign == "TAB")
-    {
-        clefYPosition = ((float)spaces/2.0f) * displayConstants.tabLineSpacing;
-        fromTopLine = (spaces*displayConstants.tabLineSpacing) - clefYPosition;
-    }
-    else if (clef.sign == "percussion")
-    {
-        clefYPosition = ((float)spaces/2.0f) * displayConstants.lineSpacing;
-        fromTopLine = (spaces*displayConstants.lineSpacing) - clefYPosition;
-    }
-
-    return fromTopLine;
-}
-
 float Measure::MeausreClefWidth() const
 {
-    return RenderMeasurement::MeasureGlyph(GetClefSMuFLID(clef, 6)); // TODO: use actual staff lines
+    return RenderMeasurement::MeasureGlyph(Clef::GetClefSMuFLID(clef, 6)); // TODO: use actual staff lines
 }
 
 float Measure::MeausreKeySignatureWidth() const
