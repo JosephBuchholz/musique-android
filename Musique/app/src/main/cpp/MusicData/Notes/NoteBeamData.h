@@ -1,3 +1,7 @@
+/**
+ * This file contains the definition of the `NoteBeamData` class.
+ */
+
 #ifndef MUSIQUE_NOTEBEAMDATA_H
 #define MUSIQUE_NOTEBEAMDATA_H
 

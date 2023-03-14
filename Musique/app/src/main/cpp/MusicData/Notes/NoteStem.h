@@ -1,10 +1,18 @@
+/**
+ * This file contains the definition of the `NoteStem` class.
+ */
+
 #ifndef MUSIQUE_NOTESTEM_H
 #define MUSIQUE_NOTESTEM_H
 
 #include <string>
 
-struct NoteStem {
-
+/**
+ * This class represents a note stem on a note.
+ */
+class NoteStem
+{
+public:
     NoteStem() {}
 
     enum class StemType {

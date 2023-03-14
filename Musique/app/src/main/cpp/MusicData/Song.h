@@ -56,7 +56,7 @@ public:
 private:
     struct TimeSpacePoint
     {
-        float beatPosition = 0.0f;
+        float beatPositionInSong = 0.0f;
         float position = 0.0f;
         int measureIndex = 0;
     };

@@ -403,11 +403,11 @@ void Song::OnUpdate()
                 int measureIndex = 0;
                 for (auto* measure : staff->measures) {
                     TimeSpacePoint beginMeasurePoint = TimeSpacePoint();
-                    beginMeasurePoint.beatPosition = measure->beatPosition;
+                    beginMeasurePoint.beatPositionInSong = measure->beatPosition;
                     beginMeasurePoint.position = 0.0f;
                     beginMeasurePoint.measureIndex = measureIndex;
                     TimeSpacePoint endMeasurePoint = TimeSpacePoint();
-                    endMeasurePoint.beatPosition = measure->beatPosition + measure->duration.duration;
+                    endMeasurePoint.beatPositionInSong = measure->beatPosition + measure->duration.duration;
                     endMeasurePoint.position = measure->measureWidth;
                     endMeasurePoint.measureIndex = measureIndex;
 
@@ -422,17 +422,17 @@ void Song::OnUpdate()
                         int insertIndex = 0;
                         bool added = false;
                         for (TimeSpacePoint point : m_TimeSpacePoints) {
-                            if (note->beatPositionInSong < point.beatPosition) // note should come before this point
+                            if (note->beatPositionInSong < point.beatPositionInSong) // note should come before this point
                             {
                                 TimeSpacePoint newPoint = TimeSpacePoint();
-                                newPoint.beatPosition = note->beatPositionInSong;
+                                newPoint.beatPositionInSong = note->beatPositionInSong;
                                 newPoint.position = note->positionX;
                                 newPoint.measureIndex = measureIndex;
                                 m_TimeSpacePoints.insert(m_TimeSpacePoints.begin() + insertIndex, newPoint); // insert note at insertIndex
                                 added = true;
                                 break;
                             }
-                            else if (note->beatPositionInSong == point.beatPosition) // note is not needed to make a new point
+                            else if (note->beatPositionInSong == point.beatPositionInSong) // note is not needed to make a new point
                             {
                                 added = true;
                                 break;
@@ -444,7 +444,7 @@ void Song::OnUpdate()
                         if (!added)
                         {
                             TimeSpacePoint newPoint = TimeSpacePoint();
-                            newPoint.beatPosition = note->beatPositionInSong;
+                            newPoint.beatPositionInSong = note->beatPositionInSong;
                             newPoint.position = note->positionX;
                             newPoint.measureIndex = measureIndex;
                             m_TimeSpacePoints.push_back(newPoint);
@@ -467,7 +467,8 @@ void Song::OnUpdate()
                     for (auto& direction : measure->directions)
                     {
                         float defaultX = GetPositionXInMeasure(direction.beatPositionInSong, measureIndex);
-                        float defaultY = -20.0f;
+                        LOGW("PositionX of direction: Beatposition: %f, MI: %i, X: %f", direction.beatPositionInSong, measureIndex, defaultX);
+                        float defaultY = -30.0f;
 
                         for (auto& word : direction.words)
                         {
@@ -482,6 +483,24 @@ void Song::OnUpdate()
                         if (direction.metronomeMark != nullptr)
                         {
                             direction.metronomeMark->CalculatePositionAsPaged(displayConstants, defaultX, defaultY);
+                        }
+
+                        for (auto& dynamic : direction.dynamics)
+                        {
+                            dynamic.CalculatePositionAsPaged(displayConstants, { defaultX, defaultY });
+                        }
+
+                        if (direction.dynamicWedge != nullptr)
+                        {
+                            float defaultStartX = GetPositionXInMeasure(direction.dynamicWedge->beatPositionInSongStart, measureIndex);
+                            float defaultStartY = -30.0f;
+
+                            float defaultEndX = GetPositionXInMeasure(direction.dynamicWedge->beatPositionInSongEnd, measureIndex);
+                            float defaultEndY = -30.0f;
+
+                            float defaultSpread = 15.0f;
+
+                            direction.dynamicWedge->CalculatePositionAsPaged(displayConstants, { defaultStartX, defaultStartY }, { defaultEndX, defaultEndY }, defaultSpread);
                         }
                     }
 
@@ -498,6 +517,10 @@ void Song::OnUpdate()
                         if (note->isRest) // musescore specific code
                         {
                             note->positionX = GetPositionXInMeasure(note->beatPositionInSong, measureIndex);
+                            if (note->isFullMeasureRest)
+                            {
+                                note->positionX = measure->measureWidth / 2.0f;
+                            }
                             //LOGE("Rest Position X: %f, BP: %f, m: %d", note->positionX, note->beatPositionInSong, measureIndex);
                             note->positionY = 0.0f;
                         }
@@ -827,13 +850,13 @@ void Song::AddTimeSpacePoint(TimeSpacePoint point)
     bool added = false;
     int insertIndex = 0;
     for (TimeSpacePoint compare : m_TimeSpacePoints) {
-        if (point.beatPosition < compare.beatPosition) // point should come before compare
+        if (point.beatPositionInSong < compare.beatPositionInSong) // point should come before compare
         {
             m_TimeSpacePoints.insert(m_TimeSpacePoints.begin() + insertIndex, point); // insert point at insertIndex
             added = true;
             break;
         }
-        else if (point.beatPosition == compare.beatPosition) // point is not needed
+        else if (point.beatPositionInSong == compare.beatPositionInSong) // point is not needed
         {
             added = true;
             break;
@@ -860,6 +883,16 @@ void Song::CalculateNoteBeatPositionsInSong()
 
                 for (Chord& chord : measure->chords) {
                     chord.beatPositionInSong = chord.beatPosition + measureBeatPosition;
+                }
+
+                for (Direction& direction : measure->directions) {
+                    direction.beatPositionInSong = direction.beatPosition + measureBeatPosition;
+
+                    if (direction.dynamicWedge != nullptr)
+                    {
+                        direction.dynamicWedge->beatPositionInSongStart = direction.dynamicWedge->beatPositionStart + measureBeatPosition;
+                        direction.dynamicWedge->beatPositionInSongEnd = direction.dynamicWedge->beatPositionEnd + measureBeatPosition;
+                    }
                 }
 
                 measureIndex++;
@@ -951,7 +984,7 @@ float Song::GetPositionXInMeasure(float beatPositionInSong, int currentMeasureIn
         {
             if (currentMeasureIndex == point.measureIndex)
             {
-                if (FloatsAreEqual(beatPositionInSong, point.beatPosition))
+                if (FloatsAreEqual(beatPositionInSong, point.beatPositionInSong))
                 {
                     position = point.position;
                     //LOGE("beatPositionInSong == point.beatPosition: %f", position);
@@ -959,18 +992,22 @@ float Song::GetPositionXInMeasure(float beatPositionInSong, int currentMeasureIn
 
                     break;
                 }
-                else if (beatPositionInSong < point.beatPosition)
+                else if (beatPositionInSong < point.beatPositionInSong)
                 {
-                    float previousBeatPosition = previousPoint.beatPosition;
+                    float previousBeatPosition = previousPoint.beatPositionInSong;
+                    float previousPosition = previousPoint.position;
                     if (currentMeasureIndex != previousPoint.measureIndex)
-                        previousBeatPosition = 0.0f;
+                    {
+                        previousBeatPosition = GetMeasureBeatPosition(currentMeasureIndex);
+                        previousPosition = 0.0f;
+                    }
 
-                    float posRange = (point.beatPosition - previousBeatPosition);
+                    float posRange = (point.beatPositionInSong - previousBeatPosition);
                     if (posRange == 0)
                         LOGE("divide by 0!!!!!!!!!!");
                     float percentage = (beatPositionInSong - previousBeatPosition) / posRange;
-                    position = (point.position - previousPoint.position) * percentage;
-                    position += previousPoint.position;
+                    position = (point.position - previousPosition) * percentage;
+                    position += previousPosition;
 
                     //LOGE("beatPositionInSong < point.beatPosition: bpos: %f, pos: %f, posRange: %f, percentage: %f, pointBP: %f, prePointBP: %f, pMI: %d, prePMI: %d, pointP: %f, prePointP: %f", beatPositionInSong, position, posRange, percentage, point.beatPosition, previousPoint.beatPosition, point.measureIndex, previousPoint.measureIndex, point.position, previousPoint.position);
 

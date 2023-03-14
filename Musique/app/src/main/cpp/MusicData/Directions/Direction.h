@@ -11,6 +11,8 @@
 #include "Rehearsal.h"
 #include "Words.h"
 #include "MetronomeMark.h"
+#include "Dynamic.h"
+#include "DynamicWedge.h"
 
 #include "../Types.h"
 
@@ -40,12 +42,14 @@ public:
 
 public:
 
-    float beatPosition = 0.0f; // the position of the note in the measure in beats(quarter notes)
-    float beatPositionInSong = 0.0f; // the position of the note in the song(not counting repeats) in beats(quarter notes)
+    float beatPosition = 0.0f; // the position of the direction in the measure in beats(quarter notes)
+    float beatPositionInSong = 0.0f; // the position of the direction in the song(not counting repeats) in beats(quarter notes)
 
     std::vector<Rehearsal> rehearsals;
     std::vector<Words> words;
     std::shared_ptr<MetronomeMark> metronomeMark = nullptr;
+    std::vector<Dynamic> dynamics;
+    std::shared_ptr<DynamicWedge> dynamicWedge = nullptr;
 
     AboveBelowType placement = AboveBelowType::Above;
 };

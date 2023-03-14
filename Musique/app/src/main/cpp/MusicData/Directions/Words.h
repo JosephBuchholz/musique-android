@@ -1,3 +1,7 @@
+/**
+ * This file contains the definition of the `Words` class.
+ */
+
 #ifndef MUSIQUE_WORDS_H
 #define MUSIQUE_WORDS_H
 
@@ -6,6 +10,9 @@
 #include "../String.h"
 #include "../../MusicDisplayConstants.h"
 
+/**
+ * This class represents a textual music direction (such as rit. or cresc.).
+ */
 class Words : public TextualElement {
     friend class Song;
     friend class MusicXMLParser;

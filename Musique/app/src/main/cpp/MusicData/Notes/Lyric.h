@@ -1,3 +1,7 @@
+/**
+ * This file contains the definition of the `Lyric` class.
+ */
+
 #ifndef MUSIQUE_LYRIC_H
 #define MUSIQUE_LYRIC_H
 
@@ -11,6 +15,9 @@
 
 #include "../../RenderData/RenderData.h"
 
+/**
+ * This class represents a lyric for a note.
+ */
 class Lyric : public TextualElement {
     friend class Song;
     friend class MusicXMLParser;

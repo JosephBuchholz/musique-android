@@ -1,3 +1,7 @@
+/**
+ * This file contains the definition of the `AugmentationDot` class.
+ */
+
 #ifndef MUSIQUE_AUGMENTATIONDOT_H
 #define MUSIQUE_AUGMENTATIONDOT_H
 

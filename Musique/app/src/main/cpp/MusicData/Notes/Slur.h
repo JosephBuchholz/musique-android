@@ -1,3 +1,7 @@
+/**
+ * This file contains the definition of the `Slur` class.
+ */
+
 #ifndef MUSIQUE_SLUR_H
 #define MUSIQUE_SLUR_H
 

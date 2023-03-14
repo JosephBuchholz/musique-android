@@ -1,3 +1,7 @@
+/**
+ * This file contains the definition of the `BeamGroup` class.
+ */
+
 #ifndef MUSIQUE_BEAMGROUP_H
 #define MUSIQUE_BEAMGROUP_H
 

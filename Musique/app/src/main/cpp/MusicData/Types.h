@@ -3,7 +3,11 @@
 
 #include <vector>
 #include <string>
+#include <limits>
 #include "../AndroidDebug.h"
+
+#define INVALID_FLOAT_VALUE std::numeric_limits<float>::infinity()
+#define INVALID_DOUBLE_VALUE std::numeric_limits<double>::infinity()
 
 typedef float Alter;
 typedef unsigned int StringValue;

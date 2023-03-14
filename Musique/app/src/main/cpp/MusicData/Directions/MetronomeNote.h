@@ -1,3 +1,7 @@
+/**
+ * This file contains the definition of the `MetronomeNote` class.
+ */
+
 #ifndef MUSIQUE_METRONOMENOTE_H
 #define MUSIQUE_METRONOMENOTE_H
 

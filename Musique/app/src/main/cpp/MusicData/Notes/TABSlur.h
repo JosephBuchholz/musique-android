@@ -1,3 +1,7 @@
+/**
+ * This file contains the definition of the `TABSlur` class.
+ */
+
 #ifndef MUSIQUE_TABSLUR_H
 #define MUSIQUE_TABSLUR_H
 

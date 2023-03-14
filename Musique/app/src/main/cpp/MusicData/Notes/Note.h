@@ -1,3 +1,7 @@
+/**
+ * This file contains the definition of the `Note` class.
+ */
+
 #ifndef MUSIQUE_NOTE_H
 #define MUSIQUE_NOTE_H
 

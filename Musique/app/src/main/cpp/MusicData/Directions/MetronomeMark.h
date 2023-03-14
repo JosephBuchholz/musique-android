@@ -1,3 +1,7 @@
+/**
+ * This file contains the definition of the `MetronomeMark` class.
+ */
+
 #ifndef MUSIQUE_METRONOMEMARK_H
 #define MUSIQUE_METRONOMEMARK_H
 
@@ -8,6 +12,9 @@
 #include <string>
 #include <vector>
 
+/**
+ * This class represents a metronome/tempo marking.
+ */
 class MetronomeMark : public TextualElement {
     friend class Song;
     friend class MusicXMLParser;

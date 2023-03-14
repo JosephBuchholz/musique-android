@@ -1,3 +1,7 @@
+/**
+ * This file contains the definition of the `NoteTie` class.
+ */
+
 #ifndef MUSIQUE_TIE_H
 #define MUSIQUE_TIE_H
 

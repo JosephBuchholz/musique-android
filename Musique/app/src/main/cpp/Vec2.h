@@ -4,6 +4,9 @@
 template<typename T>
 struct Vec2
 {
+public:
+    Vec2() {}
+
     Vec2(T x, T y)
         : x(x), y(y) {}
 

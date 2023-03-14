@@ -17,6 +17,9 @@ void Direction::Render(RenderData& renderData, float measurePositionX, float mea
         float positionY = rehearsal.positionY + measurePositionY;
 
         renderData.AddText(Text(rehearsal.text.string, positionX + offsetX, positionY + offsetY, Paint(rehearsal.color.color, paint)));
+        //renderData.AddDebugDot(positionX + offsetX, positionY + offsetY);
+
+        LOGE("Rehersal: %s, X: %f, Y: %f", rehearsal.text.string.c_str(), rehearsal.positionX, rehearsal.positionY);
     }
     else if (!words.empty())
     {
@@ -34,6 +37,9 @@ void Direction::Render(RenderData& renderData, float measurePositionX, float mea
         float positionY = wordsObject.positionY + measurePositionY;
 
         renderData.AddText(Text(wordsObject.text.string, positionX + offsetX, positionY + offsetY, Paint(wordsObject.color.color, paint)));
+        //renderData.AddDebugDot(positionX + offsetX, positionY + offsetY);
+
+        LOGE("words: %s, X: %f, Y: %f", wordsObject.text.string.c_str(), wordsObject.positionX, wordsObject.positionY);
     }
     else if (metronomeMark != nullptr)
     {
@@ -82,5 +88,18 @@ void Direction::Render(RenderData& renderData, float measurePositionX, float mea
 
         renderData.AddSpannableText(std::make_shared<SpannableText>(chars, positionX + offsetX, positionY + offsetY, spans, Paint(metronomeMark->color.color)));
         //renderData.AddText(Text(string, positionX + offsetX, positionY + offsetY, Paint(direction.metronomeMark->color.color)));
+        //renderData.AddDebugDot(positionX + offsetX, positionY + offsetY);
+        LOGE("metronome mark: X: %f, Y: %f", metronomeMark->positionX, metronomeMark->positionY);
+    }
+    else if (!dynamics.empty())
+    {
+        for (const Dynamic& dynamic : dynamics)
+        {
+            dynamic.Render(renderData, measurePositionX, measurePositionY);
+        }
+    }
+    else if (dynamicWedge != nullptr)
+    {
+        dynamicWedge->Render(renderData, measurePositionX, measurePositionY);
     }
 }

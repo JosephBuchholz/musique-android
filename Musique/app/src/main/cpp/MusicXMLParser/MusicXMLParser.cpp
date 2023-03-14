@@ -2,6 +2,8 @@
 #include "../Utils/Converters.h"
 #include <memory>
 
+static std::unordered_map<int, std::shared_ptr<DynamicWedge>> currentDynamicWedges;
+
 // ---- Conversions ----
 
 bool MusicXMLParser::FromYesNoToBool(const char* string)
@@ -482,6 +484,29 @@ Justify MusicXMLParser::GetJustifyAttribute(XMLElement* element, const char* s, 
     return defaultValue;
 }
 
+Vec2<float> MusicXMLParser::GetFloatVec2Attribute(XMLElement* element, const char* s1, const char* s2, Vec2<float> defaultValue, bool required)
+{
+    Vec2<float> value = defaultValue;
+
+    const char* attribute1 = element->Attribute(s1);
+    if (attribute1) {
+        value.x = ToFloat(attribute1);
+    }
+    else {
+        AddErrorIf(required, "Required parse attribute error", "Failed to get attribute when required");
+    }
+
+    const char* attribute2 = element->Attribute(s2);
+    if (attribute2) {
+        value.y = ToFloat(attribute2);
+    }
+    else {
+        AddErrorIf(required, "Required parse attribute error", "Failed to get attribute when required");
+    }
+
+    return value;
+}
+
 // ---- Parse Functions ----
 
 Lyric::SyllabicType MusicXMLParser::ParseSyllabicType(const std::string& value)
@@ -629,8 +654,8 @@ Words MusicXMLParser::ParseWords(XMLElement* element)
         else
             words.noDefY = false;
 
-        words.relX = GetFloatAttribute(element, "default-x", words.relX);
-        words.relY = GetFloatAttribute(element, "default-y", words.relY);
+        words.relX = GetFloatAttribute(element, "relative-x", words.relX);
+        words.relY = GetFloatAttribute(element, "relative-y", words.relY);
 
         std::string enclosureString = GetStringAttribute(element, "enclosure", "");
 
@@ -702,8 +727,203 @@ std::shared_ptr<MetronomeMark> MusicXMLParser::ParseMetronomeMark(XMLElement* el
     return metronomeMark;
 }
 
-Direction MusicXMLParser::ParseDirection(XMLElement* directionElement)
+Dynamic MusicXMLParser::ParseDynamicElement(XMLElement* element)
 {
+    Dynamic dynamic = Dynamic();
+
+    if (element)
+    {
+        ParseTextualElement(element, dynamic);
+
+        dynamic.defaultPosition = GetFloatVec2Attribute(element, "default-x", "default-y", dynamic.defaultPosition);
+        dynamic.relativePosition = GetFloatVec2Attribute(element, "relative-x", "relative-y", dynamic.relativePosition);
+
+        // flip y
+        if (dynamic.defaultPosition.y != INVALID_FLOAT_VALUE)
+            dynamic.defaultPosition.y = -dynamic.defaultPosition.y;
+
+        if (dynamic.relativePosition.y != INVALID_FLOAT_VALUE)
+            dynamic.relativePosition.y = -dynamic.relativePosition.y;
+
+        dynamic.placement = GetAboveBelowAttribute(element, "placement", dynamic.placement);
+
+        // loop through all child elements
+        int childElementsCount = 0;
+        XMLNode* previousElement = element->FirstChildElement(); // first element
+        while (true)
+        {
+            if (previousElement) {
+                XMLElement* childElement = previousElement->ToElement();
+                const char* value = childElement->Value();
+
+                if (childElementsCount == 0)
+                {
+                    if (strcmp(value, "p") == 0)
+                        dynamic.type = Dynamic::DynamicType::Piano;
+                    else if (strcmp(value, "pp") == 0)
+                        dynamic.type = Dynamic::DynamicType::Pianissimo, dynamic.dynamicIntensity = 2;
+                    else if (strcmp(value, "ppp") == 0)
+                        dynamic.type = Dynamic::DynamicType::OtherPiano, dynamic.dynamicIntensity = 3;
+                    else if (strcmp(value, "pppp") == 0)
+                        dynamic.type = Dynamic::DynamicType::OtherPiano, dynamic.dynamicIntensity = 4;
+                    else if (strcmp(value, "ppppp") == 0)
+                        dynamic.type = Dynamic::DynamicType::OtherPiano, dynamic.dynamicIntensity = 5;
+                    else if (strcmp(value, "pppppp") == 0)
+                        dynamic.type = Dynamic::DynamicType::OtherPiano, dynamic.dynamicIntensity = 6;
+                    else if (strcmp(value, "f") == 0)
+                        dynamic.type = Dynamic::DynamicType::Forte;
+                    else if (strcmp(value, "ff") == 0)
+                        dynamic.type = Dynamic::DynamicType::Fortissimo, dynamic.dynamicIntensity = 2;
+                    else if (strcmp(value, "fff") == 0)
+                        dynamic.type = Dynamic::DynamicType::OtherForte, dynamic.dynamicIntensity = 3;
+                    else if (strcmp(value, "ffff") == 0)
+                        dynamic.type = Dynamic::DynamicType::OtherForte, dynamic.dynamicIntensity = 4;
+                    else if (strcmp(value, "fffff") == 0)
+                        dynamic.type = Dynamic::DynamicType::OtherForte, dynamic.dynamicIntensity = 5;
+                    else if (strcmp(value, "ffffff") == 0)
+                        dynamic.type = Dynamic::DynamicType::OtherForte, dynamic.dynamicIntensity = 6;
+                    else if (strcmp(value, "mp") == 0)
+                        dynamic.type = Dynamic::DynamicType::MezzoPiano;
+                    else if (strcmp(value, "mf") == 0)
+                        dynamic.type = Dynamic::DynamicType::MezzoForte;
+                    else if (strcmp(value, "sf") == 0)
+                        dynamic.type = Dynamic::DynamicType::SF;
+                    else if (strcmp(value, "sfp") == 0)
+                        dynamic.type = Dynamic::DynamicType::SFP;
+                    else if (strcmp(value, "sfpp") == 0)
+                        dynamic.type = Dynamic::DynamicType::SFPP;
+                    else if (strcmp(value, "fp") == 0)
+                        dynamic.type = Dynamic::DynamicType::FP;
+                    else if (strcmp(value, "rf") == 0)
+                        dynamic.type = Dynamic::DynamicType::RF;
+                    else if (strcmp(value, "rfz") == 0)
+                        dynamic.type = Dynamic::DynamicType::RFZ;
+                    else if (strcmp(value, "sfz") == 0)
+                        dynamic.type = Dynamic::DynamicType::SFZ;
+                    else if (strcmp(value, "sffz") == 0)
+                        dynamic.type = Dynamic::DynamicType::SFFZ;
+                    else if (strcmp(value, "fz") == 0)
+                        dynamic.type = Dynamic::DynamicType::FZ;
+                    else if (strcmp(value, "n") == 0)
+                        dynamic.type = Dynamic::DynamicType::N;
+                    else if (strcmp(value, "pf") == 0)
+                        dynamic.type = Dynamic::DynamicType::PF;
+                    else if (strcmp(value, "sfzp") == 0)
+                        dynamic.type = Dynamic::DynamicType::SFZP;
+                    else if (strcmp(value, "other-dynamics") == 0) // it is a different dynamic
+                    {
+                        dynamic.type = Dynamic::DynamicType::OtherDynamic;
+                        AddError("Unsupported element", "This dynamic is not supported");
+                    }
+                    else
+                    {
+                        AddError("Didn't recognize element", "Didn't recognize element in dynamic");
+                    }
+                }
+                else
+                {
+                    dynamic.type = Dynamic::DynamicType::OtherDynamic;
+                }
+
+                dynamic.displayString += value;
+
+                childElementsCount++;
+            }
+            else
+            {
+                break;
+            }
+
+            previousElement = previousElement->NextSiblingElement();
+        }
+    }
+
+    return dynamic;
+}
+
+std::shared_ptr<DynamicWedge> MusicXMLParser::ParseDynamicWedgeElement(XMLElement* element, float currentTimeInMeasure)
+{
+    if (element)
+    {
+        int number = GetNumberAttribute(element, "number", currentDynamicWedges.size() + 1) - 1; // starts at 0
+        std::string wedgeType = GetStringAttribute(element, "type", "", true);
+
+
+        if (wedgeType == "crescendo" || wedgeType == "diminuendo")
+        {
+            LOGW("wedge crescendo or diminuendo");
+
+            std::shared_ptr<DynamicWedge> dynamicWedge = std::make_shared<DynamicWedge>();
+
+            //ParseVisibleElement(element, dynamicWedge);
+
+            dynamicWedge->defaultPositionStart = GetFloatVec2Attribute(element, "default-x", "default-y", dynamicWedge->defaultPositionStart);
+            dynamicWedge->relativePositionStart = GetFloatVec2Attribute(element, "relative-x", "relative-y", dynamicWedge->relativePositionStart);
+
+            // flip y
+            if (dynamicWedge->defaultPositionStart.y != INVALID_FLOAT_VALUE)
+                dynamicWedge->defaultPositionStart.y = -dynamicWedge->defaultPositionStart.y;
+            if (dynamicWedge->relativePositionStart.y != INVALID_FLOAT_VALUE)
+                dynamicWedge->relativePositionStart.y = -dynamicWedge->relativePositionStart.y;
+
+            if (dynamicWedge->defaultPositionEnd.y != INVALID_FLOAT_VALUE)
+                dynamicWedge->defaultPositionEnd.y = -dynamicWedge->defaultPositionEnd.y;
+            if (dynamicWedge->relativePositionEnd.y != INVALID_FLOAT_VALUE)
+                dynamicWedge->relativePositionEnd.y = -dynamicWedge->relativePositionEnd.y;
+
+            if (wedgeType == "crescendo")
+                dynamicWedge->type = DynamicWedge::WedgeType::Crescendo;
+            else
+                dynamicWedge->type = DynamicWedge::WedgeType::Diminuendo;
+
+            if (dynamicWedge->type == DynamicWedge::WedgeType::Diminuendo) // the start of a diminuendo
+                dynamicWedge->defaultSpread = GetFloatAttribute(element, "spread", dynamicWedge->defaultSpread);
+
+            dynamicWedge->beatPositionStart = currentTimeInMeasure;
+
+            currentDynamicWedges[number] = dynamicWedge;
+
+            return dynamicWedge;
+
+            /*if (number < currentDynamicWedges.size())
+                currentDynamicWedges[number] = dynamicWedge;
+            else
+            {
+                currentDynamicWedges.resize(number + 1);
+                currentDynamicWedges[number] = dynamicWedge;
+            }*/
+        }
+        else if (wedgeType == "stop")
+        {
+            LOGW("wedge stop");
+
+            auto dynamicWedge = currentDynamicWedges[number];
+
+            dynamicWedge->defaultPositionEnd = GetFloatVec2Attribute(element, "default-x", "default-y", dynamicWedge->defaultPositionEnd);
+            dynamicWedge->relativePositionEnd = GetFloatVec2Attribute(element, "relative-x", "relative-y", dynamicWedge->relativePositionEnd);
+
+            if (dynamicWedge->type == DynamicWedge::WedgeType::Crescendo) // the end of a crescendo
+                dynamicWedge->defaultSpread = GetFloatAttribute(element, "spread", dynamicWedge->defaultSpread);
+
+            dynamicWedge->beatPositionEnd = currentTimeInMeasure;
+
+            currentDynamicWedges.erase(number);
+        }
+        else if (wedgeType == "continue")
+        {
+            LOGE("wedge continue");
+        }
+        else
+            AddError("Unrecognized type", "Did not recognize wedge type.");
+    }
+
+    return nullptr; // meaning that either the function failed or that the wedge was already added
+}
+
+Direction MusicXMLParser::ParseDirection(XMLElement* directionElement, bool& isNewDirection, float currentTimeInMeasure)
+{
+    isNewDirection = true;
+
     Direction direction = Direction();
     if (directionElement)
     {
@@ -729,6 +949,22 @@ Direction MusicXMLParser::ParseDirection(XMLElement* directionElement)
             if (metronomeElement)
             {
                 direction.metronomeMark = ParseMetronomeMark(metronomeElement);
+            }
+
+            // dynamic
+            XMLElement* dynamicElement = directionTypeElement->FirstChildElement("dynamics");
+            if (dynamicElement)
+            {
+                direction.dynamics.push_back(ParseDynamicElement(dynamicElement));
+            }
+
+            // dynamic wedge
+            XMLElement* dynamicWedgeElement = directionTypeElement->FirstChildElement("wedge");
+            if (dynamicWedgeElement)
+            {
+                direction.dynamicWedge = ParseDynamicWedgeElement(dynamicWedgeElement, currentTimeInMeasure);
+                if (direction.dynamicWedge == nullptr)
+                    isNewDirection = false;
             }
         }
 
@@ -2110,9 +2346,13 @@ Song* MusicXMLParser::ParseMusicXML(const std::string& data, std::string& error)
                                     else if (strcmp(value, "direction") == 0) // direction
                                     {
                                         // direction
-                                        Direction direction = ParseDirection(element);
-                                        direction.beatPosition = currentTimeInMeasure;
-                                        currentMeasures[0]->directions.push_back(direction);
+                                        bool isNewDirection;
+                                        Direction direction = ParseDirection(element, isNewDirection, currentTimeInMeasure);
+                                        if (isNewDirection)
+                                        {
+                                            direction.beatPosition = currentTimeInMeasure;
+                                            currentMeasures[0]->directions.push_back(direction);
+                                        }
 
                                         // sound
                                         XMLElement* soundElement = element->FirstChildElement("sound");
@@ -2213,6 +2453,8 @@ Song* MusicXMLParser::ParseMusicXML(const std::string& data, std::string& error)
 
     LOGD("Finished");
     doc.Clear();
+
+    currentDynamicWedges.clear();
 
     PrintErrors();
 

@@ -38,8 +38,10 @@ add_library( # Sets the name of the library.
         MusicData/Notes/AugmentationDot.cpp
         MusicData/Notes/Beam.cpp
         MusicData/Notes/BeamGroup.cpp
-        MusicData/Directions/MetronomeMark.cpp
         MusicData/Directions/Direction.cpp
+        MusicData/Directions/Dynamic.cpp
+        MusicData/Directions/DynamicWedge.cpp
+        MusicData/Directions/MetronomeMark.cpp
         MusicData/Measures/KeySignature.cpp
         MusicData/Measures/Clef.cpp
         MusicData/Pitch.cpp

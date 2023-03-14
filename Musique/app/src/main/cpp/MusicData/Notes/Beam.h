@@ -1,3 +1,7 @@
+/**
+ * This file contains the definition of the `Beam` class.
+ */
+
 #ifndef MUSIQUE_BEAM_H
 #define MUSIQUE_BEAM_H
 
