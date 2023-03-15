@@ -26,6 +26,7 @@ add_library( # Sets the name of the library.
         RenderData/Line.cpp
         App.cpp
         AppRendering.cpp
+        MusicData/LineElement.cpp
         MusicData/Song.cpp
         MusicData/SongData.cpp
         MusicData/Notes/Note.cpp
@@ -38,17 +39,25 @@ add_library( # Sets the name of the library.
         MusicData/Notes/AugmentationDot.cpp
         MusicData/Notes/Beam.cpp
         MusicData/Notes/BeamGroup.cpp
+
+        MusicData/Directions/BracketDirection.cpp
+        MusicData/Directions/DashesDirection.cpp
         MusicData/Directions/Direction.cpp
         MusicData/Directions/Dynamic.cpp
         MusicData/Directions/DynamicWedge.cpp
         MusicData/Directions/MetronomeMark.cpp
+
         MusicData/Measures/KeySignature.cpp
         MusicData/Measures/Clef.cpp
         MusicData/Pitch.cpp
         MusicData/Measures/TimeSignature.cpp
         RenderMeasurement.cpp
+
+        MusicXMLParser/MusicXMLHelper.cpp
         MusicXMLParser/MusicXMLParser.cpp
         MusicXMLParser/XMLHelper.cpp
+        MusicXMLParser/ParseError.cpp
+
         JNIHelpers/JNIHelper.cpp
         Utils/Converters.cpp
         libs/tinyxml/tinystr.cpp

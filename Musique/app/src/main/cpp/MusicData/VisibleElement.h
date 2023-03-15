@@ -4,7 +4,9 @@
 #include "PrintableElement.h"
 #include "Types.h"
 
-// the base class of all notation elements
+/**
+ * This class represents a element that is visible.
+ */
 class VisibleElement : public PrintableElement {
 
 public:

@@ -273,19 +273,23 @@ void App::RenderBarline(RenderData& renderData, const Barline& barline, float ba
 
     float barlineWidth = 8.0f;
 
+    Paint paint = BarLinePaint;
+    paint.color = barline.color.color;
+    barline.ModifyPaint(paint);
+
     switch (barline.barlineStyle)
     {
         case Barline::BarlineStyle::Regular:
         {
-            renderData.AddLine(std::make_shared<Line>(barlinePositionX, barlinePositionY, barlinePositionX, barlinePositionYBottom, BarLinePaint));
+            renderData.AddLine(std::make_shared<Line>(barlinePositionX, barlinePositionY, barlinePositionX, barlinePositionYBottom, paint));
             break;
         }
         case Barline::BarlineStyle::LightLight:
         {
             barlinePositionX += barlineWidth * doubleBarlineOffsetDirection;
-            renderData.AddLine(std::make_shared<Line>(barlinePositionX, barlinePositionY, barlinePositionX, barlinePositionYBottom, BarLinePaint));
+            renderData.AddLine(std::make_shared<Line>(barlinePositionX, barlinePositionY, barlinePositionX, barlinePositionYBottom, paint));
             barlinePositionX += doubleBarlineOffset;
-            renderData.AddLine(std::make_shared<Line>(barlinePositionX, barlinePositionY, barlinePositionX, barlinePositionYBottom, BarLinePaint));
+            renderData.AddLine(std::make_shared<Line>(barlinePositionX, barlinePositionY, barlinePositionX, barlinePositionYBottom, paint));
             break;
         }
         case Barline::BarlineStyle::HeavyLight:
@@ -293,13 +297,13 @@ void App::RenderBarline(RenderData& renderData, const Barline& barline, float ba
             barlinePositionX += barlineWidth * doubleBarlineOffsetDirection;
             renderData.AddLine(std::make_shared<Line>(barlinePositionX, barlinePositionY, barlinePositionX, barlinePositionYBottom, HeavyBarLinePaint));
             barlinePositionX += doubleBarlineOffset;
-            renderData.AddLine(std::make_shared<Line>(barlinePositionX, barlinePositionY, barlinePositionX, barlinePositionYBottom, BarLinePaint));
+            renderData.AddLine(std::make_shared<Line>(barlinePositionX, barlinePositionY, barlinePositionX, barlinePositionYBottom, paint));
             break;
         }
         case Barline::BarlineStyle::LightHeavy:
         {
             barlinePositionX += barlineWidth * doubleBarlineOffsetDirection;
-            renderData.AddLine(std::make_shared<Line>(barlinePositionX, barlinePositionY, barlinePositionX, barlinePositionYBottom, BarLinePaint));
+            renderData.AddLine(std::make_shared<Line>(barlinePositionX, barlinePositionY, barlinePositionX, barlinePositionYBottom, paint));
             barlinePositionX += doubleBarlineOffset;
             renderData.AddLine(std::make_shared<Line>(barlinePositionX, barlinePositionY, barlinePositionX, barlinePositionYBottom, HeavyBarLinePaint));
             break;

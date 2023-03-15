@@ -6,12 +6,13 @@
 #define MUSIQUE_BARLINE_H
 
 #include "../VisibleElement.h"
+#include "../LineElement.h"
 #include "../Types.h"
 
 /**
  * This class represents a barline in a measure.
  */
-class Barline : public VisibleElement {
+class Barline : public VisibleElement, public LineElement {
 
 public:
 

@@ -14,5 +14,17 @@ data class Paint(
     var strikeThruText: Boolean = false
     var centerTextVertically: Boolean = false
     var useMusicFont: Boolean = false
-    var verticalEnds: Boolean = false;
+    var verticalEnds: Boolean = false
+
+    var isDottedLine: Boolean = false
+    var isDashedLine: Boolean = false
+
+    // for dashed lines
+    var dashLength: Float = 10.0f
+
+    // for dotted and dashed lines
+    var dashSpaceLength: Float = 10.0f
+
+    // for dotted lines
+    var dotRadius: Float = 1.0f
 }

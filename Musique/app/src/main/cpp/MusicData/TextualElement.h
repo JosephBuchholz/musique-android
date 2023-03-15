@@ -4,7 +4,9 @@
 #include "VisibleElement.h"
 #include "Types.h"
 
-// the base class of all notation elements
+/**
+ * This class represents a element that is (or has or contains) text.
+ */
 class TextualElement : public VisibleElement {
 
 public:

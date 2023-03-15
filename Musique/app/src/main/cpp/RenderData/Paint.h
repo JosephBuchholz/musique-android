@@ -26,6 +26,12 @@ struct Paint {
         strikeThruText = paint.strikeThruText;
         centerTextVertically = paint.centerTextVertically;
         verticalEnds = paint.verticalEnds;
+
+        isDottedLine = paint.isDottedLine;
+        isDashedLine = paint.isDashedLine;
+        dashLength = paint.dashLength;
+        dashSpaceLength = paint.dashSpaceLength;
+        dotRadius = paint.dotRadius;
     }
 
     enum class Cap {
@@ -50,6 +56,18 @@ struct Paint {
     bool centerTextVertically = false;
     bool useMusicFont = false;
     bool verticalEnds = false;
+
+    bool isDottedLine = false;
+    bool isDashedLine = false;
+
+    // for dashed lines
+    float dashLength = 10.0f;
+
+    // for dotted and dashed lines
+    float dashSpaceLength = 10.0f;
+
+    // for dotted lines
+    float dotRadius = 1.0f;
 };
 
 #endif // MUSIQUE_PAINT_H

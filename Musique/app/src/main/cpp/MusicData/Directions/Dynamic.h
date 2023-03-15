@@ -15,7 +15,7 @@
 #include "../../RenderData/RenderData.h"
 
 /**
- * This class represents a dynamic direction (such as mf or p)
+ * This class represents a dynamic direction (such as mf or p).
  */
 class Dynamic : public TextualElement {
     friend class Song;
@@ -24,13 +24,13 @@ class Dynamic : public TextualElement {
 public:
 
     /**
-     * Renders this class
+     * Renders this class.
      *
-     * @param[out] renderData The RenderData object to render to
-     * @param[in] measurePositionX The x position of the parent measure
-     * @param[in] measurePositionY The y position of the parent measure
-     * @param[in] offsetX offset in x direction
-     * @param[in] offsetY offset in y direction
+     * @param[out] renderData The RenderData object to render to.
+     * @param[in] measurePositionX The x position of the parent measure.
+     * @param[in] measurePositionY The y position of the parent measure.
+     * @param[in] offsetX offset in x direction.
+     * @param[in] offsetY offset in y direction.
      */
     void Render(RenderData& renderData, float measurePositionX, float measurePositionY, float offsetX = 0.0f, float offsetY = 0.0f) const;
 

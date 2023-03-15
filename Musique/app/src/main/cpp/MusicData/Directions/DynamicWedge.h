@@ -6,6 +6,7 @@
 #define MUSIQUE_DYNAMICWEDGE_H
 
 #include "../VisibleElement.h"
+#include "../LineElement.h"
 #include "../../Vec2.h"
 #include "../../MusicDisplayConstants.h"
 #include "../../RenderData/RenderData.h"
@@ -13,15 +14,33 @@
 /**
  * This class represents a cresc. or dim. wedge/hairpin marking.
  */
-class DynamicWedge : public VisibleElement {
+class DynamicWedge : public VisibleElement, public LineElement {
     friend class Song;
     friend class MusicXMLParser;
 
 public:
 
+    /**
+     * Renders this class.
+     *
+     * @param[out] renderData The RenderData object to render to.
+     * @param[in] measurePositionX The x position of the parent measure.
+     * @param[in] measurePositionY The y position of the parent measure.
+     * @param[in] offsetX offset in x direction.
+     * @param[in] offsetY offset in y direction.
+     */
     void Render(RenderData& renderData, float measurePositionX, float measurePositionY, float offsetX = 0.0f, float offsetY = 0.0f) const;
 
 protected:
+
+    /**
+     * Calculates the positioning attributes of this class when the display mode is Paged.
+     *
+     * @param displayConstants The constants for rendering.
+     * @param defPositionStart The default coordinates of the starting position of the dynamic wedge (the left side).
+     * @param defPositionEnd The default coordinates of the ending position of the dynamic wedge (the right side).
+     * @param defSpread The default for how much the wedge should spread.
+     */
     void CalculatePositionAsPaged(const MusicDisplayConstants& displayConstants, Vec2<float> defPositionStart, Vec2<float> defPositionEnd, float defSpread);
 
 public:

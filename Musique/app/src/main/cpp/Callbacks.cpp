@@ -133,6 +133,11 @@ jobject ConvertPaintToObject(JNIEnv* env, const Paint& paint)
     jfieldID paintFieldIdCenterTextVertically = env->GetFieldID(paintClass, "centerTextVertically", "Z");
     jfieldID paintFieldIdUseMusicFont = env->GetFieldID(paintClass, "useMusicFont", "Z");
     jfieldID paintFieldIdVerticalEnds = env->GetFieldID(paintClass, "verticalEnds", "Z");
+    jfieldID paintFieldIdIsDashedLine = env->GetFieldID(paintClass, "isDashedLine", "Z");
+    jfieldID paintFieldIdIsDottedLine = env->GetFieldID(paintClass, "isDottedLine", "Z");
+    jfieldID paintFieldIdDashLength = env->GetFieldID(paintClass, "dashLength", "F");
+    jfieldID paintFieldIdDashSpaceLength = env->GetFieldID(paintClass, "dashSpaceLength", "F");
+    jfieldID paintFieldIdDotRadius = env->GetFieldID(paintClass, "dotRadius", "F");
 
     // set paint fields
     jobject paintObject = env->NewObject(paintClass, paintConstructor, paint.color);
@@ -149,6 +154,12 @@ jobject ConvertPaintToObject(JNIEnv* env, const Paint& paint)
     env->SetBooleanField(paintObject, paintFieldIdCenterTextVertically, paint.centerTextVertically);
     env->SetBooleanField(paintObject, paintFieldIdUseMusicFont, paint.useMusicFont);
     env->SetBooleanField(paintObject, paintFieldIdVerticalEnds, paint.verticalEnds);
+
+    env->SetBooleanField(paintObject, paintFieldIdIsDashedLine, paint.isDashedLine);
+    env->SetBooleanField(paintObject, paintFieldIdIsDottedLine, paint.isDottedLine);
+    env->SetFloatField(paintObject, paintFieldIdDashLength, paint.dashLength);
+    env->SetFloatField(paintObject, paintFieldIdDashSpaceLength, paint.dashSpaceLength);
+    env->SetFloatField(paintObject, paintFieldIdDotRadius, paint.dotRadius);
 
     return paintObject;
 }

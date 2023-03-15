@@ -2,6 +2,32 @@
 #include "MusicXMLParser.h"
 #include "../Utils/Converters.h"
 
+// ---- Other ----
+
+bool XMLHelper::DoesElementExist(const std::string& elementName, XMLElement* elementParent)
+{
+    XMLElement* element = elementParent->FirstChildElement(elementName.c_str());
+
+    if (element)
+    {
+        return true;
+    }
+
+    return false;
+}
+
+// ---- Conversions ----
+
+bool XMLHelper::FromYesNoToBool(const char* string)
+{
+    if (strcmp(string, "yes") == 0) {
+        return true;
+    }
+    return false;
+}
+
+// ---- Get Value Functions ----
+
 std::string XMLHelper::GetStringValue(XMLElement* element, std::string defaultValue, bool required)
 {
     if (element) {
@@ -102,4 +128,84 @@ unsigned int XMLHelper::GetUnsignedIntValue(const std::string& elementName, XMLE
 
     MusicXMLParser::AddErrorIf(required, "Required parse value error", "Failed to get unsigned int value when required");
     return defaultValue;
+}
+
+// ---- Get Attribute Functions ----
+
+bool XMLHelper::GetBoolAttribute(XMLElement* element, const char* s, bool defaultValue, bool required)
+{
+    const char* attribute = element->Attribute(s);
+    if (attribute) {
+        return FromYesNoToBool(attribute);
+    }
+
+    AddErrorIf(required, "Required parse attribute error", "Failed to get attribute when required");
+    return defaultValue;
+}
+
+float XMLHelper::GetFloatAttribute(XMLElement* element, const char* s, float defaultValue, bool required)
+{
+    const char* attribute = element->Attribute(s);
+    if (attribute) {
+        return ToFloat(attribute);
+    }
+
+    AddErrorIf(required, "Required parse attribute error", "Failed to get attribute when required");
+    return defaultValue;
+}
+
+std::string XMLHelper::GetStringAttribute(XMLElement* element, const char* s, std::string defaultValue, bool required)
+{
+    const char* attribute = element->Attribute(s);
+    if (attribute) {
+        return attribute;
+    }
+
+    AddErrorIf(required, "Required parse attribute error", "Failed to get attribute when required");
+    return defaultValue;
+}
+
+int XMLHelper::GetNumberAttribute(XMLElement* element, const char* s, int defaultValue, bool required)
+{
+    const char* attribute = element->Attribute(s);
+    if (attribute) {
+        return ToInt(attribute);
+    }
+
+    AddErrorIf(required, "Required parse attribute error", "Failed to get attribute when required");
+    return defaultValue;
+}
+
+unsigned int XMLHelper::GetUnsignedIntAttribute(XMLElement* element, const char* s, unsigned int defaultValue, bool required)
+{
+    const char* attribute = element->Attribute(s);
+    if (attribute) {
+        return ToUnsignedInt(attribute);
+    }
+
+    AddErrorIf(required, "Required parse attribute error", "Failed to get attribute when required");
+    return defaultValue;
+}
+
+Vec2<float> XMLHelper::GetFloatVec2Attribute(XMLElement* element, const char* s1, const char* s2, Vec2<float> defaultValue, bool required)
+{
+    Vec2<float> value = defaultValue;
+
+    const char* attribute1 = element->Attribute(s1);
+    if (attribute1) {
+        value.x = ToFloat(attribute1);
+    }
+    else {
+        AddErrorIf(required, "Required parse attribute error", "Failed to get attribute when required");
+    }
+
+    const char* attribute2 = element->Attribute(s2);
+    if (attribute2) {
+        value.y = ToFloat(attribute2);
+    }
+    else {
+        AddErrorIf(required, "Required parse attribute error", "Failed to get attribute when required");
+    }
+
+    return value;
 }

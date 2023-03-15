@@ -3,8 +3,10 @@
 
 #include "BaseElement.h"
 
-// the base class of all notation elements
-class PrintableElement : public BaseElement {
+/**
+ * This class represents a element that is able to be rendered.
+ */
+class PrintableElement : public virtual BaseElement {
 
 public:
     PrintableElement() {}

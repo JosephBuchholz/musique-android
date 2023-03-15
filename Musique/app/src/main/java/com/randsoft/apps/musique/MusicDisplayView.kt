@@ -202,6 +202,18 @@ class MusicDisplayView(context: Context, attrs: AttributeSet? = null): View(cont
                 canvas.drawPath(path, paint)
             }
             else {
+                if (line.paint.isDashedLine)
+                {
+                    paint.pathEffect = DashPathEffect(floatArrayOf(line.paint.dashLength, line.paint.dashSpaceLength), 0.0f)
+                }
+                else if (line.paint.isDottedLine)
+                {
+                    val dot = Path()
+                    dot.addCircle(0.0f, 0.0f, line.paint.dotRadius, Path.Direction.CW)
+
+                    paint.pathEffect = PathDashPathEffect(dot, line.paint.dashSpaceLength, 0.0f, PathDashPathEffect.Style.MORPH)
+                }
+
                 drawLine(canvas, line, paint, offsetX, offsetY)
             }
         }

@@ -109,6 +109,14 @@ enum class FontWeight {
 };
 
 /**
+ * How a line should display.
+ */
+enum class LineType
+{
+    None = 0, Dashed, Dotted, Solid, Wavy
+};
+
+/**
  * Whether a curve is overhand (tips down) or underhand (tips up). (for slurs and ties)
  */
 enum class CurveOrientation
