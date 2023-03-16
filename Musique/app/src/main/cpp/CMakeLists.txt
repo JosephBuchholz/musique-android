@@ -41,7 +41,6 @@ add_library( # Sets the name of the library.
         MusicData/Notes/BeamGroup.cpp
 
         MusicData/Directions/BracketDirection.cpp
-        MusicData/Directions/DashesDirection.cpp
         MusicData/Directions/Direction.cpp
         MusicData/Directions/Dynamic.cpp
         MusicData/Directions/DynamicWedge.cpp
@@ -57,6 +56,8 @@ add_library( # Sets the name of the library.
         MusicXMLParser/MusicXMLParser.cpp
         MusicXMLParser/XMLHelper.cpp
         MusicXMLParser/ParseError.cpp
+        MusicXMLParser/NoteElementParser.cpp
+        MusicXMLParser/BaseElementParser.cpp
 
         JNIHelpers/JNIHelper.cpp
         Utils/Converters.cpp

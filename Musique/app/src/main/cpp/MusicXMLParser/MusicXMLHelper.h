@@ -11,6 +11,8 @@
 #include "../MusicData/Types.h"
 
 #include "../MusicData/Chords/Chord.h"
+#include "../MusicData/Notes/Lyric.h"
+#include "../MusicData/Directions/BracketDirection.h"
 
 #include "../Vec2.h"
 
@@ -28,11 +30,13 @@ public:
     // ---- Conversions ----
 
     static Date FromStringToDate(const char* string);
+    static Lyric::SyllabicType FromStringToSyllabicType(const std::string& value);
 
     // ---- From String ----
 
     static Chord::HarmonyType GetHarmonyTypeFromString(const std::string& string);
     static NoteValue GetNoteValueTypeFromString(const std::string& string);
+    static BracketDirection::LineEndType GetLineEndTypeFromString(const std::string& string);
 
     // ---- Get Value Functions ----
 

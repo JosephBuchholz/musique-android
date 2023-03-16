@@ -98,8 +98,14 @@ void Direction::Render(RenderData& renderData, float measurePositionX, float mea
             dynamic.Render(renderData, measurePositionX, measurePositionY);
         }
     }
-    else if (dynamicWedge != nullptr)
+
+    if (dynamicWedge != nullptr)
     {
         dynamicWedge->Render(renderData, measurePositionX, measurePositionY);
+    }
+
+    if (bracketDirection != nullptr)
+    {
+        bracketDirection->Render(renderData, { measurePositionX, measurePositionY });
     }
 }

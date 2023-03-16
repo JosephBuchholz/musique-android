@@ -3,148 +3,14 @@
 #include <memory>
 
 #include "../Vec2.h"
+#include "BaseElementParser.h"
+#include "NoteElementParser.h"
 
 static std::unordered_map<int, std::shared_ptr<DynamicWedge>> currentDynamicWedges;
-static std::unordered_map<int, std::shared_ptr<DashesDirection>> currentDashes;
+static std::unordered_map<int, std::shared_ptr<BracketDirection>> currentDashes;
 static std::unordered_map<int, std::shared_ptr<BracketDirection>> currentBrackets;
 
 // ---- Parse Functions ----
-
-Lyric::SyllabicType MusicXMLParser::ParseSyllabicType(const std::string& value)
-{
-    if (value == "begin")
-        return Lyric::SyllabicType::Begin;
-    else if (value == "end")
-        return Lyric::SyllabicType::End;
-    else if (value == "middle")
-        return Lyric::SyllabicType::Middle;
-    else if (value == "single")
-        return Lyric::SyllabicType::Single;
-    else
-        LOGE("unrecognized syllabic type");
-    return Lyric::SyllabicType::None;
-}
-
-// parses a single lyric element
-Lyric MusicXMLParser::ParseLyric(XMLElement* lyricElement)
-{
-    Lyric lyric = Lyric();
-    if (lyricElement)
-    {
-        lyric.defX = XMLHelper::GetFloatAttribute(lyricElement, "default-x", lyric.defX);
-        lyric.defY = XMLHelper::GetFloatAttribute(lyricElement, "default-y", lyric.defY);
-
-        lyric.relX = XMLHelper::GetFloatAttribute(lyricElement, "relative-x", lyric.relX);
-        lyric.relY = XMLHelper::GetFloatAttribute(lyricElement, "relative-y", lyric.relY);
-
-        lyric.number = XMLHelper::GetNumberAttribute(lyricElement, "number", lyric.number);
-
-        // loop through all syllabic and text elements
-        XMLNode* previousElement = lyricElement->FirstChildElement(); // first element
-        while (true)
-        {
-            if (previousElement) {
-                XMLElement* element = previousElement->ToElement();
-                const char* value = element->Value();
-                if (strcmp(value, "syllabic") == 0) // syllabic
-                {
-                    XMLElement* syllabicElement = element;
-                    lyric.syllabics.push_back(ParseSyllabicType(syllabicElement->GetText())); // parse type and add to syllabic vector
-                }
-                else if (strcmp(value, "text") == 0) // text
-                {
-                    XMLElement* textElement = element;
-                    LyricText text = LyricText();
-                    text.text = textElement->GetText();
-                    lyric.text.push_back(text);
-                }
-                else
-                {
-                    AddError("Unrecognized element", "Didn't recognize element in LYRIC");
-                }
-            }
-            else
-            {
-                break;
-            }
-            previousElement = previousElement->NextSiblingElement();
-        }
-    }
-    else
-    {
-        LOGE("lyricElement is null");
-    }
-    return lyric;
-}
-
-void MusicXMLParser::ParseBaseElement(XMLElement* element, BaseElement& newElement)
-{
-    if (element)
-    {
-        // TODO: implement
-    }
-}
-
-void MusicXMLParser::ParsePrintableElement(XMLElement* element, PrintableElement& newElement)
-{
-    if (element)
-    {
-        // TODO: implement
-        ParseBaseElement(element, newElement);
-    }
-}
-
-void MusicXMLParser::ParseVisibleElement(XMLElement* element, VisibleElement& newElement)
-{
-    if (element)
-    {
-        // TODO: implement
-        ParsePrintableElement(element, newElement);
-    }
-}
-
-void MusicXMLParser::ParseTextualElement(XMLElement* element, TextualElement& newElement)
-{
-    if (element)
-    {
-        newElement.fontFamily = MusicXMLHelper::GetFontFamilyAttribute(element, "font-family");
-        newElement.fontSize = MusicXMLHelper::GetFontSizeAttribute(element, "font-size");
-        newElement.fontStyle = MusicXMLHelper::GetFontStyleAttribute(element, "font-style");
-        newElement.fontWeight = MusicXMLHelper::GetFontWeightAttribute(element, "font-weight");
-
-        newElement.linesThrough = XMLHelper::GetUnsignedIntAttribute(element, "line-through");
-        newElement.overline = XMLHelper::GetUnsignedIntAttribute(element, "overline");
-        newElement.underline = XMLHelper::GetUnsignedIntAttribute(element, "underline");
-
-        newElement.justify = MusicXMLHelper::GetJustifyAttribute(element, "justify");
-
-        ParseVisibleElement(element, newElement);
-    }
-}
-
-void MusicXMLParser::ParseLineElement(XMLElement* element, LineElement& newElement)
-{
-    if (element)
-    {
-        std::string lineTypeString = XMLHelper::GetStringAttribute(element, "line-type", "solid");
-
-        if (lineTypeString == "dashed")
-            newElement.lineType = LineType::Dashed;
-        else if (lineTypeString == "dotted")
-            newElement.lineType = LineType::Dotted;
-        else if (lineTypeString == "solid")
-            newElement.lineType = LineType::Solid;
-        else if (lineTypeString == "wavy")
-            newElement.lineType = LineType::Wavy;
-        else
-            AddError("Unrecognized type", "Did not recognize line type");
-
-        newElement.dashLength = XMLHelper::GetFloatAttribute(element, "dash-length", newElement.dashLength);
-        newElement.dashSpaceLength = XMLHelper::GetFloatAttribute(element, "space-length", newElement.dashSpaceLength);
-
-        ParseBaseElement(element, newElement);
-    }
-}
 
 Rehearsal MusicXMLParser::ParseRehearsal(XMLElement* element)
 {
@@ -217,7 +83,7 @@ Words MusicXMLParser::ParseWords(XMLElement* element)
         else if (enclosureString == "none")
             enclosure = Words::EnclosureShape::None;
 
-        ParseTextualElement(element, words);
+        BaseElementParser::ParseTextualElement(element, words);
     }
 
     return words;
@@ -258,7 +124,7 @@ Dynamic MusicXMLParser::ParseDynamicElement(XMLElement* element)
 
     if (element)
     {
-        ParseTextualElement(element, dynamic);
+        BaseElementParser::ParseTextualElement(element, dynamic);
 
         dynamic.defaultPosition = XMLHelper::GetFloatVec2Attribute(element, "default-x", "default-y", dynamic.defaultPosition);
         dynamic.relativePosition = XMLHelper::GetFloatVec2Attribute(element, "relative-x", "relative-y", dynamic.relativePosition);
@@ -370,7 +236,7 @@ std::shared_ptr<DynamicWedge> MusicXMLParser::ParseDynamicWedgeElement(XMLElemen
 {
     if (element)
     {
-        int number = XMLHelper::GetNumberAttribute(element, "number", currentDynamicWedges.size() + 1) - 1; // starts at 0
+        int number = XMLHelper::GetNumberAttribute(element, "number", (int)currentDynamicWedges.size() + 1) - 1; // starts at 0
         std::string wedgeType = XMLHelper::GetStringAttribute(element, "type", "", true);
 
 
@@ -445,11 +311,11 @@ std::shared_ptr<DynamicWedge> MusicXMLParser::ParseDynamicWedgeElement(XMLElemen
     return nullptr; // meaning that either the function failed or that the wedge was already added
 }
 
-std::shared_ptr<DashesDirection> MusicXMLParser::ParseDashesDirectionElement(XMLElement* element, float currentTimeInMeasure)
+std::shared_ptr<BracketDirection> MusicXMLParser::ParseDashesDirectionElement(XMLElement* element, float currentTimeInMeasure)
 {
     if (element)
     {
-        int number = XMLHelper::GetNumberAttribute(element, "number", currentDashes.size() + 1) - 1; // starts at 0
+        int number = XMLHelper::GetNumberAttribute(element, "number", (int)currentDashes.size() + 1) - 1; // starts at 0
         std::string typeString = XMLHelper::GetStringAttribute(element, "type", "", true);
 
 
@@ -457,10 +323,10 @@ std::shared_ptr<DashesDirection> MusicXMLParser::ParseDashesDirectionElement(XML
         {
             LOGW("start of dashes");
 
-            std::shared_ptr<DashesDirection> dashes = std::make_shared<DashesDirection>();
+            std::shared_ptr<BracketDirection> dashes = std::make_shared<BracketDirection>();
 
-            ParseVisibleElement(element, *dashes);
-            ParseLineElement(element, *dashes);
+            BaseElementParser::ParseVisibleElement(element, *dashes);
+            BaseElementParser::ParseLineElement(element, *dashes);
 
             dashes->defaultPositionStart = XMLHelper::GetFloatVec2Attribute(element, "default-x", "default-y", dashes->defaultPositionStart);
             dashes->relativePositionStart = XMLHelper::GetFloatVec2Attribute(element, "relative-x", "relative-y", dashes->relativePositionStart);
@@ -470,6 +336,9 @@ std::shared_ptr<DashesDirection> MusicXMLParser::ParseDashesDirectionElement(XML
             MusicXMLHelper::FlipYInVec2(dashes->relativePositionStart);
 
             dashes->beatPositionStart = currentTimeInMeasure;
+
+            dashes->lineType = LineType::Dashed;
+            dashes->isDashes = true;
 
             currentDashes[number] = dashes;
 
@@ -503,6 +372,74 @@ std::shared_ptr<DashesDirection> MusicXMLParser::ParseDashesDirectionElement(XML
     return nullptr; // meaning that either the function failed or that the object was already added
 }
 
+std::shared_ptr<BracketDirection> MusicXMLParser::ParseBracketDirectionElement(XMLElement* element, float currentTimeInMeasure)
+{
+    if (element)
+    {
+        int number = XMLHelper::GetNumberAttribute(element, "number", (int)currentBrackets.size() + 1) - 1; // starts at 0
+        std::string typeString = XMLHelper::GetStringAttribute(element, "type", "", true);
+
+
+        if (typeString == "start")
+        {
+            LOGW("start of bracket");
+
+            std::shared_ptr<BracketDirection> brackets = std::make_shared<BracketDirection>();
+
+            BaseElementParser::ParseVisibleElement(element, *brackets);
+            BaseElementParser::ParseLineElement(element, *brackets);
+
+            brackets->defaultPositionStart = XMLHelper::GetFloatVec2Attribute(element, "default-x", "default-y", brackets->defaultPositionStart);
+            brackets->relativePositionStart = XMLHelper::GetFloatVec2Attribute(element, "relative-x", "relative-y", brackets->relativePositionStart);
+
+            // flip y so that positive y is down (not up)
+            MusicXMLHelper::FlipYInVec2(brackets->defaultPositionStart);
+            MusicXMLHelper::FlipYInVec2(brackets->relativePositionStart);
+
+            brackets->beatPositionStart = currentTimeInMeasure;
+
+            std::string lineEndString = XMLHelper::GetStringAttribute(element, "line-end", "none", true);
+            brackets->lineEndTypeStart = MusicXMLHelper::GetLineEndTypeFromString(lineEndString);
+
+            brackets->endLengthStart = XMLHelper::GetFloatAttribute(element, "end-length", brackets->endLengthStart);
+
+            currentBrackets[number] = brackets;
+
+            return brackets;
+        }
+        else if (typeString == "stop" && currentBrackets.size() > number)
+        {
+            LOGW("bracket stop");
+
+            auto brackets = currentBrackets[number];
+
+            brackets->defaultPositionEnd = XMLHelper::GetFloatVec2Attribute(element, "default-x", "default-y", brackets->defaultPositionEnd);
+            brackets->relativePositionEnd = XMLHelper::GetFloatVec2Attribute(element, "relative-x", "relative-y", brackets->relativePositionEnd);
+
+            // flip y so that positive y is down (not up)
+            MusicXMLHelper::FlipYInVec2(brackets->defaultPositionEnd);
+            MusicXMLHelper::FlipYInVec2(brackets->relativePositionEnd);
+
+            brackets->beatPositionEnd = currentTimeInMeasure;
+
+            std::string lineEndString = XMLHelper::GetStringAttribute(element, "line-end", "none", true);
+            brackets->lineEndTypeStop = MusicXMLHelper::GetLineEndTypeFromString(lineEndString);
+
+            brackets->endLengthStop = XMLHelper::GetFloatAttribute(element, "end-length", brackets->endLengthStart);
+
+            currentBrackets.erase(number);
+        }
+        else if (typeString == "continue")
+        {
+            LOGE("bracket continue");
+        }
+        else
+            AddError("Unrecognized type", "Did not recognize bracket type: \'" + typeString + "\'.");
+    }
+
+    return nullptr; // meaning that either the function failed or that the object was already added
+}
+
 Direction MusicXMLParser::ParseDirection(XMLElement* directionElement, bool& isNewDirection, float currentTimeInMeasure)
 {
     isNewDirection = true;
@@ -510,56 +447,114 @@ Direction MusicXMLParser::ParseDirection(XMLElement* directionElement, bool& isN
     Direction direction = Direction();
     if (directionElement)
     {
-        XMLElement* directionTypeElement = directionElement->FirstChildElement("direction-type");
-        if (directionTypeElement)
+        // loop through all elements
+        XMLNode* previousElement = directionElement->FirstChildElement(); // first element
+        while (true)
         {
-            // rehearsal
-            XMLElement* rehearsalElement = directionTypeElement->FirstChildElement("rehearsal");
-            if (rehearsalElement)
-            {
-                direction.rehearsals.push_back(ParseRehearsal(rehearsalElement));
-            }
+            if (previousElement) {
+                XMLElement* element = previousElement->ToElement();
+                const char* value = element->Value();
 
-            // words
-            XMLElement* wordsElement = directionTypeElement->FirstChildElement("words");
-            if (wordsElement)
-            {
-                direction.words.push_back(ParseWords(wordsElement));
-            }
+                if (strcmp(value, "direction-type") == 0) // direction-type
+                {
+                    XMLElement* directionTypeElement = element;
 
-            // metronome
-            XMLElement* metronomeElement = directionTypeElement->FirstChildElement("metronome");
-            if (metronomeElement)
-            {
-                direction.metronomeMark = ParseMetronomeMark(metronomeElement);
-            }
+                    // rehearsal
+                    XMLElement* rehearsalElement = directionTypeElement->FirstChildElement("rehearsal");
+                    if (rehearsalElement)
+                    {
+                        direction.rehearsals.push_back(ParseRehearsal(rehearsalElement));
+                    }
 
-            // dynamic
-            XMLElement* dynamicElement = directionTypeElement->FirstChildElement("dynamics");
-            if (dynamicElement)
-            {
-                direction.dynamics.push_back(ParseDynamicElement(dynamicElement));
-            }
+                    // words
+                    XMLElement* wordsElement = directionTypeElement->FirstChildElement("words");
+                    if (wordsElement)
+                    {
+                        direction.words.push_back(ParseWords(wordsElement));
+                    }
 
-            // dynamic wedge
-            XMLElement* dynamicWedgeElement = directionTypeElement->FirstChildElement("wedge");
-            if (dynamicWedgeElement)
-            {
-                direction.dynamicWedge = ParseDynamicWedgeElement(dynamicWedgeElement, currentTimeInMeasure);
-                if (direction.dynamicWedge == nullptr)
-                    isNewDirection = false;
-            }
+                    // metronome
+                    XMLElement* metronomeElement = directionTypeElement->FirstChildElement("metronome");
+                    if (metronomeElement)
+                    {
+                        direction.metronomeMark = ParseMetronomeMark(metronomeElement);
+                    }
 
-            // dashes
-            XMLElement* dashesDirectionElement = directionTypeElement->FirstChildElement("dashes");
-            if (dashesDirectionElement)
-            {
-                direction.dashesDirection = ParseDashesDirectionElement(dashesDirectionElement, currentTimeInMeasure);
-                if (direction.dashesDirection == nullptr)
-                    isNewDirection = false;
+                    // dynamic
+                    XMLElement* dynamicElement = directionTypeElement->FirstChildElement("dynamics");
+                    if (dynamicElement)
+                    {
+                        direction.dynamics.push_back(ParseDynamicElement(dynamicElement));
+                    }
+
+                    // dynamic wedge
+                    XMLElement* dynamicWedgeElement = directionTypeElement->FirstChildElement("wedge");
+                    if (dynamicWedgeElement)
+                    {
+                        direction.dynamicWedge = ParseDynamicWedgeElement(dynamicWedgeElement, currentTimeInMeasure);
+                        if (direction.dynamicWedge == nullptr)
+                            isNewDirection = false;
+                    }
+
+                    // note: dashes and brackets are the same class (the BracketDirection class)
+
+                    // dashes
+                    XMLElement* dashesDirectionElement = directionTypeElement->FirstChildElement("dashes");
+                    if (dashesDirectionElement)
+                    {
+                        direction.bracketDirection = ParseDashesDirectionElement(dashesDirectionElement, currentTimeInMeasure);
+                        if (direction.bracketDirection == nullptr)
+                            isNewDirection = false;
+                    }
+
+                    // bracket
+                    XMLElement* bracketDirectionElement = directionTypeElement->FirstChildElement("bracket");
+                    if (bracketDirectionElement)
+                    {
+                        direction.bracketDirection = ParseBracketDirectionElement(bracketDirectionElement, currentTimeInMeasure);
+                        if (direction.bracketDirection == nullptr)
+                            isNewDirection = false;
+                    }
+                }
+                else if (strcmp(value, "offset") == 0) // offset
+                {
+                    // TODO: implement
+                }
+                else if (strcmp(value, "footnote") == 0) // footnote
+                {
+                    // TODO: implement
+                }
+                else if (strcmp(value, "level") == 0) // level
+                {
+                    // TODO: implement
+                }
+                else if (strcmp(value, "voice") == 0) // voice
+                {
+                    // TODO: implement
+                }
+                else if (strcmp(value, "staff") == 0) // staff
+                {
+                    // TODO: implement
+                }
+                else if (strcmp(value, "sound") == 0) // sound
+                {
+                    // TODO: implement
+                }
+                else if (strcmp(value, "listening") == 0) // listening
+                {
+                    // TODO: implement
+                }
+                else
+                {
+                    AddError("Didn't recognize element", "Didn't recognize element in Direction");
+                }
             }
+            else
+            {
+                break;
+            }
+            previousElement = previousElement->NextSiblingElement();
         }
-
     }
     return direction;
 }
@@ -757,7 +752,7 @@ Credit MusicXMLParser::ParseCreditElement(XMLElement* creditElement)
 
     if (creditElement)
     {
-        ParseBaseElement(creditElement, credit);
+        BaseElementParser::ParseBaseElement(creditElement, credit);
 
         credit.pageNumber = XMLHelper::GetUnsignedIntAttribute(creditElement, "page", credit.pageNumber);
 
@@ -765,7 +760,7 @@ Credit MusicXMLParser::ParseCreditElement(XMLElement* creditElement)
         if (creditWordsElement)
         {
             CreditWords words = CreditWords();
-            ParseTextualElement(creditWordsElement, words);
+            BaseElementParser::ParseTextualElement(creditWordsElement, words);
             words.text = XMLHelper::GetStringValue(creditWordsElement, words.text);
             words.defaultX = XMLHelper::GetFloatAttribute(creditWordsElement, "default-x", words.defaultX);
             words.defaultY = XMLHelper::GetFloatAttribute(creditWordsElement, "default-y", words.defaultY);
@@ -903,13 +898,13 @@ void MusicXMLParser::ParseHarmonyElement(XMLElement* harmonyElement, float& curr
                 XMLElement* degreeElement = element;
                 ChordDegree newDegree = ChordDegree();
 
-                ParsePrintableElement(degreeElement, newDegree);
+                BaseElementParser::ParsePrintableElement(degreeElement, newDegree);
 
                 // degree value element
                 XMLElement* degreeValueElement = degreeElement->FirstChildElement("degree-value");
                 if (degreeValueElement)
                 {
-                    ParseVisibleElement(degreeValueElement, newDegree.degree);
+                    BaseElementParser::ParseVisibleElement(degreeValueElement, newDegree.degree);
                     newDegree.degree.degree = XMLHelper::GetUnsignedIntValue(degreeValueElement, newDegree.degree.degree);
                 }
 
@@ -917,7 +912,7 @@ void MusicXMLParser::ParseHarmonyElement(XMLElement* harmonyElement, float& curr
                 XMLElement* degreeTypeElement = degreeElement->FirstChildElement("degree-type");
                 if (degreeTypeElement)
                 {
-                    ParseVisibleElement(degreeTypeElement, newDegree.degreeType);
+                    BaseElementParser::ParseVisibleElement(degreeTypeElement, newDegree.degreeType);
                     std::string s = XMLHelper::GetStringValue(degreeTypeElement, "");
                     if (s == "add")
                         newDegree.degreeType.type = DegreeType::Type::Add;
@@ -935,7 +930,7 @@ void MusicXMLParser::ParseHarmonyElement(XMLElement* harmonyElement, float& curr
                 XMLElement* degreeAlterElement = degreeElement->FirstChildElement("degree-alter");
                 if (degreeAlterElement)
                 {
-                    ParseVisibleElement(degreeAlterElement, newDegree.degreeAlter);
+                    BaseElementParser::ParseVisibleElement(degreeAlterElement, newDegree.degreeAlter);
                     newDegree.degreeAlter.alter = XMLHelper::GetFloatValue(degreeAlterElement, newDegree.degreeAlter.alter);
                 }
 
@@ -957,313 +952,6 @@ void MusicXMLParser::ParseHarmonyElement(XMLElement* harmonyElement, float& curr
     newChord.CalculateChordName();
     //LOGE("Chord (%s) is at %f", newChord.chordName.string.c_str(), newChord.beatPosition);
     currentMeasures[newChord.staff - 1]->chords.push_back(newChord);
-}
-
-void MusicXMLParser::ParseNoteElement(XMLElement* noteElement, float& currentTimeInMeasure, std::vector<bool> staffIsTabInfo, Note* currentNote, Note* previousNote, std::vector<Measure*> currentMeasures, int measureNumber, std::string& error)
-{
-    currentNote->defX = XMLHelper::GetFloatAttribute(noteElement, "default-x", currentNote->defX);
-    currentNote->defY = XMLHelper::GetFloatAttribute(noteElement, "default-y", currentNote->defY);
-
-    currentNote->relX = XMLHelper::GetFloatAttribute(noteElement, "relative-x", currentNote->relX);
-    currentNote->relY = XMLHelper::GetFloatAttribute(noteElement, "relative-y", currentNote->relY);
-
-    // staff
-    XMLElement* staffElement = noteElement->FirstChildElement("staff");
-    if (staffElement)
-    {
-        currentNote->staff = ToInt(staffElement->GetText());
-    }
-    else
-    {
-        currentNote->staff = 1;
-    }
-
-    if (staffIsTabInfo[currentNote->staff-1]) {
-        currentNote->type = Note::NoteType::Tab;
-    }
-
-    // chord
-    XMLElement* chordElement = noteElement->FirstChildElement("chord");
-    if (chordElement)
-    {
-        currentNote->isChord = true;
-    }
-
-    // rest
-    XMLElement* restElement = noteElement->FirstChildElement("rest");
-    if (restElement)
-    {
-        currentNote->isRest = true;
-        currentNote->isFullMeasureRest = XMLHelper::GetBoolAttribute(restElement, "measure", false);
-    }
-
-    // pitch
-    XMLElement* pitch = noteElement->FirstChildElement("pitch");
-    if (pitch)
-    {
-        // step
-        XMLElement* step = pitch->FirstChildElement("step");
-        if (step)
-        {
-            currentNote->pitch.step = step->GetText();
-        }
-        else
-        {
-            error = "no step element in pitch element";
-        }
-
-        // octave
-        XMLElement* octave = pitch->FirstChildElement("octave");
-        if (step)
-        {
-            currentNote->pitch.octave = ToInt(octave->GetText());
-        }
-        else
-        {
-            error = "no octave element in pitch element";
-        }
-
-        // alter
-        XMLElement* alter = pitch->FirstChildElement("alter");
-        if (alter)
-        {
-            currentNote->pitch.alter = float(ToInt(alter->GetText()));
-        }
-    }
-
-    // duration
-    XMLElement* duration = noteElement->FirstChildElement("duration");
-    if (duration)
-    {
-        int divisions = currentMeasures[currentNote->staff-1]->divisions;
-        if (divisions != 0)
-        {
-            currentNote->duration.duration = (1.0f / (float)divisions) * (float)ToInt(duration->GetText());
-        }
-        else
-        {
-            error = "Error divisions is zero";
-        }
-
-        // calculating beat position of note
-        if (currentNote->isChord) { // is a chord so beat position is the same as the previous note's beat position
-            if (previousNote)
-                currentNote->beatPosition = currentTimeInMeasure - previousNote->duration.duration;
-            else
-                currentNote->beatPosition = 0.0f;
-        } else { // not a chord so beat position is equal to the current time in the measure
-            currentNote->beatPosition = currentTimeInMeasure;
-        }
-
-        // increment time in measure
-        if (!currentNote->isChord)
-        {
-            currentTimeInMeasure += currentNote->duration.duration;
-        }
-    }
-    /*else
-    {
-        error = "note has no duration";
-    }*/
-
-    // tie
-    XMLElement* tieElement = noteElement->FirstChildElement("tie");
-    if (tieElement)
-    {
-        std::string typeString = XMLHelper::GetStringAttribute(tieElement, "type", "", true);
-
-        if (typeString == "start")
-            currentNote->tie.type = NoteTie::TieType::Start;
-        else if (typeString == "stop")
-            currentNote->tie.type = NoteTie::TieType::Stop;
-        else
-            currentNote->tie.type = NoteTie::TieType::None;
-    }
-
-    // voice
-    XMLElement* voiceElement = noteElement->FirstChildElement("voice");
-    if (voiceElement)
-    {
-        currentNote->voice = ToInt(voiceElement->GetText());
-    }
-
-    // type
-    XMLElement* noteType = noteElement->FirstChildElement("type");
-    if (noteType)
-    {
-        currentNote->CalculateDurationTypeFromString(noteType->GetText());
-    }
-
-    // lyrics
-    XMLNode* previousLyricElement = noteElement->FirstChildElement("lyric");
-    while (true)
-    {
-        if (previousLyricElement) {
-            XMLElement* lyricElement = previousLyricElement->ToElement();
-            Lyric lyric = ParseLyric(lyricElement);
-            currentNote->lyrics.push_back(lyric);
-        }
-        else
-        {
-            break;
-        }
-        previousLyricElement = previousLyricElement->NextSiblingElement("lyric");
-    }
-
-    // accidental
-    XMLElement* accidentalElement = noteElement->FirstChildElement("accidental");
-    if (accidentalElement)
-    {
-        currentNote->accidental.accidentalType = Accidental::CalculateAccidentalTypeFromString(accidentalElement->GetText());
-
-        currentNote->accidental.isCautionary = XMLHelper::GetBoolAttribute(accidentalElement, "cautionary", false);
-        currentNote->accidental.isEditorial = XMLHelper::GetBoolAttribute(accidentalElement, "editorial", false);
-        currentNote->accidental.hasBrackets = XMLHelper::GetBoolAttribute(accidentalElement, "bracket", false);
-        currentNote->accidental.hasParentheses = XMLHelper::GetBoolAttribute(accidentalElement, "parentheses", false);
-    }
-
-    // stem
-    XMLElement* stemElement = noteElement->FirstChildElement("stem");
-    if (stemElement)
-    {
-        currentNote->noteStem.stemType = currentNote->noteStem.CalculateStemTypeFromString(stemElement->GetText());
-    }
-
-    // beam
-    XMLNode* previousBeamElement = noteElement->FirstChildElement("beam");
-    while (true)
-    {
-        if (previousBeamElement) {
-            XMLElement* beamElement = previousBeamElement->ToElement();
-            if (beamElement)
-            {
-                NoteBeamData noteBeamData = NoteBeamData();
-
-                noteBeamData.beamType = NoteBeamData::CalculateBeamTypeFromString(beamElement->GetText());
-                noteBeamData.beamLevel = XMLHelper::GetNumberAttribute(beamElement, "number", 1);
-
-                currentNote->beamData.push_back(noteBeamData);
-            }
-        }
-        else
-        {
-            break;
-        }
-
-        previousBeamElement = previousBeamElement->NextSiblingElement("beam");
-    }
-
-    // notations
-    XMLElement* notations = noteElement->FirstChildElement("notations");
-    if (notations)
-    {
-        // slurs
-        XMLElement* slurElement = notations->FirstChildElement("slur");
-        if (slurElement)
-        {
-            Slur slur = Slur();
-            slur.id = XMLHelper::GetNumberAttribute(slurElement, "number");
-            slur.placement = MusicXMLHelper::GetAboveBelowAttribute(slurElement, "placement");
-            slur.type = MusicXMLHelper::GetStartStopAttribute(slurElement, "type");
-            currentNote->slurs.push_back(slur);
-        }
-
-        // technical
-        XMLElement* technical = notations->FirstChildElement("technical");
-        ParseTechnicalElement(technical, currentNote, staffIsTabInfo[currentNote->staff-1]);
-    }
-
-    // dot
-    XMLElement* dotElement = noteElement->FirstChildElement("dot"); // TODO: modify to allow the parsing of multiple dots
-    if (dotElement)
-    {
-        AugmentationDot dot = AugmentationDot();
-
-        ParseVisibleElement(dotElement, dot);
-
-        dot.placement = MusicXMLHelper::GetAboveBelowAttribute(dotElement, "placement", dot.placement);
-
-        currentNote->dots.push_back(dot);
-    }
-
-    currentNote->measureIndex = measureNumber - 1;
-    currentMeasures[currentNote->staff - 1]->notes.push_back(currentNote);
-}
-
-void MusicXMLParser::ParseTechnicalElement(XMLElement* technicalElement, Note* currentNote, bool isTab)
-{
-    if (technicalElement)
-    {
-        // hammer ons
-        XMLNode* previousHammerOnElement = technicalElement->FirstChildElement("hammer-on");
-        while (true)
-        {
-            if (previousHammerOnElement) {
-                XMLElement* hammerOnElement = previousHammerOnElement->ToElement();
-                if (hammerOnElement)
-                {
-                    TABSlur tabSlur = TABSlur();
-                    tabSlur.slurType = TABSlur::SlurType::HammerOn;
-                    tabSlur.id = XMLHelper::GetNumberAttribute(hammerOnElement, "number");
-                    tabSlur.placement = MusicXMLHelper::GetAboveBelowAttribute(hammerOnElement, "placement");
-                    tabSlur.type = MusicXMLHelper::GetStartStopAttribute(hammerOnElement, "type");
-                    if (hammerOnElement->GetText()) {
-                        tabSlur.text = hammerOnElement->GetText();
-                    }
-                    currentNote->tabSlurs.push_back(tabSlur);
-                }
-            }
-            else
-            {
-                break;
-            }
-            previousHammerOnElement = previousHammerOnElement->NextSiblingElement("hammer-on");
-        }
-
-        // pull offs
-        XMLNode* previousPullOffElement = technicalElement->FirstChildElement("pull-off");
-        while (true)
-        {
-            if (previousPullOffElement) {
-                XMLElement* pullOffElement = previousPullOffElement->ToElement();
-                if (pullOffElement)
-                {
-                    TABSlur tabSlur = TABSlur();
-                    tabSlur.slurType = TABSlur::SlurType::PullOff;
-                    tabSlur.id = XMLHelper::GetNumberAttribute(pullOffElement, "number");
-                    tabSlur.placement = MusicXMLHelper::GetAboveBelowAttribute(pullOffElement, "placement");
-                    tabSlur.type = MusicXMLHelper::GetStartStopAttribute(pullOffElement, "type");
-                    if (pullOffElement->GetText()) {
-                        tabSlur.text = pullOffElement->GetText();
-                    }
-                    currentNote->tabSlurs.push_back(tabSlur);
-                }
-            }
-            else
-            {
-                break;
-            }
-            previousPullOffElement = previousPullOffElement->NextSiblingElement("pull_off");
-        }
-
-        // - TAB only -
-        if (currentNote->type == Note::NoteType::Tab && isTab) {
-
-            // string
-            XMLElement* string = technicalElement->FirstChildElement("string");
-            if (string)
-            {
-                currentNote->string = ToInt(string->GetText());
-            }
-
-            // fret
-            XMLElement* fret = technicalElement->FirstChildElement("fret");
-            if (fret)
-            {
-                currentNote->fret = ToInt(fret->GetText());
-            }
-        }
-    }
 }
 
 Barline MusicXMLParser::ParseBarlineElement(XMLElement* barlineElement)
@@ -1795,7 +1483,7 @@ Song* MusicXMLParser::ParseMusicXML(const std::string& data, std::string& error)
                                                 XMLElement *tuningAlter = staffTuning->FirstChildElement(
                                                         "tuning-alter");
                                                 if (tuningAlter)
-                                                    tuning.pitch.alter = ToInt(
+                                                    tuning.pitch.alter = (float)ToInt(
                                                             tuningAlter->GetText());
                                                 tabStaff->tunings.push_back(tuning);
                                             } else {
@@ -1836,7 +1524,7 @@ Song* MusicXMLParser::ParseMusicXML(const std::string& data, std::string& error)
                                             currentMeasures[staffNumber-1]->startsMultiMeasureRest = true;
                                             currentMeasures[staffNumber-1]->isPartOfMultiMeasureRest = true;
                                             currentMeasures[staffNumber-1]->useSymbolsForMultiMeasureRest = useSymbols;
-                                            currentMeasures[staffNumber-1]->numberOfMeasuresInMultiMeasureRest - numberOfMeasures;
+                                            currentMeasures[staffNumber-1]->numberOfMeasuresInMultiMeasureRest = numberOfMeasures;
                                         }
                                     }
                                 }
@@ -1876,7 +1564,7 @@ Song* MusicXMLParser::ParseMusicXML(const std::string& data, std::string& error)
                                     if (strcmp(value, "note") == 0) // note
                                     {
                                         Note* currentNote = new Note();
-                                        ParseNoteElement(element, currentTimeInMeasure, staffIsTabInfo, currentNote, previousNote, currentMeasures, measureNumber, error);
+                                        NoteElementParser::ParseNoteElement(element, currentTimeInMeasure, staffIsTabInfo, currentNote, previousNote, currentMeasures, measureNumber, error);
                                         previousNote = currentNote;
                                     }
                                     else if (strcmp(value, "backup") == 0) // backup time in measure
@@ -2047,7 +1735,6 @@ Song* MusicXMLParser::ParseMusicXML(const std::string& data, std::string& error)
     doc.Clear();
 
     currentDynamicWedges.clear();
-    currentDashes.clear();
     currentBrackets.clear();
 
     ParseError::PrintErrors();

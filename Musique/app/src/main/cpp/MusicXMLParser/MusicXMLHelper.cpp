@@ -36,6 +36,39 @@ Date MusicXMLHelper::FromStringToDate(const char* string)
     return date;
 }
 
+Lyric::SyllabicType MusicXMLHelper::FromStringToSyllabicType(const std::string& value)
+{
+    if (value == "begin")
+        return Lyric::SyllabicType::Begin;
+    else if (value == "end")
+        return Lyric::SyllabicType::End;
+    else if (value == "middle")
+        return Lyric::SyllabicType::Middle;
+    else if (value == "single")
+        return Lyric::SyllabicType::Single;
+    else
+        LOGE("unrecognized syllabic type");
+    return Lyric::SyllabicType::None;
+}
+
+BracketDirection::LineEndType MusicXMLHelper::GetLineEndTypeFromString(const std::string& string)
+{
+    if (string == "up")
+        return BracketDirection::LineEndType::Up;
+    else if (string == "down")
+        return BracketDirection::LineEndType::Down;
+    else if (string == "both")
+        return BracketDirection::LineEndType::Both;
+    else if (string == "arrow")
+        return BracketDirection::LineEndType::Arrow;
+    else if (string == "none")
+        return BracketDirection::LineEndType::NoEnd;
+    else if (string.empty())
+        return BracketDirection::LineEndType::None;
+    else
+        AddError("Did not recognize type", "Did not recognize line-end type");
+}
+
 // ---- From String ----
 
 Chord::HarmonyType MusicXMLHelper::GetHarmonyTypeFromString(const std::string& string)

@@ -25,6 +25,7 @@
 class Note {
     friend class Song;
     friend class MusicXMLParser;
+    friend class NoteElementParser;
 
 public:
     ~Note() {}

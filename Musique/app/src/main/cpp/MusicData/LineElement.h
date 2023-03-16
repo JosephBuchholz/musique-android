@@ -16,6 +16,11 @@ class LineElement : public virtual BaseElement
 {
 public:
 
+    LineElement() {}
+
+    LineElement(LineType lineType, float dashLength = 10.0f, float dashSpaceLength = 10.0f)
+        : lineType(lineType), dashLength(dashLength), dashSpaceLength(dashSpaceLength) {}
+
     /**
      * Updates the given paint to match the line attributes of this class.
      *
@@ -27,10 +32,10 @@ public:
     LineType lineType = LineType::Solid;
 
     // only for dashed lines
-    float dashLength = 0.0f;
+    float dashLength = 10.0f;
 
     // only for dashed or dotted lines
-    float dashSpaceLength = 0.0f;
+    float dashSpaceLength = 10.0f;
 };
 
 #endif // MUSIQUE_LINEELEMENT_H

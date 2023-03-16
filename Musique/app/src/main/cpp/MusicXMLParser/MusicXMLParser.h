@@ -1,32 +1,24 @@
+/**
+ * This files contains the definition for the `MusicXMLParser` class which parses a file in the format of MusicXML.
+ */
+
 #ifndef MUSIQUE_MUSICXMLPARSER_H
 #define MUSIQUE_MUSICXMLPARSER_H
 
 #include <string>
 #include <unordered_map>
-//#include "libs/tinyxml/tinyxml.h"
-//#include "libs/tinyxml/tinystr.h"
 #include "../libs/tinyxml2/tinyxml2.h"
 #include "../MusicData/Song.h"
 #include "../MusicData/Types.h"
-//#include "../Utils/Converters.h"
 
 #include "XMLHelper.h"
 #include "MusicXMLHelper.h"
 #include "ParseError.h"
 
-
-
-//#include "libs/tinyxml/tinyxml.h"
-//#include "libs/tinyxml/tinystr.h"
-/*#include "libs/tinyxml2/tinyxml2.h"
-#include "MusicData/Song.h"
-#include "MusicData/Types.h"
-#include "Utils/Converters.h"*/
-
 using namespace tinyxml2;
 
 /**
- * A 'singleton' that parses musicxml formatted files
+ * A 'singleton' that parses MusicXML formatted files.
  */
 class MusicXMLParser
 {
@@ -40,28 +32,19 @@ public:
      * @param error[out] will contain an error if there was one
      * @return a pointer to a Song object with the parsed data
      */
-    static Song* ParseMusicXML(const std::string& data, std::string& error); // parses MusicXML data
+    static Song* ParseMusicXML(const std::string& data, std::string& error);
 
 private:
 
     // ---- Parse Functions ----
-
-    static Lyric::SyllabicType ParseSyllabicType(const std::string& value);
-    // parses a single lyric element
-    static Lyric ParseLyric(XMLElement* lyricElement);
-
-    static void ParseBaseElement(XMLElement* element, BaseElement& newElement);
-    static void ParsePrintableElement(XMLElement* element, PrintableElement& newElement);
-    static void ParseVisibleElement(XMLElement* element, VisibleElement& newElement);
-    static void ParseTextualElement(XMLElement* element, TextualElement& newElement);
-    static void ParseLineElement(XMLElement* element, LineElement& newElement);
 
     static Rehearsal ParseRehearsal(XMLElement* element);
     static Words ParseWords(XMLElement* element);
     static std::shared_ptr<MetronomeMark> ParseMetronomeMark(XMLElement* element);
     static Dynamic ParseDynamicElement(XMLElement* element);
     static std::shared_ptr<DynamicWedge> ParseDynamicWedgeElement(XMLElement* element, float currentTimeInMeasure);
-    static std::shared_ptr<DashesDirection> ParseDashesDirectionElement(XMLElement* element, float currentTimeInMeasure);
+    static std::shared_ptr<BracketDirection> ParseDashesDirectionElement(XMLElement* element, float currentTimeInMeasure);
+    static std::shared_ptr<BracketDirection> ParseBracketDirectionElement(XMLElement* element, float currentTimeInMeasure);
     static Direction ParseDirection(XMLElement* directionElement, bool& isNewDirection, float currentTimeInMeasure);
     static void ParseWorkElement(XMLElement* workElement, std::string& workTitle, int& workNumber);
     static void ParseEncodingElement(XMLElement* encodingElement, Song* song);
@@ -70,8 +53,6 @@ private:
     static Credit ParseCreditElement(XMLElement* creditElement);
     static void ParseFrameElement(XMLElement* frameElement, Chord& chord);
     static void ParseHarmonyElement(XMLElement* harmonyElement, float& currentTimeInMeasure, std::vector<Measure*> currentMeasures);
-    static void ParseNoteElement(XMLElement* noteElement, float& currentTimeInMeasure, std::vector<bool> staffIsTabInfo, Note* currentNote, Note* previousNote, std::vector<Measure*> currentMeasures, int measureNumber, std::string& error);
-    static void ParseTechnicalElement(XMLElement* technicalElement, Note* currentNote, bool isTab);
     static Barline ParseBarlineElement(XMLElement* barlineElement);
 
 protected:

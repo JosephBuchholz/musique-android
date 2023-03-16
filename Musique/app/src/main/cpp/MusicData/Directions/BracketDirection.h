@@ -12,7 +12,9 @@
 #include "../../RenderData/RenderData.h"
 
 /**
- * This class represents some a bracket for part of a direction marking.
+ * This class represents a bracket for part of a direction marking.
+ *
+ * Note: MusicXML dashes and brackets are represented as this one class.
  */
 class BracketDirection : public VisibleElement, public LineElement {
     friend class Song;
@@ -20,14 +22,34 @@ class BracketDirection : public VisibleElement, public LineElement {
 
 public:
 
-    void Render(RenderData& renderData, float measurePositionX, float measurePositionY, float offsetX = 0.0f, float offsetY = 0.0f) const;
+    enum class LineEndType
+    {
+        None = 0, Up, Down, Both, Arrow, NoEnd
+    };
+
+    BracketDirection() {}
+
+    void Render(RenderData& renderData, Vec2<float> measurePosition, Vec2<float> offset = { 0.0f, 0.0f }) const;
 
 protected:
 
     void CalculatePositionAsPaged(const MusicDisplayConstants& displayConstants, Vec2<float> defPositionStart, Vec2<float> defPositionEnd);
 
+private:
+
+    static void RenderLineEnd(RenderData& renderData, Vec2<float> position, LineEndType lineEndType, float endLength, const Paint& paint = Paint(), Vec2<float> offset = { 0.0f, 0.0f });
+
 public:
 
+    LineEndType lineEndTypeStart = LineEndType::None;
+    LineEndType lineEndTypeStop = LineEndType::None;
+
+    // the length of a bracket end
+    float endLengthStart = 0.0f;
+    float endLengthStop = 0.0f;
+
+    // whether this element is a MusicXML dashes element or  bracket element
+    bool isDashes = false;
 
     // starting beat position
     float beatPositionStart = 0.0f; // the position in the measure in beats(quarter notes)
@@ -55,4 +77,3 @@ protected:
 };
 
 #endif // MUSIQUE_BRACKETDIRECTION_H
-

@@ -13,7 +13,7 @@
 #include "MetronomeMark.h"
 #include "Dynamic.h"
 #include "DynamicWedge.h"
-#include "DashesDirection.h"
+#include "BracketDirection.h"
 #include "BracketDirection.h"
 
 #include "../Types.h"
@@ -52,7 +52,6 @@ public:
     std::shared_ptr<MetronomeMark> metronomeMark = nullptr;
     std::vector<Dynamic> dynamics;
     std::shared_ptr<DynamicWedge> dynamicWedge = nullptr;
-    std::shared_ptr<DashesDirection> dashesDirection = nullptr;
     std::shared_ptr<BracketDirection> bracketDirection = nullptr;
 
     AboveBelowType placement = AboveBelowType::Above;

@@ -502,6 +502,17 @@ void Song::OnUpdate()
 
                             direction.dynamicWedge->CalculatePositionAsPaged(displayConstants, { defaultStartX, defaultStartY }, { defaultEndX, defaultEndY }, defaultSpread);
                         }
+
+                        if (direction.bracketDirection != nullptr)
+                        {
+                            float defaultStartX = GetPositionXInMeasure(direction.bracketDirection->beatPositionInSongStart, measureIndex);
+                            float defaultStartY = -30.0f;
+
+                            float defaultEndX = GetPositionXInMeasure(direction.bracketDirection->beatPositionInSongEnd, measureIndex);
+                            float defaultEndY = -30.0f;
+
+                            direction.bracketDirection->CalculatePositionAsPaged(displayConstants, { defaultStartX, defaultStartY }, { defaultEndX, defaultEndY });
+                        }
                     }
 
                     for (auto& chord : measure->chords)
@@ -892,6 +903,12 @@ void Song::CalculateNoteBeatPositionsInSong()
                     {
                         direction.dynamicWedge->beatPositionInSongStart = direction.dynamicWedge->beatPositionStart + measureBeatPosition;
                         direction.dynamicWedge->beatPositionInSongEnd = direction.dynamicWedge->beatPositionEnd + measureBeatPosition;
+                    }
+
+                    if (direction.bracketDirection != nullptr)
+                    {
+                        direction.bracketDirection->beatPositionInSongStart = direction.bracketDirection->beatPositionStart + measureBeatPosition;
+                        direction.bracketDirection->beatPositionInSongEnd = direction.bracketDirection->beatPositionEnd + measureBeatPosition;
                     }
                 }
 

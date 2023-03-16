@@ -1,0 +1,49 @@
+/**
+ * This file defines the `NoteElementParser` class which parses note elements for MusicXML files.
+ */
+
+#ifndef MUSIQUE_NOTEELEMENTPARSER_H
+#define MUSIQUE_NOTEELEMENTPARSER_H
+
+#include <string>
+#include "../libs/tinyxml2/tinyxml2.h"
+#include "ParseError.h"
+
+#include "../MusicData/Measures/Measure.h"
+#include "../MusicData/Notes/Note.h"
+#include "../MusicData/Notes/Lyric.h"
+
+using namespace tinyxml2;
+
+/**
+ * A 'singleton' that parses note elements for MusicXML files.
+ */
+class NoteElementParser
+{
+public:
+
+    /**
+     * Parses a note element in a MusicXML file.
+     *
+     * @param noteElement A pointer to the `XMLElement` object.
+     * @param currentTimeInMeasure The current beat position in the current measure.
+     * @param staffIsTabInfo Info on whether a staff is a tablature staff.
+     * @param currentNote A pointer to the current note.
+     * @param previousNote A pointer to the previous note.
+     * @param currentMeasures The current measures.
+     * @param measureNumber The measure number.
+     * @param error An error string (this should be deleted)
+     */
+    static void ParseNoteElement(XMLElement* noteElement, float& currentTimeInMeasure, std::vector<bool> staffIsTabInfo, Note* currentNote, Note* previousNote, std::vector<Measure*> currentMeasures, int measureNumber, std::string& error);
+
+private:
+    static Lyric ParseLyric(XMLElement* lyricElement);
+    static void ParseTechnicalElement(XMLElement* technicalElement, Note* currentNote, bool isTab);
+
+protected:
+    static void AddError(std::string title, std::string desc, ErrorLevel errorLevel = ErrorLevel::Error) { m_Errors.emplace_back(title, desc, "BaseElementParser", errorLevel); }
+    static void AddErrorIf(bool condition, std::string title, std::string desc, ErrorLevel errorLevel = ErrorLevel::Error) { if (condition) m_Errors.emplace_back(title, desc, "BaseElementParser", errorLevel); }
+};
+
+
+#endif //MUSIQUE_NOTEELEMENTPARSER_H
