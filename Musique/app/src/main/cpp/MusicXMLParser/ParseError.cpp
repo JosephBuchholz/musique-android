@@ -1,6 +1,6 @@
 #include "ParseError.h"
 
-#include "../AndroidDebug.h"
+#include "../Debuging/AndroidDebug.h"
 
 void ParseError::PrintErrors()
 {

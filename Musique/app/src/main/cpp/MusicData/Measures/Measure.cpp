@@ -221,3 +221,11 @@ float Measure::GetRepeatBarlinePositionX() const
 {
     return GetBeginningWidth();
 }
+
+void Measure::UpdateBoundingBoxes(const Vec2<float>& measurePosition)
+{
+    for (Direction& direction : directions)
+    {
+        direction.UpdateBoundingBox(measurePosition);
+    }
+}

@@ -2,7 +2,7 @@
 #include "../Utils/Converters.h"
 #include <memory>
 
-#include "../Vec2.h"
+#include "../Collisions/Vec2.h"
 #include "BaseElementParser.h"
 #include "NoteElementParser.h"
 

@@ -1,7 +1,7 @@
 #ifndef MUSIQUE_ANDROIDDEBUG_H
 #define MUSIQUE_ANDROIDDEBUG_H
 
-#include <android/log.h>
+#include "../../../../../../../../../../AppData/Local/Android/Sdk/ndk/23.1.7779620/toolchains/llvm/prebuilt/windows-x86_64/sysroot/usr/include/android/log.h"
 
 
 #if !defined(NDEBUG)

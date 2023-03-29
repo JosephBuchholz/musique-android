@@ -9,6 +9,7 @@
 #include "../Types.h"
 #include "../String.h"
 #include "../../MusicDisplayConstants.h"
+#include "../../Collisions/Vec2.h"
 
 /**
  * This class represents a textual music direction (such as rit. or cresc.).
@@ -19,6 +20,8 @@ class Words : public TextualElement {
 
 public:
     Words() {  }
+
+    void UpdateBoundingBox(const Vec2<float> &parentPosition);
 
 protected:
     void CalculatePositionAsPaged(const MusicDisplayConstants& displayConstants, float defaultX, float defaultY);

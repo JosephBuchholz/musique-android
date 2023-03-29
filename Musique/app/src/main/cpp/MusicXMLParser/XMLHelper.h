@@ -7,7 +7,7 @@
 
 #include <string>
 #include "../libs/tinyxml2/tinyxml2.h"
-#include "../Vec2.h"
+#include "../Collisions/Vec2.h"
 #include "ParseError.h"
 
 using namespace tinyxml2;
@@ -27,8 +27,35 @@ public:
 
     // ---- Get Value Functions ----
 
+    /**
+     * Gets the value from the given element as a string.
+     *
+     * @param element The element to get the value from.
+     * @param defaultValue The default value to return if there is no value in the element.
+     * @param required Whether it is required for there to be a value.
+     * @return Returns the value (if there isn't a value then `defaultValue` is returned).
+     */
     static std::string GetStringValue(XMLElement* element, std::string defaultValue = "", bool required = false);
+
+    /**
+     * Gets the value from the given element as a string.
+     *
+     * @param elementName The name of the element to get the value from.
+     * @param elementParent The parent of the element.
+     * @param defaultValue The default value to return if there is no value in the element.
+     * @param required Whether it is required for there to be a value.
+     * @return Returns the value (if there isn't a value then `defaultValue` is returned).
+     */
     static std::string GetStringValue(const std::string& elementName, XMLElement* elementParent, std::string defaultValue = "", bool required = false);
+
+    /**
+     * Gets the value from the given element as a float.
+     *
+     * @param element The element to get the value from.
+     * @param defaultValue The default value to return if there is no value in the element.
+     * @param required Whether it is required for there to be a value.
+     * @return Returns the value (if there isn't a value then `defaultValue` is returned).
+     */
     static float GetFloatValue(XMLElement* element, float defaultValue = 0.0f, bool required = false);
     static float GetFloatValue(const std::string& elementName, XMLElement* elementParent, float defaultValue = 0.0f, bool required = false);
     static int GetIntValue(XMLElement* element, int defaultValue = 0, bool required = false);

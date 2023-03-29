@@ -5,7 +5,7 @@
 #include "App.h"
 #include "Utils/Converters.h"
 #include "MusicXMLParser/MusicXMLParser.h"
-
+#include "Debuging/Debug.h"
 
 App::App()
 {
@@ -679,6 +679,12 @@ void App::CalculateRenderForPagedLayout()
         m_RenderData.AddLine(std::make_shared<Line>(pageX, pageY + song->displayConstants.pageHeight, pageX + song->displayConstants.pageWidth, pageY + song->displayConstants.pageHeight, BarLinePaint));
         m_RenderData.AddLine(std::make_shared<Line>(pageX + song->displayConstants.pageWidth, pageY, pageX + song->displayConstants.pageWidth, pageY + song->displayConstants.pageHeight, BarLinePaint));
     }
+
+#if SHOW_BOUNDING_BOXES
+
+    song->UpdateBoundingBoxes(pagePositions, systemPositions);
+    song->RenderBoundingBoxes(m_RenderData, pagePositions, systemPositions);
+#endif
 
     layoutCalculated = true;
 }

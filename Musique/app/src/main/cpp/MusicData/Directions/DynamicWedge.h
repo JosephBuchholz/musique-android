@@ -7,7 +7,7 @@
 
 #include "../VisibleElement.h"
 #include "../LineElement.h"
-#include "../../Vec2.h"
+#include "../../Collisions/Vec2.h"
 #include "../../MusicDisplayConstants.h"
 #include "../../RenderData/RenderData.h"
 

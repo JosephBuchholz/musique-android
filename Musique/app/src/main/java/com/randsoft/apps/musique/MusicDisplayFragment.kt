@@ -3,6 +3,8 @@ package com.randsoft.apps.musique
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.PointF
+import android.graphics.RectF
 import android.graphics.pdf.PdfDocument
 import android.os.Bundle
 import android.os.Handler
@@ -22,9 +24,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.randsoft.apps.musique.framedata.FrameData
 import com.randsoft.apps.musique.printing.PrintHandler
-import com.randsoft.apps.musique.renderdata.PrintRenderData
-import com.randsoft.apps.musique.renderdata.RenderData
-import com.randsoft.apps.musique.renderdata.SMuFLGlyph
+import com.randsoft.apps.musique.renderdata.*
 import com.randsoft.apps.musique.songdata.InstrumentInfo
 import com.randsoft.apps.musique.songdata.SongData
 
@@ -311,8 +311,30 @@ class MusicDisplayFragment : Fragment(), PrintHandler.Callbacks, SettingsDialogF
         }
         else
         {
-            Log.w(TAG, "musicDisplayView is null");
-            return 0.0f;
+            Log.w(TAG, "musicDisplayView is null")
+            return 0.0f
+        }
+    }
+
+    fun measureText(text: Text): RectF {
+        if (musicDisplayView != null) {
+            return musicDisplayView!!.measureText(text)
+        }
+        else
+        {
+            Log.w(TAG, "musicDisplayView is null")
+            return RectF()
+        }
+    }
+
+    fun measureSpannableText(text: SpannableText): RectF {
+        if (musicDisplayView != null) {
+            return musicDisplayView!!.measureSpannableText(text)
+        }
+        else
+        {
+            Log.w(TAG, "musicDisplayView is null")
+            return RectF()
         }
     }
 

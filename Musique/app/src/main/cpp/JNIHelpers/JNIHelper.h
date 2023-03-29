@@ -118,6 +118,24 @@ public:
     static jobject GetCallbackObject();
 
     static void SetMainCallbackObject(jobject callbackObj);
+
+    /**
+     * Gets a field on a jobject that has a type of int.
+     *
+     * @param env[in,out] the JIN environment
+     * @param object[in] the object to get the field value from
+     * @param fieldName[in] the name of the field to get
+     */
+    static int GetIntField(JNIEnv* env, const jobject& object, const char* fieldName);
+
+    /**
+     * Gets a field on a jobject that has a type of float.
+     *
+     * @param env[in,out] the JIN environment
+     * @param object[in] the object to get the field value from
+     * @param fieldName[in] the name of the field to get
+     */
+    static float GetFloatField(JNIEnv* env, const jobject& object, const char* fieldName);
 };
 
 #endif // MUSIQUE_JNIHELPER_H

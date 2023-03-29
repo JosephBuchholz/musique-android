@@ -1,3 +1,7 @@
+/**
+ * This file contains the definition for the `Measure` class which represents a musical measure.
+ */
+
 #ifndef MUSIQUE_MEASURE_H
 #define MUSIQUE_MEASURE_H
 
@@ -11,13 +15,15 @@
 #include "../Chords/Chord.h"
 #include "Barline.h"
 #include "../Notes/BeamGroup.h"
+#include "../VisibleElement.h"
 
 #include <vector>
 
 /**
  * A class that represents a measure.
  */
-class Measure {
+class Measure : public VisibleElement
+{
     friend class Staff;
     friend class Song;
     friend class MusicXMLParser;
@@ -58,6 +64,8 @@ public:
     void CalculateDuration() {
         duration.duration = timeSignature.notes * (4.0f / timeSignature.noteType); // duration in beats(quarter notes)
     }
+
+    void UpdateBoundingBoxes(const Vec2<float>& measurePosition);
 
     /*void CopyData(Measure* measure) // copies all data from measure except any notes that don't equal this measure's 'staff' and the 'staff' variable itself
     {

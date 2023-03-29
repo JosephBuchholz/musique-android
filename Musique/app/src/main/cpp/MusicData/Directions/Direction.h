@@ -42,6 +42,8 @@ public:
      */
     void Render(RenderData& renderData, float measurePositionX, float measurePositionY, float offsetX = 0.0f, float offsetY = 0.0f) const;
 
+    void UpdateBoundingBox(const Vec2<float>& measurePosition);
+
 public:
 
     float beatPosition = 0.0f; // the position of the direction in the measure in beats(quarter notes)

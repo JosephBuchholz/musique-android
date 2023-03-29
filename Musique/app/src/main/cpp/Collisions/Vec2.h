@@ -1,6 +1,10 @@
 #ifndef MUSIQUE_VEC2_H
 #define MUSIQUE_VEC2_H
 
+#include <string>
+
+#include "../Utils/Converters.h"
+
 template<typename T>
 struct Vec2
 {
@@ -9,6 +13,10 @@ public:
 
     Vec2(T x, T y)
         : x(x), y(y) {}
+
+public:
+
+    std::string GetPrintableString() const { return "x: " + ToString(x) + ", y: " + ToString(y); }
 
 public:
 
@@ -31,6 +39,7 @@ public:
     {
         return { this->x / rhs.x, this->y / rhs.y };
     }
+
 public:
     T x, y;
 };

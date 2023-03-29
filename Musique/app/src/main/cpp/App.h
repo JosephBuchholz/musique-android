@@ -5,14 +5,13 @@
 #ifndef MUSIQUE_APP_H
 #define MUSIQUE_APP_H
 
-#include "AndroidDebug.h"
 #include "MusicData/Song.h"
 #include "ViewModelData.h"
 #include "Midi.h"
 #include "Callbacks.h"
 #include "Settings.h"
 #include "RenderableMusicData/RenderableSong.h"
-#include "Vec2.h"
+#include "Collisions/Vec2.h"
 
 /**
  * This class acts like an interface between Kotlin and C++.

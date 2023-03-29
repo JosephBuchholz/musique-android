@@ -6,6 +6,8 @@ import android.content.ContentUris
 import android.content.ContentValues
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.graphics.PointF
+import android.graphics.RectF
 import android.net.Uri
 import android.os.*
 import android.print.PrintAttributes
@@ -20,9 +22,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import com.randsoft.apps.musique.databinding.ActivityMainBinding
 import com.randsoft.apps.musique.framedata.FrameData
-import com.randsoft.apps.musique.renderdata.PrintRenderData
-import com.randsoft.apps.musique.renderdata.RenderData
-import com.randsoft.apps.musique.renderdata.SMuFLGlyph
+import com.randsoft.apps.musique.renderdata.*
 import com.randsoft.apps.musique.songdata.InstrumentInfo
 import com.randsoft.apps.musique.songdata.SongData
 import kotlinx.coroutines.Dispatchers
@@ -316,6 +316,22 @@ class MainActivity : AppCompatActivity(), MusicDisplayFragment.Callbacks,
         }
 
         return 0.0f
+    }
+
+    private fun measureText(text: Text): RectF {
+        if (musicDisplayFragment != null) {
+            return musicDisplayFragment!!.measureText(text)
+        }
+
+        return RectF()
+    }
+
+    private fun measureSpannableText(text: SpannableText): RectF {
+        if (musicDisplayFragment != null) {
+            return musicDisplayFragment!!.measureSpannableText(text)
+        }
+
+        return RectF()
     }
 
     // -- Callbacks For Midi --

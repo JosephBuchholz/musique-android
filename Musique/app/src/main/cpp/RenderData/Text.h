@@ -11,7 +11,7 @@ struct Text {
 
     Text() {}
 
-    Text(const std::string& text, float x, float y, Paint paint = Paint())
+    Text(const std::string& text, float x, float y, const Paint& paint = Paint())
             : text(text), x(x), y(y), paint(paint) {
     }
 

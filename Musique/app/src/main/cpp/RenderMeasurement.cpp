@@ -38,9 +38,42 @@ float RenderMeasurement::MeasureGlyph(SMuFLID codePoint)
     return MeasureGlyph(glyph);
 }
 
-float RenderMeasurement::MeasureText(const Text& text)
+BoundingBox RenderMeasurement::GetTextBoundingBox(const Text& text)
 {
-    return 0.0f;
+    BoundingBox boundingBox = BoundingBox();
+
+    JNIEnv* env = GetEnv();
+
+    jclass classMainActivity = env->FindClass("com/randsoft/apps/musique/MainActivity");
+    jmethodID callback = env->GetMethodID(classMainActivity, "measureText", "(Lcom/randsoft/apps/musique/renderdata/Text;)Landroid/graphics/RectF;");
+
+    jclass textClass = env->FindClass("com/randsoft/apps/musique/renderdata/Text");
+    jobject newText = JNIHelper::CreateNewObject(env, textClass);
+
+    JNIHelper::SetFloatField(env, newText, "x", text.x);
+    JNIHelper::SetFloatField(env, newText, "y", text.y);
+    /*JNIHelper::SetObjectField(env, newText, "text", env->NewStringUTF(text.text.c_str()), "Ljava/lang/String;");
+
+    jobject paintObject = ConvertPaintToObject(env, text.paint);
+    JNIHelper::SetObjectField(env, newText, "paint", paintObject, "Lcom/randsoft/apps/musique/renderdata/Paint;");*/
+
+    // calling callback
+    jobject callbackObj = JNIHelper::GetCallbackObject();
+    if (callbackObj != nullptr) {
+        jobject rectBounds = env->CallObjectMethod(callbackObj, callback, newText);
+
+        boundingBox.position.x = JNIHelper::GetFloatField(env, rectBounds, "left");
+        boundingBox.position.y = JNIHelper::GetFloatField(env, rectBounds, "top");
+
+        boundingBox.size.x = JNIHelper::GetFloatField(env, rectBounds, "right") - boundingBox.position.x;
+        boundingBox.size.y = JNIHelper::GetFloatField(env, rectBounds, "bottom") - boundingBox.position.y;
+    }
+    else
+    {
+        LOGW("Callback Object is null");
+    }
+
+    return boundingBox;
 }
 
 float RenderMeasurement::MeasureSpannableText(const SpannableText& text)

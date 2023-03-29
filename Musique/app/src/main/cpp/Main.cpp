@@ -1,6 +1,6 @@
 #include <jni.h>
 #include <string>
-#include "AndroidDebug.h"
+#include "Debuging/AndroidDebug.h"
 #include "Callbacks.h"
 #include "App.h"
 #include "JNIHelpers/JNIHelper.h"

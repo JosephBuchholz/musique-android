@@ -1,6 +1,6 @@
 #include "Song.h"
 #include "SongData.h"
-#include "../AndroidDebug.h"
+#include "../Debuging/AndroidDebug.h"
 #include "../Utils/Converters.h"
 
 #include <algorithm>
@@ -982,13 +982,6 @@ float Song::GetSongWidth()
     return songWidth;
 }
 
-/**
- * Converts a beatPosition into a normal x position relative to the left-hand side of the measure.
- *
- * @param beatPositionInSong the beat position to be converted
- * @param currentMeasureIndex the index of the measure that the beat position is at
- * @return the x position in tenths
- */
 float Song::GetPositionXInMeasure(float beatPositionInSong, int currentMeasureIndex)
 {
     float position = 0.0f;
@@ -1114,13 +1107,6 @@ float Song::GetPositionXInMeasure(float beatPositionInSong, int currentMeasureIn
     return position;
 }
 
-/**
- * Converts a beatPosition into a normal x position.
- *
- * @param beatPositionInSong the beat position to be converted
- * @param currentMeasureIndex the index of the measure that the beat position is at
- * @return the x position in tenths
- */
 float Song::GetPositionXInSong(float beatPositionInSong, int currentMeasureIndex)
 {
     float position = GetPositionXInMeasure(beatPositionInSong, currentMeasureIndex);
@@ -1131,12 +1117,6 @@ float Song::GetPositionXInSong(float beatPositionInSong, int currentMeasureIndex
     return position;
 }
 
-/**
- * Gets the measure at the given index (this will be the measure in the first instrument and staff).
- *
- * @param measureIndex the index of the measure
- * @return a pointer to the measure
- */
 Measure* Song::GetMeasure(int measureIndex)
 {
     if (!instruments.empty())
@@ -1146,36 +1126,18 @@ Measure* Song::GetMeasure(int measureIndex)
     return nullptr;
 }
 
-/**
- * Finds whether the measure at the given index is at the start of the system (i.e. it starts a new system)
- *
- * @param measureIndex the index of the measure
- * @return weather the measure starts a new system
- */
 bool Song::DoesMeasureStartNewSystem(int measureIndex)
 {
     Measure* measure = GetMeasure(measureIndex);
     return measure->startNewSystem;
 }
 
-/**
- * Finds whether the measure at the given index is at the start of the page (i.e. it starts a new page)
- *
- * @param measureIndex the index of the measure
- * @return weather the measure starts a new page
- */
 bool Song::DoesMeasureStartNewPage(int measureIndex)
 {
     Measure* measure = GetMeasure(measureIndex);
     return measure->startNewPage;
 }
 
-/**
- * Gets the y position of a system
- *
- * @param measureIndex the index of the first measure in the system
- * @return the y position of the system
- */
 float Song::GetSystemPositionY(int measureIndex) // TODO: needs finnished
 {
     float instYPosition = 0.0f;
@@ -1201,23 +1163,11 @@ float Song::GetSystemPositionY(int measureIndex) // TODO: needs finnished
     return instYPosition * (measureIndex/4);
 }
 
-/**
- * Calculates the height of a system (not implemented yet)
- *
- * @param measureIndex the index of the measure
- * @return the height of the system
- */
 float Song::GetSystemHeight(int measureIndex)
 {
     return 150.0f;
 }
 
-/**
- * Finds the index of the system that the given measure appears on.
- *
- * @param measureIndex the index of the measure
- * @return the index of the system
- */
 int Song::GetSystemIndex(int measureIndex)
 {
     int systemIndex = 0;
@@ -1239,12 +1189,6 @@ int Song::GetSystemIndex(int measureIndex)
     return systemIndex;
 }
 
-/**
- * Finds the index of the page that the given measure appears on.
- *
- * @param measureIndex the index of the measure
- * @return the index of the page
- */
 int Song::GetPageIndex(int measureIndex)
 {
     int pageIndex = 0;
@@ -1266,12 +1210,6 @@ int Song::GetPageIndex(int measureIndex)
     return pageIndex;
 }
 
-/**
- * Finds the index of the first measure that appears on the given page index
- *
- * @param pageIndex the index of the page
- * @return the index of the measure
- */
 int Song::GetFirstMeasureOnPage(int pageIndex)
 {
     int measureIndex = 0;
@@ -1296,11 +1234,30 @@ int Song::GetFirstMeasureOnPage(int pageIndex)
     return measureIndex;
 }
 
-/**
- * Calculates the number of pages needed to render in paged mode.
- *
- * @return the number of pages
- */
+int Song::GetFirstMeasureInSystem(int systemIndex)
+{
+    int measureIndex = 0;
+
+    if (instruments.empty())
+        return 0;
+    if (instruments[0]->staves.empty())
+        return 0;
+
+    int i = 0;
+    for (auto* measure : instruments[0]->staves[0]->measures)
+    {
+        if (measure->startNewSystem)
+            i++;
+
+        if (i == systemIndex)
+            break;
+
+        measureIndex++;
+    }
+
+    return measureIndex;
+}
+
 int Song::GetNumPages()
 {
     int numPages = 1;
@@ -1317,4 +1274,142 @@ int Song::GetNumPages()
     }
 
     return numPages;
+}
+
+float Song::GetMeasurePositionX(int measureIndex, Vec2<float> pagePosition, Vec2<float> systemPosition)
+{
+    if (DoesMeasureStartNewSystem(measureIndex)) // if it is the first measure in the system
+        return pagePosition.x + systemPosition.x;
+
+    float measurePositionX = 0.0f;
+
+    int systemIndex = GetSystemIndex(measureIndex);
+    int firstMeasureInSystemIndex = GetFirstMeasureInSystem(systemIndex);
+
+    int nextMeasureIndex = firstMeasureInSystemIndex;
+    float currentPositionX = systemPosition.x + pagePosition.x;
+
+    while (true)
+    {
+        if (nextMeasureIndex == measureIndex)
+        {
+            break;
+        }
+
+        float width = GetMeasureWidth(nextMeasureIndex);
+
+        currentPositionX += width;
+
+        nextMeasureIndex++;
+
+        if (nextMeasureIndex - firstMeasureInSystemIndex >= 100) // probably a infinite loop
+        {
+            LOGE("INFINITE LOOP");
+            break;
+        }
+    }
+
+    measurePositionX = currentPositionX;
+
+    return measurePositionX;
+}
+
+float Song::GetInstrumentPositionY(int measureIndex, int instrumentIndex)
+{
+    float instrumentPositionY = 0.0f;
+
+    Instrument *prevInstrument = nullptr;
+    int currentInstrumentIndex = 0;
+    for (auto* instrument : instruments)
+    {
+        if (prevInstrument != nullptr)
+        {
+            instrumentPositionY += prevInstrument->GetMiddleHeight(10.0f, 13.33f, 0, instrument->GetMeasureCount());
+            instrumentPositionY += instrument->staves.front()->measures[measureIndex]->staffDistance;
+        }
+
+        if (currentInstrumentIndex == instrumentIndex)
+        {
+            break;
+        }
+
+        prevInstrument = instrument;
+        currentInstrumentIndex++;
+    }
+
+    return instrumentPositionY;
+}
+
+void Song::UpdateBoundingBoxes(const std::vector<Vec2<float>>& pagePositions, const std::vector<Vec2<float>>& systemPositions)
+{
+    int instrumentIndex = 0;
+    for (auto* instrument : instruments) {
+
+        int staffIndex = 0;
+        for (auto* staff : instrument->staves) {
+            float ls = displayConstants.lineSpacing;
+            if (staff->type == Staff::StaffType::Tab) {
+                ls = displayConstants.tabLineSpacing;
+            }
+
+            int measureIndex = 0;
+            for (auto* measure : staff->measures) {
+
+                float instPositionY = GetInstrumentPositionY(measureIndex, instrumentIndex) + systemPositions[GetSystemIndex(measureIndex)].y;
+                //float instPositionY = systemPositions[GetSystemIndex(measureIndex)].y;
+
+                // staff y position
+                float staffPositionY = 0.0f;
+                if (staffIndex == 0) {
+                    staffPositionY = 0.0f;
+                } else if (staffIndex >= 1) {
+                    staffPositionY += staff->measures[measureIndex]->staffDistance + instrument->staves[staffIndex - 1]->GetMiddleHeight(ls);
+                }
+
+                //LOGD("instPosY: %f, staffPosY: %f", instPositionY, staffPositionY);
+
+                int pageIndex = GetPageIndex(measureIndex);
+                int systemIndex = GetSystemIndex(measureIndex);
+                if (pageIndex < pagePositions.size() && systemIndex < systemPositions.size())
+                {
+                    Vec2<float> pagePosition = pagePositions[pageIndex];
+                    Vec2<float> systemPosition = systemPositions[systemIndex];
+
+                    //LOGD("pagePosition: x: %f, y: %f, systemPosition: x: %f, y: %f", pagePosition.x, pagePosition.y, systemPosition.x, systemPosition.y);
+
+                    float measurePositionX = GetMeasurePositionX(measureIndex, pagePosition, systemPosition);
+
+                    //LOGW("measurePositionX: %f", measurePositionX);
+                    measure->UpdateBoundingBoxes({measurePositionX, instPositionY + staffPositionY + pagePosition.y}); // this line crashes
+                }
+
+                measureIndex++;
+            }
+
+            staffIndex++;
+        }
+
+        instrumentIndex++;
+    }
+}
+
+void Song::RenderBoundingBoxes(RenderData& renderData, const std::vector<Vec2<float>>& pagePositions, const std::vector<Vec2<float>>& systemPositions)
+{
+    for (auto* instrument : instruments) {
+        for (auto* staff : instrument->staves) {
+            int measureIndex = 0;
+            for (auto* measure : staff->measures) {
+
+                for (Direction& direction : measure->directions) {
+
+                    for (auto& words : direction.words)
+                    {
+                        words.boundingBox.Render(renderData);
+                    }
+                }
+
+                measureIndex++;
+            }
+        }
+    }
 }

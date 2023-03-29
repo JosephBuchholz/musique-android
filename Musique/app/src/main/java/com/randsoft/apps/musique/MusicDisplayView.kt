@@ -173,6 +173,62 @@ class MusicDisplayView(context: Context, attrs: AttributeSet? = null): View(cont
         return width
     }
 
+    fun measureText(text: Text): RectF
+    {
+        // START OF ERROR
+
+        // create paint
+        /*val paint = Paint().apply {
+            color = text.paint.color
+            textSize = text.paint.textSize
+            textAlign = Paint.Align.values()[text.paint.align]
+            isAntiAlias = true
+        }
+
+        paint.textSize = pointsToTenths(text.paint.textSize, Scaling()) // LOTS OF ERRORS ON THIS LINE
+
+        if (text.paint.isTablature) {
+            paint.typeface = tablatureTypeface
+            paint.textSize = text.paint.textSize
+        }
+        else if (text.paint.isItalic && text.paint.isBold) {
+            paint.typeface = typefaceBoldItalic
+        }
+        else if (!text.paint.isItalic && text.paint.isBold) {
+            paint.typeface = typefaceBold
+        }
+        else if (text.paint.isItalic) {
+            paint.typeface = typefaceItalic
+        }
+        else {
+            paint.typeface = typefacePlain
+        }*/
+
+        // END OF ERROR
+
+        //val paint = Paint()
+
+        var rect = Rect()
+        Log.e(TAG, "text: ${text.text}, t_length: ${text.text.length}");
+        //paint.getTextBounds(text.text, 0, text.text.length, rect) // this is the error line
+
+        val rectF = RectF()
+        rectF.top = rect.top / scale
+        rectF.bottom = rect.bottom / scale
+        rectF.right = rect.right / scale
+        rectF.left = rect.left / scale
+
+        //val width = paint.measureText(text.text, 0, text.text.length) / scale
+
+        return rectF
+    }
+
+    fun measureSpannableText(text: SpannableText): RectF
+    {
+        // TODO: implement
+        return RectF()
+    }
+
     /**
      * Draws an array of lines on the given canvas
      *
@@ -524,7 +580,7 @@ class MusicDisplayView(context: Context, attrs: AttributeSet? = null): View(cont
      */
     private fun drawCubicCurves(canvas: Canvas, cubicCurves: Array<CubicCurve>, offsetX: Float = 0.0f, offsetY: Float = 0.0f)
     {
-        Log.e(TAG, "drawing cubic curves: ${cubicCurves.size}");
+        Log.i(TAG, "drawing cubic curves: ${cubicCurves.size}");
         // render cubic bezier curves
         for (curve in cubicCurves) {
             val paint = Paint().apply {
@@ -542,7 +598,7 @@ class MusicDisplayView(context: Context, attrs: AttributeSet? = null): View(cont
             var point2 = PointF(curve.x3 * scale + offsetX, curve.y3 * scale + offsetY)
             var end = PointF(curve.x4 * scale + offsetX, curve.y4 * scale + offsetY)
 
-            //Log.e(TAG, "drawing cubic curve: ${}");
+            //Log.i(TAG, "drawing cubic curve: ${}");
 
             path.moveTo(start.x, start.y)
             path.cubicTo(point1.x, point1.y, point2.x, point2.y, end.x, end.y)

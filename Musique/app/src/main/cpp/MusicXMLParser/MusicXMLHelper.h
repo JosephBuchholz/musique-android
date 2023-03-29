@@ -14,7 +14,7 @@
 #include "../MusicData/Notes/Lyric.h"
 #include "../MusicData/Directions/BracketDirection.h"
 
-#include "../Vec2.h"
+#include "../Collisions/Vec2.h"
 
 using namespace tinyxml2;
 

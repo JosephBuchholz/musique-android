@@ -59,6 +59,8 @@ add_library( # Sets the name of the library.
         MusicXMLParser/NoteElementParser.cpp
         MusicXMLParser/BaseElementParser.cpp
 
+        Collisions/BoundingBox.cpp
+
         JNIHelpers/JNIHelper.cpp
         Utils/Converters.cpp
         libs/tinyxml/tinystr.cpp

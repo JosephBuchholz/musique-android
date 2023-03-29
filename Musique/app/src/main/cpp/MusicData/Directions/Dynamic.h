@@ -9,7 +9,7 @@
 
 #include "../TextualElement.h"
 
-#include "../../Vec2.h"
+#include "../../Collisions/Vec2.h"
 #include "../Types.h"
 
 #include "../../RenderData/RenderData.h"

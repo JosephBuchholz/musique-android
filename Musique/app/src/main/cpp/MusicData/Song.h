@@ -5,7 +5,7 @@
 #include <vector>
 #include <string>
 #include <array>
-#include "../AndroidDebug.h"
+#include "../Debuging/AndroidDebug.h"
 #include "SongData.h"
 #include "../Settings.h"
 #include "Credit.h"
@@ -30,28 +30,154 @@ public:
     float GetMeasurePositionY(int measureIndex); // for use with a non horizontal mode (like a vertical mode)
     float GetMeasureBeatPosition(int measureIndex);
 
-    float GetSongWidth(); // gets the width of the song
+    /**
+     * Gets the width of the song (for Horizontal mode).
+     *
+     * @return The width of the song.
+     */
+    float GetSongWidth();
 
+    /**
+     * Converts a beatPosition into a normal x position.
+     *
+     * @param beatPositionInSong the beat position to be converted
+     * @param currentMeasureIndex the index of the measure that the beat position is at
+     * @return the x position in tenths
+     */
     float GetPositionXInSong(float beatPositionInSong, int currentMeasureIndex);
+
+    /**
+     * Converts a beatPosition into a normal x position relative to the left-hand side of the measure.
+     *
+     * @param beatPositionInSong the beat position to be converted
+     * @param currentMeasureIndex the index of the measure that the beat position is at
+     * @return the x position in tenths
+     */
     float GetPositionXInMeasure(float beatPositionInSong, int currentMeasureIndex);
 
+    /**
+     * Gets the y position of a system
+     *
+     * @param measureIndex the index of the first measure in the system
+     * @return the y position of the system
+     */
     float GetSystemPositionY(int measureIndex);
+
+    /**
+     * Calculates the height of a system (not implemented yet)
+     *
+     * @param measureIndex the index of the measure
+     * @return the height of the system
+     */
     float GetSystemHeight(int measureIndex);
 
+    /**
+     * Finds the index of the system that the given measure appears on.
+     *
+     * @param measureIndex the index of the measure
+     * @return the index of the system
+     */
     int GetSystemIndex(int measureIndex);
+
+    /**
+     * Finds the index of the page that the given measure appears on.
+     *
+     * @param measureIndex the index of the measure
+     * @return the index of the page
+     */
     int GetPageIndex(int measureIndex);
 
+    /**
+     * Finds the index of the first measure that appears on the given page index
+     *
+     * @param pageIndex the index of the page
+     * @return the index of the measure
+     */
     int GetFirstMeasureOnPage(int pageIndex);
+    int GetFirstMeasureInSystem(int systemIndex);
 
+    /**
+     * Calculates the number of pages needed to render in paged mode.
+     *
+     * @return the number of pages
+     */
     int GetNumPages();
 
-    float GetNoteMinWidthInFront(Note* note); // the minimum amount of space needed in front of the note
-    float GetNoteMinWidthBehind(Note* note); // the minimum amount of space needed behind the note
+    /**
+     * Finds the minimum amount of space needed in front of the note.
+     *
+     * @param note A pointer to the note.
+     * @return The amount of space in front of the note.
+     */
+    float GetNoteMinWidthInFront(Note* note);
 
+    /**
+     * Finds the minimum amount of space needed behind the note.
+     *
+     * @param note A pointer to the note.
+     * @return The amount of space behind the note.
+     */
+    float GetNoteMinWidthBehind(Note* note);
+
+    /**
+     * Gets the measure at the given index (this will be the measure in the first instrument and staff).
+     *
+     * @param measureIndex the index of the measure
+     * @return a pointer to the measure
+     */
     Measure* GetMeasure(int measureIndex);
 
+    /**
+     * Finds whether the measure at the given index is at the start of the system (i.e. it starts a new system).
+     *
+     * @param measureIndex the index of the measure.
+     * @return weather the measure starts a new system.
+     */
     bool DoesMeasureStartNewSystem(int measureIndex);
+
+    /**
+     * Finds whether the measure at the given index is at the start of the page (i.e. it starts a new page).
+     *
+     * @param measureIndex the index of the measure.
+     * @return weather the measure starts a new page.
+     */
     bool DoesMeasureStartNewPage(int measureIndex);
+
+    /**
+     * Gets the x position of a measure at the given index.
+     *
+     * @param measureIndex The index of the measure to find the x position of.
+     * @param pagePosition The position of the page that the measure is on.
+     * @param systemPosition The position of the system that the system is in.
+     * @return The x position of the measure.
+     */
+    float GetMeasurePositionX(int measureIndex, Vec2<float> pagePosition, Vec2<float> systemPosition);
+
+    /**
+     * Updates the position and dimensions of all bounding boxes.
+     *
+     * @param pagePositions A list of positions for all pages.
+     * @param systemPositions A list of positions for all systems.
+     */
+    void UpdateBoundingBoxes(const std::vector<Vec2<float>>& pagePositions, const std::vector<Vec2<float>>& systemPositions);
+
+    /**
+     * Renders a debug version of every bounding box. (This function is for debugging purposes).
+     *
+     * @param renderData The `RenderData` object to render to.
+     * @param pagePositions A list of positions for all pages.
+     * @param systemPositions A list of positions for all systems.
+     */
+    void RenderBoundingBoxes(RenderData& renderData, const std::vector<Vec2<float>>& pagePositions, const std::vector<Vec2<float>>& systemPositions);
+
+    /**
+     * Calculates the instrument's y position relative to the current system.
+     *
+     * @param measureIndex The index of the measure.
+     * @param instrumentIndex The index of the instrument.
+     * @return The instrument's y position relative to the current system.
+     */
+    float GetInstrumentPositionY(int measureIndex, int instrumentIndex);
 
 private:
     struct TimeSpacePoint

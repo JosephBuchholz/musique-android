@@ -1,7 +1,7 @@
 #include "Callbacks.h"
 
 #include <jni.h>
-#include "AndroidDebug.h"
+#include "Debuging/AndroidDebug.h"
 #include "JNIHelpers/JNIHelper.h"
 
 extern JavaVM* theJvm;

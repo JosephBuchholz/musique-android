@@ -79,3 +79,15 @@ void JNIHelper::SetMainCallbackObject(jobject callbackObj)
 {
     MainActivityRefObj = callbackObj;
 }
+
+int JNIHelper::GetIntField(JNIEnv* env, const jobject& object, const char* fieldName)
+{
+    jfieldID fieldId = env->GetFieldID(env->GetObjectClass(object), fieldName, "I");
+    return (int)env->GetIntField(object, fieldId);
+}
+
+float JNIHelper::GetFloatField(JNIEnv* env, const jobject& object, const char* fieldName)
+{
+    jfieldID fieldId = env->GetFieldID(env->GetObjectClass(object), fieldName, "F");
+    return (float)env->GetFloatField(object, fieldId);
+}
