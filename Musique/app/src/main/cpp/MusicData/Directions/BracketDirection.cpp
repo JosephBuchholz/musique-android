@@ -1,5 +1,17 @@
 #include "BracketDirection.h"
 
+void BracketDirection::UpdateBoundingBox(const Vec2<float>& parentPosition)
+{
+    boundingBox.position.x = positionStart.x + parentPosition.x;
+    boundingBox.position.y = positionStart.y + parentPosition.y;
+    boundingBox.size.x = positionEnd.x - positionStart.x;
+    boundingBox.size.y = 2.0f;
+
+#if DEBUG_BOUNDING_BOXES
+    debugBoundingBox = boundingBox;
+#endif
+}
+
 void BracketDirection::Render(RenderData& renderData, Vec2<float> measurePosition, Vec2<float> offset) const
 {
     Paint paint = Paint(color.color);

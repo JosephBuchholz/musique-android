@@ -24,9 +24,24 @@ public:
 
     void ResolveOverlap(BoundingBox boundingBox);
 
-    void Render(RenderData& renderData) const;
+    /**
+     * Resolve the overlap with out moving `this.`
+     *
+     * @param boundingBox The bounding box to resolve overlap with.
+     * @return The x and y offset that was used to resolve the overlap.
+     */
+    Vec2<float> ResolveOverlapStatically(BoundingBox& boundingBox) const;
+
+    void Render(RenderData& renderData, const int& color = 0xFFFF00FF) const;
 
     std::string GetPrintableString() const { return "position: " + position.GetPrintableString() + " | size: " + size.GetPrintableString(); }
+
+public:
+
+    bool operator==(const BoundingBox& rhs) const
+    {
+        return (this->position == rhs.position) && (this->size == rhs.size);
+    }
 
 public:
 

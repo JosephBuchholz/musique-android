@@ -16,6 +16,33 @@ void Chord::Render(RenderData& renderData, float measurePositionX, float measure
     renderData.AddText(Text(chordName.string, positionX + measurePositionX + offsetX, positionY + measurePositionY + offsetY, Paint(color.color, paint)));
 }
 
+void Chord::UpdateBoundingBox(const Vec2<float> &parentPosition)
+{
+    Paint paint = Paint();
+    if (fontStyle == FontStyle::Italic)
+        paint.isItalic = true;
+    if (fontWeight == FontWeight::Bold)
+        paint.isBold = true;
+    paint.textSize = fontSize.size;
+
+    BoundingBox bb = BoundingBox();
+    bb.position.x = 0.0f;
+    bb.position.y = -paint.textSize * 2.0f;
+    bb.size.x = (paint.textSize * (float)chordName.string.size()) + (paint.textSize * 2.0f);
+    bb.size.y = paint.textSize * 2.0f;
+
+    boundingBox.position.x = bb.position.x + positionX + parentPosition.x;
+    boundingBox.position.y = bb.position.y + positionY + parentPosition.y;
+    boundingBox.position.x -= bb.size.x / 2.0f;
+    boundingBox.position.y += bb.size.y / 2.0f;
+    boundingBox.size.x = bb.size.x;
+    boundingBox.size.y = bb.size.y;
+
+#if DEBUG_BOUNDING_BOXES
+    debugBoundingBox = boundingBox;
+#endif
+}
+
 void Chord::CalculateChordName()
 {
     chordName.string = rootPitch.step;

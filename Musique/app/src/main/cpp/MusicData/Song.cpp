@@ -19,7 +19,7 @@ Song::~Song()
     LOGD("done deconstructing song data");
 }
 
-Instrument* Song::GetInstrument(const std::string& id) {
+Instrument* Song::GetInstrument(const std::string& id) const {
     for (auto& inst : instruments) {
         if (inst->id == id) {
             return inst;
@@ -350,9 +350,12 @@ void Song::OnUpdate()
                 staff->CalculateAsPaged(displayConstants);
 
                 int measureIndex = 0;
-                int systemIndex = 0;
+                int systemIndex = -1;
                 for (auto* measure : staff->measures)
                 {
+                    if (measure->startNewSystem)
+                        systemIndex++;
+
                     measure->CalculateAsPaged(displayConstants);
                     if (measureIndex >= m_MeasureWidths.size())
                     {
@@ -389,9 +392,6 @@ void Song::OnUpdate()
                     }
 
                     measureIndex++;
-
-                    if (measure->startNewSystem)
-                        systemIndex++;
                 }
             }
         }
@@ -918,17 +918,17 @@ void Song::CalculateNoteBeatPositionsInSong()
     }
 }
 
-float Song::GetNoteMinWidthInFront(Note* note)
+float Song::GetNoteMinWidthInFront(Note* note) const
 {
     return note->GetMinWidth();
 }
 
-float Song::GetNoteMinWidthBehind(Note* note)
+float Song::GetNoteMinWidthBehind(Note* note) const
 {
     return 0.0f;
 }
 
-float Song::GetMeasureWidth(int measureIndex)
+float Song::GetMeasureWidth(int measureIndex) const
 {
     if (m_MeasureWidths.size() > measureIndex) {
         return m_MeasureWidths[measureIndex];
@@ -936,25 +936,26 @@ float Song::GetMeasureWidth(int measureIndex)
     return 0.0f;
 }
 
-float Song::GetMeasurePositionX(int measureIndex)
+float Song::GetMeasurePositionX(int measureIndex) const
 {
     float position = 0.0f;
     if (DoesMeasureStartNewSystem(measureIndex))
         return position;
     else
     {
-        for (int i = 0; i < measureIndex; i++)
+        int systemIndex = GetSystemIndex(measureIndex);
+        int firstMeasureInSystemIndex = GetFirstMeasureInSystem(systemIndex);
+
+        for (int i = firstMeasureInSystemIndex; i < measureIndex; i++)
         {
-            if (DoesMeasureStartNewSystem(i))
-                position = 0.0f;
-            position += m_MeasureWidths[i];
+            position += GetMeasureWidth(i);
         }
 
         return position;
     }
 }
 
-float Song::GetMeasureBeatPosition(int measureIndex)
+float Song::GetMeasureBeatPosition(int measureIndex) const
 {
     float beatPosition = 0.0f;
     if (!instruments.empty())
@@ -967,12 +968,12 @@ float Song::GetMeasureBeatPosition(int measureIndex)
     return beatPosition;
 }
 
-float Song::GetMeasurePositionY(int measureIndex)
+float Song::GetMeasurePositionY(int measureIndex) const
 {
     return 0.0f;
 }
 
-float Song::GetSongWidth()
+float Song::GetSongWidth() const
 {
     float songWidth = 0.0f;
     for (float w : m_MeasureWidths)
@@ -982,7 +983,7 @@ float Song::GetSongWidth()
     return songWidth;
 }
 
-float Song::GetPositionXInMeasure(float beatPositionInSong, int currentMeasureIndex)
+float Song::GetPositionXInMeasure(float beatPositionInSong, int currentMeasureIndex) const
 {
     float position = 0.0f;
 
@@ -1107,7 +1108,7 @@ float Song::GetPositionXInMeasure(float beatPositionInSong, int currentMeasureIn
     return position;
 }
 
-float Song::GetPositionXInSong(float beatPositionInSong, int currentMeasureIndex)
+float Song::GetPositionXInSong(float beatPositionInSong, int currentMeasureIndex) const
 {
     float position = GetPositionXInMeasure(beatPositionInSong, currentMeasureIndex);
 
@@ -1117,7 +1118,7 @@ float Song::GetPositionXInSong(float beatPositionInSong, int currentMeasureIndex
     return position;
 }
 
-Measure* Song::GetMeasure(int measureIndex)
+Measure* Song::GetMeasure(int measureIndex) const
 {
     if (!instruments.empty())
         if (!instruments[0]->staves.empty())
@@ -1126,19 +1127,23 @@ Measure* Song::GetMeasure(int measureIndex)
     return nullptr;
 }
 
-bool Song::DoesMeasureStartNewSystem(int measureIndex)
+bool Song::DoesMeasureStartNewSystem(int measureIndex) const
 {
     Measure* measure = GetMeasure(measureIndex);
     return measure->startNewSystem;
 }
 
-bool Song::DoesMeasureStartNewPage(int measureIndex)
+bool Song::DoesMeasureStartNewPage(int measureIndex) const
 {
     Measure* measure = GetMeasure(measureIndex);
-    return measure->startNewPage;
+
+    if (measure != nullptr)
+        return measure->startNewPage;
+    else
+        throw std::runtime_error("Measure does not exist");
 }
 
-float Song::GetSystemPositionY(int measureIndex) // TODO: needs finnished
+float Song::GetSystemPositionY(int measureIndex) const // TODO: needs finnished
 {
     float instYPosition = 0.0f;
     int instrumentIndex = 0;
@@ -1163,22 +1168,25 @@ float Song::GetSystemPositionY(int measureIndex) // TODO: needs finnished
     return instYPosition * (measureIndex/4);
 }
 
-float Song::GetSystemHeight(int measureIndex)
+float Song::GetSystemHeight(int measureIndex) const
 {
     return 150.0f;
 }
 
-int Song::GetSystemIndex(int measureIndex)
+int Song::GetSystemIndex(int measureIndex) const
 {
-    int systemIndex = 0;
+    int systemIndex = -1;
 
     if (instruments.empty())
-        return 0;
+        throw std::runtime_error("Instruments empty");
     if (instruments[0]->staves.empty())
-        return 0;
+        throw std::runtime_error("Staves empty");
 
     for (auto* measure : instruments[0]->staves[0]->measures)
     {
+        if (measure == nullptr)
+            throw std::runtime_error("Measure is nullptr");
+
         if (measure->startNewSystem)
             systemIndex++;
 
@@ -1186,12 +1194,15 @@ int Song::GetSystemIndex(int measureIndex)
             break;
     }
 
+    if (systemIndex == -1)
+        throw std::runtime_error("ERROR");
+
     return systemIndex;
 }
 
-int Song::GetPageIndex(int measureIndex)
+int Song::GetPageIndex(int measureIndex) const
 {
-    int pageIndex = 0;
+    int pageIndex = -1;
 
     if (instruments.empty())
         return 0;
@@ -1210,7 +1221,7 @@ int Song::GetPageIndex(int measureIndex)
     return pageIndex;
 }
 
-int Song::GetFirstMeasureOnPage(int pageIndex)
+int Song::GetFirstMeasureOnPage(int pageIndex) const
 {
     int measureIndex = 0;
 
@@ -1219,7 +1230,7 @@ int Song::GetFirstMeasureOnPage(int pageIndex)
     if (instruments[0]->staves.empty())
         return 0;
 
-    int i = 0;
+    int i = -1;
     for (auto* measure : instruments[0]->staves[0]->measures)
     {
         if (measure->startNewPage)
@@ -1234,7 +1245,7 @@ int Song::GetFirstMeasureOnPage(int pageIndex)
     return measureIndex;
 }
 
-int Song::GetFirstMeasureInSystem(int systemIndex)
+int Song::GetFirstMeasureInSystem(int systemIndex) const
 {
     int measureIndex = 0;
 
@@ -1243,7 +1254,7 @@ int Song::GetFirstMeasureInSystem(int systemIndex)
     if (instruments[0]->staves.empty())
         return 0;
 
-    int i = 0;
+    int i = -1;
     for (auto* measure : instruments[0]->staves[0]->measures)
     {
         if (measure->startNewSystem)
@@ -1258,9 +1269,9 @@ int Song::GetFirstMeasureInSystem(int systemIndex)
     return measureIndex;
 }
 
-int Song::GetNumPages()
+int Song::GetNumPages() const
 {
-    int numPages = 1;
+    int numPages = 0;
 
     if (instruments.empty())
         return 0;
@@ -1276,7 +1287,7 @@ int Song::GetNumPages()
     return numPages;
 }
 
-float Song::GetMeasurePositionX(int measureIndex, Vec2<float> pagePosition, Vec2<float> systemPosition)
+/*float Song::GetMeasurePositionX(int measureIndex, Vec2<float> pagePosition, Vec2<float> systemPosition)
 {
     if (DoesMeasureStartNewSystem(measureIndex)) // if it is the first measure in the system
         return pagePosition.x + systemPosition.x;
@@ -1287,7 +1298,7 @@ float Song::GetMeasurePositionX(int measureIndex, Vec2<float> pagePosition, Vec2
     int firstMeasureInSystemIndex = GetFirstMeasureInSystem(systemIndex);
 
     int nextMeasureIndex = firstMeasureInSystemIndex;
-    float currentPositionX = systemPosition.x + pagePosition.x;
+    float currentPositionX = systemPosition.x;
 
     while (true)
     {
@@ -1312,9 +1323,9 @@ float Song::GetMeasurePositionX(int measureIndex, Vec2<float> pagePosition, Vec2
     measurePositionX = currentPositionX;
 
     return measurePositionX;
-}
+}*/
 
-float Song::GetInstrumentPositionY(int measureIndex, int instrumentIndex)
+float Song::GetInstrumentPositionY(int measureIndex, int instrumentIndex) const
 {
     float instrumentPositionY = 0.0f;
 
@@ -1324,8 +1335,9 @@ float Song::GetInstrumentPositionY(int measureIndex, int instrumentIndex)
     {
         if (prevInstrument != nullptr)
         {
+            int firstMeasureIndex = GetFirstMeasureInSystem(GetSystemIndex(measureIndex));
             instrumentPositionY += prevInstrument->GetMiddleHeight(10.0f, 13.33f, 0, instrument->GetMeasureCount());
-            instrumentPositionY += instrument->staves.front()->measures[measureIndex]->staffDistance;
+            instrumentPositionY += instrument->staves.front()->measures[firstMeasureIndex]->staffDistance;
         }
 
         if (currentInstrumentIndex == instrumentIndex)
@@ -1342,6 +1354,9 @@ float Song::GetInstrumentPositionY(int measureIndex, int instrumentIndex)
 
 void Song::UpdateBoundingBoxes(const std::vector<Vec2<float>>& pagePositions, const std::vector<Vec2<float>>& systemPositions)
 {
+    if (pagePositions.empty() || systemPositions.empty())
+        throw std::runtime_error("Missing positioning data");
+
     int instrumentIndex = 0;
     for (auto* instrument : instruments) {
 
@@ -1355,7 +1370,7 @@ void Song::UpdateBoundingBoxes(const std::vector<Vec2<float>>& pagePositions, co
             int measureIndex = 0;
             for (auto* measure : staff->measures) {
 
-                float instPositionY = GetInstrumentPositionY(measureIndex, instrumentIndex) + systemPositions[GetSystemIndex(measureIndex)].y;
+                float instPositionY = GetInstrumentPositionY(measureIndex, instrumentIndex) + systemPositions[GetSystemIndex(measureIndex)].y + pagePositions[GetPageIndex(measureIndex)].y;
                 //float instPositionY = systemPositions[GetSystemIndex(measureIndex)].y;
 
                 // staff y position
@@ -1377,10 +1392,10 @@ void Song::UpdateBoundingBoxes(const std::vector<Vec2<float>>& pagePositions, co
 
                     //LOGD("pagePosition: x: %f, y: %f, systemPosition: x: %f, y: %f", pagePosition.x, pagePosition.y, systemPosition.x, systemPosition.y);
 
-                    float measurePositionX = GetMeasurePositionX(measureIndex, pagePosition, systemPosition);
+                    float measurePositionX = GetMeasurePositionX(measureIndex);
 
                     //LOGW("measurePositionX: %f", measurePositionX);
-                    measure->UpdateBoundingBoxes({measurePositionX, instPositionY + staffPositionY + pagePosition.y}); // this line crashes
+                    measure->UpdateBoundingBoxes({measurePositionX + systemPosition.x + pagePosition.x, instPositionY + staffPositionY }); // this line crashes
                 }
 
                 measureIndex++;
@@ -1400,16 +1415,281 @@ void Song::RenderBoundingBoxes(RenderData& renderData, const std::vector<Vec2<fl
             int measureIndex = 0;
             for (auto* measure : staff->measures) {
 
+                measure->boundingBox.Render(renderData, (int)0x66FF0000);
+
+                for (auto* note : measure->notes)
+                {
+                    note->boundingBox.Render(renderData, (int)0x660000FF);
+
+                    for (auto& lyric : note->lyrics)
+                    {
+#if DEBUG_BOUNDING_BOXES
+                        lyric.debugBoundingBox.Render(renderData, (int)0xFF00FF00);
+#endif
+
+                        lyric.boundingBox.Render(renderData);
+                    }
+                }
+
                 for (Direction& direction : measure->directions) {
 
                     for (auto& words : direction.words)
                     {
+#if DEBUG_BOUNDING_BOXES
+                        words.debugBoundingBox.Render(renderData, (int)0xFF00FF00);
+#endif
+
                         words.boundingBox.Render(renderData);
                     }
+
+                    for (auto& rehearsal : direction.rehearsals)
+                    {
+#if DEBUG_BOUNDING_BOXES
+                        rehearsal.debugBoundingBox.Render(renderData, (int)0xFF00FF00);
+#endif
+
+                        rehearsal.boundingBox.Render(renderData);
+                    }
+
+                    for (auto& dynamic : direction.dynamics)
+                    {
+#if DEBUG_BOUNDING_BOXES
+                        dynamic.debugBoundingBox.Render(renderData, (int)0xFF00FF00);
+#endif
+
+                        dynamic.boundingBox.Render(renderData);
+                    }
+
+                    if (direction.dynamicWedge != nullptr)
+                    {
+#if DEBUG_BOUNDING_BOXES
+                        direction.dynamicWedge->debugBoundingBox.Render(renderData, (int)0xFF00FF00);
+#endif
+
+                        direction.dynamicWedge->boundingBox.Render(renderData);
+                    }
+
+                    if (direction.bracketDirection != nullptr)
+                    {
+#if DEBUG_BOUNDING_BOXES
+                        direction.bracketDirection->debugBoundingBox.Render(renderData, (int)0xFF00FF00);
+#endif
+
+                        direction.bracketDirection->boundingBox.Render(renderData);
+                    }
+
+                    if (direction.metronomeMark != nullptr)
+                    {
+#if DEBUG_BOUNDING_BOXES
+                        direction.metronomeMark->debugBoundingBox.Render(renderData, (int)0xFF00FF00);
+#endif
+                        direction.metronomeMark->boundingBox.Render(renderData);
+                    }
+
+                }
+
+                for (Chord& chord : measure->chords)
+                {
+#if DEBUG_BOUNDING_BOXES
+                    chord.debugBoundingBox.Render(renderData, (int)0xFF00FF00);
+#endif
+
+                    chord.boundingBox.Render(renderData);
                 }
 
                 measureIndex++;
             }
         }
     }
+}
+
+void Song::ResolveCollisions()
+{
+    for (auto* instrument : instruments) {
+        for (auto* staff : instrument->staves) {
+            int measureIndex = 0;
+            for (auto* measure : staff->measures) {
+
+                for (auto* note : measure->notes)
+                {
+                    ResolveCollisionsWith(note->boundingBox);
+
+                    for (auto& lyric : note->lyrics)
+                    {
+                        ResolveCollisionsWith(lyric.boundingBox);
+                    }
+                }
+
+                for (Direction& direction : measure->directions) {
+
+                    for (auto& words : direction.words)
+                    {
+                        ResolveCollisionsWith(words.boundingBox);
+                    }
+
+                    for (auto& rehearsal : direction.rehearsals)
+                    {
+                        ResolveCollisionsWith(rehearsal.boundingBox);
+                    }
+
+                    for (auto& dynamic : direction.dynamics)
+                    {
+                        ResolveCollisionsWith(dynamic.boundingBox);
+                    }
+
+                    if (direction.dynamicWedge != nullptr)
+                    {
+                        ResolveCollisionsWith(direction.dynamicWedge->boundingBox);
+                    }
+
+                    if (direction.bracketDirection != nullptr)
+                    {
+                        ResolveCollisionsWith(direction.bracketDirection->boundingBox);
+                    }
+
+                    if (direction.metronomeMark != nullptr)
+                    {
+                        ResolveCollisionsWith(direction.metronomeMark->boundingBox);
+                    }
+                }
+
+                for (Chord& chord : measure->chords)
+                {
+                    ResolveCollisionsWith(chord.boundingBox);
+                }
+
+                measureIndex++;
+            }
+        }
+    }
+}
+
+void Song::ResolveCollisionsWith(const BoundingBox& box)
+{
+    for (auto* instrument : instruments) {
+        for (auto* staff : instrument->staves) {
+            int measureIndex = 0;
+            for (auto* measure : staff->measures) {
+
+                for (auto* note : measure->notes)
+                {
+                    /*Vec2<float> offset = box.ResolveOverlapStatically(note->boundingBox);
+
+                    note->positionX += offset.x;
+                    note->positionY += offset.y;*/
+
+                    for (auto& lyric : note->lyrics)
+                    {
+                        Vec2<float> offset = box.ResolveOverlapStatically(lyric.boundingBox);
+
+                        lyric.positionX += offset.x;
+                        lyric.positionY += offset.y;
+                    }
+                }
+
+                for (Direction& direction : measure->directions) {
+
+                    for (auto& words : direction.words)
+                    {
+                        Vec2<float> offset = box.ResolveOverlapStatically(words.boundingBox);
+
+                        words.positionX += offset.x;
+                        words.positionY += offset.y;
+                    }
+
+                    for (auto& rehearsal : direction.rehearsals)
+                    {
+                        Vec2<float> offset = box.ResolveOverlapStatically(rehearsal.boundingBox);
+
+                        rehearsal.positionX += offset.x;
+                        rehearsal.positionY += offset.y;
+                    }
+
+                    for (auto& dynamic : direction.dynamics)
+                    {
+                        Vec2<float> offset = box.ResolveOverlapStatically(dynamic.boundingBox);
+
+                        dynamic.position += offset;
+                    }
+
+                    if (direction.dynamicWedge != nullptr)
+                    {
+                        Vec2<float> offset = box.ResolveOverlapStatically(direction.dynamicWedge->boundingBox);
+
+                        direction.dynamicWedge->positionStart += offset;
+                        direction.dynamicWedge->positionEnd += offset;
+                    }
+
+                    if (direction.bracketDirection != nullptr)
+                    {
+                        Vec2<float> offset = box.ResolveOverlapStatically(direction.bracketDirection->boundingBox);
+
+                        direction.bracketDirection->positionStart += offset;
+                        direction.bracketDirection->positionEnd += offset;
+                    }
+
+                    if (direction.metronomeMark != nullptr)
+                    {
+                        Vec2<float> offset = box.ResolveOverlapStatically(direction.metronomeMark->boundingBox);
+
+                        direction.metronomeMark->positionX += offset.x;
+                        direction.metronomeMark->positionY += offset.y;
+                    }
+                }
+
+                for (Chord& chord : measure->chords)
+                {
+                    Vec2<float> offset = box.ResolveOverlapStatically(chord.boundingBox);
+
+                    chord.positionX += offset.x;
+                    chord.positionY += offset.y;
+                }
+
+                measureIndex++;
+            }
+        }
+    }
+}
+
+std::vector<Vec2<float>> Song::GetSystemPositions() const
+{
+    std::vector<Vec2<float>> systemPositions;
+
+    int systemIndex = 0;
+
+    Vec2<float> systemPosition;
+
+    float previousSystemPositionY = 0.0f;
+
+    for (const auto& system : systems)
+    {
+        int measureIndex = GetFirstMeasureInSystem(systemIndex);
+        int lastInstrumentIndex = (int)instruments.size() - 1;
+
+        if (measureIndex >= GetMeasureCount())
+        {
+            LOGE("measureIndex: %d, count: %d", measureIndex, GetMeasureCount());
+            break;
+        }
+
+        if (DoesMeasureStartNewPage(measureIndex)) // if it is the first system on the page
+        {
+            systemPosition.y = displayConstants.topMargin + system.layout.topSystemDistance;
+        }
+        else
+        {
+            float lastInstrumentPositionY = GetInstrumentPositionY(measureIndex, lastInstrumentIndex);
+
+            systemPosition.y = previousSystemPositionY + lastInstrumentPositionY + system.layout.systemDistance + instruments[lastInstrumentIndex]->GetMiddleHeight(10.0f, 13.33f, measureIndex, measureIndex + 1);
+        }
+
+        systemPosition.x = displayConstants.leftMargin + system.layout.systemLeftMargin;
+
+        systemPositions.push_back(systemPosition);
+
+        previousSystemPositionY = systemPosition.y;
+        systemIndex++;
+    }
+
+    return systemPositions;
 }

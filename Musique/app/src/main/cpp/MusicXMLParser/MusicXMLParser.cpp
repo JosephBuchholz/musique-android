@@ -30,7 +30,11 @@ Words MusicXMLParser::ParseWords(XMLElement* element)
 
     if (element)
     {
-        words.text.string = element->GetText();
+        const char* s = element->GetText();
+        if (s != nullptr)
+            words.text.string = s;
+        else
+            LOGE("ERROR: string in WORDS is null <_____________________________________________________________________");
 
         words.defX = XMLHelper::GetFloatAttribute(element, "default-x", words.defX);
         words.defY = XMLHelper::GetFloatAttribute(element, "default-y", words.defY);
@@ -1282,6 +1286,10 @@ Song* MusicXMLParser::ParseMusicXML(const std::string& data, std::string& error)
                                 startNewSystem = XMLHelper::GetBoolAttribute(print, "new-system", startNewSystem);
                                 startNewPage = XMLHelper::GetBoolAttribute(print, "new-page", startNewPage);
                                 startNewSystem |= startNewPage;
+
+                                if (firstMeasure)
+                                    startNewSystem = true, startNewPage = true;
+
                                 for (auto m : currentMeasures) { m->startNewSystem = startNewSystem; m->startNewPage = startNewPage; }
 
                                 if (firstMeasure || startNewSystem)

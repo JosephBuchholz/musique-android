@@ -35,10 +35,64 @@ void BoundingBox::ResolveOverlap(BoundingBox boundingBox)
     LOGE("\'ResolveOverlap\' function is not implemented");
 }
 
-void BoundingBox::Render(RenderData& renderData) const
+Vec2<float> BoundingBox::ResolveOverlapStatically(BoundingBox& boundingBox) const
+{
+    Vec2<float> overlapOffset;
+
+    BoundingBox oldBoundingBox = boundingBox;
+
+    if (*this == boundingBox)
+        return overlapOffset;
+
+    if (DoBoundingBoxesOverlap(*this, boundingBox))
+    {
+        float overlapX = 0.0f;
+
+        if (this->position.x > boundingBox.position.x)
+            overlapX = (boundingBox.position.x + boundingBox.size.x) - this->position.x;
+        else if (this->position.x < boundingBox.position.x)
+            overlapX = (this->position.x + this->size.x) - boundingBox.position.x;
+
+        float overlapY = 0.0f;
+
+        if (this->position.y > boundingBox.position.y)
+            overlapY = (boundingBox.position.y + boundingBox.size.y) - this->position.y;
+        else if (this->position.y < boundingBox.position.y)
+            overlapY = (this->position.y + this->size.y) - boundingBox.position.y;
+
+        if (overlapX < overlapY)
+        {
+            if (this->position.x > boundingBox.position.x)
+                boundingBox.position.x -= overlapX - 3.0f;
+            else if (this->position.x < boundingBox.position.x)
+                boundingBox.position.x += overlapX + 3.0f;
+        }
+        else
+        {
+            if (this->position.y > boundingBox.position.y)
+                boundingBox.position.y -= overlapY - 3.0f;
+            else if (this->position.y < boundingBox.position.y)
+                boundingBox.position.y += overlapY + 3.0f;
+        }
+    }
+
+    if (DoBoundingBoxesOverlap(*this, boundingBox))
+        LOGE("Bounding boxes still overlap");
+
+    /*while (DoBoundingBoxesOverlap(*this, boundingBox))
+    {
+        boundingBox.position.y -= 5.0f;
+    }*/
+
+    overlapOffset = boundingBox.position - oldBoundingBox.position;
+
+    return overlapOffset;
+}
+
+void BoundingBox::Render(RenderData& renderData, const int& color) const
 {
     Paint paint = Paint();
-    paint.color = (int)0xFFFF00FF;
+    paint.color = color;
     paint.strokeWidth = 2.0f;
 
     // horizontal lines

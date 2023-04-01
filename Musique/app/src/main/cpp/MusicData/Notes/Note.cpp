@@ -128,3 +128,24 @@ float Note::GetNoteHeadWidth() const // TODO: get actual width
 {
     return 11.3f;
 }
+
+void Note::UpdateBoundingBox(const Vec2<float> &parentPosition)
+{
+    boundingBox.position.x = positionX + parentPosition.x;
+    boundingBox.position.y = positionY + parentPosition.y;
+    boundingBox.size.x = GetNoteHeadWidth();
+
+    if (noteStem.stemEndY - noteStem.stemStartY != 0)
+        boundingBox.size.y = noteStem.stemEndY - noteStem.stemStartY;
+    else
+        boundingBox.size.y = 10.0f;
+
+#if DEBUG_BOUNDING_BOXES
+    debugBoundingBox = boundingBox;
+#endif
+
+    for (Lyric& lyric : lyrics)
+    {
+        lyric.UpdateBoundingBox(Vec2<float>{ positionX + parentPosition.x, parentPosition.y });
+    }
+}

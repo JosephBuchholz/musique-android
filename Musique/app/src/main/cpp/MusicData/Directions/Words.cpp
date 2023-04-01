@@ -14,16 +14,16 @@ void Words::UpdateBoundingBox(const Vec2<float>& parentPosition)
 
     //LOGV("paint.textSize: %f!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1", paint.textSize);
 
-#define D 0
+#define TOGGLE 0
 
-#if D
+#if TOGGLE
     BoundingBox bb = RenderMeasurement::GetTextBoundingBox(Text(text.string, positionX, positionY, paint));
 #else
     BoundingBox bb = BoundingBox();
-    bb.position.x = 10.0f;
-    bb.position.y = 10.0f;
-    bb.size.x = 10.0f;
-    bb.size.y = 10.0f;
+    bb.position.x = 0.0f;
+    bb.position.y = -paint.textSize * 2.0f;
+    bb.size.x = paint.textSize * (float)text.string.size();
+    bb.size.y = paint.textSize * 2.0f;
 #endif
 
     boundingBox.position.x = bb.position.x + positionX + parentPosition.x;
@@ -32,6 +32,10 @@ void Words::UpdateBoundingBox(const Vec2<float>& parentPosition)
     boundingBox.position.y += bb.size.y / 2.0f;
     boundingBox.size.x = bb.size.x;
     boundingBox.size.y = bb.size.y;
+
+#if DEBUG_BOUNDING_BOXES
+    debugBoundingBox = boundingBox;
+#endif
 
     LOGV("Updated bounding box for WORDS: %s", boundingBox.GetPrintableString().c_str());
     LOGV("parentPosition: %s", parentPosition.GetPrintableString().c_str());

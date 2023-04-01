@@ -18,24 +18,32 @@ public:
     Song();
     ~Song();
 
-    Instrument* GetInstrument(const std::string& id);
+    Instrument* GetInstrument(const std::string& id) const;
 
     void OnLayoutChanged(Settings::MusicLayout layout);
 
     void OnUpdate();
 
     int GetMeasureCount() const { return m_MeasureWidths.size(); }
-    float GetMeasureWidth(int measureIndex);
-    float GetMeasurePositionX(int measureIndex);
-    float GetMeasurePositionY(int measureIndex); // for use with a non horizontal mode (like a vertical mode)
-    float GetMeasureBeatPosition(int measureIndex);
+    float GetMeasureWidth(int measureIndex) const;
+
+    /**
+     * Calculates the x position of the given measure relative to the system.
+     *
+     * @param measureIndex The index of the measure.
+     * @return The x position of the measure relative to the system.
+     */
+    float GetMeasurePositionX(int measureIndex) const;
+
+    float GetMeasurePositionY(int measureIndex) const; // for use with a non horizontal mode (like a vertical mode)
+    float GetMeasureBeatPosition(int measureIndex) const;
 
     /**
      * Gets the width of the song (for Horizontal mode).
      *
      * @return The width of the song.
      */
-    float GetSongWidth();
+    float GetSongWidth() const;
 
     /**
      * Converts a beatPosition into a normal x position.
@@ -44,7 +52,7 @@ public:
      * @param currentMeasureIndex the index of the measure that the beat position is at
      * @return the x position in tenths
      */
-    float GetPositionXInSong(float beatPositionInSong, int currentMeasureIndex);
+    float GetPositionXInSong(float beatPositionInSong, int currentMeasureIndex) const;
 
     /**
      * Converts a beatPosition into a normal x position relative to the left-hand side of the measure.
@@ -53,7 +61,7 @@ public:
      * @param currentMeasureIndex the index of the measure that the beat position is at
      * @return the x position in tenths
      */
-    float GetPositionXInMeasure(float beatPositionInSong, int currentMeasureIndex);
+    float GetPositionXInMeasure(float beatPositionInSong, int currentMeasureIndex) const;
 
     /**
      * Gets the y position of a system
@@ -61,7 +69,7 @@ public:
      * @param measureIndex the index of the first measure in the system
      * @return the y position of the system
      */
-    float GetSystemPositionY(int measureIndex);
+    float GetSystemPositionY(int measureIndex) const;
 
     /**
      * Calculates the height of a system (not implemented yet)
@@ -69,7 +77,7 @@ public:
      * @param measureIndex the index of the measure
      * @return the height of the system
      */
-    float GetSystemHeight(int measureIndex);
+    float GetSystemHeight(int measureIndex) const;
 
     /**
      * Finds the index of the system that the given measure appears on.
@@ -77,7 +85,7 @@ public:
      * @param measureIndex the index of the measure
      * @return the index of the system
      */
-    int GetSystemIndex(int measureIndex);
+    int GetSystemIndex(int measureIndex) const;
 
     /**
      * Finds the index of the page that the given measure appears on.
@@ -85,7 +93,7 @@ public:
      * @param measureIndex the index of the measure
      * @return the index of the page
      */
-    int GetPageIndex(int measureIndex);
+    int GetPageIndex(int measureIndex) const;
 
     /**
      * Finds the index of the first measure that appears on the given page index
@@ -93,15 +101,15 @@ public:
      * @param pageIndex the index of the page
      * @return the index of the measure
      */
-    int GetFirstMeasureOnPage(int pageIndex);
-    int GetFirstMeasureInSystem(int systemIndex);
+    int GetFirstMeasureOnPage(int pageIndex) const;
+    int GetFirstMeasureInSystem(int systemIndex) const;
 
     /**
      * Calculates the number of pages needed to render in paged mode.
      *
      * @return the number of pages
      */
-    int GetNumPages();
+    int GetNumPages() const;
 
     /**
      * Finds the minimum amount of space needed in front of the note.
@@ -109,7 +117,7 @@ public:
      * @param note A pointer to the note.
      * @return The amount of space in front of the note.
      */
-    float GetNoteMinWidthInFront(Note* note);
+    float GetNoteMinWidthInFront(Note* note) const;
 
     /**
      * Finds the minimum amount of space needed behind the note.
@@ -117,7 +125,7 @@ public:
      * @param note A pointer to the note.
      * @return The amount of space behind the note.
      */
-    float GetNoteMinWidthBehind(Note* note);
+    float GetNoteMinWidthBehind(Note* note) const;
 
     /**
      * Gets the measure at the given index (this will be the measure in the first instrument and staff).
@@ -125,7 +133,7 @@ public:
      * @param measureIndex the index of the measure
      * @return a pointer to the measure
      */
-    Measure* GetMeasure(int measureIndex);
+    Measure* GetMeasure(int measureIndex) const;
 
     /**
      * Finds whether the measure at the given index is at the start of the system (i.e. it starts a new system).
@@ -133,7 +141,7 @@ public:
      * @param measureIndex the index of the measure.
      * @return weather the measure starts a new system.
      */
-    bool DoesMeasureStartNewSystem(int measureIndex);
+    bool DoesMeasureStartNewSystem(int measureIndex) const;
 
     /**
      * Finds whether the measure at the given index is at the start of the page (i.e. it starts a new page).
@@ -141,17 +149,7 @@ public:
      * @param measureIndex the index of the measure.
      * @return weather the measure starts a new page.
      */
-    bool DoesMeasureStartNewPage(int measureIndex);
-
-    /**
-     * Gets the x position of a measure at the given index.
-     *
-     * @param measureIndex The index of the measure to find the x position of.
-     * @param pagePosition The position of the page that the measure is on.
-     * @param systemPosition The position of the system that the system is in.
-     * @return The x position of the measure.
-     */
-    float GetMeasurePositionX(int measureIndex, Vec2<float> pagePosition, Vec2<float> systemPosition);
+    bool DoesMeasureStartNewPage(int measureIndex) const;
 
     /**
      * Updates the position and dimensions of all bounding boxes.
@@ -177,8 +175,23 @@ public:
      * @param instrumentIndex The index of the instrument.
      * @return The instrument's y position relative to the current system.
      */
-    float GetInstrumentPositionY(int measureIndex, int instrumentIndex);
+    float GetInstrumentPositionY(int measureIndex, int instrumentIndex) const;
 
+    /**
+     * Calculates the positions for every system relative to the page.
+     *
+     * @return A list of the positions for every system relative to the page.
+     */
+    std::vector<Vec2<float>> GetSystemPositions() const;
+
+    /**
+     * Gets the number of systems in the song.
+     *
+     * @return The number of systems.
+     */
+    int GetSystemCount() const { return systems.size(); }
+
+    void ResolveCollisions();
 private:
     struct TimeSpacePoint
     {
@@ -190,6 +203,8 @@ private:
     void CalculateNoteBeatPositionsInSong();
 
     void AddTimeSpacePoint(TimeSpacePoint point);
+
+    void ResolveCollisionsWith(const BoundingBox& box);
 
 public:
 

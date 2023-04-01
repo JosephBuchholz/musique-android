@@ -224,8 +224,22 @@ float Measure::GetRepeatBarlinePositionX() const
 
 void Measure::UpdateBoundingBoxes(const Vec2<float>& measurePosition)
 {
+    boundingBox.position = measurePosition;
+    boundingBox.size.x = measureWidth;
+    boundingBox.size.y = 40.0f;
+
+    for (Note* note : notes)
+    {
+        note->UpdateBoundingBox(measurePosition);
+    }
+
     for (Direction& direction : directions)
     {
         direction.UpdateBoundingBox(measurePosition);
+    }
+
+    for (Chord& chord : chords)
+    {
+        chord.UpdateBoundingBox(measurePosition);
     }
 }

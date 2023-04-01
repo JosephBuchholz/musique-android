@@ -1,5 +1,18 @@
 #include "DynamicWedge.h"
 
+void DynamicWedge::UpdateBoundingBox(const Vec2<float>& parentPosition)
+{
+    boundingBox.size.x = positionEnd.x - positionStart.x;
+    boundingBox.size.y = spread;
+
+    boundingBox.position.x = positionStart.x + parentPosition.x;
+    boundingBox.position.y = positionStart.y - (boundingBox.size.y / 2.0f) + parentPosition.y;
+
+#if DEBUG_BOUNDING_BOXES
+    debugBoundingBox = boundingBox;
+#endif
+}
+
 void DynamicWedge::Render(RenderData& renderData, float measurePositionX, float measurePositionY, float offsetX, float offsetY) const
 {
     //LOGE("Rendering dynamic wedge: sPos.x: %f | sPos.y: %f | ePos.x: %f | ePos.y: %f", positionStart.x, positionStart.y, positionEnd.x, positionEnd.y);

@@ -258,6 +258,29 @@ void App::OnUpdate(double dt)
             if (song != nullptr && !songUpdated)
             {
                 song->OnUpdate();
+
+                int totalPages = OnCalculateNumPages();
+                int pageIndex = 0;
+
+                float pageX = 0.0f;
+                float pageY = 0.0f;
+
+                while (pageIndex < totalPages)
+                {
+                    if (pageIndex != 0)
+                    {
+                        if (settings.pagesOrientation == Orientation::Vertical)
+                            pageY += song->displayConstants.pageHeight + 80.0f;
+                        else if (settings.pagesOrientation == Orientation::Horizontal)
+                            pageX += song->displayConstants.pageWidth + 80.0f;
+                    }
+
+                    pagePositions.emplace_back(pageX, pageY);
+                    pageIndex++;
+                }
+
+                song->UpdateBoundingBoxes(pagePositions, song->GetSystemPositions());
+                song->ResolveCollisions();
                 songUpdated = true;
             }
             Render();
@@ -682,7 +705,7 @@ void App::CalculateRenderForPagedLayout()
 
 #if SHOW_BOUNDING_BOXES
 
-    song->UpdateBoundingBoxes(pagePositions, systemPositions);
+    //song->UpdateBoundingBoxes(pagePositions, systemPositions, m_RenderData);
     song->RenderBoundingBoxes(m_RenderData, pagePositions, systemPositions);
 #endif
 
@@ -812,13 +835,13 @@ void App::RenderMusicToPage(int page, RenderData& pageRenderData, float pageX, f
                 systemPositionX = pageX + song->displayConstants.leftMargin + song->systems[systemIndex].layout.systemLeftMargin;
             } // system loop (sort of)
 
-            if (systemIndex >= systemPositions.size())
-                systemPositions.emplace_back(systemPositionX, systemPositionY);
-
             if (song->GetPageIndex(i) > page) // don't render the next page
             {
                 break;
             }
+
+            if (systemIndex >= systemPositions.size())
+                systemPositions.emplace_back(systemPositionX, systemPositionY);
         }
     }
 }

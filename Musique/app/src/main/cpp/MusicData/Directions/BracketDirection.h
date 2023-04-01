@@ -29,6 +29,13 @@ public:
 
     BracketDirection() {}
 
+    /**
+     * Updates the position and size of this object's bounding box.
+     *
+     * @param parentPosition The position of the parent.
+     */
+    void UpdateBoundingBox(const Vec2<float> &parentPosition);
+
     void Render(RenderData& renderData, Vec2<float> measurePosition, Vec2<float> offset = { 0.0f, 0.0f }) const;
 
 protected:

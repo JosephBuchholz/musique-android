@@ -21,6 +21,11 @@ class Words : public TextualElement {
 public:
     Words() {  }
 
+    /**
+     * Updates the position and size of this object's bounding box.
+     *
+     * @param parentPosition The position of the parent.
+     */
     void UpdateBoundingBox(const Vec2<float> &parentPosition);
 
 protected:

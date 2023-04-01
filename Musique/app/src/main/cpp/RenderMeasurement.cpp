@@ -52,10 +52,13 @@ BoundingBox RenderMeasurement::GetTextBoundingBox(const Text& text)
 
     JNIHelper::SetFloatField(env, newText, "x", text.x);
     JNIHelper::SetFloatField(env, newText, "y", text.y);
-    /*JNIHelper::SetObjectField(env, newText, "text", env->NewStringUTF(text.text.c_str()), "Ljava/lang/String;");
+
+    // EROR LINES
+    JNIHelper::SetObjectField(env, newText, "text", env->NewStringUTF(text.text.c_str()), "Ljava/lang/String;");
 
     jobject paintObject = ConvertPaintToObject(env, text.paint);
-    JNIHelper::SetObjectField(env, newText, "paint", paintObject, "Lcom/randsoft/apps/musique/renderdata/Paint;");*/
+    JNIHelper::SetObjectField(env, newText, "paint", paintObject, "Lcom/randsoft/apps/musique/renderdata/Paint;");
+    // END ERROR LINES
 
     // calling callback
     jobject callbackObj = JNIHelper::GetCallbackObject();

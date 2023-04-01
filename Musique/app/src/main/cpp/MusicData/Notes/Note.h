@@ -18,11 +18,12 @@
 #include "AugmentationDot.h"
 #include "Beam.h"
 #include "Tie.h"
+#include "../VisibleElement.h"
 
 /**
  * Class that represents a note, whether it is TAB or not.
  */
-class Note {
+class Note : public VisibleElement {
     friend class Song;
     friend class MusicXMLParser;
     friend class NoteElementParser;
@@ -42,6 +43,13 @@ public:
     float GetCenterPositionX() const;
 
     float GetNoteHeadWidth() const;
+
+    /**
+     * Updates the position and size of this object's bounding box.
+     *
+     * @param parentPosition The position of the parent.
+     */
+    void UpdateBoundingBox(const Vec2<float> &parentPosition);
 
 protected:
     void CalculatePositionAsPaged(const MusicDisplayConstants& displayConstants);

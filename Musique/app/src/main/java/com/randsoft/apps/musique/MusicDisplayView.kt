@@ -178,7 +178,7 @@ class MusicDisplayView(context: Context, attrs: AttributeSet? = null): View(cont
         // START OF ERROR
 
         // create paint
-        /*val paint = Paint().apply {
+        val paint = Paint().apply {
             color = text.paint.color
             textSize = text.paint.textSize
             textAlign = Paint.Align.values()[text.paint.align]
@@ -202,7 +202,7 @@ class MusicDisplayView(context: Context, attrs: AttributeSet? = null): View(cont
         }
         else {
             paint.typeface = typefacePlain
-        }*/
+        }
 
         // END OF ERROR
 
@@ -210,7 +210,7 @@ class MusicDisplayView(context: Context, attrs: AttributeSet? = null): View(cont
 
         var rect = Rect()
         Log.e(TAG, "text: ${text.text}, t_length: ${text.text.length}");
-        //paint.getTextBounds(text.text, 0, text.text.length, rect) // this is the error line
+        paint.getTextBounds(text.text, 0, text.text.length, rect) // this is the error line
 
         val rectF = RectF()
         rectF.top = rect.top / scale

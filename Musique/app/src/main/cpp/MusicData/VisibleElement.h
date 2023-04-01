@@ -5,6 +5,7 @@
 #include "Types.h"
 #include "../Collisions/BoundingBox.h"
 #include "../Collisions/Vec2.h"
+#include "../Debuging/Debug.h"
 
 /**
  * This class represents a element that is visible.
@@ -18,6 +19,10 @@ public:
     Color color = Color();
 
     BoundingBox boundingBox;
+
+#if DEBUG_BOUNDING_BOXES
+    BoundingBox debugBoundingBox;
+#endif
 };
 
 #endif // MUSIQUE_VISIBLEELEMENT_H

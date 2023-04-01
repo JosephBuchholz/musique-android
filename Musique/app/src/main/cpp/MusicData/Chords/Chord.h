@@ -21,6 +21,13 @@ public:
 
     void Render(RenderData& renderData, float measurePositionX, float measurePositionY, float offsetX = 0.0f, float offsetY = 0.0f) const;
 
+    /**
+     * Updates the position and size of this object's bounding box.
+     *
+     * @param parentPosition The position of the parent.
+     */
+    void UpdateBoundingBox(const Vec2<float> &parentPosition);
+
     void CalculateChordName();
 
 protected:

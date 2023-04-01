@@ -21,6 +21,13 @@ class DynamicWedge : public VisibleElement, public LineElement {
 public:
 
     /**
+     * Updates the position and size of this object's bounding box.
+     *
+     * @param parentPosition The position of the parent.
+     */
+    void UpdateBoundingBox(const Vec2<float> &parentPosition);
+
+    /**
      * Renders this class.
      *
      * @param[out] renderData The RenderData object to render to.

@@ -7,6 +7,10 @@
 
 #include "AndroidDebug.h"
 
-#define SHOW_BOUNDING_BOXES 1
+#define SHOW_BOUNDING_BOXES 0
+
+#if SHOW_BOUNDING_BOXES
+    #define DEBUG_BOUNDING_BOXES 1
+#endif
 
 #endif //MUSIQUE_DEBUG_H

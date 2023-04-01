@@ -116,4 +116,29 @@ void Direction::UpdateBoundingBox(const Vec2<float>& measurePosition)
     {
         wordsObject.UpdateBoundingBox(measurePosition);
     }
+
+    for (auto& rehearsal : rehearsals)
+    {
+        rehearsal.UpdateBoundingBox(measurePosition);
+    }
+
+    for (auto& dynamic : dynamics)
+    {
+        dynamic.UpdateBoundingBox(measurePosition);
+    }
+
+    if (metronomeMark != nullptr)
+    {
+        metronomeMark->UpdateBoundingBox(measurePosition);
+    }
+
+    if (dynamicWedge != nullptr)
+    {
+        dynamicWedge->UpdateBoundingBox(measurePosition);
+    }
+
+    if (bracketDirection != nullptr)
+    {
+        bracketDirection->UpdateBoundingBox(measurePosition);
+    }
 }

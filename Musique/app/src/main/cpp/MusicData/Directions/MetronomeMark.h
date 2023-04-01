@@ -22,6 +22,13 @@ class MetronomeMark : public TextualElement {
 public:
     MetronomeMark() {  }
 
+    /**
+     * Updates the position and size of this object's bounding box.
+     *
+     * @param parentPosition The position of the parent.
+     */
+    void UpdateBoundingBox(const Vec2<float> &parentPosition);
+
 protected:
     void CalculatePositionAsPaged(const MusicDisplayConstants& displayConstants, float defaultX, float defaultY);
 

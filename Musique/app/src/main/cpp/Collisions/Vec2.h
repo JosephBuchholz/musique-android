@@ -40,6 +40,35 @@ public:
         return { this->x / rhs.x, this->y / rhs.y };
     }
 
+    bool operator==(const Vec2<T>& rhs) const
+    {
+        return (this->x == rhs.x) && (this->y == rhs.y);
+    }
+
+    Vec2<T>& operator+=(const Vec2<T>& rhs)
+    {
+        this->x = this->x + rhs.x;
+        return *this;
+    }
+
+    Vec2<T>& operator-=(const Vec2<T>& rhs)
+    {
+        this->x = this->x - rhs.x;
+        return *this;
+    }
+
+    Vec2<T>& operator*=(const Vec2<T>& rhs)
+    {
+        this->x = this->x * rhs.x;
+        return *this;
+    }
+
+    Vec2<T>& operator/=(const Vec2<T>& rhs)
+    {
+        this->x = this->x / rhs.x;
+        return *this;
+    }
+
 public:
     T x, y;
 };
