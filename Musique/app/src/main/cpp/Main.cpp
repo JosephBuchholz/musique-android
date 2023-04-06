@@ -4,6 +4,7 @@
 #include "Callbacks.h"
 #include "App.h"
 #include "JNIHelpers/JNIHelper.h"
+#include "Events/InputEvent.h"
 
 // got some help from: https://github.com/android/ndk-samples/tree/main/native-midi/app/src/main/cpp
 
@@ -239,6 +240,24 @@ extern "C" {
             jint musicLayoutInt = env->CallIntMethod(musicLayoutObject, env->GetMethodID(env->GetObjectClass(musicLayoutObject), "ordinal", "()I"));
             newSettings.musicLayout = (Settings::MusicLayout)musicLayoutInt;
             app->UpdateSettings(newSettings);
+        }
+    }
+
+    JNIEXPORT void JNICALL
+    Java_com_randsoft_apps_musique_MainActivity_onInputEventNative(JNIEnv* env, jobject instance, jobject inputEvent) {
+        if (app != nullptr) {
+            /*jfieldID eventTypeField = env->GetFieldID(env->GetObjectClass(inputEvent), "type", "Lcom/randsoft/apps/musique/event/InputEvent$InputEventType;");
+            jobject eventTypeObject = env->GetObjectField(inputEvent, eventTypeField);
+            jint eventTypeInt = env->CallIntMethod(eventTypeObject, env->GetMethodID(env->GetObjectClass(eventTypeObject), "ordinal", "()I"));*/
+
+            InputEvent newInputEvent = InputEvent();
+
+            newInputEvent.type = (InputEvent::InputEventType)JNIHelper::GetEnumClassField(env, inputEvent, "type", "Lcom/randsoft/apps/musique/event/InputEvent$InputEventType;");
+
+            newInputEvent.position.x = JNIHelper::GetFloatField(env, inputEvent, "x");
+            newInputEvent.position.y = JNIHelper::GetFloatField(env, inputEvent, "y");
+
+            app->OnInputEvent(newInputEvent);
         }
     }
 }

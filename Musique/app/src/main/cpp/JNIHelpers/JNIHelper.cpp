@@ -91,3 +91,12 @@ float JNIHelper::GetFloatField(JNIEnv* env, const jobject& object, const char* f
     jfieldID fieldId = env->GetFieldID(env->GetObjectClass(object), fieldName, "F");
     return (float)env->GetFloatField(object, fieldId);
 }
+
+int JNIHelper::GetEnumClassField(JNIEnv* env, const jobject& object, const char* fieldName, const char* className)
+{
+    jfieldID fieldId = env->GetFieldID(env->GetObjectClass(object), fieldName, className);
+    jobject fieldObject = env->GetObjectField(object, fieldId);
+    jint value = env->CallIntMethod(fieldObject, env->GetMethodID(env->GetObjectClass(fieldObject), "ordinal", "()I"));
+
+    return value;
+}

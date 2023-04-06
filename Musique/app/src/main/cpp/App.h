@@ -12,6 +12,7 @@
 #include "Settings.h"
 #include "RenderableMusicData/RenderableSong.h"
 #include "Collisions/Vec2.h"
+#include "Events/InputEvent.h"
 
 /**
  * This class acts like an interface between Kotlin and C++.
@@ -40,6 +41,8 @@ public:
     void RenderMusicToPage(int page, RenderData& pageRenderData, float pageX, float pageY);
     void UpdateSettings(const Settings& s) { settings = s; OnLayoutChanged(); }
     void OnLayoutChanged();
+
+    void OnInputEvent(const InputEvent& event);
 
     void Render();
     void RenderHorizontalLayout();
@@ -140,6 +143,8 @@ private:
     Settings settings;
 
     float pageWidth = 1024.0f;
+
+    Vec2<float> pointerPosition = { 0.0f, 0.0f };
 };
 
 #endif // MUSIQUE_APP_H

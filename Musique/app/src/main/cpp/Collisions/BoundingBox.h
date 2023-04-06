@@ -17,6 +17,14 @@ public:
      */
     bool DoesOverlapWith(const BoundingBox& boundingBox) const;
 
+    /**
+     * Finds whether the given point overlaps with this bounding box.
+     *
+     * @param point The point to test against.
+     * @return Whether the point overlaps.
+     */
+    bool DoesOverlapWithPoint(Vec2<float> point) const;
+
     static bool DoBoundingBoxesOverlap(const BoundingBox& boundingBox1, const BoundingBox& boundingBox2);
 
     bool IsCloseTo(const BoundingBox& boundingBox, float minDistance) const;

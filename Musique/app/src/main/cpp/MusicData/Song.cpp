@@ -1693,3 +1693,21 @@ std::vector<Vec2<float>> Song::GetSystemPositions() const
 
     return systemPositions;
 }
+
+Measure* Song::GetMeasureAtPoint(Vec2<float> point) const
+{
+    for (auto* instrument : instruments)
+    {
+        for (auto* staff: instrument->staves)
+        {
+            int measureIndex = 0;
+            for (auto* measure: staff->measures)
+            {
+                if (measure->boundingBox.DoesOverlapWithPoint(point))
+                    return measure;
+            }
+        }
+    }
+
+    return nullptr;
+}

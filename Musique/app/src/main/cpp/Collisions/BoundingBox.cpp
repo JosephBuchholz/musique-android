@@ -10,6 +10,14 @@ bool BoundingBox::DoesOverlapWith(const BoundingBox& boundingBox) const
             this->position.y + this->size.y > boundingBox.position.y);
 }
 
+bool BoundingBox::DoesOverlapWithPoint(Vec2<float> point) const
+{
+    return (point.x > this->position.x &&
+            point.x < this->position.x + this->size.x &&
+            point.y > this->position.y &&
+            point.y < this->position.y + this->size.y);
+}
+
 bool BoundingBox::DoBoundingBoxesOverlap(const BoundingBox& boundingBox1, const BoundingBox& boundingBox2)
 {
     return boundingBox1.DoesOverlapWith(boundingBox2);

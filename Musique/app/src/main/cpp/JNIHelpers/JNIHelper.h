@@ -136,6 +136,17 @@ public:
      * @param fieldName[in] the name of the field to get
      */
     static float GetFloatField(JNIEnv* env, const jobject& object, const char* fieldName);
+
+    /**
+     * Gets a field on a jobject that has an enum type.
+     *
+     * @param env[in,out] The JIN environment.
+     * @param object[in] The object to get the field value from.
+     * @param fieldName[in] The name of the field to get.
+     * @param className[in] The name of the enum class.
+     * @return The integer value for the enum value.
+     */
+    static int GetEnumClassField(JNIEnv* env, const jobject& object, const char* fieldName, const char* className);
 };
 
 #endif // MUSIQUE_JNIHELPER_H

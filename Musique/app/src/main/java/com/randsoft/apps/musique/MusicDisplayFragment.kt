@@ -22,6 +22,7 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.LiveData
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.randsoft.apps.musique.event.InputEvent
 import com.randsoft.apps.musique.framedata.FrameData
 import com.randsoft.apps.musique.printing.PrintHandler
 import com.randsoft.apps.musique.renderdata.*
@@ -30,7 +31,7 @@ import com.randsoft.apps.musique.songdata.SongData
 
 private const val TAG = "MusicDisplayFragment"
 
-class MusicDisplayFragment : Fragment(), PrintHandler.Callbacks, SettingsDialogFragment.Callbacks {
+class MusicDisplayFragment : Fragment(), PrintHandler.Callbacks, SettingsDialogFragment.Callbacks, MusicDisplayView.Callbacks {
 
     private var musicDisplayView: MusicDisplayView? = null
 
@@ -63,7 +64,9 @@ class MusicDisplayFragment : Fragment(), PrintHandler.Callbacks, SettingsDialogF
         fun onCalculateNumPages(): Int
         fun onUpdatePrintLayout(attributes: PrintAttributes): Boolean
         fun updateInstrumentInfo(info: InstrumentInfo, index: Int)
-        fun onSettingsChanged(settings: SettingsDialogFragment.Settings);
+        fun onSettingsChanged(settings: SettingsDialogFragment.Settings)
+
+        fun onInputEvent(inputEvent: InputEvent)
     }
 
     private var callbacks: Callbacks? = null
@@ -108,6 +111,7 @@ class MusicDisplayFragment : Fragment(), PrintHandler.Callbacks, SettingsDialogF
         settingsDialogFragment = SettingsDialogFragment.newInstance(this)
 
         musicDisplayView = view.findViewById(R.id.music_display_view)
+        musicDisplayView?.setCallbacks(this)
 
         playButton = view.findViewById(R.id.play_button)
         playButton.setOnClickListener {
@@ -336,6 +340,10 @@ class MusicDisplayFragment : Fragment(), PrintHandler.Callbacks, SettingsDialogF
             Log.w(TAG, "musicDisplayView is null")
             return RectF()
         }
+    }
+
+    override fun onInputEvent(inputEvent: InputEvent) {
+        callbacks?.onInputEvent(inputEvent)
     }
 
     companion object {

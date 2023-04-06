@@ -191,6 +191,15 @@ public:
      */
     int GetSystemCount() const { return systems.size(); }
 
+    /**
+     * Gets the measure at the specified point.
+     *
+     * @param point The point (x,y position).
+     * @return A pointer to the Measure that collides with that point,
+     * returns nullptr if the point doesn't collide with any Measures.
+     */
+    Measure* GetMeasureAtPoint(Vec2<float> point) const;
+
     void ResolveCollisions();
 private:
     struct TimeSpacePoint

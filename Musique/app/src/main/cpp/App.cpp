@@ -943,3 +943,31 @@ void App::OnLayoutChanged()
 
     LOGI("NEW layout: %d", (int)settings.musicLayout);
 }
+
+void App::OnInputEvent(const InputEvent& event)
+{
+    switch (event.type)
+    {
+        case InputEvent::InputEventType::Tap:
+        {
+            Measure* selectedMeasure = song->GetMeasureAtPoint(event.position);
+
+            if (selectedMeasure != nullptr)
+            {
+                LOGD("A measure was selected! %d", selectedMeasure->index);
+
+                playLineBeatPosition = selectedMeasure->beatPosition;
+            }
+
+            LOGD("Received a tap event at: %s", event.position.GetPrintableString().c_str());
+            //m_RenderData.AddDebugDot(event.position.x, event.position.y);
+            //UpdateRender(m_RenderData);
+            break;
+        }
+        default:
+        {
+            LOGW("RECEIVED UNRECOGNIZED EVENT");
+            break;
+        }
+    }
+}

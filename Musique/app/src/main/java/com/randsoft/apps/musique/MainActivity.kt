@@ -21,6 +21,7 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import com.randsoft.apps.musique.databinding.ActivityMainBinding
+import com.randsoft.apps.musique.event.InputEvent
 import com.randsoft.apps.musique.framedata.FrameData
 import com.randsoft.apps.musique.renderdata.*
 import com.randsoft.apps.musique.songdata.InstrumentInfo
@@ -250,7 +251,11 @@ class MainActivity : AppCompatActivity(), MusicDisplayFragment.Callbacks,
     }
 
     override fun onSettingsChanged(settings: SettingsDialogFragment.Settings) {
-        onSettingsChangedNative(settings);
+        onSettingsChangedNative(settings)
+    }
+
+    override fun onInputEvent(inputEvent: InputEvent) {
+        onInputEventNative(inputEvent)
     }
 
     // ---- Calls to Native C++ ----
@@ -268,6 +273,8 @@ class MainActivity : AppCompatActivity(), MusicDisplayFragment.Callbacks,
     private external fun onCalculateNumPagesNative(): Int
     private external fun updateInstrumentInfoNative(instrumentInfo: InstrumentInfo, index: Int)
     private external fun onSettingsChangedNative(settings: SettingsDialogFragment.Settings)
+
+    private external fun onInputEventNative(inputEvent: InputEvent)
 
     private external fun setViewModelData(viewModelData: ViewModelData)
     private external fun onMidiStart()

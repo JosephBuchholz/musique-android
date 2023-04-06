@@ -6,9 +6,6 @@ import android.graphics.*
 import android.graphics.Paint
 import android.graphics.pdf.PdfDocument
 import android.os.Build
-import android.text.Spannable
-import android.text.SpannableStringBuilder
-import android.text.style.ForegroundColorSpan
 import android.util.AttributeSet
 import android.util.DisplayMetrics
 import android.util.Log
@@ -16,11 +13,9 @@ import android.view.*
 import android.view.GestureDetector.SimpleOnGestureListener
 import androidx.core.content.ContextCompat
 import androidx.core.content.res.ResourcesCompat
-import androidx.core.graphics.drawable.DrawableCompat
-import androidx.lifecycle.LiveData
+import com.randsoft.apps.musique.event.InputEvent
 import com.randsoft.apps.musique.framedata.FrameData
 import com.randsoft.apps.musique.renderdata.*
-import java.util.*
 
 private const val TAG = "MusicDisplayView"
 
@@ -90,6 +85,12 @@ class MusicDisplayView(context: Context, attrs: AttributeSet? = null): View(cont
 
     private var bitmaps: MutableMap<Int, Bitmap?> = mutableMapOf()
 
+    interface Callbacks {
+        fun onInputEvent(inputEvent: InputEvent)
+    }
+
+    private var callbacks: Callbacks? = null
+
     // touch/gesture variables
 
     private var scaleGestureDetector: ScaleGestureDetector = ScaleGestureDetector(context, object : ScaleGestureDetector.OnScaleGestureListener {
@@ -131,7 +132,29 @@ class MusicDisplayView(context: Context, attrs: AttributeSet? = null): View(cont
             invalidate()
             return true
         }
+
+        override fun onSingleTapUp(e: MotionEvent?): Boolean {
+
+            if (callbacks != null && e != null) {
+                val inputEvent = InputEvent()
+
+                inputEvent.type = InputEvent.InputEventType.INPUT_EVENT_TAP
+
+                var eventPosition = screenPositionToCanvasPosition(PointF(e.x, e.y))
+
+                inputEvent.x = eventPosition.x
+                inputEvent.y = eventPosition.y
+
+                callbacks?.onInputEvent(inputEvent)
+            }
+
+            return super.onSingleTapUp(e)
+        }
     })
+
+    fun setCallbacks(cbs: Callbacks) {
+        callbacks = cbs;
+    }
 
     override fun onAttachedToWindow() {
         super.onAttachedToWindow()
@@ -208,7 +231,7 @@ class MusicDisplayView(context: Context, attrs: AttributeSet? = null): View(cont
 
         //val paint = Paint()
 
-        var rect = Rect()
+        val rect = Rect()
         Log.e(TAG, "text: ${text.text}, t_length: ${text.text.length}");
         paint.getTextBounds(text.text, 0, text.text.length, rect) // this is the error line
 
@@ -248,7 +271,7 @@ class MusicDisplayView(context: Context, attrs: AttributeSet? = null): View(cont
             }
 
             if (line.paint.verticalEnds) {
-                var path = Path();
+                val path = Path();
                 path.moveTo((line.startX * scale) + offsetX, ((line.startY + (line.paint.strokeWidth / 2)) * scale) + offsetY)
                 path.lineTo((line.startX * scale) + offsetX, ((line.startY - (line.paint.strokeWidth / 2)) * scale) + offsetY)
                 path.lineTo((line.endX * scale) + offsetX, ((line.endY - (line.paint.strokeWidth / 2)) * scale) + offsetY)
@@ -314,10 +337,10 @@ class MusicDisplayView(context: Context, attrs: AttributeSet? = null): View(cont
                     isAntiAlias = true
                 }
 
-                var rectX = (text.x * scale) + offsetX
-                var rectY = (text.y * scale) + offsetY
+                val rectX = (text.x * scale) + offsetX
+                val rectY = (text.y * scale) + offsetY
 
-                var rect = Rect()
+                val rect = Rect()
                 paint.getTextBounds(text.text, 0, text.text.length, rect)
                 canvas.drawRect(rectX - (rect.width()/2.0f) * scale, rectY - (rect.height()/2.0f) * scale, rectX + (rect.width()/2.0f) * scale, rectY + (rect.height()/2.0f) * scale, rectPaint)
             }
@@ -487,7 +510,7 @@ class MusicDisplayView(context: Context, attrs: AttributeSet? = null): View(cont
                     color = bitmap.paint.color
                 }
 
-                var text: Text = Text("", ((bitmap.x) * scale), ((bitmap.y) * scale), bitmap.paint);
+                val text: Text = Text("", ((bitmap.x) * scale), ((bitmap.y) * scale), bitmap.paint);
                 //mainCanvas.drawText("", );
                 //drawText(mainCanvas, text, paint);
 
@@ -495,18 +518,18 @@ class MusicDisplayView(context: Context, attrs: AttributeSet? = null): View(cont
                 //paint.setTextSize(TypedValue.COMPLEX_UNIT_SP, 66.6f) // scale textSize to the right size
 
                 // calculate bounds of the text
-                var textBounds = Rect()
+                val textBounds = Rect()
                 paint.getTextBounds(text.text, 0, text.text.length, textBounds)
                 paint.typeface = musicTypeface;
 
                 val textHeight = -textBounds.top // text height
 
                 // draw
-                var px = 0.0f;
-                var py = 0.0f;
+                val px = 0.0f;
+                val py = 0.0f;
                 var char = 0;
-                var tab = 0xE06D;
-                var treble = 0xE052;
+                val tab = 0xE06D;
+                val treble = 0xE052;
                 if (bitmap.assetId == AssetID.TABClef.ordinal)
                     char = tab
                 else
@@ -591,12 +614,12 @@ class MusicDisplayView(context: Context, attrs: AttributeSet? = null): View(cont
                 style = Paint.Style.STROKE
             }
 
-            var path = Path()
+            val path = Path()
             var s = 5.0f;
-            var start = PointF(curve.x1 * scale + offsetX, curve.y1 * scale + offsetY)
+            val start = PointF(curve.x1 * scale + offsetX, curve.y1 * scale + offsetY)
             var point1 = PointF(curve.x2 * scale + offsetX, curve.y2 * scale + offsetY)
             var point2 = PointF(curve.x3 * scale + offsetX, curve.y3 * scale + offsetY)
-            var end = PointF(curve.x4 * scale + offsetX, curve.y4 * scale + offsetY)
+            val end = PointF(curve.x4 * scale + offsetX, curve.y4 * scale + offsetY)
 
             //Log.i(TAG, "drawing cubic curve: ${}");
 
@@ -684,9 +707,24 @@ class MusicDisplayView(context: Context, attrs: AttributeSet? = null): View(cont
         return false // they are not different
     }
 
-    override fun onTouchEvent(event: MotionEvent): Boolean {
+    override fun onTouchEvent(event: MotionEvent): Boolean { // TODO: override perform click function
         scaleGestureDetector.onTouchEvent(event)
         gestureDetector.onTouchEvent(event)
+
+        /*var x = event.x
+        var y = event.y
+
+        when (event.action) {s
+            MotionEvent.ACTION_DOWN -> {
+
+            }
+            MotionEvent.ACTION_UP -> {
+
+            }
+            MotionEvent.ACTION_MOVE -> {
+
+            }
+        }*/
 
         return true
     }
@@ -726,7 +764,7 @@ class MusicDisplayView(context: Context, attrs: AttributeSet? = null): View(cont
                 // translate bitmap
                 val mat = Matrix()
                 mat.setScale(mainScale, mainScale)
-                mat.postTranslate(mainBitmapPositionX + positionX, mainBitmapPositionY + positionY)
+                mat.postTranslate(mainBitmapPositionX + positionX * mainScale, mainBitmapPositionY + positionY * mainScale)
 
                 // draw the bitmap that has renderData rendered on it
                 canvas.drawBitmap(mainBitmap!!, mat, visiblePaint)
@@ -771,6 +809,16 @@ class MusicDisplayView(context: Context, attrs: AttributeSet? = null): View(cont
         return millimetersToPoints(millimeters); // convert to points
     }
 
+    private fun screenPositionToCanvasPosition(position: PointF): PointF
+    {
+        val newPosition = PointF()
+
+        newPosition.x = (position.x / mainScale) - positionX
+        newPosition.y = (position.y / mainScale) - positionY
+
+        return newPosition
+    }
+
     /*private fun pointsToSp(points: Float)
     {
         var px =
@@ -795,10 +843,10 @@ class MusicDisplayView(context: Context, attrs: AttributeSet? = null): View(cont
             Log.d(TAG, "drawing page ${page.info.pageNumber}");
             val pageRenderData: RenderData = printRenderData?.pages?.get(page.info.pageNumber)!!
 
-            var pageWidth = tenthsToPoints(1233.87f, pageRenderData.scaling)
-            var pageHeight = tenthsToPoints(1596.77f, pageRenderData.scaling)
-            var pagePositionX: Float = (page.info.pageWidth - pageWidth) / 2.0f
-            var pagePositionY: Float = (page.info.pageHeight - pageHeight) / 2.0f
+            val pageWidth = tenthsToPoints(1233.87f, pageRenderData.scaling)
+            val pageHeight = tenthsToPoints(1596.77f, pageRenderData.scaling)
+            val pagePositionX: Float = (page.info.pageWidth - pageWidth) / 2.0f
+            val pagePositionY: Float = (page.info.pageHeight - pageHeight) / 2.0f
 
             scale = tenthsToPoints(1.0f, pageRenderData.scaling)
             bitmapSizeScale = scale
@@ -868,14 +916,14 @@ class MusicDisplayView(context: Context, attrs: AttributeSet? = null): View(cont
     }
 
     private fun drawLine(canvas: Canvas, line: Line, paint: Paint) {
-        canvas.drawLine((line.startX * scale) + positionX, (line.startY * scale) + positionY, (line.endX * scale) + positionX, (line.endY * scale) + positionY, paint)
+        canvas.drawLine((line.startX * scale) + positionX * mainScale, (line.startY * scale) + positionY * mainScale, (line.endX * scale) + positionX * mainScale, (line.endY * scale) + positionY * mainScale, paint)
     }
 
     private fun drawText(canvas: Canvas, text: Text, paint: Paint) {
         paint.textSize = paint.textSize * scale // scale textSize to the right size
 
         // calculate bounds of the text
-        var textBounds = Rect()
+        val textBounds = Rect()
         paint.getTextBounds(text.text, 0, text.text.length, textBounds)
 
         val textHeight = -textBounds.top // text height
@@ -892,7 +940,7 @@ class MusicDisplayView(context: Context, attrs: AttributeSet? = null): View(cont
         paint.textSize = paint.textSize * scale // scale textSize to the right size
 
         // calculate bounds of the text
-        var textBounds = Rect()
+        val textBounds = Rect()
         paint.getTextBounds(text.text, 0, text.text.length, textBounds)
 
         val textHeight = -textBounds.top // text height
