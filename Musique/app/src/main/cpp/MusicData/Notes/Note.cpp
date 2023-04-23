@@ -110,6 +110,12 @@ void Note::CalculatePositionAsPaged(const MusicDisplayConstants& displayConstant
         }
     }
 
+    for (auto articulation : articulations)
+    {
+        if (articulation != nullptr)
+            articulation->CalculatePositionAsPaged(displayConstants, positionY, GetNoteHeadWidth(), type == NoteType::Tab);
+    }
+
     for (auto& dot : dots)
     {
         dot.CalculatePositionAsPaged(displayConstants, ((positionY / displayConstants.lineSpacing) - floor(positionY / displayConstants.lineSpacing)) == 0.0f, type == NoteType::Tab);
@@ -126,7 +132,10 @@ float Note::GetCenterPositionX() const
 
 float Note::GetNoteHeadWidth() const // TODO: get actual width
 {
-    return 11.3f;
+    if (type == NoteType::Tab)
+        return 0.0f;
+    else
+        return 11.3f;
 }
 
 void Note::UpdateBoundingBox(const Vec2<float> &parentPosition)

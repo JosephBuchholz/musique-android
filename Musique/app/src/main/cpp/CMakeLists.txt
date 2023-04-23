@@ -59,6 +59,13 @@ add_library( # Sets the name of the library.
         MusicXMLParser/NoteElementParser.cpp
         MusicXMLParser/BaseElementParser.cpp
 
+        MusicData/Notes/Articulations/Accent.cpp
+        MusicData/Notes/Articulations/BreathMark.cpp
+        MusicData/Notes/Articulations/Caesura.cpp
+        MusicData/Notes/Articulations/Slide.cpp
+        MusicData/Notes/Articulations/StaccatoArticulation.cpp
+        MusicData/Notes/Articulations/Stress.cpp
+
         Collisions/BoundingBox.cpp
 
         JNIHelpers/JNIHelper.cpp

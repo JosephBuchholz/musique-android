@@ -6,12 +6,21 @@
 #define MUSIQUE_NOTEELEMENTPARSER_H
 
 #include <string>
+#include <memory>
+
 #include "../libs/tinyxml2/tinyxml2.h"
 #include "ParseError.h"
 
 #include "../MusicData/Measures/Measure.h"
 #include "../MusicData/Notes/Note.h"
 #include "../MusicData/Notes/Lyric.h"
+
+#include "../MusicData/Notes/Articulations/Accent.h"
+#include "../MusicData/Notes/Articulations/BreathMark.h"
+#include "../MusicData/Notes/Articulations/Caesura.h"
+#include "../MusicData/Notes/Articulations/Slide.h"
+#include "../MusicData/Notes/Articulations/StaccatoArticulation.h"
+#include "../MusicData/Notes/Articulations/Stress.h"
 
 using namespace tinyxml2;
 
@@ -39,6 +48,15 @@ public:
 private:
     static Lyric ParseLyric(XMLElement* lyricElement);
     static void ParseTechnicalElement(XMLElement* technicalElement, Note* currentNote, bool isTab);
+
+    static void ParseAccentElement(XMLElement* element, std::shared_ptr<Accent> newAccent);
+    static void ParseStaccatoArticulationElement(XMLElement* element, std::shared_ptr<StaccatoArticulation> newArticulation);
+    static void ParseSlideElement(XMLElement* element, std::shared_ptr<Slide> newSlide);
+    static void ParseBreathMarkElement(XMLElement* element, std::shared_ptr<BreathMark> newBreathMark);
+    static void ParseCaesuraElement(XMLElement* element, std::shared_ptr<Caesura> newCaesura);
+    static void ParseStressElement(XMLElement* element, std::shared_ptr<Stress> newStress);
+
+    static void ParseArticulationsElement(XMLElement* articulationsElement, Note* currentNote);
 
 protected:
     static void AddError(std::string title, std::string desc, ErrorLevel errorLevel = ErrorLevel::Error) { m_Errors.emplace_back(title, desc, "BaseElementParser", errorLevel); }

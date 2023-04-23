@@ -46,7 +46,7 @@ public:
     static SMuFLID GetClefSMuFLID(const Clef& clef, int staffLines);
 
 public:
-    std::string sign = "G";
+    std::string sign = "";
     int line = 2;
 };
 

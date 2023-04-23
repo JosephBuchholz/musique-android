@@ -396,6 +396,68 @@ void Song::OnUpdate()
             }
         }
 
+        // calculate width for multi measure rests
+        for (auto* instrument : instruments)
+        {
+            for (auto* staff : instrument->staves)
+            {
+                std::vector<Measure*> multiMeasureRests;
+                int multiMeasureRestCount = 0;
+                float totalMeasureWidth = 0.0f;
+                int measureIndex = 0;
+                int systemIndex = 0;
+                for (auto* measure : staff->measures)
+                {
+                    if ((measure->startNewSystem && measureIndex != 0) || measureIndex == staff->measures.size() - 1)
+                    {
+                        /*if (measure->startsMultiMeasureRest && measureIndex == staff->measures.size() - 1)
+                        {
+                            multiMeasureRests.push_back(measure);
+                            multiMeasureRestCount++;
+                        }*/
+
+                        float systemWidth = displayConstants.pageWidth - systems[systemIndex].layout.systemLeftMargin - systems[systemIndex].layout.systemRightMargin - displayConstants.leftMargin - displayConstants.rightMargin;
+
+                        float multiMeasureRestWidth = 0.0f;
+                        if (multiMeasureRestCount != 0)
+                        {
+                            float remainingWidth = (systemWidth - totalMeasureWidth);
+                            multiMeasureRestWidth = remainingWidth / (float) multiMeasureRestCount;
+                        }
+
+                        LOGV("systemLeftMargin: %f, systemRightMargin: %f, systemWidth: %f, remainingWidth: %f, multiMeasureRestWidth: %f", systems[systemIndex].layout.systemLeftMargin, systems[systemIndex].layout.systemRightMargin,
+                             systemWidth, (systemWidth - totalMeasureWidth), multiMeasureRestWidth);
+
+                        for (auto* multiMeasureRest : multiMeasureRests)
+                        {
+                            multiMeasureRest->measureWidth = multiMeasureRestWidth;
+
+                            m_MeasureWidths[multiMeasureRest->index] = measure->measureWidth;
+                        }
+
+                        multiMeasureRests.clear();
+                        multiMeasureRestCount = 0;
+                        totalMeasureWidth = 0.0f;
+                        systemIndex++;
+                    }
+
+                    if (measure->startsMultiMeasureRest)
+                    {
+                        multiMeasureRests.push_back(measure);
+                        multiMeasureRestCount++;
+                    }
+                    else
+                    {
+                        totalMeasureWidth += measure->measureWidth;
+                    }
+
+                    measureIndex++;
+                }
+            }
+        }
+
+
+
         // sort all the notes by their beat positions and put them in an array of time space points
         m_TimeSpacePoints.clear();
         for (auto* instrument : instruments) {

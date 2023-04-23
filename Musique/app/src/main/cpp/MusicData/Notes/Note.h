@@ -19,6 +19,7 @@
 #include "Beam.h"
 #include "Tie.h"
 #include "../VisibleElement.h"
+#include "Articulations/Articulation.h"
 
 /**
  * Class that represents a note, whether it is TAB or not.
@@ -81,6 +82,8 @@ public:
     Accidental accidental = Accidental();
 
     std::vector<Lyric> lyrics;
+
+    std::vector<std::shared_ptr<Articulation>> articulations;
 
     NoteTie tie = NoteTie();
 

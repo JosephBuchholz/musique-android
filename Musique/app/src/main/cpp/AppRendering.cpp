@@ -12,12 +12,12 @@ void App::RenderLineOfMeasures(RenderData& renderData, unsigned int startMeasure
     unsigned int numberOfMeasuresInMultiMeasureRest = 0; // number of measures left in multi measure rest
     unsigned int measureThatStartedMultiMeasureRest = 0; // the index of the measure that started the multi measure rest
 
-    int measureIndex = startMeasure;
-    int measureNumber = startMeasure;
+    int measureIndex = (int)startMeasure;
+    int measureNumber = (int)startMeasure;
     float measurePosition = systemPositionX;
     int measureRenderCount = 15; // the number of measures that need to be rendered
     int currentMeasureRenderedCount = 0; // the number of measures that have been rendered
-    for (int m = startMeasure; m <= endMeasure; m++) {
+    for (int m = (int)startMeasure; m <= endMeasure; m++) {
         //renderableSong.systems[systemIndex].instruments[instrumentIndex].staves[staffIndex].measures.emplace_back();
 
         Measure* measure = staff->measures[m];
@@ -48,7 +48,7 @@ void App::RenderLineOfMeasures(RenderData& renderData, unsigned int startMeasure
         {
             if (measure->startsMultiMeasureRest)
             {
-                measure->measureWidth = 80.0f;
+                //measure->measureWidth = 80.0f;
                 multiMeasureRest = true;
                 numberOfMeasuresInMultiMeasureRest = measure->numberOfMeasuresInMultiMeasureRest;
                 measureThatStartedMultiMeasureRest = measureIndex;
@@ -407,6 +407,13 @@ void App::RenderTabNote(RenderData& renderData, const Note* note, const Staff* s
         }
     }
 
+    // render accidentals
+    for (auto articulation : note->articulations)
+    {
+        if (articulation != nullptr)
+            articulation->Render(renderData, positionX, positionY);
+    }
+
     // rhythm notation
     if (staff->tablatureDisplayType == Staff::TablatureDisplayType::Full)
     {
@@ -523,6 +530,13 @@ void App::RenderNote(RenderData& renderData, const Note* note, Measure* measure,
             float accY = positionY;
 
             renderData.AddGlyph(SMuFLGlyph(GetAccidentalSMuFLID(note->accidental.accidentalType),accX + mainPositionX, accY + mainPositionY, Paint(0xff000000)));
+        }
+
+        // render accidentals
+        for (auto articulation : note->articulations)
+        {
+            if (articulation != nullptr)
+                articulation->Render(renderData, positionX + mainPositionX, positionY + mainPositionY);
         }
     }
 

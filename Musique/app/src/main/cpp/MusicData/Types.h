@@ -117,6 +117,14 @@ enum class LineType
 };
 
 /**
+ * Indicates whether something is up or down
+ */
+enum class UpDown
+{
+    None = 0, Up, Down
+};
+
+/**
  * Whether a curve is overhand (tips down) or underhand (tips up). (for slurs and ties)
  */
 enum class CurveOrientation

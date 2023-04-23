@@ -268,6 +268,10 @@ void NoteElementParser::ParseNoteElement(XMLElement* noteElement, float& current
         // technical
         XMLElement* technical = notations->FirstChildElement("technical");
         ParseTechnicalElement(technical, currentNote, staffIsTabInfo[currentNote->staff-1]);
+
+        // articulations
+        XMLElement* articulationsElement = notations->FirstChildElement("articulations");
+        ParseArticulationsElement(articulationsElement, currentNote);
     }
 
     // dot
@@ -360,5 +364,182 @@ void NoteElementParser::ParseTechnicalElement(XMLElement* technicalElement, Note
                 currentNote->fret = ToInt(fret->GetText());
             }
         }
+    }
+}
+
+void NoteElementParser::ParseArticulationsElement(XMLElement* articulationsElement, Note* currentNote)
+{
+    if (articulationsElement)
+    {
+        XMLNode* previousElement = articulationsElement->FirstChildElement(); // first element
+        while (true)
+        {
+            if (previousElement) {
+                std::shared_ptr<Articulation> newArticulation;
+                XMLElement* element = previousElement->ToElement();
+
+                const char* value = element->Value();
+                if (strcmp(value, "accent") == 0 || strcmp(value, "strong-accent") == 0 || strcmp(value, "soft-accent") == 0) // accents
+                {
+                    std::shared_ptr<Accent> newAccent = std::make_shared<Accent>();
+                    ParseAccentElement(element, newAccent);
+                    newArticulation = newAccent;
+                }
+                else if (strcmp(value, "staccato") == 0 || strcmp(value, "tenuto") == 0 || strcmp(value, "detached-legato") == 0
+                        || strcmp(value, "staccatissimo") == 0 || strcmp(value, "spiccato") == 0) // staccato type articulations
+                {
+                    std::shared_ptr<StaccatoArticulation> newStacArt = std::make_shared<StaccatoArticulation>();
+                    ParseStaccatoArticulationElement(element, newStacArt);
+                    newArticulation = newStacArt;
+                }
+                else if (strcmp(value, "scoop") == 0 || strcmp(value, "plop") == 0 || strcmp(value, "doit") == 0 || strcmp(value, "falloff") == 0) // slides
+                {
+                    std::shared_ptr<Slide> newSlide = std::make_shared<Slide>();
+                    ParseSlideElement(element, newSlide);
+                    newArticulation = newSlide;
+                }
+                else if (strcmp(value, "breath-mark") == 0) // breath mark
+                {
+                    std::shared_ptr<BreathMark> newBreathMark = std::make_shared<BreathMark>();
+                    ParseBreathMarkElement(element, newBreathMark);
+                    newArticulation = newBreathMark;
+                }
+                else if (strcmp(value, "caesura") == 0) // caesura
+                {
+                    std::shared_ptr<Caesura> newCaesura = std::make_shared<Caesura>();
+                    ParseCaesuraElement(element, newCaesura);
+                    newArticulation = newCaesura;
+                }
+                else if (strcmp(value, "stress") == 0 || strcmp(value, "unstress") == 0) // stress
+                {
+                    std::shared_ptr<Stress> newStress = std::make_shared<Stress>();
+                    ParseStressElement(element, newStress);
+                    newArticulation = newStress;
+                }
+                else
+                {
+                    AddError("Unrecognized element", "Didn't recognize element in ARTICULATIONS");
+                }
+
+                newArticulation->placement = MusicXMLHelper::GetAboveBelowAttribute(element, "placement", newArticulation->placement);
+
+                currentNote->articulations.push_back(newArticulation);
+            }
+            else
+            {
+                break;
+            }
+            previousElement = previousElement->NextSiblingElement();
+        }
+    }
+}
+
+void NoteElementParser::ParseAccentElement(XMLElement* element, std::shared_ptr<Accent> newAccent)
+{
+    const char* value = element->Value();
+    if (strcmp(value, "accent") == 0) // accent
+    {
+        newAccent->type = Accent::Type::Accent;
+    }
+    else if (strcmp(value, "strong-accent") == 0) // strong accent
+    {
+        newAccent->type = Accent::Type::StrongAccent;
+    }
+    else if (strcmp(value, "soft-accent") == 0) // soft accent
+    {
+        newAccent->type = Accent::Type::SoftAccent;
+    }
+}
+
+void NoteElementParser::ParseStaccatoArticulationElement(XMLElement* element, std::shared_ptr<StaccatoArticulation> newArticulation)
+{
+    const char* value = element->Value();
+    if (strcmp(value, "staccato") == 0)
+    {
+        newArticulation->type = StaccatoArticulation::Type::Staccato;
+    }
+    else if (strcmp(value, "tenuto") == 0)
+    {
+        newArticulation->type = StaccatoArticulation::Type::Tenuto;
+    }
+    else if (strcmp(value, "detached-legato") == 0)
+    {
+        newArticulation->type = StaccatoArticulation::Type::DetachedLegato;
+    }
+    else if (strcmp(value, "staccatissimo") == 0)
+    {
+        newArticulation->type = StaccatoArticulation::Type::Staccatissimo;
+    }
+    else if (strcmp(value, "spiccato") == 0)
+    {
+        newArticulation->type = StaccatoArticulation::Type::Spiccato;
+    }
+}
+
+void NoteElementParser::ParseSlideElement(XMLElement* element, std::shared_ptr<Slide> newSlide)
+{
+    const char* value = element->Value();
+    if (strcmp(value, "scoop") == 0)
+    {
+        newSlide->type = Slide::Type::Scoop;
+    }
+    else if (strcmp(value, "plop") == 0)
+    {
+        newSlide->type = Slide::Type::Plop;
+    }
+    else if (strcmp(value, "doit") == 0)
+    {
+        newSlide->type = Slide::Type::Doit;
+    }
+    else if (strcmp(value, "falloff") == 0)
+    {
+        newSlide->type = Slide::Type::Falloff;
+    }
+}
+
+void NoteElementParser::ParseBreathMarkElement(XMLElement* element, std::shared_ptr<BreathMark> newBreathMark)
+{
+    // TODO: implement
+}
+
+void NoteElementParser::ParseCaesuraElement(XMLElement* element, std::shared_ptr<Caesura> newCaesura)
+{
+    const char* value = element->GetText();
+    if (value == nullptr)
+    {
+        newCaesura->type = Caesura::Type::Normal;
+    }
+    else if (strcmp(value, "normal") == 0)
+    {
+        newCaesura->type = Caesura::Type::Normal;
+    }
+    else if (strcmp(value, "thick") == 0)
+    {
+        newCaesura->type = Caesura::Type::Thick;
+    }
+    else if (strcmp(value, "short") == 0)
+    {
+        newCaesura->type = Caesura::Type::Short;
+    }
+    else if (strcmp(value, "curved") == 0)
+    {
+        newCaesura->type = Caesura::Type::Curved;
+    }
+    else if (strcmp(value, "single") == 0)
+    {
+        newCaesura->type = Caesura::Type::Single;
+    }
+}
+
+void NoteElementParser::ParseStressElement(XMLElement* element, std::shared_ptr<Stress> newStress)
+{
+    const char* value = element->Value();
+    if (strcmp(value, "stress") == 0)
+    {
+        newStress->type = Stress::Type::Stress;
+    }
+    else if (strcmp(value, "unstress") == 0)
+    {
+        newStress->type = Stress::Type::Unstress;
     }
 }

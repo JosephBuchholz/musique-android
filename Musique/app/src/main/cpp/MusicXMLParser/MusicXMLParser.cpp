@@ -1431,6 +1431,18 @@ Song* MusicXMLParser::ParseMusicXML(const std::string& data, std::string& error)
                                     }
                                 }
 
+                                // change the measure's clef the the previous measure's clef if a new clef was not specified
+                                int i = 0;
+                                for (Measure* m : currentMeasures)
+                                {
+                                    if (m->clef.sign.empty() && i < previousMeasures.size())
+                                    {
+                                        m->clef = previousMeasures[i]->clef;
+                                    }
+
+                                    i++;
+                                }
+
                                 // transpose
                                 XMLElement* transposeElement = attributes->FirstChildElement("transpose");
                                 if (transposeElement)
@@ -1738,6 +1750,42 @@ Song* MusicXMLParser::ParseMusicXML(const std::string& data, std::string& error)
     }
 
     song->displayConstants = displayConstants;
+
+    // update multi measure rests
+    bool multiMeasureRest = false; // whether the measure is part of a multi measure rest
+    unsigned int numberOfMeasuresInMultiMeasureRest = 0; // number of measures left in multi measure rest
+    unsigned int measureThatStartedMultiMeasureRest = 0; // the index of the measure that started the multi measure rest
+    for (auto* instrument : song->instruments)
+    {
+        for (auto* staff : instrument->staves)
+        {
+            int measureIndex = 0;
+            for (auto* measure : staff->measures)
+            {
+                if (multiMeasureRest)
+                {
+                    if (measureIndex - measureThatStartedMultiMeasureRest < numberOfMeasuresInMultiMeasureRest) // this measure is part of the multi measure rest
+                    {
+                        measure->isPartOfMultiMeasureRest = true; // update
+                    }
+                    else // this measure is not part of the multi measure rest (so it has ended)
+                    {
+                        multiMeasureRest = false;
+                        numberOfMeasuresInMultiMeasureRest = 0;
+                        measureThatStartedMultiMeasureRest = 0;
+                    }
+                }
+                else if (measure->startsMultiMeasureRest)
+                {
+                    multiMeasureRest = true;
+                    numberOfMeasuresInMultiMeasureRest = measure->numberOfMeasuresInMultiMeasureRest;
+                    measureThatStartedMultiMeasureRest = measureIndex;
+                }
+
+                measureIndex++;
+            }
+        }
+    }
 
     LOGD("Finished");
     doc.Clear();
