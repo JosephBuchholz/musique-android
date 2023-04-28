@@ -219,6 +219,19 @@ enum class SMuFLID : uint16_t
     dynamicCombinedSeparatorSpace = 0xE548,
     dynamicCombinedSeparatorSlash = 0xE549,
 
+    // tuplets
+    tuplet0 = 0xE880,
+    tuplet1 = 0xE881,
+    tuplet2 = 0xE882,
+    tuplet3 = 0xE883,
+    tuplet4 = 0xE884,
+    tuplet5 = 0xE885,
+    tuplet6 = 0xE886,
+    tuplet7 = 0xE887,
+    tuplet8 = 0xE888,
+    tuplet9 = 0xE889,
+    tupletColon = 0xE88A,
+
     metNoteDoubleWhole = 0xECA0,
     metNoteDoubleWholeSquare = 0xECA1,
     metNoteWhole = 0xECA2,

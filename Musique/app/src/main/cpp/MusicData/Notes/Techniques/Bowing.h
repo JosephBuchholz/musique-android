@@ -1,7 +1,7 @@
 #ifndef MUSIQUE_BOWING_H
 #define MUSIQUE_BOWING_H
 
-#include "../VisibleElement.h"
+#include "../../VisibleElement.h"
 
 class Bowing : VisibleElement
 {

@@ -131,10 +131,16 @@ void App::RenderLineOfMeasures(RenderData& renderData, unsigned int startMeasure
                 }
 
                 // render all chords in this measure
-                for (Chord &chord: measure->chords) {
+                for (Chord &chord : measure->chords) {
                     chord.CalculateChordName();
                     float measurePositionY = staffPositionY;
                     chord.Render(renderData, measurePosition, measurePositionY);
+                }
+
+                for (auto tuplet : measure->tuplets)
+                {
+                    float measurePositionY = staffPositionY;
+                    tuplet->Render(renderData, Vec2<float>(measurePosition, measurePositionY));
                 }
             }
 

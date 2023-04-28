@@ -130,7 +130,14 @@ jobject ConvertPaintToObject(JNIEnv* env, const Paint& paint)
     jfieldID paintFieldIdIsTablature = env->GetFieldID(paintClass, "isTablature", "Z");
     jfieldID paintFieldIdIsAntiAlias = env->GetFieldID(paintClass, "isAntiAlias", "Z");
     jfieldID paintFieldIdStrikeThruText = env->GetFieldID(paintClass, "strikeThruText", "Z");
-    jfieldID paintFieldIdCenterTextVertically = env->GetFieldID(paintClass, "centerTextVertically", "Z");
+
+    jfieldID paintFieldIdCenterVertically = env->GetFieldID(paintClass, "centerVertically", "Z");
+    jfieldID paintFieldIdCenterHorizontally = env->GetFieldID(paintClass, "centerHorizontally", "Z");
+
+    jfieldID paintFieldIdHasBackground = env->GetFieldID(paintClass, "hasBackground", "Z");
+    jfieldID paintFieldIdBackgroundColor = env->GetFieldID(paintClass, "backgroundColor", "I");
+    jfieldID paintFieldIdBackgroundPadding = env->GetFieldID(paintClass, "backgroundPadding", "F");
+
     jfieldID paintFieldIdUseMusicFont = env->GetFieldID(paintClass, "useMusicFont", "Z");
     jfieldID paintFieldIdVerticalEnds = env->GetFieldID(paintClass, "verticalEnds", "Z");
     jfieldID paintFieldIdIsDashedLine = env->GetFieldID(paintClass, "isDashedLine", "Z");
@@ -151,7 +158,14 @@ jobject ConvertPaintToObject(JNIEnv* env, const Paint& paint)
     env->SetBooleanField(paintObject, paintFieldIdIsTablature, paint.isTablature);
     env->SetBooleanField(paintObject, paintFieldIdIsAntiAlias, paint.isAntiAlias);
     env->SetBooleanField(paintObject, paintFieldIdStrikeThruText, paint.strikeThruText);
-    env->SetBooleanField(paintObject, paintFieldIdCenterTextVertically, paint.centerTextVertically);
+
+    env->SetBooleanField(paintObject, paintFieldIdCenterVertically, paint.centerVertically);
+    env->SetBooleanField(paintObject, paintFieldIdCenterHorizontally, paint.centerHorizontally);
+
+    env->SetBooleanField(paintObject, paintFieldIdHasBackground, paint.hasBackground);
+    env->SetIntField(paintObject, paintFieldIdBackgroundColor, paint.backgroundColor);
+    env->SetFloatField(paintObject, paintFieldIdBackgroundPadding, paint.backgroundPadding);
+
     env->SetBooleanField(paintObject, paintFieldIdUseMusicFont, paint.useMusicFont);
     env->SetBooleanField(paintObject, paintFieldIdVerticalEnds, paint.verticalEnds);
 

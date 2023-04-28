@@ -16,6 +16,7 @@ import androidx.core.content.res.ResourcesCompat
 import com.randsoft.apps.musique.event.InputEvent
 import com.randsoft.apps.musique.framedata.FrameData
 import com.randsoft.apps.musique.renderdata.*
+import kotlinx.coroutines.internal.artificialFrame
 
 private const val TAG = "MusicDisplayView"
 
@@ -380,11 +381,47 @@ class MusicDisplayView(context: Context, attrs: AttributeSet? = null): View(cont
                 typeface = musicTypeface
             }
 
-            // position
-            val x = ((glyph.x) * scale)
-            val y = ((glyph.y) * scale)
-
             paint.textSize = 40.0f * scale // text size equals the standard staff height (according to SMuFL specification)
+
+            // position
+            var x = ((glyph.x) * scale)
+            var y = ((glyph.y) * scale)
+
+            var bounds = Rect()
+            paint.getTextBounds(Character.toChars(glyph.codePoint), 0, 1, bounds)
+
+            if (glyph.paint.centerHorizontally)
+            {
+                x -= bounds.width() / 2.0f
+            }
+
+            if (glyph.paint.centerVertically)
+            {
+                y += bounds.height() / 2.0f
+            }
+
+            if (glyph.paint.hasBackground)
+            {
+                val backgroundPaint = Paint().apply {
+                    color = glyph.paint.backgroundColor
+                    isAntiAlias = true
+                }
+
+                val backgroundRect = RectF()
+
+                val rectX = x + offsetX
+                val rectY = y + offsetY
+
+                val padding = glyph.paint.backgroundPadding * scale
+
+                backgroundRect.left = rectX - padding
+                backgroundRect.right = rectX + bounds.width() + padding
+
+                backgroundRect.top = rectY - bounds.height() - padding
+                backgroundRect.bottom = rectY + padding
+
+                canvas.drawRect(backgroundRect, backgroundPaint)
+            }
 
             // draw
             canvas.drawText(Character.toChars(glyph.codePoint), 0, 1, (x) + offsetX, (y) + offsetY, paint)

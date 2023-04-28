@@ -585,6 +585,11 @@ void Song::OnUpdate()
                         chord.CalculatePositionAsPaged(displayConstants, defaultX, defaultY);
                     }
 
+                    for (auto tuplet : measure->tuplets)
+                    {
+                        tuplet->CalculatePositionAsPaged(displayConstants, { 0.0f, 0.0f }, { 0.0f, 0.0f });
+                    }
+
                     for (auto* note : measure->notes)
                     {
                         if (note->isRest) // musescore specific code

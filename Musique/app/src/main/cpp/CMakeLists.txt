@@ -48,6 +48,7 @@ add_library( # Sets the name of the library.
 
         MusicData/Measures/KeySignature.cpp
         MusicData/Measures/Clef.cpp
+        MusicData/Measures/Tuplet.cpp
         MusicData/Pitch.cpp
         MusicData/Measures/TimeSignature.cpp
         RenderMeasurement.cpp

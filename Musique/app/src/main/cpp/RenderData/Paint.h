@@ -24,7 +24,14 @@ struct Paint {
         isTablature = paint.isTablature;
         isAntiAlias = paint.isAntiAlias;
         strikeThruText = paint.strikeThruText;
-        centerTextVertically = paint.centerTextVertically;
+
+        centerVertically = paint.centerVertically;
+        centerHorizontally = paint.centerHorizontally;
+
+        hasBackground = paint.hasBackground;
+        backgroundColor = paint.backgroundColor;
+        backgroundPadding = paint.backgroundPadding;
+
         verticalEnds = paint.verticalEnds;
 
         isDottedLine = paint.isDottedLine;
@@ -53,7 +60,14 @@ struct Paint {
     bool isTablature = false;
     bool isAntiAlias = false;
     bool strikeThruText = false;
-    bool centerTextVertically = false;
+
+    bool centerVertically = false;
+    bool centerHorizontally = false;
+
+    bool hasBackground = false;
+    int backgroundColor = 0xFFFFFFFF;
+    float backgroundPadding = 0.0f;
+
     bool useMusicFont = false;
     bool verticalEnds = false;
 

@@ -20,6 +20,7 @@
 #include "Tie.h"
 #include "../VisibleElement.h"
 #include "Articulations/Articulation.h"
+#include "Techniques/Technique.h"
 
 /**
  * Class that represents a note, whether it is TAB or not.

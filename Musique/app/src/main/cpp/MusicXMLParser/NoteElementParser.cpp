@@ -5,6 +5,10 @@
 #include "BaseElementParser.h"
 #include "../Utils/Converters.h"
 
+#include <unordered_map>
+
+static std::unordered_map<int, std::shared_ptr<Tuplet>> currentTuplets;
+
 Lyric NoteElementParser::ParseLyric(XMLElement* lyricElement)
 {
     Lyric lyric = Lyric();
@@ -272,6 +276,54 @@ void NoteElementParser::ParseNoteElement(XMLElement* noteElement, float& current
         // articulations
         XMLElement* articulationsElement = notations->FirstChildElement("articulations");
         ParseArticulationsElement(articulationsElement, currentNote);
+
+        XMLNode* previousElement = notations->FirstChildElement(); // first element
+        while (true)
+        {
+            if (previousElement) {
+                XMLElement* element = previousElement->ToElement();
+                const char* value = element->Value();
+
+                if (strcmp(value, "tuplet") == 0) // tuplets
+                {
+                    // tuplets
+                    XMLElement* tupletElement = element;
+                    if (tupletElement)
+                    {
+                        StartStopType startStopType = MusicXMLHelper::GetStartStopAttribute(tupletElement, "type", StartStopType::None, true);
+                        int number = XMLHelper::GetNumberAttribute(tupletElement, "number", 1);
+
+                        LOGD("number: %d, is start: %d, size: %d, mSize: %d, staff: %d", number, startStopType == StartStopType::Start, currentTuplets.size(), currentMeasures.size(), currentNote->staff);
+
+                        if (startStopType == StartStopType::Start)
+                        {
+                            std::shared_ptr<Tuplet> tuplet = std::make_shared<Tuplet>();
+
+                            tuplet->notes.push_back(currentNote);
+
+                            tuplet->hasBracket = XMLHelper::GetBoolAttribute(tupletElement, "bracket", tuplet->hasBracket);
+
+                            currentMeasures[currentNote->staff - 1]->tuplets.push_back(tuplet);
+                            currentTuplets[number] = tuplet;
+                        }
+                        else if (startStopType == StartStopType::Stop)
+                        {
+                            std::shared_ptr<Tuplet> tuplet = currentTuplets[number];
+
+                            tuplet->notes.push_back(currentNote);
+
+                            currentTuplets.erase(number);
+                        }
+                    }
+                }
+            }
+            else
+            {
+                break;
+            }
+
+            previousElement = previousElement->NextSiblingElement();
+        }
     }
 
     // dot

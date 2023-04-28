@@ -12,7 +12,14 @@ data class Paint(
     var isTablature: Boolean = false
     var isAntiAlias: Boolean = false
     var strikeThruText: Boolean = false
-    var centerTextVertically: Boolean = false
+
+    var centerVertically: Boolean = false
+    var centerHorizontally: Boolean = false
+
+    var hasBackground: Boolean = false
+    var backgroundColor: Int = (0xFFFFFFFF).toInt()
+    var backgroundPadding: Float = 0.0f
+
     var useMusicFont: Boolean = false
     var verticalEnds: Boolean = false
 

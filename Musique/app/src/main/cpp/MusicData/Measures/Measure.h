@@ -16,6 +16,7 @@
 #include "Barline.h"
 #include "../Notes/BeamGroup.h"
 #include "../VisibleElement.h"
+#include "Tuplet.h"
 
 #include <vector>
 
@@ -133,6 +134,7 @@ public:
     std::vector<Chord> chords; // the chords contained in this measure
     std::vector<Barline> barlines; // the barlines contained in this measure
     std::vector<BeamGroup> beams; // the beams (beam groups) contained in this measure
+    std::vector<std::shared_ptr<Tuplet>> tuplets; // the tuplets that are contained in this measure
 
     int divisions = 1;
 
