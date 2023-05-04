@@ -58,9 +58,7 @@ public:
 
     std::vector<StaffTuning> tunings;
 
-    enum class TablatureDisplayType {
-        None = 0, NoRhythm, Full
-    } tablatureDisplayType = TablatureDisplayType::Full;
+    TablatureDisplayType tablatureDisplayType = TablatureDisplayType::Full;
 };
 
 #endif // MUSIQUE_STAFF_H

@@ -5,6 +5,8 @@
 
 #include <algorithm>
 
+#include "../Exceptions/Exceptions.h"
+
 Song::Song()
 {
 
@@ -356,7 +358,7 @@ void Song::OnUpdate()
                     if (measure->startNewSystem)
                         systemIndex++;
 
-                    measure->CalculateAsPaged(displayConstants);
+                    measure->CalculateAsPaged(displayConstants, systems[systemIndex], staff->lines);
                     if (measureIndex >= m_MeasureWidths.size())
                     {
                         m_MeasureBeginWidths.push_back(0.0f);
@@ -368,20 +370,22 @@ void Song::OnUpdate()
 
                     m_MeasureBeginWidths[measureIndex] = std::max(measure->GetBeginningWidth(), m_MeasureBeginWidths[measureIndex]);
 
-                    systems[systemIndex].clefPositionX = std::max(measure->GetClefPositionInMeasure(systems[systemIndex]), systems[systemIndex].clefPositionX);
-                    systems[systemIndex].keySignaturePositionX = std::max(measure->GetKeySignaturePositionInMeasure(systems[systemIndex]), systems[systemIndex].keySignaturePositionX);
-                    systems[systemIndex].timeSignaturePositionX = std::max(measure->GetTimeSignaturePositionInMeasure(systems[systemIndex]), systems[systemIndex].timeSignaturePositionX);
+                    /*systems[systemIndex].clefPositionX = std::max(measure->GetClefPositionInMeasure(systems[systemIndex]), systems[systemIndex].clefPositionX);
+                    systems[systemIndex].keySignaturePositionX = std::max(measure->GetKeySignaturePositionInMeasure(systems[systemIndex], systems[systemIndex].clefPositionX), systems[systemIndex].keySignaturePositionX);
+                    systems[systemIndex].timeSignaturePositionX = std::max(measure->GetTimeSignaturePositionInMeasure(systems[systemIndex], systems[systemIndex].keySignaturePositionX), systems[systemIndex].timeSignaturePositionX);*/
 
                     int noteIndex = 0;
                     for (auto* note : measure->notes)
                     {
-                        if (!note->isRest) // musescore specific code
+                        if (note->isRest && note->type == Note::NoteType::Tab && softwareName == "MuseScore" && softwareMajorVersion == 4) // musescore only
                         {
-                            note->CalculatePositionAsPaged(displayConstants);
-
-                            if (note->type == Note::NoteType::Standard)
-                                note->positionY = (displayConstants.lineSpacing * measure->CalculateNoteYPositionRelativeToMeasure(noteIndex));
+                            note->defaultPosition.y = INVALID_FLOAT_VALUE;
                         }
+
+                        note->CalculatePositionAsPaged(displayConstants, staff->lines);
+
+                        if (note->type == Note::NoteType::Standard && !note->isRest)
+                            note->positionY = (displayConstants.lineSpacing * measure->CalculateNoteYPositionRelativeToMeasure(noteIndex));
 
                         for (auto& lyric : note->lyrics)
                         {
@@ -592,15 +596,13 @@ void Song::OnUpdate()
 
                     for (auto* note : measure->notes)
                     {
-                        if (note->isRest) // musescore specific code
+                        if (note->isRest && (softwareName == "MuseScore" && softwareMajorVersion == 3))
                         {
                             note->positionX = GetPositionXInMeasure(note->beatPositionInSong, measureIndex);
                             if (note->isFullMeasureRest)
                             {
                                 note->positionX = measure->measureWidth / 2.0f;
                             }
-                            //LOGE("Rest Position X: %f, BP: %f, m: %d", note->positionX, note->beatPositionInSong, measureIndex);
-                            note->positionY = 0.0f;
                         }
                     }
 
@@ -1207,7 +1209,7 @@ bool Song::DoesMeasureStartNewPage(int measureIndex) const
     if (measure != nullptr)
         return measure->startNewPage;
     else
-        throw std::runtime_error("Measure does not exist");
+        throw DoesNotExistException("Measure does not exist");
 }
 
 float Song::GetSystemPositionY(int measureIndex) const // TODO: needs finnished
@@ -1245,14 +1247,14 @@ int Song::GetSystemIndex(int measureIndex) const
     int systemIndex = -1;
 
     if (instruments.empty())
-        throw std::runtime_error("Instruments empty");
+        throw IsEmptyException("Instruments empty");
     if (instruments[0]->staves.empty())
-        throw std::runtime_error("Staves empty");
+        throw IsEmptyException("Staves empty");
 
     for (auto* measure : instruments[0]->staves[0]->measures)
     {
         if (measure == nullptr)
-            throw std::runtime_error("Measure is nullptr");
+            throw IsNullException("Measure is nullptr");
 
         if (measure->startNewSystem)
             systemIndex++;
@@ -1262,7 +1264,7 @@ int Song::GetSystemIndex(int measureIndex) const
     }
 
     if (systemIndex == -1)
-        throw std::runtime_error("ERROR");
+        throw BaseException();
 
     return systemIndex;
 }
@@ -1422,7 +1424,7 @@ float Song::GetInstrumentPositionY(int measureIndex, int instrumentIndex) const
 void Song::UpdateBoundingBoxes(const std::vector<Vec2<float>>& pagePositions, const std::vector<Vec2<float>>& systemPositions)
 {
     if (pagePositions.empty() || systemPositions.empty())
-        throw std::runtime_error("Missing positioning data");
+        throw IsEmptyException("Missing positioning data");
 
     int instrumentIndex = 0;
     for (auto* instrument : instruments) {
@@ -1562,6 +1564,14 @@ void Song::RenderBoundingBoxes(RenderData& renderData, const std::vector<Vec2<fl
 #endif
 
                     chord.boundingBox.Render(renderData);
+
+                    /*if (chord.chordDiagram)
+                    {
+#if DEBUG_BOUNDING_BOXES
+                        chord.chordDiagram->debugBoundingBox.Render(renderData, (int)0xFF00FF00);
+#endif
+                        chord.chordDiagram->boundingBox.Render(renderData);
+                    }*/
                 }
 
                 measureIndex++;

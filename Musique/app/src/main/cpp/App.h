@@ -10,7 +10,6 @@
 #include "Midi.h"
 #include "Callbacks.h"
 #include "Settings.h"
-#include "RenderableMusicData/RenderableSong.h"
 #include "Collisions/Vec2.h"
 #include "Events/InputEvent.h"
 
@@ -52,17 +51,6 @@ public:
 
 private:
     void RenderLineOfMeasures(RenderData& renderData, unsigned int startMeasure, unsigned int endMeasure, const System& system, Staff* staff, float systemPositionX, float staffPositionY, float lineSpacing);
-
-    void RenderNote(RenderData& renderData, const Note* note, Measure* measure, float measurePositionX, const Staff* staff, float measurePositionY, float measureWidth, int measureNumber, float ls, float mainPositionX, float mainPositionY, int noteIndex);
-    void RenderRest(RenderData& renderData, const Note* note, float measurePositionX, int lines, float ls, float offsetX, float offsetY);
-    void RenderTabNote(RenderData& renderData, const Note* note, const Staff* staff, float measurePositionX, float measureWidth, int lines, float ls, float offsetX, float offsetY);
-
-    void RenderNoteFlag(RenderData& renderData, const Note* note, float notePositionX, float notePositionY);
-    void RenderNoteStem(RenderData& renderData, const Note* note, float notePositionX, float notePositionY);
-
-    void RenderTie(RenderData& renderData, const Note* note, float noteCenterPositionX, float notePositionY, float measurePositionX, float measurePositionY, float measureWidth);
-
-    void RenderAugmentationDots(RenderData& renderData, const std::vector<AugmentationDot>& dots, float notePositionX, float notePositionY);
 
     void RenderBarlines(RenderData& renderData, const std::vector<Barline>& barlines, float measurePositionX, float measurePositionY, float measureWidth, int lineCount, float lineSpacing);
     void RenderBarline(RenderData& renderData, const Barline& barline, float barlinePositionX, float barlinePositionY, float barlineHeight, int lineCount, float lineSpacing);
@@ -122,7 +110,6 @@ private:
     Song* song = new Song();
     bool songUpdated = false;
 
-    RenderableSong renderableSong = RenderableSong();
     RenderData m_RenderData = RenderData();
 
     std::vector<Vec2<float>> pagePositions;

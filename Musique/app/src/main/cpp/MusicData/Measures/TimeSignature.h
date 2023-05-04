@@ -7,11 +7,14 @@
 
 #include "../VisibleElement.h"
 #include "../../RenderData/RenderData.h"
+#include "../../Collisions/Vec2.h"
 
 /**
  * This class represents a musical time signature.
  */
-class TimeSignature : public VisibleElement {
+class TimeSignature : public VisibleElement
+{
+    friend class Measure;
 
 public:
 
@@ -28,6 +31,9 @@ public:
      * @param[in] offsetY The offset in the y direction.
      */
     void Render(RenderData& renderData, bool showTimeSignature, float positionX, float measurePositionY, float lineSpacing, int lines, float offsetX = 0.0f, float offsetY = 0.0f) const;
+
+protected:
+    void CalculatePositionAsPaged(const MusicDisplayConstants& displayConstants);
 
 public:
     enum class TimeSignatureDisplayType {
@@ -47,6 +53,10 @@ public:
 
     int notes = 4;
     int noteType = 4;
+
+    // x is relative to the start of the measure
+    // y is relative to the top staff line
+    Vec2<float> position = { 0.0f, 0.0f };
 };
 
 #endif // MUSIQUE_TIMESIGNATURE_H

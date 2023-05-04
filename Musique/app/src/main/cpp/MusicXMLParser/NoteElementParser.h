@@ -22,6 +22,10 @@
 #include "../MusicData/Notes/Articulations/StaccatoArticulation.h"
 #include "../MusicData/Notes/Articulations/Stress.h"
 
+#include "../MusicData/Notes/Techniques/Bowing.h"
+#include "../MusicData/Notes/Techniques/GuitarTechnique.h"
+#include "../MusicData/Notes/Techniques/Bend.h"
+
 using namespace tinyxml2;
 
 /**
@@ -57,6 +61,10 @@ private:
     static void ParseStressElement(XMLElement* element, std::shared_ptr<Stress> newStress);
 
     static void ParseArticulationsElement(XMLElement* articulationsElement, Note* currentNote);
+
+    static void ParseBowingElement(XMLElement* element, std::shared_ptr<Bowing> newBowing);
+    static void ParseGuitarTechnique(XMLElement* element, std::shared_ptr<GuitarTechnique> newTechnique);
+    static void ParseBendElement(XMLElement* element, std::shared_ptr<Bend> newTechnique);
 
 protected:
     static void AddError(std::string title, std::string desc, ErrorLevel errorLevel = ErrorLevel::Error) { m_Errors.emplace_back(title, desc, "BaseElementParser", errorLevel); }

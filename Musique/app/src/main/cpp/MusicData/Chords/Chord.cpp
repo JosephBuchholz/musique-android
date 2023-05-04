@@ -14,6 +14,9 @@ void Chord::Render(RenderData& renderData, float measurePositionX, float measure
 
     // render
     renderData.AddText(Text(chordName.string, positionX + measurePositionX + offsetX, positionY + measurePositionY + offsetY, Paint(color.color, paint)));
+
+    if (chordDiagram)
+        chordDiagram->Render(renderData, { positionX + measurePositionX, positionY + measurePositionY }, { offsetX, offsetY });
 }
 
 void Chord::UpdateBoundingBox(const Vec2<float> &parentPosition)
@@ -37,6 +40,12 @@ void Chord::UpdateBoundingBox(const Vec2<float> &parentPosition)
     boundingBox.position.y += bb.size.y / 2.0f;
     boundingBox.size.x = bb.size.x;
     boundingBox.size.y = bb.size.y;
+
+    if (chordDiagram)
+    {
+        chordDiagram->UpdateBoundingBox({positionX + parentPosition.x, positionY + parentPosition.y});
+        boundingBox = BoundingBox::CombineBoundingBoxes(boundingBox, chordDiagram->boundingBox);
+    }
 
 #if DEBUG_BOUNDING_BOXES
     debugBoundingBox = boundingBox;
@@ -102,4 +111,7 @@ void Chord::CalculatePositionAsPaged(const MusicDisplayConstants& displayConstan
 {
     positionX = defaultX;
     positionY = defaultY;
+
+    if (chordDiagram)
+        chordDiagram->CalculatePositionAsPaged(displayConstants, { 0.0f, 18.0f });
 }

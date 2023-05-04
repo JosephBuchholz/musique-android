@@ -49,7 +49,21 @@ struct Date {
 };
 
 struct Color {
-    int color = 0xff000000;
+
+    Color() {}
+
+    Color(unsigned int color)
+        : color(color) {}
+
+    operator int() const { return color; }
+
+    operator unsigned int() const { return color; }
+
+    unsigned int color = 0xff000000;
+};
+
+enum class TablatureDisplayType {
+    None = 0, NoRhythm, Full
 };
 
 struct FontFamily {

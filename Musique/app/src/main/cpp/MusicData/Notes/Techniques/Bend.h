@@ -1,16 +1,16 @@
 /**
- * This file contains the definition for the `Bowing` class.
+ * This file contains the definition for the `Bend` class.
  */
 
-#ifndef MUSIQUE_BOWING_H
-#define MUSIQUE_BOWING_H
+#ifndef MUSIQUE_BEND_H
+#define MUSIQUE_BEND_H
 
 #include "Technique.h"
 
 /**
- * This class represents up and down bowing notation (also up and down picking).
+ * This class represents the bend technique.
  */
-class Bowing : public Technique
+class Bend : public Technique
 {
 public:
 
@@ -24,11 +24,6 @@ protected:
 
     virtual void CalculatePositionAsPaged(const MusicDisplayConstants& displayConstants, float topStaffLineDistNote, float noteWidth, bool isTab) override;
 
-public:
-
-    enum class Direction {
-        None = 0, Up, Down
-    } direction = Direction::None;
 };
 
-#endif // MUSIQUE_BOWING_H
+#endif //MUSIQUE_BEND_H

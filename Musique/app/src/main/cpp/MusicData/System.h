@@ -1,6 +1,8 @@
 #ifndef MUSIQUE_SYSTEM_H
 #define MUSIQUE_SYSTEM_H
 
+#include <unordered_map>
+
 /**
  * A class that holds data for a system on a page of sheet music
  */
@@ -18,14 +20,26 @@ public:
 public:
     SystemLayout layout = SystemLayout();
 
-    bool showTimeSignature = false;
-    float timeSignaturePositionX = 0.0f; // relative to the start of the start of the system/start of first measure
+    bool showBeginningTimeSignature = false; // whether to show time signature at the beginning of the system
+    //float timeSignaturePositionX = 0.0f; // relative to the start of the start of the system/start of first measure
 
-    bool showClef = true;
-    float clefPositionX = 0.0f; // relative to the start of the start of the system/start of first measure
+    bool showBeginningClef = true; // whether to show clef at the beginning of the system
+    //float clefPositionX = 0.0f; // relative to the start of the start of the system/start of first measure
 
-    bool showKeySignature = true;
-    float keySignaturePositionX = 0.0f; // relative to the start of the start of the system/start of first measure
+    bool showBeginningKeySignature = true; // whether to show key signature at the beginning of the system
+    //float keySignaturePositionX = 0.0f; // relative to the start of the start of the system/start of first measure
+
+    int beginningMeasureIndex = 0; // the index of the first measure in this system
+
+    struct SystemMeasureData
+    {
+        float timeSignaturePositionX = 0.0f;
+        float clefPositionX = 0.0f;
+        float keySignaturePositionX = 0.0f;
+    };
+
+    // key: the measure index | value: the system wide data for the measure
+    std::unordered_map<int, SystemMeasureData> systemMeasureData;
 };
 
 #endif // MUSIQUE_SYSTEM_H

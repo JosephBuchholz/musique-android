@@ -57,3 +57,8 @@ void KeySignature::Render(RenderData& renderData, bool showKeySignature, float p
         // TODO: add naturals
     }
 }
+
+void KeySignature::CalculatePositionAsPaged(const MusicDisplayConstants& displayConstants)
+{
+
+}

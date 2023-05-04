@@ -76,14 +76,27 @@ void App::RenderLineOfMeasures(RenderData& renderData, unsigned int startMeasure
                                                       (lineSpacing * float(staff->lines - 1)) + staffPositionY, BarLinePaint));
 
 
-            bool showTimeSignature = measure->showTimeSignature || (system.showTimeSignature && song->DoesMeasureStartNewSystem(measure->index));
-            measure->timeSignature.Render(renderData, showTimeSignature, system.timeSignaturePositionX + measurePosition, staffPositionY, lineSpacing, staff->lines);
+            auto measureDataItem = system.systemMeasureData.find(measure->index);
 
-            bool showKeySignature = (measure->showKeySignature || (system.showKeySignature && song->DoesMeasureStartNewSystem(measure->index)));
-            measure->keySignature.Render(renderData, showKeySignature, system.keySignaturePositionX + measurePosition, lineSpacing, staff->lines, measure->clef, 0.0f, staffPositionY);
+            bool showTimeSignature = measure->showTimeSignature || (system.showBeginningTimeSignature && song->DoesMeasureStartNewSystem(measure->index));
+            measure->timeSignature.Render(renderData, showTimeSignature, measureDataItem->second.timeSignaturePositionX + measurePosition, staffPositionY, lineSpacing, staff->lines);
 
-            bool showClef = measure->showClef || (system.showClef && song->DoesMeasureStartNewSystem(measure->index));
-            measure->clef.Render(renderData, showClef, system.clefPositionX + measurePosition, song->displayConstants, staff->lines, 0.0f, staffPositionY);
+            bool showKeySignature = (measure->showKeySignature || (system.showBeginningKeySignature && song->DoesMeasureStartNewSystem(measure->index)));
+            measure->keySignature.Render(renderData, showKeySignature, measureDataItem->second.keySignaturePositionX + measurePosition, lineSpacing, staff->lines, measure->clef, 0.0f, staffPositionY);
+
+            bool showClef = measure->showClef || (system.showBeginningClef && song->DoesMeasureStartNewSystem(measure->index));
+
+            float clefPositionX;
+            if (measure->clef.clefChanged)
+            {
+                clefPositionX = measurePosition - 28.0f;
+            }
+            else
+            {
+                clefPositionX = measureDataItem->second.clefPositionX + measurePosition;
+            }
+
+            measure->clef.Render(renderData, showClef, clefPositionX, song->displayConstants, staff->lines, 0.0f, staffPositionY);
 
             // render directions
             for (const Direction &direction: measure->directions) {
@@ -96,8 +109,8 @@ void App::RenderLineOfMeasures(RenderData& renderData, unsigned int startMeasure
             {
                 int noteIndex = 0;
                 for (Note *note: measure->notes) {
-                    RenderNote(renderData, note, measure, measurePosition, staff, staffPositionY, measure->measureWidth, measureNumber, lineSpacing, 0.0f, 0.0f,
-                               noteIndex);
+                    note->Render(renderData, staff->tablatureDisplayType, measure->CalculateNoteYPositionRelativeToMeasure(noteIndex), staff->lines, { measurePosition, staffPositionY }, measure->measureWidth, measureNumber, lineSpacing, { 0.0f, 0.0f }, noteIndex);
+                    //RenderNote(renderData, note, measure, measurePosition, staff, staffPositionY, measure->measureWidth, measureNumber, lineSpacing, 0.0f, 0.0f, noteIndex);
                     noteIndex++;
                 }
 
@@ -328,389 +341,10 @@ void App::RenderBarline(RenderData& renderData, const Barline& barline, float ba
     }
 }
 
-void App::RenderRest(RenderData& renderData, const Note* note, float measurePositionX, int lines, float ls, float offsetX, float offsetY)
-{
-    // calculate color of the note
-    int color = normalColor;
-    if (note->isPlaying) {
-        color = playedColor;
-    }
-
-    // rendering rest
-
-    //float positionX = song->GetPositionXInMeasure(note->beatPositionInSong, note->measureIndex) + measurePositionX + offsetX;
-    //float positionY = ((ls * float(lines - 1)) / 2.0f) + offsetY;
-
-    //float positionX = note->defaultX + measurePositionX;
-    //float positionY = note->defaultY + staffPositionY;
-
-    float positionX = note->positionX + measurePositionX + offsetX;
-
-    int line = (lines / 2) + 1;
-    float linePositionY = note->positionY + (float(line-1) * ls) + offsetY; // the position of the line that all rests "hang" on (except for the whole rest)
-    float positionY = linePositionY;
-
-    if (note->isFullMeasureRest) {
-        positionY -= ls;
-        renderData.AddGlyph(SMuFLGlyph(GetRestSMuFLID(note->durationType), positionX, positionY, Paint(color)));
-    }
-    else if (note->durationType == NoteValue::Whole) {
-        positionY -= ls;
-        renderData.AddGlyph(SMuFLGlyph(GetRestSMuFLID(note->durationType), positionX, positionY, Paint(color)));
-    }
-    else {
-        renderData.AddGlyph(SMuFLGlyph(GetRestSMuFLID(note->durationType), positionX, positionY, Paint(color)));
-    }
-}
-
-void App::RenderTabNote(RenderData& renderData, const Note* note, const Staff* staff, float measurePositionX, float measureWidth, int lines, float ls, float offsetX, float offsetY)
-{
-    // calculate color of the note
-    int color = normalColor;
-    if (note->isPlaying) {
-        color = playedColor;
-    }
-
-    //float positionX = song->GetPositionXInMeasure(note->beatPositionInSong,note->measureIndex) + measurePositionX + offsetX; // this line of code crashes the program
-    //float positionY = (ls * float(note->string - 1)) + offsetY;
-
-    float positionX = note->positionX + measurePositionX + offsetX;
-    float positionY = note->positionY + offsetY;
-
-    renderData.AddText(
-            Text(ToString(note->fret), positionX, positionY,
-                 Paint(color, TabTextPaint)));
-
-    // hammer-ons and pull-offs
-    for (const TABSlur& slur : note->tabSlurs) {
-        if (slur.type == StartStopType::Stop) {
-            CubicCurve curve = CubicCurve();
-
-            // start
-            curve.x1 = curveStartX;
-            curve.y1 = curveStartY;
-
-            // curve points
-            curve.x2 = curveStartX + 10.0f;
-            curve.y2 = curveStartY - 10.0f;
-
-            curve.x3 = positionX - 10.0f;
-            curve.y3 = curveStartY - 10.0f;
-
-            // end
-            curve.x4 = positionX;
-            curve.y4 = positionY - 6.0f;
-
-            curve.paint = TabSlurPaint;
-
-            renderData.AddCubicCurve(curve);
-        }
-
-        if (slur.type == StartStopType::Start)
-        {
-            curveStartX = positionX;
-            curveStartY = positionY - 6.0f;
-        }
-    }
-
-    // render accidentals
-    for (auto articulation : note->articulations)
-    {
-        if (articulation != nullptr)
-            articulation->Render(renderData, positionX, positionY);
-    }
-
-    // rhythm notation
-    if (staff->tablatureDisplayType == Staff::TablatureDisplayType::Full)
-    {
-        RenderNoteStem(renderData, note, positionX, positionY);
-        RenderNoteFlag(renderData, note, positionX, positionY);
-
-        RenderTie(renderData, note, positionX, positionY, measurePositionX + offsetX, offsetY, measureWidth);
-
-        // aug dot
-        RenderAugmentationDots(renderData, note->dots, positionX, positionY);
-    }
-}
-
-void App::RenderNote(RenderData& renderData, const Note* note, Measure* measure, float measurePositionX, const Staff* staff, float measurePositionY, float measureWidth, int measureNumber, float ls, float mainPositionX, float mainPositionY, int noteIndex)
-{
-    // calculate color of the note
-    int color = normalColor;
-    if (note->isPlaying) {
-        color = playedColor;
-    }
-
-    if (note->isRest) { // is a rest
-        if (staff->tablatureDisplayType == Staff::TablatureDisplayType::Full)
-            RenderRest(renderData, note, measurePositionX, staff->lines, ls, mainPositionX, mainPositionY + measurePositionY);
-    } else if (note->type == Note::NoteType::Tab) // is a tab note
-    {
-        RenderTabNote(renderData, note, staff, measurePositionX, measureWidth, staff->lines, ls, mainPositionX, mainPositionY + measurePositionY);
-    } else // is a standard note
-    {
-        // rendering note head
-        //float positionX = measure->GetNotePositionInMeasure(
-        //        song->GetMeasureWidth(measureNumber), noteIndex) + measurePosition;
-
-        //float positionX = song->GetPositionXInMeasure(note->beatPositionInSong, measureNumber) + measurePositionX;
-        //float positionY = (ls * measure->GetNoteYPosition(noteIndex)) + staffYPosition + instYPosition;
-
-        float positionX = note->positionX + measurePositionX;
-        float positionY = note->positionY + measurePositionY;
-
-        //float positionX = note->defaultX + measurePositionX;
-        //float positionY = note->defaultY + staffYPosition + instYPosition;
-
-        renderData.AddGlyph(SMuFLGlyph(GetNoteHeadSMuFLID(note->durationType),positionX + mainPositionX, positionY + mainPositionY, Paint(color)));
-
-        // aug dot
-        RenderAugmentationDots(renderData, note->dots, positionX + mainPositionX, positionY + mainPositionY);
-
-        // ledger lines
-        if (measure->CalculateNoteYPositionRelativeToMeasure(noteIndex) >=
-            (float) staff->lines) // ledger lines below staff
-        {
-            int ledgerLineCount =
-                    (int) measure->CalculateNoteYPositionRelativeToMeasure(noteIndex) -
-                    staff->lines + 1;
-            float y = measurePositionY +
-                      ((float) staff->lines * ls);
-            for (int i = 0; i < ledgerLineCount; i++) {
-                renderData.AddLine(std::make_shared<Line>(positionX - 4.0f + mainPositionX, y + mainPositionY, positionX + 14.0f + mainPositionX, y + mainPositionY,
-                                                          BarLinePaint));
-                y += 1.0f * ls;
-            }
-        }
-        if (measure->CalculateNoteYPositionRelativeToMeasure(noteIndex) <
-            0.0f) // ledger lines above staff
-        {
-            int ledgerLineCount = abs(
-                    (int) measure->CalculateNoteYPositionRelativeToMeasure(noteIndex));
-            float y = measurePositionY - (1.0f * ls);
-            for (int i = 0; i < ledgerLineCount; i++) {
-                renderData.AddLine(std::make_shared<Line>(positionX - 4.0f + mainPositionX, y + mainPositionY, positionX + 14.0f + mainPositionX, y + mainPositionY,
-                                                          BarLinePaint));
-                y -= 1.0f * ls;
-            }
-        }
-
-        for (Slur slur: note->slurs) {
-            if (slur.type == StartStopType::Stop) {
-                CubicCurve curve = CubicCurve();
-
-                // start
-                curve.x1 = curveStartX;
-                curve.y1 = curveStartY;
-
-                // curve points
-                curve.x2 = curveStartX + 10.0f;
-                curve.y2 = curveStartY - 10.0f;
-
-                curve.x3 = positionX - 10.0f;
-                curve.y3 = curveStartY - 10.0f;
-
-                // end
-                curve.x4 = positionX;
-                curve.y4 = positionY - 6.0f;
-
-                curve.paint = TabSlurPaint;
-
-                renderData.AddCubicCurve(curve);
-            }
-
-            if (slur.type == StartStopType::Start) {
-                curveStartX = positionX;
-                curveStartY = positionY - 6.0f;
-            }
-        }
-
-        RenderTie(renderData, note, note->GetCenterPositionX() + measurePositionX + mainPositionX, positionY + mainPositionY, measurePositionX + mainPositionX, measurePositionY + mainPositionY, measureWidth);
-
-        RenderNoteStem(renderData, note, positionX + mainPositionX, positionY + mainPositionY);
-        RenderNoteFlag(renderData, note, positionX + mainPositionX, positionY + mainPositionY);
-
-        if (note->accidental.accidentalType !=
-            Accidental::AccidentalType::None) {
-            float accX = positionX - 10.0f;
-            float accY = positionY;
-
-            renderData.AddGlyph(SMuFLGlyph(GetAccidentalSMuFLID(note->accidental.accidentalType),accX + mainPositionX, accY + mainPositionY, Paint(0xff000000)));
-        }
-
-        // render accidentals
-        for (auto articulation : note->articulations)
-        {
-            if (articulation != nullptr)
-                articulation->Render(renderData, positionX + mainPositionX, positionY + mainPositionY);
-        }
-    }
-
-    for (const auto& lyric: note->lyrics) {
-        /*float positionY = (ls * (float) staff->lines) +
-                          staffYPosition +
-                          instYPosition + 20.0f;*/
-        lyric.Render(renderData, note->positionX + measurePositionX, measurePositionY, mainPositionX, mainPositionY);
-    } // lyrics loop
-}
-
-void App::RenderNoteFlag(RenderData& renderData, const Note* note, float notePositionX, float notePositionY)
-{
-    // note flag
-    if (note->beamData.empty() && !note->isChord)
-    {
-        bool isUp = false;
-
-        if (note->noteStem.stemType == NoteStem::StemType::Up) {
-            isUp = true;
-        } else if (note->noteStem.stemType == NoteStem::StemType::Down) {
-            isUp = false;
-        }
-
-        renderData.AddGlyph(SMuFLGlyph(GetNoteFlagSMuFLID(note->durationType, isUp), notePositionX + note->noteStem.stemPositionX, notePositionY + note->noteStem.stemEndY, Paint(normalColor)));
-    }
-}
-
-void App::RenderNoteStem(RenderData& renderData, const Note* note, float notePositionX, float notePositionY)
-{
-    // note stem
-    if (note->noteStem.stemType != NoteStem::StemType::None)
-    {
-        renderData.AddLine(std::make_shared<Line>(notePositionX + note->noteStem.stemPositionX, notePositionY + note->noteStem.stemStartY, notePositionX + note->noteStem.stemPositionX, notePositionY + note->noteStem.stemEndY, NoteStemPaint));
-    }
-}
-
-void App::RenderTie(RenderData& renderData, const Note* note, float noteCenterPositionX, float notePositionY, float measurePositionX, float measurePositionY, float measureWidth)
-{
-    // tie
-    if (note->tie.type == NoteTie::TieType::Start && note->tie.tiedNote != nullptr)
-    {
-        CubicCurve curve = CubicCurve();
-
-        float direction = 1.0f;
-
-        float offsetY = -10.0f;
-
-        if (note->tie.orientation == CurveOrientation::Under)
-            direction = -1.0f;
-
-        if (note->tie.placement == AboveBelowType::Below)
-            offsetY = 10.0f;
-
-
-        float startCurveX = noteCenterPositionX;
-        float startCurveY = notePositionY + offsetY;
-
-        float endCurveX;
-        float endCurveY;
-
-        if (note->tie.tiedNote->measureIndex > note->measureIndex) // if the tied note is in the next measure
-        {
-            if (song->DoesMeasureStartNewSystem(note->tie.tiedNote->measureIndex)) // if the tied note is on the next system
-            {
-                endCurveX = measurePositionX + measureWidth;
-                endCurveY = note->tie.tiedNote->positionY + measurePositionY + offsetY;
-
-                // render second tie object
-                // TODO: finnish 2nd curve
-
-                /*float startCurveX2 = noteCenterPositionX;
-                float startCurveY2 = note->tie.tiedNote->positionY + measurePositionY + offsetY;
-
-                float endCurveX2 = note->tie.tiedNote->GetCenterPositionX() + measurePositionX + measureWidth;
-                float endCurveY2 = note->tie.tiedNote->positionY + measurePositionY + offsetY;
-
-                CubicCurve curve2 = CubicCurve();
-
-                // start
-                curve2.x1 = startCurveX2;
-                curve2.y1 = startCurveY2;
-
-                // curve points
-                curve2.x2 = startCurveX2 + 10.0f;
-                curve2.y2 = startCurveY2 - 10.0f * direction;
-
-                curve2.x3 = endCurveX2 - 10.0f;
-                curve2.y3 = endCurveY2 - 10.0f * direction;
-
-                // end
-                curve2.x4 = endCurveX2;
-                curve2.y4 = endCurveY2;
-
-                curve2.paint = TiePaint;
-
-                renderData.AddCubicCurve(curve2);*/
-            }
-            else
-            {
-                endCurveX = note->tie.tiedNote->GetCenterPositionX() + measurePositionX + measureWidth;
-                endCurveY = note->tie.tiedNote->positionY + measurePositionY + offsetY;
-            }
-        }
-        else
-        {
-            endCurveX = note->tie.tiedNote->GetCenterPositionX() + measurePositionX;
-            endCurveY = note->tie.tiedNote->positionY + measurePositionY + offsetY;
-        }
-
-        //renderData.AddDebugDot(startCurveX, startCurveY);
-        //renderData.AddDebugDot(endCurveX, endCurveY);
-
-        // start
-        curve.x1 = startCurveX;
-        curve.y1 = startCurveY;
-
-        // curve points
-        curve.x2 = startCurveX + 10.0f;
-        curve.y2 = startCurveY - 10.0f * direction;
-
-        curve.x3 = endCurveX - 10.0f;
-        curve.y3 = endCurveY - 10.0f * direction;
-
-        // end
-        curve.x4 = endCurveX;
-        curve.y4 = endCurveY;
-
-        curve.paint = TiePaint;
-
-        renderData.AddCubicCurve(curve);
-    }
-}
-
-void App::RenderAugmentationDots(RenderData& renderData, const std::vector<AugmentationDot>& dots, float notePositionX, float notePositionY)
-{
-    // aug dot
-    for (const auto& dot : dots)
-    {
-        dot.Render(renderData, notePositionX, notePositionY);
-    }
-}
-
 void App::RenderCredits(RenderData& renderData, const MusicDisplayConstants& displayConstants, const std::vector<Credit>& credits, float pageX, float pageY)
 {
     for (const Credit& credit : credits)
     {
-        if (credit.pageNumber == 1)
-        {
-            float positionX = credit.words.positionX + pageX;
-            float positionY = (song->displayConstants.pageHeight - credit.words.positionY) + pageY; // get coordinate from top instead of bottom of page
-
-            Paint paint = Paint();
-            if (credit.words.fontStyle == FontStyle::Italic)
-                paint.isItalic = true;
-            if (credit.words.fontWeight == FontWeight::Bold)
-                paint.isBold = true;
-
-            paint.textSize = credit.words.fontSize.size;
-
-            if (credit.words.justify == Justify::Center)
-                paint.align = Paint::Align::Center;
-            else if (credit.words.justify == Justify::Left)
-                paint.align = Paint::Align::Left;
-            else if (credit.words.justify == Justify::Right)
-                paint.align = Paint::Align::Right;
-
-            renderData.AddText(Text(credit.words.text, positionX, positionY, paint));
-        }
+        credit.Render(renderData, { pageX, pageY }, { song->displayConstants.pageWidth, song->displayConstants.pageHeight });
     }
 }

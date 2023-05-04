@@ -443,7 +443,7 @@ void App::RenderHorizontalLayout()
 
                             int noteIndex = 0;
                             for (Note *note : measure->notes) {
-                                RenderNote(m_RenderData, note, measure, measurePosition, staff, staffYPosition + instYPosition, measure->measureWidth, measureNumber, ls, 0.0f, 0.0f, noteIndex);
+                                //RenderNote(m_RenderData, note, measure, measurePosition, staff, staffYPosition + instYPosition, measure->measureWidth, measureNumber, ls, 0.0f, 0.0f, noteIndex);
                                 noteIndex++;
                             }
 
@@ -491,7 +491,6 @@ void App::RenderHorizontalLayout()
 void App::CalculateRenderForVerticalLayout()
 {
     LOGI("Calculating Vertical Layout");
-    renderableSong.systems.clear();
     m_RenderData = RenderData();
     //FrameData frameData = FrameData();
 
@@ -527,13 +526,9 @@ void App::CalculateRenderForVerticalLayout()
                 endMeasure = i;
 
             if (totalWidth + width > pageWidth || i == measureCount-1) { // start a new system
-                renderableSong.systems.emplace_back();
-                //currentRenderableSystem = &renderableSong.systems[systemIndex];
-                LOGD("endM: %d, startM: %d, i: %d, totalWidth: %f, systemIndex: %d, systemCount: %d", endMeasure, startMeasure, i, totalWidth, systemIndex, renderableSong.systems.size());
                 Instrument *prevInstrument = nullptr;
                 int instrumentIndex = 0;
                 for (auto *instrument: song->instruments) {
-                    renderableSong.systems[systemIndex].instruments.emplace_back();
 
                     if (song->songData.instrumentInfos[instrumentIndex].visible) {
                         if (prevInstrument != nullptr)
@@ -546,7 +541,6 @@ void App::CalculateRenderForVerticalLayout()
 
                         int staffIndex = 0;
                         for (Staff* staff : instrument->staves) {
-                            renderableSong.systems[systemIndex].instruments[instrumentIndex].staves.emplace_back();
                             float ls = song->displayConstants.lineSpacing;
                             if (staff->type == Staff::StaffType::Tab) {
                                 ls = song->displayConstants.tabLineSpacing;
@@ -570,7 +564,6 @@ void App::CalculateRenderForVerticalLayout()
                             int measureRenderCount = 15; // the number of measures that need to be rendered
                             int currentMeasureRenderedCount = 0; // the number of measures that have been rendered
                             for (int m = startMeasure; m <= endMeasure; m++) {
-                                renderableSong.systems[systemIndex].instruments[instrumentIndex].staves[staffIndex].measures.emplace_back();
 
                                 Measure* measure = staff->measures[m];
 
@@ -619,8 +612,7 @@ void App::CalculateRenderForVerticalLayout()
 
                                     int noteIndex = 0;
                                     for (Note *note: measure->notes) {
-                                        RenderNote(m_RenderData, note, measure, measurePosition, staff, staffYPosition + instYPosition, measure->measureWidth, measureNumber, ls, 0.0f, 0.0f,
-                                                   noteIndex);
+                                        //RenderNote(m_RenderData, note, measure, measurePosition, staff, staffYPosition + instYPosition, measure->measureWidth, measureNumber, ls, 0.0f, 0.0f, noteIndex);
                                         noteIndex++;
                                     }
 
@@ -667,7 +659,6 @@ void App::CalculateRenderForVerticalLayout()
 void App::CalculateRenderForPagedLayout()
 {
     LOGI("Calculating Paged Layout");
-    renderableSong.systems.clear();
     m_RenderData = RenderData();
 
     pagePositions.clear();
@@ -763,14 +754,12 @@ void App::RenderMusicToPage(int page, RenderData& pageRenderData, float pageX, f
             if ((startNewSystem || i == measureCount-1) && i != 0) { // render system
                 startMeasure = endMeasure+1;
                 endMeasure = i-1;
-                renderableSong.systems.emplace_back();
                 //currentRenderableSystem = &renderableSong.systems[systemIndex];
                 //LOGD("endM: %d, startM: %d, i: %d, totalWidth: %f, systemIndex: %d, systemCount: %d", endMeasure, startMeasure, i, totalWidth, systemIndex, renderableSong.systems.size());
                 Instrument *prevInstrument = nullptr;
                 int instrumentIndex = 0;
                 float instYPosition = systemPositionY;
                 for (auto *instrument: song->instruments) {
-                    renderableSong.systems[systemIndex].instruments.emplace_back();
 
                     if (song->songData.instrumentInfos[instrumentIndex].visible) {
 
@@ -797,7 +786,6 @@ void App::RenderMusicToPage(int page, RenderData& pageRenderData, float pageX, f
 
                         int staffIndex = 0;
                         for (Staff* staff : instrument->staves) {
-                            renderableSong.systems[systemIndex].instruments[instrumentIndex].staves.emplace_back();
                             float ls = song->displayConstants.lineSpacing;
                             if (staff->type == Staff::StaffType::Tab) {
                                 ls = song->displayConstants.tabLineSpacing;
@@ -936,7 +924,6 @@ void App::UpdateInstrumentInfo(const InstrumentInfo& info, unsigned int index)
 void App::OnLayoutChanged()
 {
     song->OnLayoutChanged(settings.musicLayout);
-    renderableSong = RenderableSong();
     m_RenderData = RenderData(); // reduntant
     updateRenderData = true;
     layoutCalculated = false;

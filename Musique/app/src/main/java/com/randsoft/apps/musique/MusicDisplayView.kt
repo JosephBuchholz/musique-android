@@ -59,6 +59,10 @@ class MusicDisplayView(context: Context, attrs: AttributeSet? = null): View(cont
     var musicTypeface = ResourcesCompat.getFont(context, R.font.bravura)
     var musicTextTypeface = ResourcesCompat.getFont(context, R.font.bravura_text)
 
+    // handwritten style typeface
+    /*var musicTypeface = ResourcesCompat.getFont(context, R.font.petaluma)
+    var musicTextTypeface = ResourcesCompat.getFont(context, R.font.petaluma_text)*/
+
 
     private val backgroundPaint = Paint().apply {
         color = 0xffffffff.toInt()
@@ -381,7 +385,7 @@ class MusicDisplayView(context: Context, attrs: AttributeSet? = null): View(cont
                 typeface = musicTypeface
             }
 
-            paint.textSize = 40.0f * scale // text size equals the standard staff height (according to SMuFL specification)
+            paint.textSize = 40.0f * glyph.paint.glyphSizeFactor * scale // text size equals the standard staff height (according to SMuFL specification)
 
             // position
             var x = ((glyph.x) * scale)

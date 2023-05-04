@@ -124,6 +124,7 @@ jobject ConvertPaintToObject(JNIEnv* env, const Paint& paint)
     jfieldID paintFieldIdStrokeWidth = env->GetFieldID(paintClass, "strokeWidth", "F");
     jfieldID paintFieldIdStrokeCap = env->GetFieldID(paintClass, "strokeCap", "I");
     jfieldID paintFieldIdTextSize = env->GetFieldID(paintClass, "textSize", "F");
+    jfieldID paintFieldIdGlyphSizeFactor = env->GetFieldID(paintClass, "glyphSizeFactor", "F");
     jfieldID paintFieldIdIsItalic = env->GetFieldID(paintClass, "isItalic", "Z");
     jfieldID paintFieldIdIsBold = env->GetFieldID(paintClass, "isBold", "Z");
     jfieldID paintFieldIdAlign = env->GetFieldID(paintClass, "align", "I");
@@ -151,6 +152,7 @@ jobject ConvertPaintToObject(JNIEnv* env, const Paint& paint)
     env->SetFloatField(paintObject, paintFieldIdStrokeWidth, paint.strokeWidth);
     env->SetIntField(paintObject, paintFieldIdStrokeCap, (int)paint.strokeCap);
     env->SetFloatField(paintObject, paintFieldIdTextSize, paint.textSize);
+    env->SetFloatField(paintObject, paintFieldIdGlyphSizeFactor, paint.glyphSizeFactor);
     env->SetBooleanField(paintObject, paintFieldIdIsItalic, paint.isItalic);
     env->SetBooleanField(paintObject, paintFieldIdIsBold, paint.isBold);
     env->SetIntField(paintObject, paintFieldIdAlign, (int)paint.align);

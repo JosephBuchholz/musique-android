@@ -43,6 +43,25 @@ void BoundingBox::ResolveOverlap(BoundingBox boundingBox)
     LOGE("\'ResolveOverlap\' function is not implemented");
 }
 
+BoundingBox BoundingBox::CombineBoundingBoxes(const BoundingBox& boundingBox1, const BoundingBox& boundingBox2)
+{
+    BoundingBox newBoundingBox;
+
+    float left = std::min(boundingBox1.position.x, boundingBox2.position.x);
+    float top = std::min(boundingBox1.position.y, boundingBox2.position.y);
+
+    float right = std::max(boundingBox1.position.x + boundingBox1.size.x, boundingBox2.position.x + boundingBox2.size.x);
+    float bottom = std::max(boundingBox1.position.y + boundingBox1.size.y, boundingBox2.position.y + boundingBox2.size.y);
+
+    newBoundingBox.position.x = left;
+    newBoundingBox.position.y = top;
+
+    newBoundingBox.size.x = right - left;
+    newBoundingBox.size.y = bottom - top;
+
+    return newBoundingBox;
+}
+
 Vec2<float> BoundingBox::ResolveOverlapStatically(BoundingBox& boundingBox) const
 {
     Vec2<float> overlapOffset;

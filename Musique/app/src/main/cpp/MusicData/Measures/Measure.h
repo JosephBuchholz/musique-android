@@ -41,8 +41,8 @@ public:
 
     float GetNotePositionInMeasure(float width, int noteIndex) const;
 
-    float GetKeySignaturePositionInMeasure(const System& system) const;
-    float GetTimeSignaturePositionInMeasure(const System& system) const;
+    float GetKeySignaturePositionInMeasure(const System& system, float clefPositionX) const;
+    float GetTimeSignaturePositionInMeasure(const System& system, float keySignaturePositionX) const;
     float GetClefPositionInMeasure(const System& system) const;
 
     /**
@@ -92,7 +92,7 @@ public:
     }*/
 
 protected:
-    void CalculateAsPaged(const MusicDisplayConstants& displayConstants);
+    void CalculateAsPaged(const MusicDisplayConstants& displayConstants, System& system, int staffLines);
 
 private:
     float MeausreClefWidth() const;

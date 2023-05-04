@@ -44,6 +44,8 @@ struct MusicDisplayConstants
     float hyphenDistance = 60.0f;
     float beamDistance = 7.5f;
 
+    float clefChangeScale = 0.75f; // clef changes are commonly drawn 2/3rds the size of normal clefs (according to SMuFL)
+
     Scaling scaling;
 
 };

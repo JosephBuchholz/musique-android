@@ -1,7 +1,9 @@
 #ifndef MUSIQUE_CREDIT_H
 #define MUSIQUE_CREDIT_H
 
-#include "TextualElement.h"
+#include "../TextualElement.h"
+
+#include "../../Collisions/Vec2.h"
 
 class CreditWords : public TextualElement
 {
@@ -21,6 +23,18 @@ protected:
 };
 
 class Credit : public BaseElement {
+
+public:
+
+    /**
+     * Renders this class.
+     *
+     * @param renderData The render data to render to.
+     * @param pagePosition The position of the current page.
+     * @param pageDimensions The dimensions of the current page.
+     * @param offset An offset.
+     */
+    void Render(RenderData& renderData, Vec2<float> pagePosition, Vec2<float> pageDimensions, Vec2<float> offset = { 0.0f, 0.0f }) const;
 
 public:
     void CalculatePositionAsPaged()

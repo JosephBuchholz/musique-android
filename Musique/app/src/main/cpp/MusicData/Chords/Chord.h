@@ -64,7 +64,7 @@ public:
 
     std::string harmonyTypeText = "";
 
-    ChordDiagram chordDiagram;
+    std::shared_ptr<ChordDiagram> chordDiagram;
 
     enum class HarmonyType {
         None = 0,

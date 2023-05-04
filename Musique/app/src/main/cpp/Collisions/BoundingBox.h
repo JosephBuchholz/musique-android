@@ -32,6 +32,8 @@ public:
 
     void ResolveOverlap(BoundingBox boundingBox);
 
+    static BoundingBox CombineBoundingBoxes(const BoundingBox& boundingBox1, const BoundingBox& boundingBox2);
+
     /**
      * Resolve the overlap with out moving `this.`
      *

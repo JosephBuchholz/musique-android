@@ -46,6 +46,10 @@ add_library( # Sets the name of the library.
         MusicData/Directions/DynamicWedge.cpp
         MusicData/Directions/MetronomeMark.cpp
 
+        MusicData/Page/Credit.cpp
+
+        MusicData/Chords/ChordDiagram.cpp
+
         MusicData/Measures/KeySignature.cpp
         MusicData/Measures/Clef.cpp
         MusicData/Measures/Tuplet.cpp
@@ -66,6 +70,10 @@ add_library( # Sets the name of the library.
         MusicData/Notes/Articulations/Slide.cpp
         MusicData/Notes/Articulations/StaccatoArticulation.cpp
         MusicData/Notes/Articulations/Stress.cpp
+
+        MusicData/Notes/Techniques/Bowing.cpp
+        MusicData/Notes/Techniques/GuitarTechnique.cpp
+        MusicData/Notes/Techniques/Bend.cpp
 
         Collisions/BoundingBox.cpp
 

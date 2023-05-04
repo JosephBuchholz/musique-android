@@ -6,6 +6,7 @@ data class Paint(
     var strokeWidth: Float = 1.0f
     var strokeCap: Int = 0
     var textSize: Float = 10.0f
+    var glyphSizeFactor: Float = 1.0f // this scales the size of the glyph
     var isItalic: Boolean = false
     var isBold: Boolean = false
     var align: Int = 0

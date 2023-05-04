@@ -612,6 +612,12 @@ void MusicXMLParser::ParseEncodingElement(XMLElement* encodingElement, Song* son
                 else if (strcmp(value, "software") == 0) // software
                 {
                     song->software = XMLHelper::GetStringValue(element, song->software);
+
+                    // makes the assumption that the string is in the format: "SoftwareName MAJOR.0.0"
+                    song->softwareName = song->software.substr(0, song->software.find(' '));
+                    song->softwareMajorVersion = ToInt(song->software.substr(song->software.find(' ') + 1, song->software.find('.')));
+
+                    LOGI("Software: %s, SoftwareName: %s, SoftwareMajorVersion: %d", song->software.c_str(), song->softwareName.c_str(), song->softwareMajorVersion);
                 }
                 else if (strcmp(value, "encoding-description") == 0) // encoding description
                 {
@@ -780,21 +786,21 @@ void MusicXMLParser::ParseFrameElement(XMLElement* frameElement, Chord& chord)
 {
     if (frameElement)
     {
-        /*ChordDiagram chordDiagram;
+        std::shared_ptr<ChordDiagram> chordDiagram = std::make_shared<ChordDiagram>();
 
         XMLElement* rootStepElement = frameElement->FirstChildElement("root-step");
 
-        chordDiagram.string = GetUnsignedIntValue("frame-strings", frameElement, 0);
-        chordDiagram.frets = GetUnsignedIntValue("frame-frets", frameElement, 0);
+        chordDiagram->strings = XMLHelper::GetUnsignedIntValue("frame-strings", frameElement, 0);
+        chordDiagram->frets = XMLHelper::GetUnsignedIntValue("frame-frets", frameElement, 0);
 
         XMLElement* firstFretElement = frameElement->FirstChildElement("first-fret");
         if (firstFretElement)
         {
-            chordDiagram.firstFret = GetUnsignedIntValue(firstFretElement, chordDiagram.firstFret);
-            GetRightLeftAttribute(firstFretElement, "location", chordDiagram.firstFretLocation);
+            chordDiagram->firstFret = XMLHelper::GetUnsignedIntValue(firstFretElement, chordDiagram->firstFret);
+            MusicXMLHelper::GetRightLeftAttribute(firstFretElement, "location", chordDiagram->firstFretLocation);
         }
 
-        // loop through all degree elements
+        // loop through frame notes elements
         XMLNode* previousElement = frameElement->FirstChildElement(); // first element
         while (true)
         {
@@ -806,10 +812,12 @@ void MusicXMLParser::ParseFrameElement(XMLElement* frameElement, Chord& chord)
                     XMLElement* frameNoteElement = element;
                     ChordDiagramNote chordDiagramNote = ChordDiagramNote();
 
-                    chordDiagramNote.string = GetUnsignedIntValue("string", frameNoteElement, chordDiagramNote.string);
-                    chordDiagramNote.fret = GetUnsignedIntValue("fret", frameNoteElement, chordDiagramNote.fret);
-                    chordDiagramNote.fingering = GetUnsignedIntValue("fingering", frameNoteElement, chordDiagramNote.fingering);
-                    chordDiagramNote.barre = GetStartStopValue("barre", frameNoteElement, chordDiagramNote.barre);
+                    chordDiagramNote.string = XMLHelper::GetUnsignedIntValue("string", frameNoteElement, chordDiagramNote.string);
+                    chordDiagramNote.fret = XMLHelper::GetUnsignedIntValue("fret", frameNoteElement, chordDiagramNote.fret);
+                    chordDiagramNote.fingering = XMLHelper::GetUnsignedIntValue("fingering", frameNoteElement, chordDiagramNote.fingering);
+                    chordDiagramNote.barre = MusicXMLHelper::GetStartStopValue("barre", frameNoteElement, chordDiagramNote.barre);
+
+                    chordDiagram->notes.push_back(chordDiagramNote);
                 }
             }
             else
@@ -819,7 +827,7 @@ void MusicXMLParser::ParseFrameElement(XMLElement* frameElement, Chord& chord)
             previousElement = previousElement->NextSiblingElement();
         }
 
-        chord.chordDiagram = chordDiagram;*/
+        chord.chordDiagram = chordDiagram;
     }
 }
 
@@ -948,9 +956,9 @@ void MusicXMLParser::ParseHarmonyElement(XMLElement* harmonyElement, float& curr
         previousElement = previousElement->NextSiblingElement();
     }
 
-    // bass note
-    //XMLElement* frameElement = harmonyElement->FirstChildElement("frame");
-    //ParseFrameElement(frameElement, newChord);
+    // frame element (chord diagram)
+    XMLElement* frameElement = harmonyElement->FirstChildElement("frame");
+    ParseFrameElement(frameElement, newChord);
 
     newChord.beatPosition = currentTimeInMeasure; // note: harmony elements don't increment the time
     newChord.CalculateChordName();
@@ -1316,10 +1324,12 @@ Song* MusicXMLParser::ParseMusicXML(const std::string& data, std::string& error)
                                     system.layout = systemLayout;
 
                                     if (firstMeasure)
-                                        system.showTimeSignature = true;
+                                        system.showBeginningTimeSignature = true;
 
-                                    system.showClef = true;
-                                    system.showKeySignature = true;
+                                    system.showBeginningClef = true;
+                                    system.showBeginningKeySignature = true;
+
+                                    system.beginningMeasureIndex = measureIndex;
 
                                     song->systems.push_back(system);
                                 }
@@ -1398,30 +1408,32 @@ Song* MusicXMLParser::ParseMusicXML(const std::string& data, std::string& error)
                                         if (previousClefElement)
                                         {
                                             XMLElement* clefElement = previousClefElement->ToElement();
-                                            int clefNumber = XMLHelper::GetNumberAttribute(clefElement, "number", 1);
+                                            int staffNumber = XMLHelper::GetNumberAttribute(clefElement, "number", 1);
 
                                             XMLElement* signElement = clefElement->FirstChildElement("sign");
                                             if (signElement)
                                             {
-                                                currentMeasures[clefNumber-1]->clef.sign = signElement->GetText();
-                                                if (currentMeasures[clefNumber-1]->clef.sign == "TAB")
+                                                currentMeasures[staffNumber-1]->clef.sign = signElement->GetText();
+                                                if (currentMeasures[staffNumber-1]->clef.sign == "TAB")
                                                 {
                                                     if (firstMeasure) {
-                                                        currentInst->staves[clefNumber-1]->type = Staff::StaffType::Tab;
-                                                        staffIsTabInfo[clefNumber-1] = true;
-                                                        currentMeasures[clefNumber-1]->type = Measure::MeasureType::Tab;
+                                                        currentInst->staves[staffNumber-1]->type = Staff::StaffType::Tab;
+                                                        staffIsTabInfo[staffNumber-1] = true;
+                                                        currentMeasures[staffNumber-1]->type = Measure::MeasureType::Tab;
 
                                                         if (currentInst->staves.size() > 1) // if there is more than one staff
-                                                            currentInst->staves[clefNumber-1]->tablatureDisplayType = Staff::TablatureDisplayType::NoRhythm;
+                                                            currentInst->staves[staffNumber-1]->tablatureDisplayType = TablatureDisplayType::NoRhythm;
                                                     }
                                                 }
                                             }
 
                                             XMLElement* line = clefElement->FirstChildElement("line");
                                             if (line)
-                                                currentMeasures[clefNumber-1]->clef.line = ToInt(line->GetText());
+                                                currentMeasures[staffNumber-1]->clef.line = ToInt(line->GetText());
 
-                                            currentMeasures[clefNumber-1]->showClef = true;
+                                            currentMeasures[staffNumber-1]->clef.octaveChange = XMLHelper::GetIntValue("", clefElement, currentMeasures[staffNumber-1]->clef.octaveChange);
+
+                                            currentMeasures[staffNumber-1]->showClef = true;
                                         }
                                         else // no more clefs
                                         {
@@ -1431,13 +1443,21 @@ Song* MusicXMLParser::ParseMusicXML(const std::string& data, std::string& error)
                                     }
                                 }
 
-                                // change the measure's clef the the previous measure's clef if a new clef was not specified
+                                // change the measure's clef the the previous measure's clef if a new clef was not specified (and set the clef changed attribute)
                                 int i = 0;
                                 for (Measure* m : currentMeasures)
                                 {
-                                    if (m->clef.sign.empty() && i < previousMeasures.size())
+                                    if (i < previousMeasures.size())
                                     {
-                                        m->clef = previousMeasures[i]->clef;
+                                        if (m->clef.sign.empty())
+                                        {
+                                            m->clef = previousMeasures[i]->clef;
+                                            m->clef.clefChanged = false;
+                                        }
+                                        else if (m->clef != previousMeasures[i]->clef)
+                                        {
+                                            m->clef.clefChanged = true;
+                                        }
                                     }
 
                                     i++;

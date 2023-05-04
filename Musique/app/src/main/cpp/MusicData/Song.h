@@ -8,7 +8,7 @@
 #include "../Debuging/AndroidDebug.h"
 #include "SongData.h"
 #include "../Settings.h"
-#include "Credit.h"
+#include "Page/Credit.h"
 #include "System.h"
 
 class Song {
@@ -268,6 +268,8 @@ public:
     std::string encodingDescription = "";
 
     std::string software = "";
+    int softwareMajorVersion = 1;
+    std::string softwareName = "";
 
     Date encodingDate = Date();
 

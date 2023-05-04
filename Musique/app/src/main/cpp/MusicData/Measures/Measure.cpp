@@ -96,42 +96,42 @@ float Measure::GetNotePositionInMeasure(float width, int noteIndex) const {
     return position;
 }
 
-// update to use width
-float Measure::GetKeySignaturePositionInMeasure(const System& system) const {
+float Measure::GetKeySignaturePositionInMeasure(const System& system, float clefPositionX) const {
+
     float position;
 
-    float clefWidth = MeausreClefWidth();
+    bool isBeginningMeasure = (system.beginningMeasureIndex == index);
 
-    if (showKeySignature || system.showKeySignature)
-        position = GetClefPositionInMeasure(system) + 10.0f + clefWidth;
-    else
-        position = GetClefPositionInMeasure(system);
+    float clefWidth;
+
+    if ((showClef || (system.showBeginningClef && isBeginningMeasure)) && !clef.clefChanged) // showing the clef
+        clefWidth = MeausreClefWidth();
+    else // not showing the clef
+        clefWidth = 0.0f;
+
+    position = clefPositionX + clefWidth;
 
     return position;
 }
 
-// update to use width
-float Measure::GetTimeSignaturePositionInMeasure(const System& system) const {
+float Measure::GetTimeSignaturePositionInMeasure(const System& system, float keySignaturePositionX) const {
     float position;
+    bool isBeginningMeasure = (system.beginningMeasureIndex == index);
 
-    float keySignatureWidth = MeausreKeySignatureWidth();
+    float keySignatureWidth;
 
-    if (showTimeSignature || system.showTimeSignature)
-        position = GetKeySignaturePositionInMeasure(system) + keySignatureWidth + 10.0f;
-    else
-        position = GetKeySignaturePositionInMeasure(system);
+    if (showKeySignature || (system.showBeginningKeySignature && isBeginningMeasure)) // showing the key signature
+        keySignatureWidth = MeausreKeySignatureWidth();
+    else // not showing the key signature
+        keySignatureWidth = 0.0f;
+
+    position = keySignaturePositionX + keySignatureWidth;
 
     return position;
 }
 
-// update to use width
 float Measure::GetClefPositionInMeasure(const System& system) const {
-    float position;
-
-    if (showClef || system.showClef)
-        position = 10.0f;
-    else
-        position = 0.0f;
+    float position = 5.0f;
 
     return position;
 }
@@ -182,7 +182,7 @@ int Measure::GetLetterNumber(const std::string& s) const {
     return num;
 }
 
-void Measure::CalculateAsPaged(const MusicDisplayConstants& displayConstants)
+void Measure::CalculateAsPaged(const MusicDisplayConstants& displayConstants, System& system, int staffLines)
 {
     measureWidth = defaultMeasureWidth;
 
@@ -190,11 +190,30 @@ void Measure::CalculateAsPaged(const MusicDisplayConstants& displayConstants)
         staffDistance = displayConstants.staffDistance;
     else
         staffDistance = defStaffDistance;
+
+    if (system.systemMeasureData.find(index) == system.systemMeasureData.end()) // the key does not exist
+    {
+        // so insert new measure data
+        System::SystemMeasureData newSystemMeasureData;
+        std::pair<int, System::SystemMeasureData> newPair(index, newSystemMeasureData);
+        system.systemMeasureData.insert(newPair);
+    }
+
+    auto measureDataItem = system.systemMeasureData.find(index);
+
+    measureDataItem->second.clefPositionX = std::max(GetClefPositionInMeasure(system), measureDataItem->second.clefPositionX);
+    measureDataItem->second.keySignaturePositionX = std::max(GetKeySignaturePositionInMeasure(system, measureDataItem->second.clefPositionX), measureDataItem->second.keySignaturePositionX);
+    measureDataItem->second.timeSignaturePositionX = std::max(GetTimeSignaturePositionInMeasure(system, measureDataItem->second.keySignaturePositionX), measureDataItem->second.timeSignaturePositionX);
+
+    clef.CalculatePositionAsPaged(displayConstants, staffLines);
+    keySignature.CalculatePositionAsPaged(displayConstants);
+    timeSignature.CalculatePositionAsPaged(displayConstants);
 }
 
 float Measure::MeausreClefWidth() const
 {
-    return RenderMeasurement::MeasureGlyph(Clef::GetClefSMuFLID(clef, 6)); // TODO: use actual staff lines
+    // adding margins of 10.0f
+    return RenderMeasurement::MeasureGlyph(Clef::GetClefSMuFLID(clef, 6)) + 10.0f; // TODO: use actual staff lines
 }
 
 float Measure::MeausreKeySignatureWidth() const
@@ -207,14 +226,14 @@ float Measure::MeausreKeySignatureWidth() const
     else
         width = 0.0f;
 
-    return width;
+    return width + 10.0f; // adding margins of 10.0f
 }
 
 float Measure::MeausreTimeSignatureWidth() const
 {
     float topNumWidth = RenderMeasurement::MeasureGlyph(GetTimeSignatureSMuFLID(timeSignature.notes));
     float bottomNumWidth = RenderMeasurement::MeasureGlyph(GetTimeSignatureSMuFLID(timeSignature.noteType));
-    return std::max(topNumWidth, bottomNumWidth);
+    return std::max(topNumWidth, bottomNumWidth) + 10.0f; // adding margins of 10.0f
 }
 
 float Measure::GetRepeatBarlinePositionX() const

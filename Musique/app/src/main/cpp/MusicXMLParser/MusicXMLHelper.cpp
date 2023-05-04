@@ -3,6 +3,7 @@
 #include "XMLHelper.h"
 #include "../Utils/Converters.h"
 
+#include "../Exceptions/Exceptions.h"
 
 void MusicXMLHelper::FlipYInVec2(Vec2<float>& v)
 {
@@ -200,15 +201,23 @@ StartStopType MusicXMLHelper::GetStartStopValue(XMLElement* element, StartStopTy
 
 StartStopType MusicXMLHelper::GetStartStopValue(const std::string& elementName, XMLElement* elementParent, StartStopType defaultValue, bool required)
 {
+    if (!elementParent)
+        throw IsNullException("'elementParent' in MusicXMLHelper::GetStartStopValue is null");
+
     XMLElement* element = elementParent->FirstChildElement(elementName.c_str());
-    if (element) {
+
+    if (element)
+    {
         const char* c = element->GetText();
-        if (strcmp(c, "start") == 0) {
-            return StartStopType::Start;
-        } else if (strcmp(c, "stop") == 0) {
-            return StartStopType::Stop;
-        } else if (strcmp(c, "continue") == 0) {
-            return StartStopType::Continue;
+
+        if (c)
+        {
+            if (strcmp(c, "start") == 0)
+                return StartStopType::Start;
+            else if (strcmp(c, "stop") == 0)
+                return StartStopType::Stop;
+            else if (strcmp(c, "continue") == 0)
+                return StartStopType::Continue;
         }
     }
 

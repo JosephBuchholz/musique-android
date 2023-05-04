@@ -8,31 +8,18 @@ void TimeSignature::Render(RenderData& renderData, bool showTimeSignature, float
         int spaces = lines - 1;
         float staffMiddle = ((float)spaces/2.0f) * lineSpacing;
         float timeDigitHeight = 10.0f;
-        float positionY = (staffMiddle - timeDigitHeight) + measurePositionY + offsetY;
-
-        renderData.AddGlyph(SMuFLGlyph(GetTimeSignatureSMuFLID(notes),positionX + offsetX, positionY,Paint(0xff000000)));
-        positionY += 20.0f;
-        renderData.AddGlyph(SMuFLGlyph(GetTimeSignatureSMuFLID(noteType),positionX + offsetX, positionY,Paint(0xff000000)));
-    }
-
-    /*// time signature
-    if (printObject && showTimeSignature)
-    {
-        int spaces = lines - 1;
-        float staffMiddle = ((float)spaces/2.0f) * lineSpacing;
-        float timeDigitHeight = 10.0f;
 
 
         switch (displayType)
         {
             case TimeSignatureDisplayType::Common:
             {
-                //renderData.AddGlyph(SMuFLGlyph(SMuFLID::timeSigCommon, positionX + offsetX, staffMiddle + measurePositionY + offsetY, Paint(color.color)));
+                renderData.AddGlyph(SMuFLGlyph(SMuFLID::timeSigCommon, positionX + offsetX, staffMiddle + measurePositionY + offsetY, Paint(color.color)));
                 break;
             }
             case TimeSignatureDisplayType::Cut:
             {
-                //renderData.AddGlyph(SMuFLGlyph(SMuFLID::timeSigCutCommon, positionX + offsetX, staffMiddle + measurePositionY + offsetY, Paint(color.color)));
+                renderData.AddGlyph(SMuFLGlyph(SMuFLID::timeSigCutCommon, positionX + offsetX, staffMiddle + measurePositionY + offsetY, Paint(color.color)));
                 break;
             }
             case TimeSignatureDisplayType::Standard:
@@ -40,7 +27,7 @@ void TimeSignature::Render(RenderData& renderData, bool showTimeSignature, float
                 float positionY = (staffMiddle - timeDigitHeight) + measurePositionY + offsetY;
                 renderData.AddGlyph(SMuFLGlyph(GetTimeSignatureSMuFLID(notes), positionX + offsetX, positionY,Paint(color.color)));
                 positionY += 20.0f;
-                renderData.AddGlyph(SMuFLGlyph(GetTimeSignatureSMuFLID(noteType), positionX + offsetX, positionY,Paint(0xff000000)));
+                renderData.AddGlyph(SMuFLGlyph(GetTimeSignatureSMuFLID(noteType), positionX + offsetX, positionY,Paint(color.color)));
                 break;
             }
             default:
@@ -49,5 +36,10 @@ void TimeSignature::Render(RenderData& renderData, bool showTimeSignature, float
                 break;
             }
         }
-    }*/
+    }
+}
+
+void TimeSignature::CalculatePositionAsPaged(const MusicDisplayConstants& displayConstants)
+{
+
 }

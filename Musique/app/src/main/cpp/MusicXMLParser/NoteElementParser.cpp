@@ -62,11 +62,11 @@ Lyric NoteElementParser::ParseLyric(XMLElement* lyricElement)
 
 void NoteElementParser::ParseNoteElement(XMLElement* noteElement, float& currentTimeInMeasure, std::vector<bool> staffIsTabInfo, Note* currentNote, Note* previousNote, std::vector<Measure*> currentMeasures, int measureNumber, std::string& error)
 {
-    currentNote->defX = XMLHelper::GetFloatAttribute(noteElement, "default-x", currentNote->defX);
-    currentNote->defY = XMLHelper::GetFloatAttribute(noteElement, "default-y", currentNote->defY);
+    currentNote->defaultPosition.x = XMLHelper::GetFloatAttribute(noteElement, "default-x", currentNote->defaultPosition.x);
+    currentNote->defaultPosition.y = XMLHelper::GetFloatAttribute(noteElement, "default-y", currentNote->defaultPosition.y);
 
-    currentNote->relX = XMLHelper::GetFloatAttribute(noteElement, "relative-x", currentNote->relX);
-    currentNote->relY = XMLHelper::GetFloatAttribute(noteElement, "relative-y", currentNote->relY);
+    currentNote->relativePosition.x = XMLHelper::GetFloatAttribute(noteElement, "relative-x", currentNote->relativePosition.x);
+    currentNote->relativePosition.y = XMLHelper::GetFloatAttribute(noteElement, "relative-y", currentNote->relativePosition.y);
 
     // staff
     XMLElement* staffElement = noteElement->FirstChildElement("staff");
@@ -270,8 +270,9 @@ void NoteElementParser::ParseNoteElement(XMLElement* noteElement, float& current
         }
 
         // technical
-        XMLElement* technical = notations->FirstChildElement("technical");
-        ParseTechnicalElement(technical, currentNote, staffIsTabInfo[currentNote->staff-1]);
+        XMLElement* technicalElement = notations->FirstChildElement("technical");
+        ParseTechnicalElement(technicalElement, currentNote, staffIsTabInfo[currentNote->staff-1]);
+        ParseArticulationsElement(technicalElement, currentNote);
 
         // articulations
         XMLElement* articulationsElement = notations->FirstChildElement("articulations");
@@ -345,6 +346,54 @@ void NoteElementParser::ParseNoteElement(XMLElement* noteElement, float& current
 
 void NoteElementParser::ParseTechnicalElement(XMLElement* technicalElement, Note* currentNote, bool isTab)
 {
+    if (technicalElement)
+    {
+        XMLNode* previousElement = technicalElement->FirstChildElement(); // first element
+        while (true)
+        {
+            if (previousElement) {
+                std::shared_ptr<Technique> newTechnique;
+                XMLElement* element = previousElement->ToElement();
+
+                const char* value = element->Value();
+                if (strcmp(value, "up-bow") == 0 || strcmp(value, "down-bow") == 0) // bowing
+                {
+                    std::shared_ptr<Bowing> newBowing = std::make_shared<Bowing>();
+                    ParseBowingElement(element, newBowing);
+                    newTechnique = newBowing;
+                }
+                else if (strcmp(value, "tap") == 0 || strcmp(value, "golpe") == 0) // guitar technique
+                {
+                    std::shared_ptr<GuitarTechnique> newGuitarTechnique = std::make_shared<GuitarTechnique>();
+                    ParseGuitarTechnique(element, newGuitarTechnique);
+                    newTechnique = newGuitarTechnique;
+                }
+                else if (strcmp(value, "bend") == 0) // bend
+                {
+                    std::shared_ptr<Bend> newBend = std::make_shared<Bend>();
+                    ParseBendElement(element, newBend);
+                    newTechnique = newBend;
+                }
+                else
+                {
+                    AddError("Unrecognized element", "Didn't recognize element in TECHNICAL");
+                }
+
+                if (newTechnique != nullptr)
+                {
+                    newTechnique->placement = MusicXMLHelper::GetAboveBelowAttribute(element, "placement", newTechnique->placement);
+                    currentNote->techniques.push_back(newTechnique);
+                }
+            }
+            else
+            {
+                break;
+            }
+
+            previousElement = previousElement->NextSiblingElement();
+        }
+    }
+
     if (technicalElement)
     {
         // hammer ons
@@ -473,9 +522,11 @@ void NoteElementParser::ParseArticulationsElement(XMLElement* articulationsEleme
                     AddError("Unrecognized element", "Didn't recognize element in ARTICULATIONS");
                 }
 
-                newArticulation->placement = MusicXMLHelper::GetAboveBelowAttribute(element, "placement", newArticulation->placement);
-
-                currentNote->articulations.push_back(newArticulation);
+                if (newArticulation != nullptr)
+                {
+                    newArticulation->placement = MusicXMLHelper::GetAboveBelowAttribute(element, "placement", newArticulation->placement);
+                    currentNote->articulations.push_back(newArticulation);
+                }
             }
             else
             {
@@ -594,4 +645,44 @@ void NoteElementParser::ParseStressElement(XMLElement* element, std::shared_ptr<
     {
         newStress->type = Stress::Type::Unstress;
     }
+}
+
+void NoteElementParser::ParseBowingElement(XMLElement* element, std::shared_ptr<Bowing> newBowing)
+{
+    const char* value = element->Value();
+    if (strcmp(value, "up-bow") == 0)
+    {
+        newBowing->direction = Bowing::Direction::Up;
+    }
+    else if (strcmp(value, "down-bow") == 0)
+    {
+        newBowing->direction = Bowing::Direction::Down;
+    }
+}
+
+void NoteElementParser::ParseGuitarTechnique(XMLElement* element, std::shared_ptr<GuitarTechnique> newTechnique)
+{
+    const char* value = element->Value();
+    if (strcmp(value, "tap") == 0)
+    {
+        newTechnique->type = GuitarTechnique::Type::Tap;
+
+        std::string handString = XMLHelper::GetStringAttribute(element, "hand", "right");
+
+        if (handString == "right")
+            newTechnique->hand = GuitarTechnique::Hand::Right;
+        else if (handString == "left")
+            newTechnique->hand = GuitarTechnique::Hand::Left;
+        else
+            newTechnique->hand = GuitarTechnique::Hand::None;
+    }
+    else if (strcmp(value, "golpe") == 0)
+    {
+        newTechnique->type = GuitarTechnique::Type::Golpe;
+    }
+}
+
+void NoteElementParser::ParseBendElement(XMLElement* element, std::shared_ptr<Bend> newTechnique)
+{
+
 }

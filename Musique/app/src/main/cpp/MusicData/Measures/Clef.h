@@ -10,13 +10,16 @@
 #include "../../RenderData/RenderData.h"
 #include "../../MusicDisplayConstants.h"
 #include "../../RenderData/SMuFLID.h"
+#include "../../Collisions/Vec2.h"
 
 class RenderData; // TODO: probably temproary??
 
 /**
  * Represents a musical clef.
  */
-class Clef {
+class Clef
+{
+    friend class Measure;
 
 public:
     Clef() {}
@@ -45,9 +48,31 @@ public:
 
     static SMuFLID GetClefSMuFLID(const Clef& clef, int staffLines);
 
+protected:
+    void CalculatePositionAsPaged(const MusicDisplayConstants& displayConstants, int staffLines);
+
+public:
+
+    bool operator==(const Clef& rhs) const
+    {
+        return (this->sign == rhs.sign) && (this->line == rhs.line) && (this->octaveChange == rhs.octaveChange);
+    }
+
+    bool operator!=(const Clef& rhs) const
+    {
+        return !(*this == rhs);
+    }
+
 public:
     std::string sign = "";
     int line = 2;
+    int octaveChange = 0; // the change in octave for the clef
+
+    bool clefChanged = false; // if this is a clef for a clef change
+
+    // x is relative to the start of the measure
+    // y is relative to the top staff line
+    Vec2<float> position = { 0.0f, 0.0f };
 };
 
 #endif // MUSIQUE_CLEF_H

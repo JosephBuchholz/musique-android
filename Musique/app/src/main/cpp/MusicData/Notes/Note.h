@@ -33,6 +33,8 @@ class Note : public VisibleElement {
 public:
     ~Note() {}
 
+    void Render(RenderData& renderData, TablatureDisplayType tabDisplayType, float notePositionRelativeToMeasure, int lines, Vec2<float> measurePosition, float measureWidth, int measureNumber, float ls, Vec2<float> mainPosition, int noteIndex, Vec2<float> offset = { 0.0f, 0.0f }) const;
+
     static bool IsNoteIsHigher(Note* note1, Note* note2);
 
     void OnPlay();
@@ -54,7 +56,18 @@ public:
     void UpdateBoundingBox(const Vec2<float> &parentPosition);
 
 protected:
-    void CalculatePositionAsPaged(const MusicDisplayConstants& displayConstants);
+    void CalculatePositionAsPaged(const MusicDisplayConstants& displayConstants, int staffLines);
+
+private:
+    void RenderRest(RenderData& renderData, const Note* note, float measurePositionX, int lines, float ls, float offsetX, float offsetY) const;
+    void RenderTabNote(RenderData& renderData, const Note* note, TablatureDisplayType tabDisplayType, float measurePositionX, float measureWidth, int lines, float ls, float offsetX, float offsetY) const;
+
+    void RenderNoteFlag(RenderData& renderData, const Note* note, float notePositionX, float notePositionY) const;
+    void RenderNoteStem(RenderData& renderData, const Note* note, float notePositionX, float notePositionY) const;
+
+    void RenderTie(RenderData& renderData, const Note* note, float noteCenterPositionX, float notePositionY, float measurePositionX, float measurePositionY, float measureWidth) const;
+
+    void RenderAugmentationDots(RenderData& renderData, float notePositionX, float notePositionY) const;
 
 public:
 
@@ -85,6 +98,7 @@ public:
     std::vector<Lyric> lyrics;
 
     std::vector<std::shared_ptr<Articulation>> articulations;
+    std::vector<std::shared_ptr<Technique>> techniques;
 
     NoteTie tie = NoteTie();
 
@@ -112,11 +126,8 @@ protected:
 
     // -- Positioning Attributes From MusicXML --
 
-    float defX = 0.0f;
-    float defY = 0.0f;
-
-    float relX = 0.0f;
-    float relY = 0.0f;
+    Vec2<float> defaultPosition = { INVALID_FLOAT_VALUE, INVALID_FLOAT_VALUE };
+    Vec2<float> relativePosition = { INVALID_FLOAT_VALUE, INVALID_FLOAT_VALUE };
 };
 
 #endif // MUSIQUE_NOTE_H
