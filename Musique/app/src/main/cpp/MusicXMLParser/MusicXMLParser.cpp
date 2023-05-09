@@ -246,8 +246,6 @@ std::shared_ptr<DynamicWedge> MusicXMLParser::ParseDynamicWedgeElement(XMLElemen
 
         if (wedgeType == "crescendo" || wedgeType == "diminuendo")
         {
-            LOGW("wedge crescendo or diminuendo");
-
             std::shared_ptr<DynamicWedge> dynamicWedge = std::make_shared<DynamicWedge>();
 
             //ParseVisibleElement(element, dynamicWedge);
@@ -290,8 +288,6 @@ std::shared_ptr<DynamicWedge> MusicXMLParser::ParseDynamicWedgeElement(XMLElemen
         }
         else if (wedgeType == "stop")
         {
-            LOGW("wedge stop");
-
             auto dynamicWedge = currentDynamicWedges[number];
 
             dynamicWedge->defaultPositionEnd = XMLHelper::GetFloatVec2Attribute(element, "default-x", "default-y", dynamicWedge->defaultPositionEnd);
@@ -580,7 +576,7 @@ void MusicXMLParser::ParseWorkElement(XMLElement* workElement, std::string& work
     }
 }
 
-void MusicXMLParser::ParseEncodingElement(XMLElement* encodingElement, Song* song)
+void MusicXMLParser::ParseEncodingElement(XMLElement* encodingElement, std::shared_ptr<Song> song)
 {
     if (encodingElement)
     {
@@ -641,7 +637,7 @@ void MusicXMLParser::ParseEncodingElement(XMLElement* encodingElement, Song* son
     }
 }
 
-void MusicXMLParser::ParseIdentificationElement(XMLElement* idElement, Song* song)
+void MusicXMLParser::ParseIdentificationElement(XMLElement* idElement, std::shared_ptr<Song> song)
 {
     if (idElement)
     {
@@ -1034,11 +1030,10 @@ Barline MusicXMLParser::ParseBarlineElement(XMLElement* barlineElement)
 }
 
 // main file parsing
-Song* MusicXMLParser::ParseMusicXML(const std::string& data, std::string& error)
+void MusicXMLParser::ParseMusicXML(const std::string& data, std::string& error, std::shared_ptr<Song> song)
 {
     m_Errors.clear();
     LOGI("STARTING TO PARSE");
-    Song* song = new Song();
     MusicDisplayConstants displayConstants;
     LOGI("Created song data");
 
@@ -1203,7 +1198,7 @@ Song* MusicXMLParser::ParseMusicXML(const std::string& data, std::string& error)
                     if (currentInst == nullptr) {
                         error = "Instrument " + id + " does not exist";
                         AddError("Error", "Instrument " + id + " does not exist");
-                        return song;
+                        return;
                     }
 
                     // measures
@@ -1228,9 +1223,11 @@ Song* MusicXMLParser::ParseMusicXML(const std::string& data, std::string& error)
                         {
                             XMLElement* measure = previousMeasureElement->ToElement();
 
-                            int measureNumber = XMLHelper::GetNumberAttribute(measure, "number", 0);
+                            int measureNumber = XMLHelper::GetNumberAttribute(measure, "number", 0, true);
                             float measureWidth = XMLHelper::GetFloatAttribute(measure, "width", 1.0f);
                             //LOGW("number: %d, measureWidth: %f", measureNumber, measureWidth);
+
+                            bool implicitMeasure = XMLHelper::GetBoolAttribute(measure, "implicit", false);
 
                             bool startNewSystem = false;
                             bool startNewPage = false;
@@ -1267,7 +1264,8 @@ Song* MusicXMLParser::ParseMusicXML(const std::string& data, std::string& error)
                             for (int i = 0; i < currentInst->staves.size(); i++)
                             {
                                 Measure* newMeasure = new Measure();
-                                newMeasure->number = measureNumber;
+                                newMeasure->measureNumber = MeasureNumber(measureNumber);
+                                newMeasure->implicit = implicitMeasure;
                                 newMeasure->index = measureNumber - 1;
                                 newMeasure->staff = i+1;
                                 newMeasure->defaultMeasureWidth = measureWidth;
@@ -1814,6 +1812,4 @@ Song* MusicXMLParser::ParseMusicXML(const std::string& data, std::string& error)
     currentBrackets.clear();
 
     ParseError::PrintErrors();
-
-    return song;
 }

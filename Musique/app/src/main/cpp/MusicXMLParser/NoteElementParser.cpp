@@ -230,6 +230,10 @@ void NoteElementParser::ParseNoteElement(XMLElement* noteElement, float& current
         currentNote->noteStem.stemType = currentNote->noteStem.CalculateStemTypeFromString(stemElement->GetText());
     }
 
+    // notehead
+    XMLElement* noteHeadElement = noteElement->FirstChildElement("notehead");
+    currentNote->noteHead = ParseNoteHeadElement(noteHeadElement);
+
     // beam
     XMLNode* previousBeamElement = noteElement->FirstChildElement("beam");
     while (true)
@@ -685,4 +689,81 @@ void NoteElementParser::ParseGuitarTechnique(XMLElement* element, std::shared_pt
 void NoteElementParser::ParseBendElement(XMLElement* element, std::shared_ptr<Bend> newTechnique)
 {
 
+}
+
+NoteHead NoteElementParser::ParseNoteHeadElement(XMLElement* element)
+{
+    NoteHead noteHead = NoteHead();
+
+    if (element)
+    {
+        BaseElementParser::ParseVisibleElement(element, noteHead);
+
+        noteHead.filled = XMLHelper::GetBoolAttribute(element, "filled", noteHead.filled);
+        noteHead.hasParentheses = XMLHelper::GetBoolAttribute(element, "parentheses", noteHead.hasParentheses);
+
+        std::string noteHeadValue = XMLHelper::GetStringValue(element, "", true);
+
+        if (noteHeadValue == "normal")
+            noteHead.type = NoteHead::NoteHeadType::Normal;
+        else if (noteHeadValue == "none")
+            noteHead.type = NoteHead::NoteHeadType::NoNoteHead;
+        else if (noteHeadValue == "other")
+            noteHead.type = NoteHead::NoteHeadType::Other;
+        else if (noteHeadValue == "arrow down")
+            noteHead.type = NoteHead::NoteHeadType::ArrowDown;
+        else if (noteHeadValue == "arrow up")
+            noteHead.type = NoteHead::NoteHeadType::ArrowUp;
+        else if (noteHeadValue == "back slashed")
+            noteHead.type = NoteHead::NoteHeadType::BackSlashed;
+        else if (noteHeadValue == "circle dot")
+            noteHead.type = NoteHead::NoteHeadType::CircleDot;
+        else if (noteHeadValue == "circle-x")
+            noteHead.type = NoteHead::NoteHeadType::CircleX;
+        else if (noteHeadValue == "circled")
+            noteHead.type = NoteHead::NoteHeadType::Circled;
+        else if (noteHeadValue == "cluster")
+            noteHead.type = NoteHead::NoteHeadType::Cluster;
+        else if (noteHeadValue == "cross")
+            noteHead.type = NoteHead::NoteHeadType::Cross;
+        else if (noteHeadValue == "diamond")
+            noteHead.type = NoteHead::NoteHeadType::Diamond;
+        else if (noteHeadValue == "inverted triangle")
+            noteHead.type = NoteHead::NoteHeadType::InvertedTriangle;
+        else if (noteHeadValue == "left triangle")
+            noteHead.type = NoteHead::NoteHeadType::LeftTriangle;
+        else if (noteHeadValue == "rectangle")
+            noteHead.type = NoteHead::NoteHeadType::Rectangle;
+        else if (noteHeadValue == "slash")
+            noteHead.type = NoteHead::NoteHeadType::Slash;
+        else if (noteHeadValue == "slashed")
+            noteHead.type = NoteHead::NoteHeadType::Slashed;
+        else if (noteHeadValue == "square")
+            noteHead.type = NoteHead::NoteHeadType::Square;
+        else if (noteHeadValue == "triangle")
+            noteHead.type = NoteHead::NoteHeadType::Triangle;
+        else if (noteHeadValue == "x")
+            noteHead.type = NoteHead::NoteHeadType::X;
+        else if (noteHeadValue == "do")
+            noteHead.type = NoteHead::NoteHeadType::Do;
+        else if (noteHeadValue == "re")
+            noteHead.type = NoteHead::NoteHeadType::Re;
+        else if (noteHeadValue == "mi")
+            noteHead.type = NoteHead::NoteHeadType::Mi;
+        else if (noteHeadValue == "fa")
+            noteHead.type = NoteHead::NoteHeadType::Fa;
+        else if (noteHeadValue == "fa up")
+            noteHead.type = NoteHead::NoteHeadType::FaUp;
+        else if (noteHeadValue == "so")
+            noteHead.type = NoteHead::NoteHeadType::So;
+        else if (noteHeadValue == "la")
+            noteHead.type = NoteHead::NoteHeadType::La;
+        else if (noteHeadValue == "ti")
+            noteHead.type = NoteHead::NoteHeadType::Ti;
+        else
+            noteHead.type = NoteHead::NoteHeadType::None;
+
+    }
+
+    return noteHead;
 }

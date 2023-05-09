@@ -10,6 +10,7 @@
 #include "../Settings.h"
 #include "Page/Credit.h"
 #include "System.h"
+#include "Page/PageNumber.h"
 
 class Song {
 
@@ -231,6 +232,8 @@ public:
     std::vector<System> systems;
 
     std::vector<Credit> credits;
+
+    std::vector<PageNumber> pageNumbers;
 
     // creators, like composers or arrangers
     struct Creator {

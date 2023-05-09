@@ -4,6 +4,7 @@ void Direction::Render(RenderData& renderData, float measurePositionX, float mea
 {
     if (!rehearsals.empty())
     {
+        LOGE("rendering rehearsal");
         Rehearsal rehearsal = rehearsals[0];
         Paint paint = Paint();
         paint.textSize = 16.0f;
@@ -15,6 +16,9 @@ void Direction::Render(RenderData& renderData, float measurePositionX, float mea
         //float positionX = song->GetPositionXInMeasure(direction.beatPositionInSong, measure->index) + measureXPosition;
         float positionX = rehearsal.positionX + measurePositionX;
         float positionY = rehearsal.positionY + measurePositionY;
+
+        //LOGE("posX: %f, posY: %f, rPosX: %f, rPosY: %f, mPosX: %f, mPosY: %f", positionX, positionY, rehearsal.positionX, rehearsal.positionY, measurePositionX, measurePositionY);
+        //renderData.AddDebugDot(measurePositionX + offsetX, measurePositionY + offsetY);
 
         renderData.AddText(Text(rehearsal.text.string, positionX + offsetX, positionY + offsetY, Paint(rehearsal.color.color, paint)));
         //renderData.AddDebugDot(positionX + offsetX, positionY + offsetY);

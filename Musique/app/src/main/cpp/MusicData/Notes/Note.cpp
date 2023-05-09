@@ -19,7 +19,9 @@ void Note::Render(RenderData& renderData, TablatureDisplayType tabDisplayType, f
         float renderPositionX = positionX + measurePosition.x;
         float renderPositionY = positionY + measurePosition.y;
 
-        renderData.AddGlyph(SMuFLGlyph(GetNoteHeadSMuFLID(durationType),renderPositionX + mainPosition.x, renderPositionY + mainPosition.y, Paint(color)));
+        noteHead.Render(renderData, { renderPositionX + mainPosition.x, renderPositionY + mainPosition.y }, durationType);
+
+        //renderData.AddGlyph(SMuFLGlyph(GetNoteHeadSMuFLID(durationType),renderPositionX + mainPosition.x, renderPositionY + mainPosition.y, Paint(color)));
 
         // aug dot
         RenderAugmentationDots(renderData, renderPositionX + mainPosition.x, renderPositionY + mainPosition.y);
@@ -152,12 +154,17 @@ void Note::RenderTabNote(RenderData& renderData, const Note* note, TablatureDisp
     //float positionX = song->GetPositionXInMeasure(note->beatPositionInSong,note->measureIndex) + measurePositionX + offsetX; // this line of code crashes the program
     //float positionY = (ls * float(note->string - 1)) + offsetY;
 
-    float positionX = note->positionX + measurePositionX + offsetX;
-    float positionY = note->positionY + offsetY;
+    float tabPositionX = note->positionX + measurePositionX + offsetX;
+    float tabPositionY = note->positionY + offsetY;
 
-    renderData.AddText(
-            Text(ToString(note->fret), positionX, positionY,
-                 Paint(color, renderData.paints.tabTextPaint)));
+    if (noteHead.type == NoteHead::NoteHeadType::X)
+    {
+        noteHead.Render(renderData, {tabPositionX, tabPositionY}, durationType, true);
+    }
+    else
+    {
+        renderData.AddText(Text(ToString(note->fret), tabPositionX, tabPositionY, Paint(color, renderData.paints.tabTextPaint)));
+    }
 
     // hammer-ons and pull-offs
     /*for (const TABSlur& slur : note->tabSlurs) {
@@ -195,26 +202,26 @@ void Note::RenderTabNote(RenderData& renderData, const Note* note, TablatureDisp
     for (auto articulation : note->articulations)
     {
         if (articulation != nullptr)
-            articulation->Render(renderData, positionX, positionY);
+            articulation->Render(renderData, tabPositionX, tabPositionY);
     }
 
     // render techniques
     for (auto technique : note->techniques)
     {
         if (technique != nullptr)
-            technique->Render(renderData, positionX, positionY);
+            technique->Render(renderData, tabPositionX, tabPositionY);
     }
 
     // rhythm notation
     if (tabDisplayType == TablatureDisplayType::Full)
     {
-        RenderNoteStem(renderData, note, positionX, positionY);
-        RenderNoteFlag(renderData, note, positionX, positionY);
+        RenderNoteStem(renderData, note, tabPositionX, tabPositionY);
+        RenderNoteFlag(renderData, note, tabPositionX, tabPositionY);
 
-        RenderTie(renderData, note, positionX, positionY, measurePositionX + offsetX, offsetY, measureWidth);
+        RenderTie(renderData, note, tabPositionX, tabPositionY, measurePositionX + offsetX, offsetY, measureWidth);
 
         // aug dot
-        RenderAugmentationDots(renderData, positionX, positionY);
+        RenderAugmentationDots(renderData, tabPositionX, tabPositionY);
     }
 }
 

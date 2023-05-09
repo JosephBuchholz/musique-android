@@ -1,5 +1,5 @@
 /**
- * This file defines the class `App` which controls how the sheet music is displayed and acts like an interface between Kotlin and C++
+ * This file defines the class `App` which acts like an interface between Kotlin and C++.
  */
 
 #ifndef MUSIQUE_APP_H
@@ -13,10 +13,10 @@
 #include "Collisions/Vec2.h"
 #include "Events/InputEvent.h"
 
+#include "MusicRenderer.h"
+
 /**
  * This class acts like an interface between Kotlin and C++.
- * This class handles most of the rendering (and audio) calculations
- * to then be packaged up (as RenderData) and sent to Kotlin for the actual rendering.
  */
 class App {
 
@@ -36,56 +36,24 @@ public:
     void OnMidiStart();
     void LoadSongFromString(const std::string& string);
     bool OnUpdatePrintLayout();
-    int OnCalculateNumPages();
-    void RenderMusicToPage(int page, RenderData& pageRenderData, float pageX, float pageY);
     void UpdateSettings(const Settings& s) { settings = s; OnLayoutChanged(); }
     void OnLayoutChanged();
 
     void OnInputEvent(const InputEvent& event);
 
-    void Render();
-    void RenderHorizontalLayout();
-    void CalculateRenderForVerticalLayout();
-    void CalculateRenderForPagedLayout();
-    void RenderWithRenderData();
-
-private:
-    void RenderLineOfMeasures(RenderData& renderData, unsigned int startMeasure, unsigned int endMeasure, const System& system, Staff* staff, float systemPositionX, float staffPositionY, float lineSpacing);
-
-    void RenderBarlines(RenderData& renderData, const std::vector<Barline>& barlines, float measurePositionX, float measurePositionY, float measureWidth, int lineCount, float lineSpacing);
-    void RenderBarline(RenderData& renderData, const Barline& barline, float barlinePositionX, float barlinePositionY, float barlineHeight, int lineCount, float lineSpacing);
-
-    void RenderMultiMeasureRest(RenderData& renderData, unsigned int measureRestCount, float measurePositionX, float measurePositionY, float measureWidth, int lineCount, float lineSpacing);
-
-    void RenderCredits(RenderData& renderData, const MusicDisplayConstants& displayConstants, const std::vector<Credit>& credits, float pageX, float pageY);
+    int OnCalculateNumPages();
 
 private:
     void DeleteSong();
 
 private:
 
-    bool layoutCalculated = false;
+    std::shared_ptr<MusicRenderer> musicRenderer;
 
     bool isUpdating = false;
 
     Midi midi;
 
-    Paint LinePaint;
-    Paint NoteStemPaint;
-    Paint NoteBeamPaint;
-    Paint BarLinePaint;
-    Paint HeavyBarLinePaint;
-
-    Paint TabSlurPaint;
-    Paint TiePaint;
-
-    Paint TextPaint;
-    Paint TabTextPaint;
-    Paint InstNameTextPaint;
-
-    int normalColor = 0xff000000;
-    int highlightedColor = 0xff1188ee;
-    int playedColor = 0xff1188ee;
 
     int jcount = 0;
     int icount = 0;
@@ -98,7 +66,6 @@ private:
     float playLineHeight = 0.0f;
     float playLineY = 0.0f;
 
-    bool updateRenderData = true; // weather the sheet music needs to be updated(rendered) again
 
     float currentMeasureBeatPosition = 0.0f;
     int currentMeasure = 0;
@@ -107,13 +74,10 @@ private:
 
     float currentTempo = 120.0f; // beats per minute
 
-    Song* song = new Song();
+    std::shared_ptr<Song> song;
     bool songUpdated = false;
 
-    RenderData m_RenderData = RenderData();
 
-    std::vector<Vec2<float>> pagePositions;
-    std::vector<Vec2<float>> systemPositions;
 
     std::string songString = "";
 

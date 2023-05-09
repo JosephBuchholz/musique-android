@@ -50,111 +50,6 @@ void Song::OnUpdate()
         songData.instrumentInfos.push_back(instInfo);
     }
 
-    // stem and beam positions
-    /*struct BeamGroup
-    {
-        int voice = 0;
-        int level = 1;
-        std::vector<Note*> notes;
-    };
-    std::vector<BeamGroup> beamGroups;
-    std::vector<BeamGroup> finalBeamGroups;
-    Note* stemNote = nullptr;
-    for (auto* instrument : instruments) {
-        for (auto* staff : instrument->staves) {
-            for (auto* measure : staff->measures) {
-                for (auto* note : measure->notes) {
-
-                    if (stemNote != nullptr)
-                    {
-                        if (stemNote->beatPositionInSong == note->beatPosition)
-                        {
-                            if (stemNote->noteStem.stemType == NoteStem::StemType::Up && Note::IsNoteIsHigher(note, stemNote))
-                            {
-
-                            }
-                            else
-                            {
-
-                            }
-                        }
-                    }
-
-                    if (note->beam.beamType != Beam::BeamType::None)
-                    {
-                        bool foundGroup = false;
-                        int i = 0;
-                        for (auto group: beamGroups) {
-                            if (group.voice == note->voice && group.level == note->beam.beamLevel) {
-                                switch (note->beam.beamType)
-                                {
-                                    case Beam::BeamType::Begin:
-                                    {
-                                        BeamGroup newGroup;
-                                        newGroup.voice = note->voice;
-                                        newGroup.level = note->beam.beamLevel;
-                                        newGroup.notes.push_back(note);
-                                        beamGroups.push_back(newGroup);
-                                        break;
-                                    }
-                                    case Beam::BeamType::End: {
-                                        group.notes.push_back(note);
-                                        finalBeamGroups.push_back(group);
-                                        beamGroups.erase(beamGroups.begin() + i);
-                                        break;
-                                    }
-                                    case Beam::BeamType::Continue: {
-                                        group.notes.push_back(note);
-                                        break;
-                                    }
-                                    case Beam::BeamType::ForwardHook: {
-                                        group.notes.push_back(note);
-                                        break;
-                                    }
-                                    case Beam::BeamType::BackwardHook: {
-                                        group.notes.push_back(note);
-                                        break;
-                                    }
-                                    default: { break; }
-                                }
-
-                                foundGroup = true;
-                                break;
-                            }
-                            i++;
-                        }
-
-                        if (!foundGroup) {
-                            if (note->beam.beamType == Beam::BeamType::Begin)
-                            {
-                                BeamGroup newGroup;
-                                newGroup.voice = note->voice;
-                                newGroup.level = note->beam.beamLevel;
-                                newGroup.notes.push_back(note);
-                                beamGroups.push_back(newGroup);
-                            }
-                            else
-                            {
-                                LOGE("ERROR WITH BEAM AND STEAM CODE IN SONGDATA.CPP");
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    for (auto group: finalBeamGroups)
-    {
-        int i = 0;
-        for (auto* note: group.notes)
-        {
-
-
-            i++;
-        }
-    }*/
-
     // tie calculations
     for (auto* instrument : instruments)
     {
@@ -171,14 +66,14 @@ void Song::OnUpdate()
                     //LOGV("s: %d", tiedStartNotes.size());
                     if (note->tie.type == NoteTie::TieType::Start)
                     {
-                        LOGW("Tie start: s: %d", tiedStartNotes.size());
+                        //LOGW("Tie start: s: %d", tiedStartNotes.size());
                         tiedStartNotes.push_back(note);
                     }
                     else if (note->tie.type == NoteTie::TieType::Stop)
                     {
                         if (!tiedStartNotes.empty())
                         {
-                            LOGW("Tie end: s: %d", tiedStartNotes.size());
+                            //LOGW("Tie end: s: %d", tiedStartNotes.size());
 
                             tiedStartNotes[0]->tie.tiedNote = note;
                             note->tie.tiedNote = tiedStartNotes[0];
@@ -533,7 +428,7 @@ void Song::OnUpdate()
                     for (auto& direction : measure->directions)
                     {
                         float defaultX = GetPositionXInMeasure(direction.beatPositionInSong, measureIndex);
-                        LOGW("PositionX of direction: Beatposition: %f, MI: %i, X: %f", direction.beatPositionInSong, measureIndex, defaultX);
+                        //LOGW("PositionX of direction: Beatposition: %f, MI: %i, X: %f", direction.beatPositionInSong, measureIndex, defaultX);
                         float defaultY = -30.0f;
 
                         for (auto& word : direction.words)
@@ -920,6 +815,18 @@ void Song::OnUpdate()
                 }
             }
         }
+    }
+
+    int numPages = GetNumPages();
+
+    Vec2<float> pageNumberDefaultPosition = { displayConstants.pageWidth / 2.0f, displayConstants.pageHeight * (17.0f / 18.0f) };
+    for (int i = 0; i < numPages; i++)
+    {
+        PageNumber newPageNumber(i + 1);
+
+        newPageNumber.CalculatePosition(displayConstants, pageNumberDefaultPosition);
+
+        pageNumbers.push_back(newPageNumber);
     }
 
     LOGD("done updating song data");
@@ -1678,8 +1585,15 @@ void Song::ResolveCollisionsWith(const BoundingBox& box)
                     {
                         Vec2<float> offset = box.ResolveOverlapStatically(rehearsal.boundingBox);
 
+
+                        /*if (offset.x != 0 || offset.y != 0)
+                            LOGD("overlap offset: %s", offset.GetPrintableString().c_str());
+                        LOGW("rehearsal posX: %f, posY: %f | offset: %s", rehearsal.positionX, rehearsal.positionY, offset.GetPrintableString().c_str());*/
+
                         rehearsal.positionX += offset.x;
                         rehearsal.positionY += offset.y;
+
+                        //LOGW("rehearsal posX: %f, posY: %f | offset: %s", rehearsal.positionX, rehearsal.positionY, offset.GetPrintableString().c_str());
                     }
 
                     for (auto& dynamic : direction.dynamics)
@@ -1745,7 +1659,7 @@ std::vector<Vec2<float>> Song::GetSystemPositions() const
 
         if (measureIndex >= GetMeasureCount())
         {
-            LOGE("measureIndex: %d, count: %d", measureIndex, GetMeasureCount());
+            LOGW("measureIndex: %d, count: %d", measureIndex, GetMeasureCount());
             break;
         }
 

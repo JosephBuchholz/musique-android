@@ -17,6 +17,7 @@
 #include "../Notes/BeamGroup.h"
 #include "../VisibleElement.h"
 #include "Tuplet.h"
+#include "MeasureNumber.h"
 
 #include <vector>
 
@@ -120,7 +121,9 @@ public:
 
     Transpose transpose = Transpose();
 
-    int number = 1;
+    MeasureNumber measureNumber; // the number that is displayed for this measure.
+    int implicit = false; // If it is true then the measure number should never appear (this is used for measure pickups)
+
     int index = 0;
 
     float staffDistance = 0.0f;

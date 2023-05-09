@@ -49,6 +49,8 @@ void Words::CalculatePositionAsPaged(const MusicDisplayConstants& displayConstan
     else
         positionX = defX + relX;*/
 
+    //LOGE("calculate position: x: %f, y: %f", defaultX, defaultY);
+
     if (noDefY)
         positionY = defaultY + -relY;
     else

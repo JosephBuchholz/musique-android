@@ -28,11 +28,11 @@ public:
     /**
      * Parses a musicxml formatted file (.musicxml)
      *
-     * @param data[in] the string data to be parsed
-     * @param error[out] will contain an error if there was one
-     * @return a pointer to a Song object with the parsed data
+     * @param data[in] The string data to be parsed.
+     * @param error[out] Will contain an error if there was one.
+     * @param song[out] The song object to parse the data into.
      */
-    static Song* ParseMusicXML(const std::string& data, std::string& error);
+    static void ParseMusicXML(const std::string& data, std::string& error, std::shared_ptr<Song> song);
 
 private:
 
@@ -47,8 +47,8 @@ private:
     static std::shared_ptr<BracketDirection> ParseBracketDirectionElement(XMLElement* element, float currentTimeInMeasure);
     static Direction ParseDirection(XMLElement* directionElement, bool& isNewDirection, float currentTimeInMeasure);
     static void ParseWorkElement(XMLElement* workElement, std::string& workTitle, int& workNumber);
-    static void ParseEncodingElement(XMLElement* encodingElement, Song* song);
-    static void ParseIdentificationElement(XMLElement* idElement, Song* song);
+    static void ParseEncodingElement(XMLElement* encodingElement, std::shared_ptr<Song> song);
+    static void ParseIdentificationElement(XMLElement* idElement, std::shared_ptr<Song> song);
     static MusicDisplayConstants ParseDefaultsElement(XMLElement* defaultsElement);
     static Credit ParseCreditElement(XMLElement* creditElement);
     static void ParseFrameElement(XMLElement* frameElement, Chord& chord);

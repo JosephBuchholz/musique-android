@@ -66,6 +66,8 @@ private:
     static void ParseGuitarTechnique(XMLElement* element, std::shared_ptr<GuitarTechnique> newTechnique);
     static void ParseBendElement(XMLElement* element, std::shared_ptr<Bend> newTechnique);
 
+    static NoteHead ParseNoteHeadElement(XMLElement* element);
+
 protected:
     static void AddError(std::string title, std::string desc, ErrorLevel errorLevel = ErrorLevel::Error) { m_Errors.emplace_back(title, desc, "BaseElementParser", errorLevel); }
     static void AddErrorIf(bool condition, std::string title, std::string desc, ErrorLevel errorLevel = ErrorLevel::Error) { if (condition) m_Errors.emplace_back(title, desc, "BaseElementParser", errorLevel); }

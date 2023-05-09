@@ -208,6 +208,8 @@ void Measure::CalculateAsPaged(const MusicDisplayConstants& displayConstants, Sy
     clef.CalculatePositionAsPaged(displayConstants, staffLines);
     keySignature.CalculatePositionAsPaged(displayConstants);
     timeSignature.CalculatePositionAsPaged(displayConstants);
+
+    measureNumber.CalculatePositionAsPaged(displayConstants, { 0.0f, -15.0f });
 }
 
 float Measure::MeausreClefWidth() const
@@ -246,6 +248,8 @@ void Measure::UpdateBoundingBoxes(const Vec2<float>& measurePosition)
     boundingBox.position = measurePosition;
     boundingBox.size.x = measureWidth;
     boundingBox.size.y = 40.0f;
+
+    measureNumber.UpdateBoundingBox(measurePosition);
 
     for (Note* note : notes)
     {

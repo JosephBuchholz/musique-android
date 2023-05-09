@@ -10,9 +10,8 @@ struct Vec2
 {
 public:
     Vec2() {}
-
-    Vec2(T x, T y)
-        : x(x), y(y) {}
+    Vec2(T x, T y) : x(x), y(y) {}
+    Vec2(const Vec2<T>& obj) : x(obj.x), y(obj.y) {}
 
 public:
 

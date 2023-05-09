@@ -21,6 +21,7 @@
 #include "../VisibleElement.h"
 #include "Articulations/Articulation.h"
 #include "Techniques/Technique.h"
+#include "NoteHead.h"
 
 /**
  * Class that represents a note, whether it is TAB or not.
@@ -89,6 +90,7 @@ public:
 
     std::vector<AugmentationDot> dots;
 
+    NoteHead noteHead = NoteHead();
     NoteStem noteStem = NoteStem();
 
     std::vector<NoteBeamData> beamData;

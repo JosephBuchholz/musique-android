@@ -5,8 +5,6 @@
 #ifndef MUSIQUE_TUPLET_H
 #define MUSIQUE_TUPLET_H
 
-#endif //MUSIQUE_TUPLET_H
-
 #include "../VisibleElement.h"
 #include "../../Collisions/Vec2.h"
 #include "../../MusicDisplayConstants.h"
@@ -58,3 +56,5 @@ public:
     Vec2<float> positionStart = { 0.0f, 0.0f };
     Vec2<float> positionEnd = { 0.0f, 0.0f };
 };
+
+#endif //MUSIQUE_TUPLET_H

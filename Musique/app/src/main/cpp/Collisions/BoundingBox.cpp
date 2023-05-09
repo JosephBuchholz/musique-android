@@ -113,6 +113,9 @@ Vec2<float> BoundingBox::ResolveOverlapStatically(BoundingBox& boundingBox) cons
 
     overlapOffset = boundingBox.position - oldBoundingBox.position;
 
+    //if (overlapOffset.x != 0 || overlapOffset.y != 0)
+    //    LOGE("overlap offset: %s", overlapOffset.GetPrintableString().c_str());
+
     return overlapOffset;
 }
 
