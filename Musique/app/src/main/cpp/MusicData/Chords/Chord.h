@@ -3,7 +3,7 @@
 
 #include <vector>
 
-#include "../TextualElement.h"
+#include "../BaseElements/TextualElement.h"
 #include "../String.h"
 #include "../Pitch.h"
 #include "ChordDegree.h"

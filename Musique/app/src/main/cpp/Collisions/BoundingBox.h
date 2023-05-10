@@ -42,6 +42,13 @@ public:
      */
     Vec2<float> ResolveOverlapStatically(BoundingBox& boundingBox) const;
 
+    /**
+     * Adds the given amount of padding to the outside edges.
+     *
+     * @param padding The amount of padding.
+     */
+    void AddPadding(float padding);
+
     void Render(RenderData& renderData, const int& color = 0xFFFF00FF) const;
 
     std::string GetPrintableString() const { return "position: " + position.GetPrintableString() + " | size: " + size.GetPrintableString(); }

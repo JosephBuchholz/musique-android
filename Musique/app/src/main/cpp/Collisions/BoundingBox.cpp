@@ -119,6 +119,14 @@ Vec2<float> BoundingBox::ResolveOverlapStatically(BoundingBox& boundingBox) cons
     return overlapOffset;
 }
 
+void BoundingBox::AddPadding(float padding)
+{
+    position.x -= padding;
+    position.y -= padding;
+    size.x += padding * 2.0f;
+    size.y += padding * 2.0f;
+}
+
 void BoundingBox::Render(RenderData& renderData, const int& color) const
 {
     Paint paint = Paint();

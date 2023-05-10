@@ -5,7 +5,7 @@
 #ifndef MUSIQUE_TIE_H
 #define MUSIQUE_TIE_H
 
-#include "../VisibleElement.h"
+#include "../BaseElements/VisibleElement.h"
 #include "Note.h"
 #include "../Types.h"
 

@@ -320,6 +320,17 @@ class MusicDisplayFragment : Fragment(), PrintHandler.Callbacks, SettingsDialogF
         }
     }
 
+    fun getGlyphBoundingBox(glyph: SMuFLGlyph): RectF {
+        if (musicDisplayView != null) {
+            return musicDisplayView!!.getGlyphBoundingBox(glyph)
+        }
+        else
+        {
+            Log.w(TAG, "musicDisplayView is null")
+            return RectF()
+        }
+    }
+
     fun measureText(text: Text): RectF {
         if (musicDisplayView != null) {
             return musicDisplayView!!.measureText(text)

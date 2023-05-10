@@ -1370,8 +1370,19 @@ void Song::UpdateBoundingBoxes(const std::vector<Vec2<float>>& pagePositions, co
 
                     float measurePositionX = GetMeasurePositionX(measureIndex);
 
+                    float measureHeight;
+
+                    if (staff->type == Staff::StaffType::Standard)
+                    {
+                        measureHeight = float(staff->lines - 1) * displayConstants.lineSpacing;
+                    }
+                    else
+                    {
+                        measureHeight = float(staff->lines - 1) * displayConstants.tabLineSpacing;
+                    }
+
                     //LOGW("measurePositionX: %f", measurePositionX);
-                    measure->UpdateBoundingBoxes({measurePositionX + systemPosition.x + pagePosition.x, instPositionY + staffPositionY }); // this line crashes
+                    measure->UpdateBoundingBoxes({measurePositionX + systemPosition.x + pagePosition.x, instPositionY + staffPositionY }, measureHeight); // this line crashes
                 }
 
                 measureIndex++;
@@ -1391,95 +1402,7 @@ void Song::RenderBoundingBoxes(RenderData& renderData, const std::vector<Vec2<fl
             int measureIndex = 0;
             for (auto* measure : staff->measures) {
 
-                measure->boundingBox.Render(renderData, (int)0x66FF0000);
-
-                for (auto* note : measure->notes)
-                {
-                    note->boundingBox.Render(renderData, (int)0x660000FF);
-
-                    for (auto& lyric : note->lyrics)
-                    {
-#if DEBUG_BOUNDING_BOXES
-                        lyric.debugBoundingBox.Render(renderData, (int)0xFF00FF00);
-#endif
-
-                        lyric.boundingBox.Render(renderData);
-                    }
-                }
-
-                for (Direction& direction : measure->directions) {
-
-                    for (auto& words : direction.words)
-                    {
-#if DEBUG_BOUNDING_BOXES
-                        words.debugBoundingBox.Render(renderData, (int)0xFF00FF00);
-#endif
-
-                        words.boundingBox.Render(renderData);
-                    }
-
-                    for (auto& rehearsal : direction.rehearsals)
-                    {
-#if DEBUG_BOUNDING_BOXES
-                        rehearsal.debugBoundingBox.Render(renderData, (int)0xFF00FF00);
-#endif
-
-                        rehearsal.boundingBox.Render(renderData);
-                    }
-
-                    for (auto& dynamic : direction.dynamics)
-                    {
-#if DEBUG_BOUNDING_BOXES
-                        dynamic.debugBoundingBox.Render(renderData, (int)0xFF00FF00);
-#endif
-
-                        dynamic.boundingBox.Render(renderData);
-                    }
-
-                    if (direction.dynamicWedge != nullptr)
-                    {
-#if DEBUG_BOUNDING_BOXES
-                        direction.dynamicWedge->debugBoundingBox.Render(renderData, (int)0xFF00FF00);
-#endif
-
-                        direction.dynamicWedge->boundingBox.Render(renderData);
-                    }
-
-                    if (direction.bracketDirection != nullptr)
-                    {
-#if DEBUG_BOUNDING_BOXES
-                        direction.bracketDirection->debugBoundingBox.Render(renderData, (int)0xFF00FF00);
-#endif
-
-                        direction.bracketDirection->boundingBox.Render(renderData);
-                    }
-
-                    if (direction.metronomeMark != nullptr)
-                    {
-#if DEBUG_BOUNDING_BOXES
-                        direction.metronomeMark->debugBoundingBox.Render(renderData, (int)0xFF00FF00);
-#endif
-                        direction.metronomeMark->boundingBox.Render(renderData);
-                    }
-
-                }
-
-                for (Chord& chord : measure->chords)
-                {
-#if DEBUG_BOUNDING_BOXES
-                    chord.debugBoundingBox.Render(renderData, (int)0xFF00FF00);
-#endif
-
-                    chord.boundingBox.Render(renderData);
-
-                    /*if (chord.chordDiagram)
-                    {
-#if DEBUG_BOUNDING_BOXES
-                        chord.chordDiagram->debugBoundingBox.Render(renderData, (int)0xFF00FF00);
-#endif
-                        chord.chordDiagram->boundingBox.Render(renderData);
-                    }*/
-                }
+                measure->RenderDebug(renderData);
 
                 measureIndex++;
             }
@@ -1491,16 +1414,30 @@ void Song::ResolveCollisions()
 {
     for (auto* instrument : instruments) {
         for (auto* staff : instrument->staves) {
+
             int measureIndex = 0;
+            int pageIndex = -1;
             for (auto* measure : staff->measures) {
+
+                if (DoesMeasureStartNewPage(measureIndex))
+                    pageIndex++;
+
+                LOGW("pageIndex: %d, measureIndex: %d", pageIndex, measureIndex);
+
+                ResolveCollisionsWith(measure->boundingBox, pageIndex);
+                ResolveCollisionsWith(measure->measureNumber.boundingBox, pageIndex);
+                ResolveCollisionsWith(measure->clef.boundingBox, pageIndex);
 
                 for (auto* note : measure->notes)
                 {
-                    ResolveCollisionsWith(note->boundingBox);
+                    ResolveCollisionsWith(note->boundingBox, pageIndex);
+
+                    if (note->fermata)
+                        ResolveCollisionsWith(note->fermata->boundingBox, pageIndex);
 
                     for (auto& lyric : note->lyrics)
                     {
-                        ResolveCollisionsWith(lyric.boundingBox);
+                        ResolveCollisionsWith(lyric.boundingBox, pageIndex);
                     }
                 }
 
@@ -1508,38 +1445,38 @@ void Song::ResolveCollisions()
 
                     for (auto& words : direction.words)
                     {
-                        ResolveCollisionsWith(words.boundingBox);
+                        ResolveCollisionsWith(words.boundingBox, pageIndex);
                     }
 
                     for (auto& rehearsal : direction.rehearsals)
                     {
-                        ResolveCollisionsWith(rehearsal.boundingBox);
+                        ResolveCollisionsWith(rehearsal.boundingBox, pageIndex);
                     }
 
                     for (auto& dynamic : direction.dynamics)
                     {
-                        ResolveCollisionsWith(dynamic.boundingBox);
+                        ResolveCollisionsWith(dynamic.boundingBox, pageIndex);
                     }
 
                     if (direction.dynamicWedge != nullptr)
                     {
-                        ResolveCollisionsWith(direction.dynamicWedge->boundingBox);
+                        ResolveCollisionsWith(direction.dynamicWedge->boundingBox, pageIndex);
                     }
 
                     if (direction.bracketDirection != nullptr)
                     {
-                        ResolveCollisionsWith(direction.bracketDirection->boundingBox);
+                        ResolveCollisionsWith(direction.bracketDirection->boundingBox, pageIndex);
                     }
 
                     if (direction.metronomeMark != nullptr)
                     {
-                        ResolveCollisionsWith(direction.metronomeMark->boundingBox);
+                        ResolveCollisionsWith(direction.metronomeMark->boundingBox, pageIndex);
                     }
                 }
 
                 for (Chord& chord : measure->chords)
                 {
-                    ResolveCollisionsWith(chord.boundingBox);
+                    ResolveCollisionsWith(chord.boundingBox, pageIndex);
                 }
 
                 measureIndex++;
@@ -1548,92 +1485,95 @@ void Song::ResolveCollisions()
     }
 }
 
-void Song::ResolveCollisionsWith(const BoundingBox& box)
+void Song::ResolveCollisionsWith(const BoundingBox& box, int pageIndex)
 {
     for (auto* instrument : instruments) {
         for (auto* staff : instrument->staves) {
             int measureIndex = 0;
             for (auto* measure : staff->measures) {
 
-                for (auto* note : measure->notes)
+                if (GetPageIndex(measureIndex) == pageIndex)
                 {
-                    /*Vec2<float> offset = box.ResolveOverlapStatically(note->boundingBox);
-
-                    note->positionX += offset.x;
-                    note->positionY += offset.y;*/
-
-                    for (auto& lyric : note->lyrics)
+                    for (auto* note : measure->notes)
                     {
-                        Vec2<float> offset = box.ResolveOverlapStatically(lyric.boundingBox);
+                        /*Vec2<float> offset = box.ResolveOverlapStatically(note->boundingBox);
 
-                        lyric.positionX += offset.x;
-                        lyric.positionY += offset.y;
-                    }
-                }
+                        note->positionX += offset.x;
+                        note->positionY += offset.y;*/
 
-                for (Direction& direction : measure->directions) {
+                        for (auto& lyric : note->lyrics)
+                        {
+                            Vec2<float> offset = box.ResolveOverlapStatically(lyric.boundingBox);
 
-                    for (auto& words : direction.words)
-                    {
-                        Vec2<float> offset = box.ResolveOverlapStatically(words.boundingBox);
-
-                        words.positionX += offset.x;
-                        words.positionY += offset.y;
+                            lyric.positionX += offset.x;
+                            lyric.positionY += offset.y;
+                        }
                     }
 
-                    for (auto& rehearsal : direction.rehearsals)
-                    {
-                        Vec2<float> offset = box.ResolveOverlapStatically(rehearsal.boundingBox);
+                    for (Direction& direction : measure->directions) {
+
+                        for (auto& words : direction.words)
+                        {
+                            Vec2<float> offset = box.ResolveOverlapStatically(words.boundingBox);
+
+                            words.positionX += offset.x;
+                            words.positionY += offset.y;
+                        }
+
+                        for (auto& rehearsal : direction.rehearsals)
+                        {
+                            Vec2<float> offset = box.ResolveOverlapStatically(rehearsal.boundingBox);
 
 
-                        /*if (offset.x != 0 || offset.y != 0)
-                            LOGD("overlap offset: %s", offset.GetPrintableString().c_str());
-                        LOGW("rehearsal posX: %f, posY: %f | offset: %s", rehearsal.positionX, rehearsal.positionY, offset.GetPrintableString().c_str());*/
+                            /*if (offset.x != 0 || offset.y != 0)
+                                LOGD("overlap offset: %s", offset.GetPrintableString().c_str());
+                            LOGW("rehearsal posX: %f, posY: %f | offset: %s", rehearsal.positionX, rehearsal.positionY, offset.GetPrintableString().c_str());*/
 
-                        rehearsal.positionX += offset.x;
-                        rehearsal.positionY += offset.y;
+                            rehearsal.positionX += offset.x;
+                            rehearsal.positionY += offset.y;
 
-                        //LOGW("rehearsal posX: %f, posY: %f | offset: %s", rehearsal.positionX, rehearsal.positionY, offset.GetPrintableString().c_str());
+                            //LOGW("rehearsal posX: %f, posY: %f | offset: %s", rehearsal.positionX, rehearsal.positionY, offset.GetPrintableString().c_str());
+                        }
+
+                        for (auto& dynamic : direction.dynamics)
+                        {
+                            Vec2<float> offset = box.ResolveOverlapStatically(dynamic.boundingBox);
+
+                            dynamic.position += offset;
+                        }
+
+                        if (direction.dynamicWedge != nullptr)
+                        {
+                            Vec2<float> offset = box.ResolveOverlapStatically(direction.dynamicWedge->boundingBox);
+
+                            direction.dynamicWedge->positionStart += offset;
+                            direction.dynamicWedge->positionEnd += offset;
+                        }
+
+                        if (direction.bracketDirection != nullptr)
+                        {
+                            Vec2<float> offset = box.ResolveOverlapStatically(direction.bracketDirection->boundingBox);
+
+                            direction.bracketDirection->positionStart += offset;
+                            direction.bracketDirection->positionEnd += offset;
+                        }
+
+                        if (direction.metronomeMark != nullptr)
+                        {
+                            Vec2<float> offset = box.ResolveOverlapStatically(direction.metronomeMark->boundingBox);
+
+                            direction.metronomeMark->positionX += offset.x;
+                            direction.metronomeMark->positionY += offset.y;
+                        }
                     }
 
-                    for (auto& dynamic : direction.dynamics)
+                    for (Chord& chord : measure->chords)
                     {
-                        Vec2<float> offset = box.ResolveOverlapStatically(dynamic.boundingBox);
+                        Vec2<float> offset = box.ResolveOverlapStatically(chord.boundingBox);
 
-                        dynamic.position += offset;
+                        chord.positionX += offset.x;
+                        chord.positionY += offset.y;
                     }
-
-                    if (direction.dynamicWedge != nullptr)
-                    {
-                        Vec2<float> offset = box.ResolveOverlapStatically(direction.dynamicWedge->boundingBox);
-
-                        direction.dynamicWedge->positionStart += offset;
-                        direction.dynamicWedge->positionEnd += offset;
-                    }
-
-                    if (direction.bracketDirection != nullptr)
-                    {
-                        Vec2<float> offset = box.ResolveOverlapStatically(direction.bracketDirection->boundingBox);
-
-                        direction.bracketDirection->positionStart += offset;
-                        direction.bracketDirection->positionEnd += offset;
-                    }
-
-                    if (direction.metronomeMark != nullptr)
-                    {
-                        Vec2<float> offset = box.ResolveOverlapStatically(direction.metronomeMark->boundingBox);
-
-                        direction.metronomeMark->positionX += offset.x;
-                        direction.metronomeMark->positionY += offset.y;
-                    }
-                }
-
-                for (Chord& chord : measure->chords)
-                {
-                    Vec2<float> offset = box.ResolveOverlapStatically(chord.boundingBox);
-
-                    chord.positionX += offset.x;
-                    chord.positionY += offset.y;
                 }
 
                 measureIndex++;

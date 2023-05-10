@@ -1430,8 +1430,6 @@ void MusicXMLParser::ParseMusicXML(const std::string& data, std::string& error, 
                                                 currentMeasures[staffNumber-1]->clef.line = ToInt(line->GetText());
 
                                             currentMeasures[staffNumber-1]->clef.octaveChange = XMLHelper::GetIntValue("", clefElement, currentMeasures[staffNumber-1]->clef.octaveChange);
-
-                                            currentMeasures[staffNumber-1]->showClef = true;
                                         }
                                         else // no more clefs
                                         {
@@ -1455,6 +1453,7 @@ void MusicXMLParser::ParseMusicXML(const std::string& data, std::string& error, 
                                         else if (m->clef != previousMeasures[i]->clef)
                                         {
                                             m->clef.clefChanged = true;
+                                            m->clef.showClef = true;
                                         }
                                     }
 

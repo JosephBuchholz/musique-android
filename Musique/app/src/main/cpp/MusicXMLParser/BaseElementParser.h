@@ -6,14 +6,16 @@
 #define MUSIQUE_BASEELEMENTPARSER_H
 
 #include <string>
+#include <memory>
+
 #include "../libs/tinyxml2/tinyxml2.h"
 #include "ParseError.h"
 
-#include "../MusicData/BaseElement.h"
-#include "../MusicData/PrintableElement.h"
-#include "../MusicData/VisibleElement.h"
-#include "../MusicData/TextualElement.h"
-#include "../MusicData/LineElement.h"
+#include "../MusicData/BaseElements/BaseElement.h"
+#include "../MusicData/BaseElements/PrintableElement.h"
+#include "../MusicData/BaseElements/VisibleElement.h"
+#include "../MusicData/BaseElements/TextualElement.h"
+#include "../MusicData/BaseElements/LineElement.h"
 
 using namespace tinyxml2;
 
@@ -23,6 +25,12 @@ using namespace tinyxml2;
 class BaseElementParser
 {
 public:
+
+    static void ParseBaseElement(XMLElement* element, std::shared_ptr<BaseElement> newElement);
+    static void ParsePrintableElement(XMLElement* element, std::shared_ptr<PrintableElement> newElement);
+    static void ParseVisibleElement(XMLElement* element, std::shared_ptr<VisibleElement> newElement);
+    static void ParseTextualElement(XMLElement* element, std::shared_ptr<TextualElement> newElement);
+    static void ParseLineElement(XMLElement* element, std::shared_ptr<LineElement> newElement);
 
     static void ParseBaseElement(XMLElement* element, BaseElement& newElement);
     static void ParsePrintableElement(XMLElement* element, PrintableElement& newElement);

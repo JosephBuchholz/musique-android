@@ -214,7 +214,7 @@ private:
 
     void AddTimeSpacePoint(TimeSpacePoint point);
 
-    void ResolveCollisionsWith(const BoundingBox& box);
+    void ResolveCollisionsWith(const BoundingBox& box, int pageIndex);
 
 public:
 

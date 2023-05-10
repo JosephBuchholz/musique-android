@@ -1,7 +1,7 @@
 #ifndef MUSIQUE_CHORDDEGREE_H
 #define MUSIQUE_CHORDDEGREE_H
 
-#include "../PrintableElement.h"
+#include "../BaseElements/PrintableElement.h"
 #include "../String.h"
 #include "../Pitch.h"
 #include "../Types.h"

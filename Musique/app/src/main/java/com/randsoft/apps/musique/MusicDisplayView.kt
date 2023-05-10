@@ -201,6 +201,28 @@ class MusicDisplayView(context: Context, attrs: AttributeSet? = null): View(cont
         return width
     }
 
+    fun getGlyphBoundingBox(glyph: SMuFLGlyph): RectF {
+        // create paint
+        val paint = Paint().apply {
+            color = glyph.paint.color
+            typeface = musicTypeface
+        }
+
+        paint.textSize = 40.0f * scale // text size equals the standard staff height (according to SMuFL specification)
+
+        val rect = Rect()
+        paint.getTextBounds(Character.toChars(glyph.codePoint), 0, 1, rect)
+
+        val rectF = RectF()
+        rectF.top = rect.top / scale
+        rectF.bottom = rect.bottom / scale
+        rectF.right = rect.right / scale
+        rectF.left = rect.left / scale
+
+        return rectF
+    }
+
+
     fun measureText(text: Text): RectF
     {
         // START OF ERROR

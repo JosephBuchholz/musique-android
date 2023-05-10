@@ -38,7 +38,7 @@ float Measure::GetBeginningWidth() const {
         width += 20.0f;
     }
 
-    if (showClef)
+    if (clef.showClef)
     {
         width += 17.0f;
         width += 20.0f;
@@ -104,7 +104,7 @@ float Measure::GetKeySignaturePositionInMeasure(const System& system, float clef
 
     float clefWidth;
 
-    if ((showClef || (system.showBeginningClef && isBeginningMeasure)) && !clef.clefChanged) // showing the clef
+    if ((clef.showClef || (system.showBeginningClef && isBeginningMeasure)) && !clef.clefChanged) // showing the clef
         clefWidth = MeausreClefWidth();
     else // not showing the clef
         clefWidth = 0.0f;
@@ -134,6 +134,93 @@ float Measure::GetClefPositionInMeasure(const System& system) const {
     float position = 5.0f;
 
     return position;
+}
+
+void Measure::RenderDebug(RenderData& renderData) const
+{
+    boundingBox.Render(renderData, (int)0x66FF0000);
+    measureNumber.boundingBox.Render(renderData, (int)0x66FF0000);
+
+    clef.boundingBox.Render(renderData, (int)0x66FF0000);
+
+    for (auto* note : notes)
+    {
+        note->RenderDebug(renderData);
+    }
+
+    for (const Direction& direction : directions) {
+
+        for (auto& words : direction.words)
+        {
+#if DEBUG_BOUNDING_BOXES
+            words.debugBoundingBox.Render(renderData, (int)0xFF00FF00);
+#endif
+
+            words.boundingBox.Render(renderData);
+        }
+
+        for (auto& rehearsal : direction.rehearsals)
+        {
+#if DEBUG_BOUNDING_BOXES
+            rehearsal.debugBoundingBox.Render(renderData, (int)0xFF00FF00);
+#endif
+
+            rehearsal.boundingBox.Render(renderData);
+        }
+
+        for (auto& dynamic : direction.dynamics)
+        {
+#if DEBUG_BOUNDING_BOXES
+            dynamic.debugBoundingBox.Render(renderData, (int)0xFF00FF00);
+#endif
+
+            dynamic.boundingBox.Render(renderData);
+        }
+
+        if (direction.dynamicWedge != nullptr)
+        {
+#if DEBUG_BOUNDING_BOXES
+            direction.dynamicWedge->debugBoundingBox.Render(renderData, (int)0xFF00FF00);
+#endif
+
+            direction.dynamicWedge->boundingBox.Render(renderData);
+        }
+
+        if (direction.bracketDirection != nullptr)
+        {
+#if DEBUG_BOUNDING_BOXES
+            direction.bracketDirection->debugBoundingBox.Render(renderData, (int)0xFF00FF00);
+#endif
+
+            direction.bracketDirection->boundingBox.Render(renderData);
+        }
+
+        if (direction.metronomeMark != nullptr)
+        {
+#if DEBUG_BOUNDING_BOXES
+            direction.metronomeMark->debugBoundingBox.Render(renderData, (int)0xFF00FF00);
+#endif
+            direction.metronomeMark->boundingBox.Render(renderData);
+        }
+
+    }
+
+    for (const Chord& chord : chords)
+    {
+#if DEBUG_BOUNDING_BOXES
+        chord.debugBoundingBox.Render(renderData, (int)0xFF00FF00);
+#endif
+
+        chord.boundingBox.Render(renderData);
+
+        /*if (chord.chordDiagram)
+        {
+#if DEBUG_BOUNDING_BOXES
+            chord.chordDiagram->debugBoundingBox.Render(renderData, (int)0xFF00FF00);
+#endif
+            chord.chordDiagram->boundingBox.Render(renderData);
+        }*/
+    }
 }
 
 float Measure::GetPitchYPosition(Pitch pitch) const {
@@ -243,13 +330,14 @@ float Measure::GetRepeatBarlinePositionX() const
     return GetBeginningWidth();
 }
 
-void Measure::UpdateBoundingBoxes(const Vec2<float>& measurePosition)
+void Measure::UpdateBoundingBoxes(const Vec2<float>& measurePosition, float measureHeight)
 {
     boundingBox.position = measurePosition;
     boundingBox.size.x = measureWidth;
-    boundingBox.size.y = 40.0f;
+    boundingBox.size.y = measureHeight;
 
     measureNumber.UpdateBoundingBox(measurePosition);
+    clef.UpdateBoundingBox(measurePosition, 5, true);
 
     for (Note* note : notes)
     {

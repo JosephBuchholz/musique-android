@@ -68,6 +68,8 @@ private:
 
     static NoteHead ParseNoteHeadElement(XMLElement* element);
 
+    static void ParseFermataElement(XMLElement* element, std::shared_ptr<Fermata> fermata);
+
 protected:
     static void AddError(std::string title, std::string desc, ErrorLevel errorLevel = ErrorLevel::Error) { m_Errors.emplace_back(title, desc, "BaseElementParser", errorLevel); }
     static void AddErrorIf(bool condition, std::string title, std::string desc, ErrorLevel errorLevel = ErrorLevel::Error) { if (condition) m_Errors.emplace_back(title, desc, "BaseElementParser", errorLevel); }

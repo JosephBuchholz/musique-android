@@ -17,9 +17,10 @@ void DynamicWedge::Render(RenderData& renderData, float measurePositionX, float 
 {
     //LOGE("Rendering dynamic wedge: sPos.x: %f | sPos.y: %f | ePos.x: %f | ePos.y: %f", positionStart.x, positionStart.y, positionEnd.x, positionEnd.y);
 
-    Paint paint = Paint(color.color);
+    Paint paint;
 
-    ModifyPaint(paint);
+    VisibleElement::ModifyPaint(paint);
+    LineElement::ModifyPaint(paint);
 
     if (type == WedgeType::Crescendo)
     {

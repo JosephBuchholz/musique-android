@@ -5,7 +5,7 @@
 #ifndef MUSIQUE_TIMESIGNATURE_H
 #define MUSIQUE_TIMESIGNATURE_H
 
-#include "../VisibleElement.h"
+#include "../BaseElements/VisibleElement.h"
 #include "../../RenderData/RenderData.h"
 #include "../../Collisions/Vec2.h"
 

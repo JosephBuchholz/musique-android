@@ -1,7 +1,7 @@
 #ifndef MUSIQUE_CREDIT_H
 #define MUSIQUE_CREDIT_H
 
-#include "../TextualElement.h"
+#include "../BaseElements/TextualElement.h"
 
 #include "../../Collisions/Vec2.h"
 

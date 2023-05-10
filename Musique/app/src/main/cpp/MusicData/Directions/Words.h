@@ -5,7 +5,7 @@
 #ifndef MUSIQUE_WORDS_H
 #define MUSIQUE_WORDS_H
 
-#include "../TextualElement.h"
+#include "../BaseElements/TextualElement.h"
 #include "../Types.h"
 #include "../String.h"
 #include "../../MusicDisplayConstants.h"

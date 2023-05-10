@@ -10,7 +10,7 @@
 #include "../Text.h"
 #include "../Types.h"
 
-#include "../TextualElement.h"
+#include "../BaseElements/TextualElement.h"
 #include "../../MusicDisplayConstants.h"
 
 #include "../../RenderData/RenderData.h"

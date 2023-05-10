@@ -47,24 +47,28 @@ public:
     Vec2<T>& operator+=(const Vec2<T>& rhs)
     {
         this->x = this->x + rhs.x;
+        this->y = this->y + rhs.y;
         return *this;
     }
 
     Vec2<T>& operator-=(const Vec2<T>& rhs)
     {
         this->x = this->x - rhs.x;
+        this->y = this->y - rhs.y;
         return *this;
     }
 
     Vec2<T>& operator*=(const Vec2<T>& rhs)
     {
         this->x = this->x * rhs.x;
+        this->y = this->y * rhs.y;
         return *this;
     }
 
     Vec2<T>& operator/=(const Vec2<T>& rhs)
     {
         this->x = this->x / rhs.x;
+        this->y = this->y / rhs.y;
         return *this;
     }
 

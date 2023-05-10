@@ -15,7 +15,7 @@
 #include "../Chords/Chord.h"
 #include "Barline.h"
 #include "../Notes/BeamGroup.h"
-#include "../VisibleElement.h"
+#include "../BaseElements/VisibleElement.h"
 #include "Tuplet.h"
 #include "MeasureNumber.h"
 
@@ -32,6 +32,7 @@ class Measure : public VisibleElement
 
 public:
 
+
     float GetMiddleHeight(float staffLineCount, float lineSpacing);
     float GetAboveHeight(float staffLineCount, float lineSpacing);
     float GetBelowHeight(float staffLineCount, float lineSpacing);
@@ -45,6 +46,13 @@ public:
     float GetKeySignaturePositionInMeasure(const System& system, float clefPositionX) const;
     float GetTimeSignaturePositionInMeasure(const System& system, float keySignaturePositionX) const;
     float GetClefPositionInMeasure(const System& system) const;
+
+    /**
+     * Renders any debug info.
+     *
+     * @param renderData The RenderData object to render to.
+     */
+    void RenderDebug(RenderData& renderData) const;
 
     /**
      * The x position at which a repeat barline at the beginning of the measure would be
@@ -67,7 +75,7 @@ public:
         duration.duration = timeSignature.notes * (4.0f / timeSignature.noteType); // duration in beats(quarter notes)
     }
 
-    void UpdateBoundingBoxes(const Vec2<float>& measurePosition);
+    void UpdateBoundingBoxes(const Vec2<float>& measurePosition, float measureHeight);
 
     /*void CopyData(Measure* measure) // copies all data from measure except any notes that don't equal this measure's 'staff' and the 'staff' variable itself
     {
@@ -115,7 +123,6 @@ public:
     bool showKeySignature = false;
 
     Clef clef = Clef();
-    bool showClef = false;
 
     int staff = 1; // the staff that this measure belongs to
 

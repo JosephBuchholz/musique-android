@@ -1,25 +1,26 @@
 #include "Dynamic.h"
 
+#include "../../RenderMeasurement.h"
+
 void Dynamic::UpdateBoundingBox(const Vec2<float>& parentPosition)
 {
-    Paint paint = Paint();
+    Paint paint;
+    TextualElement::ModifyPaint(paint);
 
-    if (fontStyle == FontStyle::Italic)
-        paint.isItalic = true;
-    if (fontWeight == FontWeight::Bold)
-        paint.isBold = true;
-    paint.textSize = fontSize.size;
+    BoundingBox bb = RenderMeasurement::GetGlyphBoundingBox(SMuFLGlyph(GetDynamicSMuFLID(), 0.0f, 0.0f, paint));
 
-    BoundingBox bb = BoundingBox();
+    /*BoundingBox bb = BoundingBox();
     bb.position.x = 0.0f;
     bb.position.y = -paint.textSize;
     bb.size.x = 25.0f;
-    bb.size.y = 25.0f;
+    bb.size.y = 25.0f;*/
 
     boundingBox.position.x = bb.position.x + position.x + parentPosition.x;
     boundingBox.position.y = bb.position.y + position.y + parentPosition.y;
     boundingBox.size.x = bb.size.x;
     boundingBox.size.y = bb.size.y;
+
+    boundingBox.AddPadding(5.0f);
 
 #if DEBUG_BOUNDING_BOXES
     debugBoundingBox = boundingBox;
@@ -28,7 +29,9 @@ void Dynamic::UpdateBoundingBox(const Vec2<float>& parentPosition)
 
 void Dynamic::Render(RenderData& renderData, float measurePositionX, float measurePositionY, float offsetX, float offsetY) const
 {
-    renderData.AddGlyph(SMuFLGlyph(GetDynamicSMuFLID(), position.x + measurePositionX + offsetX, position.y + measurePositionY + offsetY, Paint()));
+    Paint paint;
+    TextualElement::ModifyPaint(paint);
+    renderData.AddGlyph(SMuFLGlyph(GetDynamicSMuFLID(), position.x + measurePositionX + offsetX, position.y + measurePositionY + offsetY, paint));
 }
 
 SMuFLID Dynamic::GetDynamicSMuFLID() const

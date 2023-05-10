@@ -6,8 +6,8 @@
 #define MUSIQUE_LINEELEMENT_H
 
 #include "BaseElement.h"
-#include "Types.h"
-#include "../RenderData/Paint.h"
+#include "../Types.h"
+#include "../../RenderData/Paint.h"
 
 /**
  * This class represents a element that is (or has) a line (or multiple lines).
@@ -22,7 +22,7 @@ public:
         : lineType(lineType), dashLength(dashLength), dashSpaceLength(dashSpaceLength) {}
 
     /**
-     * Updates the given paint to match the line attributes of this class.
+     * Updates the given paint to match the attributes of this class.
      *
      * @param[out] paint The paint object to be modified.
      */

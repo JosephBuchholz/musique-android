@@ -325,6 +325,14 @@ class MainActivity : AppCompatActivity(), MusicDisplayFragment.Callbacks,
         return 0.0f
     }
 
+    private fun getGlyphBoundingBox(glyph: SMuFLGlyph): RectF {
+        if (musicDisplayFragment != null) {
+            return musicDisplayFragment!!.getGlyphBoundingBox(glyph)
+        }
+
+        return RectF()
+    }
+
     private fun measureText(text: Text): RectF {
         if (musicDisplayFragment != null) {
             return musicDisplayFragment!!.measureText(text)

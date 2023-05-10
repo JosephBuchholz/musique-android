@@ -5,6 +5,8 @@
 #include "BaseElementParser.h"
 #include "../Utils/Converters.h"
 
+#include "../Exceptions/Exceptions.h"
+
 #include <unordered_map>
 
 static std::unordered_map<int, std::shared_ptr<Tuplet>> currentTuplets;
@@ -320,6 +322,12 @@ void NoteElementParser::ParseNoteElement(XMLElement* noteElement, float& current
                             currentTuplets.erase(number);
                         }
                     }
+                }
+                else if (strcmp(value, "fermata") == 0) // fermatas
+                {
+                    std::shared_ptr<Fermata> fermata = std::make_shared<Fermata>();
+                    ParseFermataElement(element, fermata);
+                    currentNote->fermata = fermata;
                 }
             }
             else
@@ -766,4 +774,42 @@ NoteHead NoteElementParser::ParseNoteHeadElement(XMLElement* element)
     }
 
     return noteHead;
+}
+
+void NoteElementParser::ParseFermataElement(XMLElement* element, std::shared_ptr<Fermata> fermata)
+{
+    if (!fermata)
+        throw IsNullException();
+
+    BaseElementParser::ParseVisibleElement(element, fermata);
+
+    std::string fermataShapeString = XMLHelper::GetStringValue(element, "");
+
+    if (fermataShapeString.empty() || fermataShapeString == "normal")
+        fermata->shape = Fermata::Shape::Normal;
+    else if (fermataShapeString == "angled")
+        fermata->shape = Fermata::Shape::Angled;
+    else if (fermataShapeString == "square")
+        fermata->shape = Fermata::Shape::Square;
+    else if (fermataShapeString == "double-angled")
+        fermata->shape = Fermata::Shape::DoubleAngled;
+    else if (fermataShapeString == "double-square")
+        fermata->shape = Fermata::Shape::DoubleSquare;
+    else if (fermataShapeString == "double-dot")
+        fermata->shape = Fermata::Shape::DoubleDot;
+    else if (fermataShapeString == "half-curve")
+        fermata->shape = Fermata::Shape::HalfCurve;
+    else if (fermataShapeString == "curlew")
+        fermata->shape = Fermata::Shape::Curlew;
+    else
+        fermata->shape = Fermata::Shape::None;
+
+    std::string fermataDirectionString = XMLHelper::GetStringAttribute(element, "type", "upright");
+
+    if (fermataDirectionString == "upright")
+        fermata->direction = Fermata::Direction::Upright;
+    else if (fermataDirectionString == "inverted")
+        fermata->direction = Fermata::Direction::Inverted;
+    else
+        fermata->direction = Fermata::Direction::None;
 }

@@ -18,6 +18,7 @@ public:
     static float MeasureGlyph(const SMuFLGlyph& glyph);
     static float MeasureGlyph(SMuFLID codePoint);
     static BoundingBox GetTextBoundingBox(const Text& text);
+    static BoundingBox GetGlyphBoundingBox(const SMuFLGlyph& glyph);
     static float MeasureSpannableText(const SpannableText& text);
 };
 

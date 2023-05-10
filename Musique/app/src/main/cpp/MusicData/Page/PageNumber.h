@@ -5,7 +5,7 @@
 #ifndef MUSIQUE_PAGENUMBER_H
 #define MUSIQUE_PAGENUMBER_H
 
-#include "../NumberElement.h"
+#include "../BaseElements/NumberElement.h"
 #include "../../Collisions/Vec2.h"
 #include "../../MusicDisplayConstants.h"
 #include "../../RenderData/RenderData.h"

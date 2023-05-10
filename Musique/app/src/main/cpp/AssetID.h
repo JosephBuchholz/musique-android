@@ -2,7 +2,7 @@
 #define MUSIQUE_ASSETID_H
 
 #include "MusicData/Types.h"
-#include "MusicData/Measures/Clef.h"
+//#include "MusicData/Measures/Clef.h"
 #include "MusicData/Notes/Accidental.h"
 
 enum class AssetID {

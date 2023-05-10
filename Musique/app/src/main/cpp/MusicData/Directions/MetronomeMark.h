@@ -5,7 +5,7 @@
 #ifndef MUSIQUE_METRONOMEMARK_H
 #define MUSIQUE_METRONOMEMARK_H
 
-#include "../TextualElement.h"
+#include "../BaseElements/TextualElement.h"
 #include "../Types.h"
 #include "MetronomeNote.h"
 #include "../../MusicDisplayConstants.h"

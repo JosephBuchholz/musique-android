@@ -14,9 +14,10 @@ void BracketDirection::UpdateBoundingBox(const Vec2<float>& parentPosition)
 
 void BracketDirection::Render(RenderData& renderData, Vec2<float> measurePosition, Vec2<float> offset) const
 {
-    Paint paint = Paint(color.color);
+    Paint paint;
 
-    ModifyPaint(paint);
+    VisibleElement::ModifyPaint(paint);
+    LineElement::ModifyPaint(paint);
 
     //LOGE("Rendering dashes direction: linetype: %d, isDashed: %d, dashLength: %f, dashSpaceLength: %f", lineType, paint.isDashedLine, dashLength, dashSpaceLength);
 

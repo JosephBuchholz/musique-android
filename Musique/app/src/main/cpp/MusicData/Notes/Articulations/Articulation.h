@@ -5,7 +5,7 @@
 #ifndef MUSIQUE_ARTICULATION_H
 #define MUSIQUE_ARTICULATION_H
 
-#include "../../VisibleElement.h"
+#include "../../BaseElements/VisibleElement.h"
 
 /**
  * The base class for musical articulations (such as staccato or tenuto).

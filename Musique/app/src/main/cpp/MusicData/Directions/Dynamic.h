@@ -7,7 +7,7 @@
 
 #include <string>
 
-#include "../TextualElement.h"
+#include "../BaseElements/TextualElement.h"
 
 #include "../../Collisions/Vec2.h"
 #include "../Types.h"

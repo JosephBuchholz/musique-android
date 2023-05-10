@@ -2,8 +2,8 @@
 #define MUSIQUE_CHORDDIAGRAM_H
 
 #include <vector>
-#include "../TextualElement.h"
-#include "../BaseElement.h"
+#include "../BaseElements/TextualElement.h"
+#include "../BaseElements/BaseElement.h"
 #include "../Types.h"
 
 class ChordDiagramNote : public BaseElement {

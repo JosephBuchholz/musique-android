@@ -6,7 +6,7 @@
 #ifndef MUSIQUE_DIRECTION_H
 #define MUSIQUE_DIRECTION_H
 
-#include "../BaseElement.h"
+#include "../BaseElements/BaseElement.h"
 
 #include "Rehearsal.h"
 #include "Words.h"

@@ -5,7 +5,7 @@
 #ifndef MUSIQUE_AUGMENTATIONDOT_H
 #define MUSIQUE_AUGMENTATIONDOT_H
 
-#include "../VisibleElement.h"
+#include "../BaseElements/VisibleElement.h"
 #include "../../MusicDisplayConstants.h"
 
 #include "../../RenderData/RenderData.h"

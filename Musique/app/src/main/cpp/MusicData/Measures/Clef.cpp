@@ -1,13 +1,14 @@
 #include "Clef.h"
 
-void Clef::Render(RenderData& renderData, bool showClef, float positionX, const MusicDisplayConstants& displayConstants, int lines, float offsetX, float offsetY) const
+#include "../../RenderMeasurement.h"
+
+void Clef::Render(RenderData& renderData, bool showSystemClef, float positionX, const MusicDisplayConstants& displayConstants, int lines, float offsetX, float offsetY) const
 {
     // clef
-    if (showClef)
+    if (showClef || showSystemClef)
     {
-        //float positionY = GetClefLinePositionY(displayConstants, lines) + offsetY; // the bottom line + instYPosition
-
-        Paint paint = Paint(0xff000000);
+        Paint paint;
+        VisibleElement::ModifyPaint(paint);
 
         if (clefChanged)
             paint.glyphSizeFactor = renderData.displayConstants.clefChangeScale;
@@ -15,16 +16,6 @@ void Clef::Render(RenderData& renderData, bool showClef, float positionX, const 
         SMuFLGlyph glyph = SMuFLGlyph(GetClefSMuFLID(*this, lines), positionX + offsetX, position.y + offsetY, paint);
         renderData.AddGlyph(glyph);
     }
-
-    /*if (clefChanged)
-    {
-        Paint paint = Paint(0xff000000);
-
-        paint.glyphSizeFactor = 0.666f; // clef changes are commonly drawn 2/3rds the size of normal clefs
-
-        SMuFLGlyph glyph = SMuFLGlyph(GetClefSMuFLID(*this, lines), positionX + offsetX, position.y + offsetY, paint);
-        renderData.AddGlyph(glyph);
-    }*/
 }
 
 // from the bottom staff line
@@ -75,4 +66,23 @@ SMuFLID Clef::GetClefSMuFLID(const Clef& clef, int staffLines)
 void Clef::CalculatePositionAsPaged(const MusicDisplayConstants& displayConstants, int staffLines)
 {
     position.y = GetClefLinePositionY(displayConstants, staffLines);
+}
+
+void Clef::UpdateBoundingBox(const Vec2<float> &parentPosition, int staffLines, bool showSystemClef)
+{
+    if (showClef || showSystemClef)
+    {
+        Paint paint;
+        VisibleElement::ModifyPaint(paint);
+        BoundingBox bb = RenderMeasurement::GetGlyphBoundingBox(SMuFLGlyph(GetClefSMuFLID(*this, staffLines), 0.0f, 0.0f, paint));
+
+        boundingBox.position.x = position.x + bb.position.x + parentPosition.x;
+        boundingBox.position.y = position.y + bb.position.y + parentPosition.y;
+        boundingBox.size.x = bb.size.x;
+        boundingBox.size.y = bb.size.y;
+
+#if DEBUG_BOUNDING_BOXES
+        debugBoundingBox = boundingBox;
+#endif
+    }
 }

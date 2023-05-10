@@ -5,8 +5,8 @@
 #ifndef MUSIQUE_BARLINE_H
 #define MUSIQUE_BARLINE_H
 
-#include "../VisibleElement.h"
-#include "../LineElement.h"
+#include "../BaseElements/VisibleElement.h"
+#include "../BaseElements/LineElement.h"
 #include "../Types.h"
 
 /**

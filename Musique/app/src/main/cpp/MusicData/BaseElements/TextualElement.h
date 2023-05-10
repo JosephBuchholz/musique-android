@@ -2,7 +2,7 @@
 #define MUSIQUE_TEXTUALELEMENT_H
 
 #include "VisibleElement.h"
-#include "Types.h"
+#include "../Types.h"
 
 /**
  * This class represents a element that is (or has or contains) text.
@@ -11,6 +11,13 @@ class TextualElement : public VisibleElement {
 
 public:
     TextualElement() {}
+
+    /**
+     * Updates the given paint to match the attributes of this class.
+     *
+     * @param[out] paint The paint object to be modified.
+     */
+    void ModifyPaint(Paint& paint) const;
 
 public:
     FontFamily fontFamily = FontFamily();

@@ -31,7 +31,10 @@ bool XMLHelper::FromYesNoToBool(const char* string)
 std::string XMLHelper::GetStringValue(XMLElement* element, std::string defaultValue, bool required)
 {
     if (element) {
-        return element->GetText();
+        const char* s = element->GetText();
+        if (s == nullptr)
+            return "";
+        return s;
     }
 
     MusicXMLParser::AddErrorIf(required, "Required parse value error", "Failed to get string value when required");

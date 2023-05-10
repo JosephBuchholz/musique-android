@@ -5,7 +5,7 @@
 #ifndef MUSIQUE_TUPLET_H
 #define MUSIQUE_TUPLET_H
 
-#include "../VisibleElement.h"
+#include "../BaseElements/VisibleElement.h"
 #include "../../Collisions/Vec2.h"
 #include "../../MusicDisplayConstants.h"
 #include "../../RenderData/RenderData.h"

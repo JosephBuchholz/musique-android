@@ -5,8 +5,8 @@
 #ifndef MUSIQUE_DYNAMICWEDGE_H
 #define MUSIQUE_DYNAMICWEDGE_H
 
-#include "../VisibleElement.h"
-#include "../LineElement.h"
+#include "../BaseElements/VisibleElement.h"
+#include "../BaseElements/LineElement.h"
 #include "../../Collisions/Vec2.h"
 #include "../../MusicDisplayConstants.h"
 #include "../../RenderData/RenderData.h"

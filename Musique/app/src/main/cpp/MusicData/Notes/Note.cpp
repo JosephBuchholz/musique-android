@@ -110,9 +110,42 @@ void Note::Render(RenderData& renderData, TablatureDisplayType tabDisplayType, f
         }
     }
 
+
+    if (fermata)
+    {
+        float centerOffset;
+        if (type == NoteType::Standard)
+        {
+            centerOffset = (GetNoteHeadWidth() / 2.0f);
+        }
+        else
+        {
+            centerOffset = 0.0f;
+        }
+
+        fermata->Render(renderData, {positionX + measurePosition.x + centerOffset, measurePosition.y});
+    }
+
     for (const auto& lyric: lyrics) {
         lyric.Render(renderData, positionX + measurePosition.x, measurePosition.y, mainPosition.x, mainPosition.y);
     } // lyrics loop
+}
+
+void Note::RenderDebug(RenderData& renderData) const
+{
+    boundingBox.Render(renderData, (int)0x660000FF);
+
+    if (fermata)
+        fermata->RenderDebug(renderData);
+
+    for (auto& lyric : lyrics)
+    {
+#if DEBUG_BOUNDING_BOXES
+        lyric.debugBoundingBox.Render(renderData, (int)0xFF00FF00);
+#endif
+
+        lyric.boundingBox.Render(renderData);
+    }
 }
 
 void Note::RenderRest(RenderData& renderData, const Note* note, float measurePositionX, int lines, float ls, float offsetX, float offsetY) const
@@ -528,6 +561,9 @@ void Note::CalculatePositionAsPaged(const MusicDisplayConstants& displayConstant
     {
         dot.CalculatePositionAsPaged(displayConstants, ((positionY / displayConstants.lineSpacing) - floor(positionY / displayConstants.lineSpacing)) == 0.0f, type == NoteType::Tab);
     }
+
+    if (fermata)
+        fermata->CalculatePositionAsPaged(displayConstants, { 0.0f, -20.0f });
 }
 
 float Note::GetCenterPositionX() const
@@ -541,7 +577,7 @@ float Note::GetCenterPositionX() const
 float Note::GetNoteHeadWidth() const // TODO: get actual width
 {
     if (type == NoteType::Tab)
-        return 0.0f;
+        return 11.0f;
     else
         return 11.3f;
 }
@@ -552,14 +588,27 @@ void Note::UpdateBoundingBox(const Vec2<float> &parentPosition)
     boundingBox.position.y = positionY + parentPosition.y;
     boundingBox.size.x = GetNoteHeadWidth();
 
-    if (noteStem.stemEndY - noteStem.stemStartY != 0)
-        boundingBox.size.y = noteStem.stemEndY - noteStem.stemStartY;
+    if (type == NoteType::Tab)
+    {
+        boundingBox.position.x -= boundingBox.size.x / 2.0f;
+    }
+
+    if (!isChord)
+    {
+        if (noteStem.stemEndY - noteStem.stemStartY != 0)
+            boundingBox.size.y = noteStem.stemEndY - noteStem.stemStartY;
+        else
+            boundingBox.size.y = 10.0f;
+    }
     else
         boundingBox.size.y = 10.0f;
 
 #if DEBUG_BOUNDING_BOXES
     debugBoundingBox = boundingBox;
 #endif
+
+    if (fermata)
+        fermata->UpdateBoundingBox({ positionX + parentPosition.x, parentPosition.y });
 
     for (Lyric& lyric : lyrics)
     {

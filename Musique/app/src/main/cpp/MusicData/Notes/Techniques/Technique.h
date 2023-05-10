@@ -5,7 +5,7 @@
 #ifndef MUSIQUE_TECHNIQUE_H
 #define MUSIQUE_TECHNIQUE_H
 
-#include "../../VisibleElement.h"
+#include "../../BaseElements/VisibleElement.h"
 #include "../../Types.h"
 
 /**

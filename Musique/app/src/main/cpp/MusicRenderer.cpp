@@ -397,7 +397,7 @@ void MusicRenderer::RenderLineOfMeasures(RenderData& renderData, std::shared_ptr
             bool showKeySignature = (measure->showKeySignature || (system.showBeginningKeySignature && song->DoesMeasureStartNewSystem(measure->index)));
             measure->keySignature.Render(renderData, showKeySignature, measureDataItem->second.keySignaturePositionX + measurePositionX, lineSpacing, staff->lines, measure->clef, 0.0f, staffPositionY);
 
-            bool showClef = measure->showClef || (system.showBeginningClef && song->DoesMeasureStartNewSystem(measure->index));
+            bool showSystemClef = (system.showBeginningClef && song->DoesMeasureStartNewSystem(measure->index));
 
             float clefPositionX;
             if (measure->clef.clefChanged)
@@ -409,7 +409,7 @@ void MusicRenderer::RenderLineOfMeasures(RenderData& renderData, std::shared_ptr
                 clefPositionX = measureDataItem->second.clefPositionX + measurePositionX;
             }
 
-            measure->clef.Render(renderData, showClef, clefPositionX, song->displayConstants, staff->lines, 0.0f, staffPositionY);
+            measure->clef.Render(renderData, showSystemClef, clefPositionX, song->displayConstants, staff->lines, 0.0f, staffPositionY);
 
             if (startMeasure == m && isTopMeasureLine && measure->measureNumber.GetNumber() != 1)
             {
@@ -614,8 +614,8 @@ void MusicRenderer::RenderBarline(RenderData& renderData, const Barline& barline
     float barlineWidth = 8.0f;
 
     Paint paint = BarLinePaint;
-    paint.color = barline.color.color;
-    barline.ModifyPaint(paint);
+    barline.VisibleElement::ModifyPaint(paint);
+    barline.LineElement::ModifyPaint(paint);
 
     switch (barline.barlineStyle)
     {

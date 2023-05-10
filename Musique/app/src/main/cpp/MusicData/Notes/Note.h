@@ -18,10 +18,11 @@
 #include "AugmentationDot.h"
 #include "Beam.h"
 #include "Tie.h"
-#include "../VisibleElement.h"
+#include "../BaseElements/VisibleElement.h"
 #include "Articulations/Articulation.h"
 #include "Techniques/Technique.h"
 #include "NoteHead.h"
+#include "Fermata.h"
 
 /**
  * Class that represents a note, whether it is TAB or not.
@@ -35,6 +36,13 @@ public:
     ~Note() {}
 
     void Render(RenderData& renderData, TablatureDisplayType tabDisplayType, float notePositionRelativeToMeasure, int lines, Vec2<float> measurePosition, float measureWidth, int measureNumber, float ls, Vec2<float> mainPosition, int noteIndex, Vec2<float> offset = { 0.0f, 0.0f }) const;
+
+    /**
+     * Renders any debug info.
+     *
+     * @param renderData The RenderData object to render to.
+     */
+    void RenderDebug(RenderData& renderData) const;
 
     static bool IsNoteIsHigher(Note* note1, Note* note2);
 
@@ -101,6 +109,8 @@ public:
 
     std::vector<std::shared_ptr<Articulation>> articulations;
     std::vector<std::shared_ptr<Technique>> techniques;
+
+    std::shared_ptr<Fermata> fermata;
 
     NoteTie tie = NoteTie();
 

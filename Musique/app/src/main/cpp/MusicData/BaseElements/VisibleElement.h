@@ -2,10 +2,10 @@
 #define MUSIQUE_VISIBLEELEMENT_H
 
 #include "PrintableElement.h"
-#include "Types.h"
-#include "../Collisions/BoundingBox.h"
-#include "../Collisions/Vec2.h"
-#include "../Debuging/Debug.h"
+#include "../Types.h"
+#include "../../Collisions/BoundingBox.h"
+#include "../../Collisions/Vec2.h"
+#include "../../Debuging/Debug.h"
 
 /**
  * This class represents a element that is visible.
@@ -14,6 +14,13 @@ class VisibleElement : public PrintableElement {
 
 public:
     VisibleElement() {}
+
+    /**
+     * Updates the given paint to match the attributes of this class.
+     *
+     * @param[out] paint The paint object to be modified.
+     */
+    void ModifyPaint(Paint& paint) const { paint.color = color.color; }
 
 public:
     Color color = Color();

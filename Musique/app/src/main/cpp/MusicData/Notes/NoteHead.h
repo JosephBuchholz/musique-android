@@ -5,7 +5,7 @@
 #ifndef MUSIQUE_NOTEHEAD_H
 #define MUSIQUE_NOTEHEAD_H
 
-#include "../VisibleElement.h"
+#include "../BaseElements/VisibleElement.h"
 
 /**
  * This class represents a note head for a note.
