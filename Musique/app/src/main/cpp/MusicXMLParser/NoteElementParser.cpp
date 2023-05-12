@@ -82,7 +82,17 @@ void NoteElementParser::ParseNoteElement(XMLElement* noteElement, float& current
     }
 
     if (staffIsTabInfo[currentNote->staff-1]) {
-        currentNote->type = Note::NoteType::Tab;
+        currentNote->type = NoteType::Tab;
+    }
+
+    // grace
+    XMLElement* graceElement = noteElement->FirstChildElement("grace");
+    if (graceElement)
+    {
+        currentNote->isGraceNote = true;
+        currentNote->noteSize = NoteSize::Grace;
+
+        currentNote->hasSlash = XMLHelper::GetBoolAttribute(graceElement, "slash", currentNote->hasSlash);
     }
 
     // chord
@@ -461,7 +471,7 @@ void NoteElementParser::ParseTechnicalElement(XMLElement* technicalElement, Note
         }
 
         // - TAB only -
-        if (currentNote->type == Note::NoteType::Tab && isTab) {
+        if (currentNote->type == NoteType::Tab && isTab) {
 
             // string
             XMLElement* string = technicalElement->FirstChildElement("string");

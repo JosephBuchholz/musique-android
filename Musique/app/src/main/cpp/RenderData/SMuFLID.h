@@ -2,7 +2,6 @@
 #define MUSIQUE_SMUFLID_H
 
 #include "../MusicData/Types.h"
-#include "../MusicData/Notes/Accidental.h"
 
 /**
  * An enum that maps SMuFL glyph names to SMuFL code points.
@@ -507,21 +506,6 @@ static SMuFLID GetNoteFlagSMuFLID(NoteValue type, bool isUp)
         case NoteValue::Sixteenth: if (isUp) return SMuFLID::flag16thUp; else return SMuFLID::flag16thDown;
         case NoteValue::ThirtySecond: if (isUp) return SMuFLID::flag32ndUp; else return SMuFLID::flag32ndDown;
         default: return SMuFLID::None;
-    }
-
-    return SMuFLID::None;
-}
-
-static SMuFLID GetAccidentalSMuFLID(Accidental::AccidentalType type)
-{
-    switch (type)
-    {
-        case Accidental::AccidentalType::None: return SMuFLID::None;
-        case Accidental::AccidentalType::Sharp: return SMuFLID::accidentalSharp;
-        case Accidental::AccidentalType::Flat: return SMuFLID::accidentalFlat;
-        case Accidental::AccidentalType::Natural: return SMuFLID::accidentalNatural;
-        case Accidental::AccidentalType::DoubleSharp: return SMuFLID::accidentalDoubleSharp;
-        case Accidental::AccidentalType::DoubleFlat: return SMuFLID::accidentalDoubleFlat;
     }
 
     return SMuFLID::None;

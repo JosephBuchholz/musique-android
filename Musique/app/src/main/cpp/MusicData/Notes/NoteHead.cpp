@@ -2,21 +2,35 @@
 
 #include "../../RenderMeasurement.h"
 
-void NoteHead::Render(RenderData& renderData, Vec2<float> position, NoteValue noteDuration, bool centerHorizontally, Vec2<float> offset) const
+void NoteHead::Render(RenderData& renderData, Vec2<float> position, bool centerHorizontally, Vec2<float> offset) const
 {
-    if (centerHorizontally)
-        position.x -= GetDimensions(noteDuration).x / 2.0f;
+    if (noteType == NoteType::Standard)
+    {
+        if (centerHorizontally)
+            position.x -= GetDimensions(renderData.displayConstants).x / 2.0f;
 
-    renderData.AddGlyph(SMuFLGlyph(GetSMuFLID(noteDuration), position.x + offset.x, position.y + offset.y, Paint(color)));
+        renderData.AddGlyph(SMuFLGlyph(GetSMuFLID(), position.x + offset.x, position.y + offset.y, GetPaint(renderData.displayConstants)));
+    }
+    else if (noteType == NoteType::Tab)
+    {
+        renderData.AddText(Text(ToString(fret), position.x + offset.x, position.y + offset.y, GetPaint(renderData.displayConstants)));
+    }
 }
 
-Vec2<float> NoteHead::GetDimensions(NoteValue noteDuration) const
+Vec2<float> NoteHead::GetDimensions(const MusicDisplayConstants& displayConstants) const
 {
-    SMuFLID glyphID = GetSMuFLID(noteDuration);
-    return { RenderMeasurement::MeasureGlyph(glyphID), 0.0f };
+    BoundingBox bb = RenderMeasurement::GetGlyphBoundingBox(SMuFLGlyph(GetSMuFLID(), 0.0f, 0.0f, GetPaint(displayConstants)));
+    Paint paint = GetPaint(displayConstants);
+
+    if (noteType == NoteType::Standard)
+        bb = RenderMeasurement::GetGlyphBoundingBox(SMuFLGlyph(GetSMuFLID(), 0.0f, 0.0f, paint));
+    else if (noteType == NoteType::Tab)
+        bb = RenderMeasurement::GetTextBoundingBox(Text(ToString(fret), 0.0f, 0.0f, paint));
+
+    return { bb.size.x, bb.size.y };
 }
 
-SMuFLID NoteHead::GetSMuFLID(NoteValue noteDuration) const
+SMuFLID NoteHead::GetSMuFLID() const
 {
     switch (type)
     {
@@ -42,4 +56,35 @@ SMuFLID NoteHead::GetSMuFLID(NoteValue noteDuration) const
         case NoteHeadType::NoNoteHead:
         default: return SMuFLID::None;
     }
+}
+
+Paint NoteHead::GetPaint(const MusicDisplayConstants& displayConstants) const
+{
+    Paint paint;
+
+    if (noteType == NoteType::Tab)
+    {
+        paint.textSize = 16.0f * size;
+        paint.isTablature = true;
+    }
+
+    VisibleElement::ModifyPaint(paint);
+    paint.glyphSizeFactor = size;
+
+    return paint;
+}
+
+float NoteHead::GetNoteHeadWidth(const MusicDisplayConstants& displayConstants) const // TODO: get actual width for tab
+{
+    return GetDimensions(displayConstants).x;
+}
+
+void NoteHead::CalculateAsPaged(const MusicDisplayConstants& displayConstants, NoteSize noteSize)
+{
+    if (noteSize == NoteSize::Grace)
+        size = displayConstants.graceNoteSize;
+    else if (noteSize == NoteSize::Cue)
+        size = displayConstants.cueNoteSize;
+    else
+        size = 1.0f;
 }

@@ -440,9 +440,23 @@ void MusicRenderer::RenderLineOfMeasures(RenderData& renderData, std::shared_ptr
                 {
                     for (const Beam& beam : beamGroup.beams)
                     {
-                        const float beamDistance = 8.0f;
-                        const float hookOffset = 10.0f;
+                        if (beamGroup.notes.empty())
+                            break;
+
+                        float size;
+                        if (beamGroup.notes[0]->noteSize == NoteSize::Grace)
+                            size = renderData.displayConstants.graceNoteSize;
+                        else if (beamGroup.notes[0]->noteSize == NoteSize::Cue)
+                            size = renderData.displayConstants.cueNoteSize;
+                        else
+                            size = 1.0f;
+
+                        const float beamDistance = 8.0f * size;
+                        const float hookOffset = 10.0f * size;
                         float beamYOffset = (beamDistance * float(beam.beamLevel-1));
+
+                        Paint paint = NoteBeamPaint;
+                        paint.strokeWidth *= size;
 
                         if (beamGroup.isAboveNote)
                         {
@@ -451,15 +465,15 @@ void MusicRenderer::RenderLineOfMeasures(RenderData& renderData, std::shared_ptr
 
                         if (beam.beamType == Beam::BeamType::Normal)
                         {
-                            renderData.AddLine(std::make_shared<Line>(beam.beamStartPositionX + measurePositionX, beam.beamStartPositionY + staffPositionY - beamYOffset, beam.beamEndPositionX + measurePositionX, beam.beamEndPositionY + staffPositionY - beamYOffset, NoteBeamPaint));
+                            renderData.AddLine(std::make_shared<Line>(beam.beamStartPositionX + measurePositionX, beam.beamStartPositionY + staffPositionY - beamYOffset, beam.beamEndPositionX + measurePositionX, beam.beamEndPositionY + staffPositionY - beamYOffset, paint));
                         }
                         else if (beam.beamType == Beam::BeamType::ForwardHook)
                         {
-                            renderData.AddLine(std::make_shared<Line>(beam.beamStartPositionX + measurePositionX, beam.beamStartPositionY + staffPositionY - beamYOffset, beam.beamStartPositionX + measurePositionX + hookOffset, beamGroup.GetPositionYOnBeam(beam.beamStartPositionX + hookOffset) + staffPositionY - beamYOffset, NoteBeamPaint));
+                            renderData.AddLine(std::make_shared<Line>(beam.beamStartPositionX + measurePositionX, beam.beamStartPositionY + staffPositionY - beamYOffset, beam.beamStartPositionX + measurePositionX + hookOffset, beamGroup.GetPositionYOnBeam(beam.beamStartPositionX + hookOffset) + staffPositionY - beamYOffset, paint));
                         }
                         else if (beam.beamType == Beam::BeamType::BackwardHook)
                         {
-                            renderData.AddLine(std::make_shared<Line>(beam.beamStartPositionX + measurePositionX, beam.beamStartPositionY + staffPositionY - beamYOffset, beam.beamStartPositionX + measurePositionX - hookOffset, beamGroup.GetPositionYOnBeam(beam.beamStartPositionX - hookOffset) + staffPositionY - beamYOffset, NoteBeamPaint));
+                            renderData.AddLine(std::make_shared<Line>(beam.beamStartPositionX + measurePositionX, beam.beamStartPositionY + staffPositionY - beamYOffset, beam.beamStartPositionX + measurePositionX - hookOffset, beamGroup.GetPositionYOnBeam(beam.beamStartPositionX - hookOffset) + staffPositionY - beamYOffset, paint));
                         }
                     }
                 }

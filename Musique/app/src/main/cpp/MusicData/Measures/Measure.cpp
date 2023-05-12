@@ -330,7 +330,7 @@ float Measure::GetRepeatBarlinePositionX() const
     return GetBeginningWidth();
 }
 
-void Measure::UpdateBoundingBoxes(const Vec2<float>& measurePosition, float measureHeight)
+void Measure::UpdateBoundingBoxes(const MusicDisplayConstants& displayConstants, const Vec2<float>& measurePosition, float measureHeight)
 {
     boundingBox.position = measurePosition;
     boundingBox.size.x = measureWidth;
@@ -341,7 +341,7 @@ void Measure::UpdateBoundingBoxes(const Vec2<float>& measurePosition, float meas
 
     for (Note* note : notes)
     {
-        note->UpdateBoundingBox(measurePosition);
+        note->UpdateBoundingBox(displayConstants, measurePosition);
     }
 
     for (Direction& direction : directions)

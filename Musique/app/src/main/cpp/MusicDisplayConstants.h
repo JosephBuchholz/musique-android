@@ -38,8 +38,9 @@ struct MusicDisplayConstants
     float wedgeLineWidth = 0.957f;
     float enclosureLineWidth = 1.6667f;
 
-    float graceNoteSize = 66.0f;
-    float cueNoteSize = 66.0f;
+    // percentage of the regular size
+    float graceNoteSize = 0.66f;
+    float cueNoteSize = 0.66f;
 
     float hyphenDistance = 60.0f;
     float beamDistance = 7.5f;

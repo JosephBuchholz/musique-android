@@ -12,15 +12,27 @@
  */
 class NoteHead : public VisibleElement
 {
-public:
-
-    void Render(RenderData& renderData, Vec2<float> position, NoteValue noteDuration, bool centerHorizontally = false, Vec2<float> offset = { 0.0f, 0.0f }) const;
-
-    Vec2<float> GetDimensions(NoteValue noteDuration) const;
-
-    SMuFLID GetSMuFLID(NoteValue noteDuration) const;
+    friend class Note;
 
 public:
+
+    void Render(RenderData& renderData, Vec2<float> position, bool centerHorizontally = false, Vec2<float> offset = { 0.0f, 0.0f }) const;
+
+    Vec2<float> GetDimensions(const MusicDisplayConstants& displayConstants) const;
+
+    SMuFLID GetSMuFLID() const;
+    Paint GetPaint(const MusicDisplayConstants& displayConstants) const;
+
+    float GetNoteHeadWidth(const MusicDisplayConstants& displayConstants) const;
+
+protected:
+
+    void CalculateAsPaged(const MusicDisplayConstants& displayConstants, NoteSize noteSize);
+
+public:
+
+    NoteType noteType = NoteType::Standard;
+    NoteValue noteDuration = NoteValue::None;
 
     enum class NoteHeadType {
         None = 0, Normal, NoNoteHead, Other, ArrowDown, ArrowUp, BackSlashed,
@@ -31,6 +43,12 @@ public:
 
     bool filled = false;
     bool hasParentheses = false;
+
+    // the size of this object (as a percentage)
+    float size = 1.0f;
+
+    // tab only
+    int fret = 0;
 };
 
 #endif //MUSIQUE_NOTEHEAD_H

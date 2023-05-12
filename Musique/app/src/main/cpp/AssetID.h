@@ -2,8 +2,6 @@
 #define MUSIQUE_ASSETID_H
 
 #include "MusicData/Types.h"
-//#include "MusicData/Measures/Clef.h"
-#include "MusicData/Notes/Accidental.h"
 
 enum class AssetID {
     None = 0,
@@ -146,7 +144,7 @@ static AssetID GetNoteHeadAssetID(NoteValue type)
     return AssetID::None;
 }*/
 
-static AssetID GetAccidentalAssetID(Accidental::AccidentalType type)
+/*static AssetID GetAccidentalAssetID(Accidental::AccidentalType type)
 {
     switch (type)
     {
@@ -159,6 +157,6 @@ static AssetID GetAccidentalAssetID(Accidental::AccidentalType type)
     }
 
     return AssetID::None;
-}
+}*/
 
 #endif // MUSIQUE_ASSETID_H

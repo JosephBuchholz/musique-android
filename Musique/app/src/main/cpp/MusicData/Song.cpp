@@ -272,14 +272,14 @@ void Song::OnUpdate()
                     int noteIndex = 0;
                     for (auto* note : measure->notes)
                     {
-                        if (note->isRest && note->type == Note::NoteType::Tab && softwareName == "MuseScore" && softwareMajorVersion == 4) // musescore only
+                        if (note->isRest && note->type == NoteType::Tab && softwareName == "MuseScore" && softwareMajorVersion == 4) // musescore only
                         {
                             note->defaultPosition.y = INVALID_FLOAT_VALUE;
                         }
 
                         note->CalculatePositionAsPaged(displayConstants, staff->lines);
 
-                        if (note->type == Note::NoteType::Standard && !note->isRest)
+                        if (note->type == NoteType::Standard && !note->isRest)
                             note->positionY = (displayConstants.lineSpacing * measure->CalculateNoteYPositionRelativeToMeasure(noteIndex));
 
                         for (auto& lyric : note->lyrics)
@@ -790,14 +790,14 @@ void Song::OnUpdate()
                     {
                         if (note->isRest) { // is a rest
                             float ls;
-                            if (note->type == Note::NoteType::Tab)
+                            if (note->type == NoteType::Tab)
                                 ls = displayConstants.tabLineSpacing;
                             else
                                 ls = displayConstants.lineSpacing;
                             note->positionX = GetPositionXInMeasure(note->beatPositionInSong, measureIndex);
                             note->positionY = ((ls * float(staff->lines - 1)) / 2.0f);
                         }
-                        else if (note->type == Note::NoteType::Tab) // is a tab note
+                        else if (note->type == NoteType::Tab) // is a tab note
                         {
                             note->positionX = GetPositionXInMeasure(note->beatPositionInSong, measureIndex);
                             note->positionY = (displayConstants.tabLineSpacing * float(note->string - 1));
@@ -1382,7 +1382,7 @@ void Song::UpdateBoundingBoxes(const std::vector<Vec2<float>>& pagePositions, co
                     }
 
                     //LOGW("measurePositionX: %f", measurePositionX);
-                    measure->UpdateBoundingBoxes({measurePositionX + systemPosition.x + pagePosition.x, instPositionY + staffPositionY }, measureHeight); // this line crashes
+                    measure->UpdateBoundingBoxes(displayConstants, {measurePositionX + systemPosition.x + pagePosition.x, instPositionY + staffPositionY }, measureHeight); // this line crashes
                 }
 
                 measureIndex++;

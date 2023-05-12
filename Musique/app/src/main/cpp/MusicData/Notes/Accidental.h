@@ -7,17 +7,29 @@
 
 #include <string>
 
+#include "../BaseElements/VisibleElement.h"
+#include "../../RenderData/RenderData.h"
+
 /**
  * This class represents a musical accidental for a note.
  */
-class Accidental
+class Accidental : public VisibleElement
 {
-public:
-    Accidental() {}
+    friend class Note;
 
+public:
     enum class AccidentalType {
         None = 0, Sharp, Flat, Natural, DoubleSharp, DoubleFlat
     };
+
+public:
+
+    void Render(RenderData& renderData, Vec2<float> parentPosition, Vec2<float> offset = { 0.0f, 0.0f }) const;
+
+    Vec2<float> GetDimensions() const;
+
+    SMuFLID GetSMuFLID() const;
+    Paint GetPaint() const;
 
     /**
      * Converts a string to (like "sharp") and converts it
@@ -41,6 +53,12 @@ public:
         return AccidentalType::None;
     }
 
+protected:
+
+    void CalculateAsPaged(const MusicDisplayConstants& displayConstants, NoteSize noteSize);
+
+public:
+
     AccidentalType accidentalType = AccidentalType::None;
 
     bool isCautionary = false;
@@ -48,6 +66,11 @@ public:
 
     bool hasBrackets = false;
     bool hasParentheses = false;
+
+    // the size of this object (as a percentage)
+    float size = 1.0f;
+
+    Vec2<float> position = { 0.0f, 0.0f };
 };
 
 #endif // MUSIQUE_ACCIDENTAL_H

@@ -186,6 +186,20 @@ class MusicDisplayView(context: Context, attrs: AttributeSet? = null): View(cont
         }
     }
 
+    private fun convertPaint(oldPaint: com.randsoft.apps.musique.renderdata.Paint): Paint
+    {
+        val newPaint = Paint().apply {
+            color = oldPaint.color
+            typeface = musicTypeface
+            textAlign = Paint.Align.values()[oldPaint.align]
+            isAntiAlias = oldPaint.isAntiAlias
+        }
+
+        newPaint.textSize = 40.0f * oldPaint.glyphSizeFactor * scale
+
+        return newPaint
+    }
+
     fun measureGlyph(glyph: SMuFLGlyph): Float
     {
         // create paint
@@ -203,12 +217,7 @@ class MusicDisplayView(context: Context, attrs: AttributeSet? = null): View(cont
 
     fun getGlyphBoundingBox(glyph: SMuFLGlyph): RectF {
         // create paint
-        val paint = Paint().apply {
-            color = glyph.paint.color
-            typeface = musicTypeface
-        }
-
-        paint.textSize = 40.0f * scale // text size equals the standard staff height (according to SMuFL specification)
+        val paint = convertPaint(glyph.paint)
 
         val rect = Rect()
         paint.getTextBounds(Character.toChars(glyph.codePoint), 0, 1, rect)

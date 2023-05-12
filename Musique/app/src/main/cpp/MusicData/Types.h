@@ -17,6 +17,14 @@ enum class NoteValue {
     None = 0, Maxima, Long, Breve, Whole, Half, Quarter, Eighth, Sixteenth, ThirtySecond, _64th, _128th, _256th, _512th, _1024th
 };
 
+enum class NoteSize {
+    None = 0, Normal, Cue, Grace, Large
+};
+
+enum class NoteType {
+    None = 0, Standard, Tab
+};
+
 struct NoteUnit {
     NoteValue noteValue = NoteValue::None;
     bool isDotted = false;

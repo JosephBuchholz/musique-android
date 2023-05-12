@@ -75,7 +75,7 @@ public:
         duration.duration = timeSignature.notes * (4.0f / timeSignature.noteType); // duration in beats(quarter notes)
     }
 
-    void UpdateBoundingBoxes(const Vec2<float>& measurePosition, float measureHeight);
+    void UpdateBoundingBoxes(const MusicDisplayConstants& displayConstants, const Vec2<float>& measurePosition, float measureHeight);
 
     /*void CopyData(Measure* measure) // copies all data from measure except any notes that don't equal this measure's 'staff' and the 'staff' variable itself
     {

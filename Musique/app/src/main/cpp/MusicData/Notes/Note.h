@@ -53,16 +53,15 @@ public:
 
     void CalculateDurationTypeFromString(const std::string& s);
 
-    float GetCenterPositionX() const;
-
-    float GetNoteHeadWidth() const;
+    float GetCenterPositionX(const MusicDisplayConstants& displayConstants) const;
 
     /**
      * Updates the position and size of this object's bounding box.
      *
+     * @param displayConstants The display constants.
      * @param parentPosition The position of the parent.
      */
-    void UpdateBoundingBox(const Vec2<float> &parentPosition);
+    void UpdateBoundingBox(const MusicDisplayConstants& displayConstants, const Vec2<float> &parentPosition);
 
 protected:
     void CalculatePositionAsPaged(const MusicDisplayConstants& displayConstants, int staffLines);
@@ -80,9 +79,7 @@ private:
 
 public:
 
-    enum class NoteType {
-        None = 0, Standard, Tab
-    };
+    NoteSize noteSize = NoteSize::Normal;
 
     bool isPlaying = false;
     NoteType type = NoteType::Standard;
@@ -122,6 +119,10 @@ public:
 
     bool isChord = false; // weather or not the note is played at the same time as the previous note
 
+    // grace note attributes
+    bool isGraceNote = false;
+    bool hasSlash = false;
+
     // -- Tab Only --
 
     int string = 0;
@@ -133,6 +134,9 @@ public:
 
     float positionX = 0.0f; // relative to measure
     float positionY = 0.0f; // relative to measure
+
+    // the size of this note (as a percentage)
+    float size = 1.0f;
 
 protected:
 
