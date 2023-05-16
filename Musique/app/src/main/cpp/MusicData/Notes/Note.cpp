@@ -1,6 +1,6 @@
 #include "Note.h"
 
-void Note::Render(RenderData& renderData, TablatureDisplayType tabDisplayType, float notePositionRelativeToMeasure, int lines, Vec2<float> measurePosition, float measureWidth, int measureNumber, float ls, Vec2<float> mainPosition, int noteIndex, Vec2<float> offset) const
+void Note::Render(RenderData& renderData, TablatureDisplayType tabDisplayType, float notePositionRelativeToMeasure, int lines, Vec2<float> measurePosition, float nextMeasurePositionX, float measureWidth, int measureNumber, float ls, Vec2<float> mainPosition, int noteIndex, bool isLastMeasureInSystem, Vec2<float> offset) const
 {
     // calculate color of the note
     int color = renderData.defaultColor;
@@ -102,6 +102,13 @@ void Note::Render(RenderData& renderData, TablatureDisplayType tabDisplayType, f
             if (technique != nullptr)
                 technique->Render(renderData, renderPositionX + mainPosition.x, renderPositionY + mainPosition.y);
         }
+
+        // render ornament
+        for (auto ornament : ornaments)
+        {
+            if (ornament != nullptr)
+                ornament->Render(renderData, renderPositionX + mainPosition.x + (noteHead.GetNoteHeadWidth(renderData.displayConstants) / 2.0f), measurePosition.y);
+        }
     }
 
 
@@ -120,6 +127,33 @@ void Note::Render(RenderData& renderData, TablatureDisplayType tabDisplayType, f
         fermata->Render(renderData, {positionX + measurePosition.x + centerOffset, measurePosition.y});
     }
 
+    if (glissSlide)
+    {
+        if (glissSlide->notes.first == this && glissSlide->notes.second != nullptr)
+        {
+            // TODO: fix: currently assuming that the gliss is only contained in a single measure
+
+            Vec2<float> otherNoteMeasurePosition = measurePosition;
+
+            if (glissSlide->notes.first->measureIndex != glissSlide->notes.second->measureIndex)
+            {
+                otherNoteMeasurePosition.x = nextMeasurePositionX;
+            }
+
+            if (type == NoteType::Standard)
+            {
+                glissSlide->Render(renderData, {positionX + measurePosition.x + (noteHead.GetNoteHeadWidth(renderData.displayConstants) / 2.0f), positionY + measurePosition.y },
+                                   { glissSlide->notes.second->positionX + otherNoteMeasurePosition.x + (glissSlide->notes.second->noteHead.GetNoteHeadWidth(renderData.displayConstants) / 2.0f), glissSlide->notes.second->positionY + otherNoteMeasurePosition.y });
+            }
+            else
+            {
+                glissSlide->Render(renderData, {positionX + measurePosition.x, positionY + measurePosition.y }, { glissSlide->notes.second->positionX + otherNoteMeasurePosition.x, glissSlide->notes.second->positionY + otherNoteMeasurePosition.y });
+            }
+
+            //glissSlide->Render(renderData, {positionX + measurePosition.x, positionY + measurePosition.y }, { glissSlide->notes.second->positionX + measurePosition.x, glissSlide->notes.second->positionY + measurePosition.y });
+        }
+    }
+
     for (const auto& lyric: lyrics) {
         lyric.Render(renderData, positionX + measurePosition.x, measurePosition.y, mainPosition.x, mainPosition.y);
     } // lyrics loop
@@ -131,6 +165,18 @@ void Note::RenderDebug(RenderData& renderData) const
 
     if (fermata)
         fermata->RenderDebug(renderData);
+
+    if (glissSlide)
+    {
+        if (glissSlide->notes.first == this)
+            glissSlide->RenderDebug(renderData);
+    }
+
+    for (auto ornament : ornaments)
+    {
+        if (ornament)
+            ornament->RenderDebug(renderData);
+    }
 
     for (auto& lyric : lyrics)
     {
@@ -239,6 +285,13 @@ void Note::RenderTabNote(RenderData& renderData, const Note* note, TablatureDisp
     {
         if (technique != nullptr)
             technique->Render(renderData, tabPositionX, tabPositionY);
+    }
+
+    // render ornaments
+    for (auto ornament : ornaments)
+    {
+        if (ornament != nullptr)
+            ornament->Render(renderData, tabPositionX, offsetY);
     }
 
     // rhythm notation
@@ -581,6 +634,12 @@ void Note::CalculatePositionAsPaged(const MusicDisplayConstants& displayConstant
             technique->CalculatePositionAsPaged(displayConstants, positionY, noteHead.GetNoteHeadWidth(displayConstants), type == NoteType::Tab);
     }
 
+    for (auto ornament : ornaments)
+    {
+        if (ornament != nullptr)
+            ornament->CalculatePositionAsPaged(displayConstants, { 0.0f, 0.0f });
+    }
+
     for (auto& dot : dots)
     {
         dot.CalculatePositionAsPaged(displayConstants, ((positionY / displayConstants.lineSpacing) - floor(positionY / displayConstants.lineSpacing)) == 0.0f, type == NoteType::Tab);
@@ -588,6 +647,22 @@ void Note::CalculatePositionAsPaged(const MusicDisplayConstants& displayConstant
 
     if (fermata)
         fermata->CalculatePositionAsPaged(displayConstants, { 0.0f, -20.0f });
+
+    if (glissSlide)
+    {
+        if (glissSlide->notes.first == this)
+        {
+            Vec2<float> defPositionStart = { 0.0f, 0.0f };
+            Vec2<float> defPositionEnd = { 0.0f, 0.0f };
+
+            float margin = (noteHead.GetNoteHeadWidth(displayConstants) / 2.0f) + 5.0f;
+
+            defPositionStart.x += margin;
+            defPositionEnd.x -= margin;
+
+            glissSlide->CalculatePositionAsPaged(displayConstants, defPositionStart, defPositionEnd, (type == NoteType::Tab));
+        }
+    }
 }
 
 float Note::GetCenterPositionX(const MusicDisplayConstants& displayConstants) const
@@ -625,6 +700,20 @@ void Note::UpdateBoundingBox(const MusicDisplayConstants& displayConstants, cons
 
     if (fermata)
         fermata->UpdateBoundingBox({ positionX + parentPosition.x, parentPosition.y });
+
+    if (glissSlide)
+    {
+        if (glissSlide->notes.first == this)
+        {
+            glissSlide->UpdateBoundingBox({ 0.0f, 0.0f });
+        }
+    }
+
+    for (auto ornament : ornaments)
+    {
+        if (ornament != nullptr)
+            ornament->UpdateBoundingBox({ positionX + parentPosition.x, parentPosition.y });
+    }
 
     for (Lyric& lyric : lyrics)
     {

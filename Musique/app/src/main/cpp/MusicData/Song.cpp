@@ -1435,6 +1435,12 @@ void Song::ResolveCollisions()
                     if (note->fermata)
                         ResolveCollisionsWith(note->fermata->boundingBox, pageIndex);
 
+                    for (auto ornament : note->ornaments)
+                    {
+                        if (ornament)
+                            ResolveCollisionsWith(ornament->boundingBox, pageIndex);
+                    }
+
                     for (auto& lyric : note->lyrics)
                     {
                         ResolveCollisionsWith(lyric.boundingBox, pageIndex);
@@ -1500,6 +1506,16 @@ void Song::ResolveCollisionsWith(const BoundingBox& box, int pageIndex)
 
                         note->positionX += offset.x;
                         note->positionY += offset.y;*/
+
+                        for (auto ornament : note->ornaments)
+                        {
+                            if (ornament)
+                            {
+                                Vec2<float> offset = box.ResolveOverlapStatically(ornament->boundingBox);
+
+                                ornament->position += offset;
+                            }
+                        }
 
                         for (auto& lyric : note->lyrics)
                         {

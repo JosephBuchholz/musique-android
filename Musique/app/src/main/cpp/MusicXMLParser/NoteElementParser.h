@@ -26,6 +26,14 @@
 #include "../MusicData/Notes/Techniques/GuitarTechnique.h"
 #include "../MusicData/Notes/Techniques/Bend.h"
 
+#include "../MusicData/Notes/Ornaments/Ornaments.h"
+#include "../MusicData/Notes/Ornaments/TrillMark.h"
+#include "../MusicData/Notes/Ornaments/Mordent.h"
+#include "../MusicData/Notes/Ornaments/Vibrato.h"
+#include "../MusicData/Notes/Ornaments/Turn.h"
+
+#include "../MusicData/Notes/GlissandoSlide.h"
+
 using namespace tinyxml2;
 
 /**
@@ -69,6 +77,14 @@ private:
     static NoteHead ParseNoteHeadElement(XMLElement* element);
 
     static void ParseFermataElement(XMLElement* element, std::shared_ptr<Fermata> fermata);
+
+    static void ParseOrnamentsElement(XMLElement* element, Note* currentNote);
+    static void ParseTrillMarkElement(XMLElement* element, std::shared_ptr<TrillMark> newOrnament);
+    static void ParseTurnElement(XMLElement* element, std::shared_ptr<Turn> newOrnament);
+    static void ParseMordentElement(XMLElement* element, std::shared_ptr<Mordent> newOrnament);
+
+    static void ParseGlissandoSlideElement(XMLElement* element, Note* currentNote);
+
 
 protected:
     static void AddError(std::string title, std::string desc, ErrorLevel errorLevel = ErrorLevel::Error) { m_Errors.emplace_back(title, desc, "BaseElementParser", errorLevel); }

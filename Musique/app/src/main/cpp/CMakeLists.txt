@@ -83,6 +83,18 @@ add_library( # Sets the name of the library.
         MusicData/Notes/Techniques/GuitarTechnique.cpp
         MusicData/Notes/Techniques/Bend.cpp
 
+        MusicData/Notes/Ornaments/Ornaments.cpp
+        MusicData/Notes/Ornaments/Mordent.cpp
+        MusicData/Notes/Ornaments/TrillMark.cpp
+        MusicData/Notes/Ornaments/Turn.cpp
+        MusicData/Notes/Ornaments/Vibrato.cpp
+
+        Utils/Math.cpp
+
+        MusicData/Notes/GlissandoSlide.cpp
+
+        MusicData/ComplexLine.cpp
+
         Collisions/BoundingBox.cpp
 
         JNIHelpers/JNIHelper.cpp

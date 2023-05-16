@@ -1,0 +1,4 @@
+#ifndef MUSIQUE_VIBRATO_H
+#define MUSIQUE_VIBRATO_H
+
+#endif //MUSIQUE_VIBRATO_H

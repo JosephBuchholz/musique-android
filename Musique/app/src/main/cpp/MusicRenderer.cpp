@@ -5,6 +5,8 @@
 
 #include "Callbacks.h"
 
+#include "MusicData/ComplexLine.h"
+
 MusicRenderer::MusicRenderer()
 {
     LinePaint = Paint();
@@ -155,7 +157,87 @@ void MusicRenderer::RenderMusicToPage(std::shared_ptr<Song> song, int page, Rend
 
     // --- MAIN RENDERING ---
 
+
     LOGI("Rendering pages for printing");
+
+    /*std::shared_ptr<ComplexLine> wavyLine = std::make_shared<ComplexLine>(ComplexLine::ComplexLineType::WavyTrill);
+    Vec2<float> pos = { pageX + 10.0f + pageRenderData.displayConstants.pageWidth, pageY + 10.0f };
+
+    wavyLine->positionStart = { 0.0f, 0.0f };
+    wavyLine->positionEnd = { 500.0f, 1.0f };
+
+    wavyLine->complexLineType = ComplexLine::ComplexLineType::WavyTrill;
+    wavyLine->Render(pageRenderData, pos);
+    pos.y += 20.0f;
+
+    wavyLine->complexLineType = ComplexLine::ComplexLineType::WavyVibrato;
+    wavyLine->Render(pageRenderData, pos);
+    pos.y += 20.0f;
+
+    wavyLine->complexLineType = ComplexLine::ComplexLineType::WavyVibratoWide;
+    wavyLine->Render(pageRenderData, pos);
+    pos.y += 20.0f;
+
+    wavyLine->complexLineType = ComplexLine::ComplexLineType::WavyGuitarVibrato;
+    wavyLine->Render(pageRenderData, pos);
+    pos.y += 20.0f;
+
+    wavyLine->complexLineType = ComplexLine::ComplexLineType::WavyGuitarWideVibrato;
+    wavyLine->Render(pageRenderData, pos);
+    pos.y += 20.0f;
+
+    wavyLine->complexLineType = ComplexLine::ComplexLineType::Wavy;
+    wavyLine->Render(pageRenderData, pos);
+    pos.y += 20.0f;
+
+    wavyLine->complexLineType = ComplexLine::ComplexLineType::Sawtooth;
+    wavyLine->Render(pageRenderData, pos);
+    pos.y += 50.0f;
+
+    wavyLine->complexLineType = ComplexLine::ComplexLineType::Squaretooth;
+    wavyLine->Render(pageRenderData, pos);
+    pos.y += 50.0f;
+
+    wavyLine->complexLineType = ComplexLine::ComplexLineType::Circular;
+    wavyLine->Render(pageRenderData, pos);
+    pos.y += 50.0f;
+
+    wavyLine->complexLineType = ComplexLine::ComplexLineType::AccelRitBeam;
+    wavyLine->Render(pageRenderData, pos);
+    pos.y += 50.0f;
+
+    wavyLine->complexLineType = ComplexLine::ComplexLineType::Random;
+    wavyLine->Render(pageRenderData, pos);
+    pos.y += 100.0f;
+
+    wavyLine = std::make_shared<ComplexLine>(ComplexLine::ComplexLineType::ArpeggioUp);
+    wavyLine->endGlyph = SMuFLID::wiggleArpeggiatoUpArrow;
+    wavyLine->positionStart = pos;
+    wavyLine->positionEnd = { pos.x + 1.0f, pos.y + 1.0f };
+    wavyLine->Render(pageRenderData, pos);
+    wavyLine->positionEnd = { pos.x - 20.0f, pos.y + 20.0f };
+    wavyLine->Render(pageRenderData, pos);
+    wavyLine->positionEnd = { pos.x + 1.0f, pos.y - 1.0f };
+    wavyLine->Render(pageRenderData, pos);
+    wavyLine->positionEnd = { pos.x - 1.0f, pos.y - 1.0f };
+    wavyLine->Render(pageRenderData, pos);
+    wavyLine->positionEnd = { pos.x + 1.0f, pos.y };
+    wavyLine->Render(pageRenderData, pos);
+    wavyLine->positionEnd = { pos.x, pos.y + 1.0f };
+    wavyLine->Render(pageRenderData, pos);
+    wavyLine->positionEnd = { pos.x - 1.0f, pos.y };
+    wavyLine->Render(pageRenderData, pos);
+    wavyLine->positionEnd = { pos.x, pos.y - 1.0f };
+    wavyLine->Render(pageRenderData, pos);
+    wavyLine->positionEnd = { pos.x + 30.0f, pos.y - 3.0f };
+    wavyLine->Render(pageRenderData, pos);
+
+    pos.y += 20.0f;*/
+
+    /*wavyLine = std::make_shared<ComplexLine>(ComplexLine::ComplexLineType::ArpeggioDown);
+    wavyLine->startGlyph = SMuFLID::wiggleArpeggiatoDownArrow;
+    wavyLine->Render(pageRenderData, pos);
+    pos.y += 20.0f;*/
 
     // --- MAIN RENDERING ---
 
@@ -325,12 +407,20 @@ void MusicRenderer::RenderLineOfMeasures(RenderData& renderData, std::shared_ptr
     int measureIndex = (int)startMeasure;
     int measureNumber = (int)startMeasure;
     float measurePositionX = systemPositionX;
+    float nextMeasurePositionX = 0.0f;
     int measureRenderCount = 15; // the number of measures that need to be rendered
     int currentMeasureRenderedCount = 0; // the number of measures that have been rendered
+    bool isLastMeasureInSystem = false;
     for (int m = (int)startMeasure; m <= endMeasure; m++) {
         //renderableSong.systems[systemIndex].instruments[instrumentIndex].staves[staffIndex].measures.emplace_back();
 
         Measure* measure = staff->measures[m];
+
+        nextMeasurePositionX = measurePositionX + measure->measureWidth;
+
+        if (m == endMeasure)
+            isLastMeasureInSystem = true;
+
         //LOGE("i: %d, width: %f, pos: %f", m, measure->measureWidth, measurePositionX);
 
         /*if (m == currentMeasure)
@@ -430,7 +520,7 @@ void MusicRenderer::RenderLineOfMeasures(RenderData& renderData, std::shared_ptr
             {
                 int noteIndex = 0;
                 for (Note *note: measure->notes) {
-                    note->Render(renderData, staff->tablatureDisplayType, measure->CalculateNoteYPositionRelativeToMeasure(noteIndex), staff->lines, { measurePositionX, staffPositionY }, measure->measureWidth, measureNumber, lineSpacing, { 0.0f, 0.0f }, noteIndex);
+                    note->Render(renderData, staff->tablatureDisplayType, measure->CalculateNoteYPositionRelativeToMeasure(noteIndex), staff->lines, { measurePositionX, staffPositionY }, nextMeasurePositionX, measure->measureWidth, measureNumber, lineSpacing, { 0.0f, 0.0f }, noteIndex, isLastMeasureInSystem);
                     //RenderNote(renderData, note, measure, measurePositionX, staff, staffPositionY, measure->measureWidth, measureNumber, lineSpacing, 0.0f, 0.0f, noteIndex);
                     noteIndex++;
                 }
@@ -494,7 +584,7 @@ void MusicRenderer::RenderLineOfMeasures(RenderData& renderData, std::shared_ptr
 
             currentMeasureRenderedCount++;
         }
-        measurePositionX += measure->measureWidth;
+        measurePositionX = nextMeasurePositionX;
         measureNumber++;
         measureIndex++;
     } // measures loop

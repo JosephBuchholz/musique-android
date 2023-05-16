@@ -132,6 +132,8 @@ jobject ConvertPaintToObject(JNIEnv* env, const Paint& paint)
     jfieldID paintFieldIdIsAntiAlias = env->GetFieldID(paintClass, "isAntiAlias", "Z");
     jfieldID paintFieldIdStrikeThruText = env->GetFieldID(paintClass, "strikeThruText", "Z");
 
+    jfieldID paintFieldIdRotateDegrees = env->GetFieldID(paintClass, "rotateDegrees", "F");
+
     jfieldID paintFieldIdCenterVertically = env->GetFieldID(paintClass, "centerVertically", "Z");
     jfieldID paintFieldIdCenterHorizontally = env->GetFieldID(paintClass, "centerHorizontally", "Z");
 
@@ -156,6 +158,8 @@ jobject ConvertPaintToObject(JNIEnv* env, const Paint& paint)
     env->SetBooleanField(paintObject, paintFieldIdIsItalic, paint.isItalic);
     env->SetBooleanField(paintObject, paintFieldIdIsBold, paint.isBold);
     env->SetIntField(paintObject, paintFieldIdAlign, (int)paint.align);
+
+    env->SetFloatField(paintObject, paintFieldIdRotateDegrees, paint.rotateDegrees);
 
     env->SetBooleanField(paintObject, paintFieldIdIsTablature, paint.isTablature);
     env->SetBooleanField(paintObject, paintFieldIdIsAntiAlias, paint.isAntiAlias);

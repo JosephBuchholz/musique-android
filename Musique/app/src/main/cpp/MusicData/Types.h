@@ -154,4 +154,25 @@ enum class CurveOrientation
     None = 0, Over, Under
 };
 
+/**
+ * The note to start on for ornaments (like trills or mordents)
+ */
+enum class OrnamentStartNote {
+    None = 0, Below, Main, Upper
+};
+
+/**
+ * The interval/step between the alternating notes of a trill or mordent.
+ */
+enum class OrnamentStep {
+    None = 0, Half, Unison, Whole
+};
+
+/**
+ * Specifies the ending notes of a trill or mordent.
+ */
+enum class OrnamentTwoNoteTurn {
+    None = 0, Whole, Half
+};
+
 #endif // MUSIQUE_TYPES_H

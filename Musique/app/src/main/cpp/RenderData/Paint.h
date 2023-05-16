@@ -26,6 +26,8 @@ struct Paint {
         isAntiAlias = paint.isAntiAlias;
         strikeThruText = paint.strikeThruText;
 
+        rotateDegrees = paint.rotateDegrees;
+
         centerVertically = paint.centerVertically;
         centerHorizontally = paint.centerHorizontally;
 
@@ -62,6 +64,8 @@ struct Paint {
     bool isTablature = false;
     bool isAntiAlias = false;
     bool strikeThruText = false;
+
+    float rotateDegrees = 0.0f; // how much to rotate by in degrees
 
     bool centerVertically = false;
     bool centerHorizontally = false;

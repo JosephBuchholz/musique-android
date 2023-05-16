@@ -4,7 +4,7 @@
 
 void Bowing::Render(RenderData& renderData, float notePositionX, float notePositionY, float offsetX, float offsetY) const
 {
-    renderData.AddGlyph(SMuFLGlyph(GetSMuFLID(), position.x + notePositionX + offsetY, position.y + notePositionY + offsetX, Paint(color.color)));
+    renderData.AddGlyph(SMuFLGlyph(GetSMuFLID(), position.x + notePositionX + offsetX, position.y + notePositionY + offsetY, Paint(color.color)));
 }
 
 Vec2<float> Bowing::GetDimensions() const

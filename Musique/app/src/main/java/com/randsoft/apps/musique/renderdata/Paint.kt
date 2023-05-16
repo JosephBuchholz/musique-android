@@ -14,6 +14,8 @@ data class Paint(
     var isAntiAlias: Boolean = false
     var strikeThruText: Boolean = false
 
+    var rotateDegrees: Float = 0.0f // how much to rotate by in degrees
+
     var centerVertically: Boolean = false
     var centerHorizontally: Boolean = false
 

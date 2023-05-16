@@ -23,6 +23,8 @@
 #include "Techniques/Technique.h"
 #include "NoteHead.h"
 #include "Fermata.h"
+#include "Ornaments/Ornaments.h"
+#include "GlissandoSlide.h"
 
 /**
  * Class that represents a note, whether it is TAB or not.
@@ -35,7 +37,7 @@ class Note : public VisibleElement {
 public:
     ~Note() {}
 
-    void Render(RenderData& renderData, TablatureDisplayType tabDisplayType, float notePositionRelativeToMeasure, int lines, Vec2<float> measurePosition, float measureWidth, int measureNumber, float ls, Vec2<float> mainPosition, int noteIndex, Vec2<float> offset = { 0.0f, 0.0f }) const;
+    void Render(RenderData& renderData, TablatureDisplayType tabDisplayType, float notePositionRelativeToMeasure, int lines, Vec2<float> measurePosition, float nextMeasurePositionX, float measureWidth, int measureNumber, float ls, Vec2<float> mainPosition, int noteIndex, bool isLastMeasureInSystem, Vec2<float> offset = { 0.0f, 0.0f }) const;
 
     /**
      * Renders any debug info.
@@ -106,8 +108,11 @@ public:
 
     std::vector<std::shared_ptr<Articulation>> articulations;
     std::vector<std::shared_ptr<Technique>> techniques;
+    std::vector<std::shared_ptr<Ornament>> ornaments;
 
     std::shared_ptr<Fermata> fermata;
+
+    std::shared_ptr<GlissandoSlide> glissSlide;
 
     NoteTie tie = NoteTie();
 

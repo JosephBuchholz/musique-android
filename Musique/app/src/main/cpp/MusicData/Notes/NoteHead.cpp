@@ -13,7 +13,13 @@ void NoteHead::Render(RenderData& renderData, Vec2<float> position, bool centerH
     }
     else if (noteType == NoteType::Tab)
     {
-        renderData.AddText(Text(ToString(fret), position.x + offset.x, position.y + offset.y, GetPaint(renderData.displayConstants)));
+        if (type == NoteHeadType::X)
+        {
+            position.x -= GetDimensions(renderData.displayConstants).x / 2.0f;
+            renderData.AddGlyph(SMuFLGlyph(GetSMuFLID(), position.x + offset.x, position.y + offset.y, GetPaint(renderData.displayConstants)));
+        }
+        else
+            renderData.AddText(Text(ToString(fret), position.x + offset.x, position.y + offset.y, GetPaint(renderData.displayConstants)));
     }
 }
 
@@ -66,6 +72,7 @@ Paint NoteHead::GetPaint(const MusicDisplayConstants& displayConstants) const
     {
         paint.textSize = 16.0f * size;
         paint.isTablature = true;
+        paint.align = Paint::Align::Center;
     }
 
     VisibleElement::ModifyPaint(paint);

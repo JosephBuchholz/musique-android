@@ -394,7 +394,11 @@ class MusicDisplayView(context: Context, attrs: AttributeSet? = null): View(cont
                 //paint.typeface = musicTypeface
             }
 
-            drawText(canvas, text, paint, offsetX, offsetY)
+            // draw
+            canvas.save()
+            canvas.rotate(-text.paint.rotateDegrees, text.x + offsetX, text.y + offsetY) // rotate canvas
+            drawText(canvas, text, paint, offsetX, offsetY) // draw
+            canvas.restore(); // reset rotation
         }
     }
 
@@ -459,7 +463,10 @@ class MusicDisplayView(context: Context, attrs: AttributeSet? = null): View(cont
             }
 
             // draw
-            canvas.drawText(Character.toChars(glyph.codePoint), 0, 1, (x) + offsetX, (y) + offsetY, paint)
+            canvas.save()
+            canvas.rotate(-glyph.paint.rotateDegrees, x + offsetX, y + offsetY) // rotate canvas
+            canvas.drawText(Character.toChars(glyph.codePoint), 0, 1, x + offsetX, y + offsetY, paint) // draw
+            canvas.restore(); // reset rotation
         }
     }
 

@@ -11,6 +11,9 @@
 
 static std::unordered_map<int, std::shared_ptr<Tuplet>> currentTuplets;
 
+static std::unordered_map<int, std::shared_ptr<GlissandoSlide>> currentGlissandos;
+static std::unordered_map<int, std::shared_ptr<GlissandoSlide>> currentSlides;
+
 Lyric NoteElementParser::ParseLyric(XMLElement* lyricElement)
 {
     Lyric lyric = Lyric();
@@ -294,6 +297,10 @@ void NoteElementParser::ParseNoteElement(XMLElement* noteElement, float& current
         XMLElement* articulationsElement = notations->FirstChildElement("articulations");
         ParseArticulationsElement(articulationsElement, currentNote);
 
+        // ornaments
+        XMLElement* ornamentsElement = notations->FirstChildElement("ornaments");
+        ParseOrnamentsElement(ornamentsElement, currentNote);
+
         XMLNode* previousElement = notations->FirstChildElement(); // first element
         while (true)
         {
@@ -338,6 +345,10 @@ void NoteElementParser::ParseNoteElement(XMLElement* noteElement, float& current
                     std::shared_ptr<Fermata> fermata = std::make_shared<Fermata>();
                     ParseFermataElement(element, fermata);
                     currentNote->fermata = fermata;
+                }
+                else if (strcmp(value, "glissando") == 0 || strcmp(value, "slide") == 0) // glissandos and slides
+                {
+                    ParseGlissandoSlideElement(element, currentNote);
                 }
             }
             else
@@ -822,4 +833,162 @@ void NoteElementParser::ParseFermataElement(XMLElement* element, std::shared_ptr
         fermata->direction = Fermata::Direction::Inverted;
     else
         fermata->direction = Fermata::Direction::None;
+}
+
+void NoteElementParser::ParseOrnamentsElement(XMLElement* element, Note* currentNote)
+{
+    if (element)
+    {
+        XMLNode* previousElement = element->FirstChildElement(); // first element
+        while (true)
+        {
+            if (previousElement) {
+                std::shared_ptr<Ornament> newOrnament;
+                XMLElement* childElement = previousElement->ToElement();
+
+                const char* value = childElement->Value();
+                if (strcmp(value, "trill-mark") == 0) // trill mark
+                {
+                    std::shared_ptr<TrillMark> newTrillMark = std::make_shared<TrillMark>();
+                    ParseTrillMarkElement(childElement, newTrillMark);
+                    newOrnament = newTrillMark;
+                }
+                else if (strcmp(value, "turn") == 0 || strcmp(value, "inverted-turn") == 0 || strcmp(value, "delayed-turn") == 0 || strcmp(value, "delayed-inverted-turn") == 0 ||
+                        strcmp(value, "vertical-turn") == 0 || strcmp(value, "inverted-vertical-turn") == 0) // turns
+                {
+                    std::shared_ptr<Turn> newTurn = std::make_shared<Turn>();
+                    ParseTurnElement(childElement, newTurn);
+                    newOrnament = newTurn;
+                }
+                else if (strcmp(value, "mordent") == 0 || strcmp(value, "inverted-mordent") == 0) // mordent
+                {
+                    std::shared_ptr<Mordent> newMordent = std::make_shared<Mordent>();
+                    ParseMordentElement(childElement, newMordent);
+                    newOrnament = newMordent;
+                }
+                else
+                {
+                    AddError("Unrecognized element", "Didn't recognize element in TECHNICAL");
+                }
+
+                if (newOrnament != nullptr)
+                {
+                    newOrnament->placement = MusicXMLHelper::GetAboveBelowAttribute(childElement, "placement", newOrnament->placement);
+                    currentNote->ornaments.push_back(newOrnament);
+                }
+            }
+            else
+            {
+                break;
+            }
+
+            previousElement = previousElement->NextSiblingElement();
+        }
+    }
+}
+
+void NoteElementParser::ParseTrillMarkElement(XMLElement* element, std::shared_ptr<TrillMark> newOrnament)
+{
+    if (!element)
+        throw IsNullException();
+}
+
+void NoteElementParser::ParseTurnElement(XMLElement* element, std::shared_ptr<Turn> newOrnament)
+{
+    if (!element)
+        throw IsNullException();
+
+    const char* value = element->Value();
+    if (strcmp(value, "turn") == 0)
+        newOrnament->type = Turn::TurnType::Turn;
+    else if (strcmp(value, "delayed-turn") == 0)
+        newOrnament->type = Turn::TurnType::DelayedTurn;
+    else if (strcmp(value, "inverted-turn") == 0)
+        newOrnament->type = Turn::TurnType::InvertedTurn;
+    else if (strcmp(value, "delayed-inverted-turn") == 0)
+        newOrnament->type = Turn::TurnType::DelayedInvertedTurn;
+    else if (strcmp(value, "vertical-turn") == 0)
+        newOrnament->type = Turn::TurnType::VerticalTurn;
+    else if (strcmp(value, "inverted-vertical-turn") == 0)
+        newOrnament->type = Turn::TurnType::InvertedVerticalTurn;
+
+    newOrnament->hasSlash = XMLHelper::GetBoolAttribute(element, "slash", newOrnament->hasSlash);
+}
+
+void NoteElementParser::ParseMordentElement(XMLElement* element, std::shared_ptr<Mordent> newOrnament)
+{
+    if (!element)
+        throw IsNullException();
+
+    const char* value = element->Value();
+    if (strcmp(value, "mordent") == 0)
+        newOrnament->type = Mordent::MordentType::Mordent;
+    else if (strcmp(value, "inverted-mordent") == 0)
+        newOrnament->type = Mordent::MordentType::InvertedMordent;
+}
+
+void NoteElementParser::ParseGlissandoSlideElement(XMLElement* element, Note* currentNote)
+{
+    if (!element)
+        throw IsNullException();
+
+    GlissandoSlide::Type glissSlideType = GlissandoSlide::Type::None;
+
+    const char* value = element->Value();
+    if (strcmp(value, "glissando") == 0)
+        glissSlideType = GlissandoSlide::Type::Glissando;
+    else if (strcmp(value, "slide") == 0)
+        glissSlideType = GlissandoSlide::Type::Slide;
+
+    StartStopType startStopType = MusicXMLHelper::GetStartStopAttribute(element, "type", StartStopType::None, true);
+    int number = XMLHelper::GetNumberAttribute(element, "number", 1);
+
+    //LOGD("number: %d, is start: %d, size: %d, mSize: %d, staff: %d", number, startStopType == StartStopType::Start, currentTuplets.size(), currentMeasures.size(), currentNote->staff);
+
+    if (startStopType == StartStopType::Start)
+    {
+        std::shared_ptr<GlissandoSlide> glissSlide = std::make_shared<GlissandoSlide>();
+
+        glissSlide->type = glissSlideType;
+        glissSlide->notes.first = currentNote;
+
+        BaseElementParser::ParseTextualElement(element, glissSlide);
+        BaseElementParser::ParseLineElement(element, glissSlide);
+
+        glissSlide->defaultPositionStart = XMLHelper::GetFloatVec2Attribute(element, "default-x", "default-y", glissSlide->defaultPositionStart);
+        glissSlide->relativePositionStart = XMLHelper::GetFloatVec2Attribute(element, "relative-x", "relative-y", glissSlide->relativePositionStart);
+
+        glissSlide->text = XMLHelper::GetStringValue(element, glissSlide->text);
+        if (!glissSlide->text.empty())
+            glissSlide->displayText = true;
+
+        currentNote->glissSlide = glissSlide;
+
+        if (glissSlideType == GlissandoSlide::Type::Glissando)
+            currentGlissandos[number] = glissSlide;
+        else if (glissSlideType == GlissandoSlide::Type::Slide)
+            currentSlides[number] = glissSlide;
+    }
+    else if (startStopType == StartStopType::Stop)
+    {
+        std::shared_ptr<GlissandoSlide> glissSlide;
+
+        if (glissSlideType == GlissandoSlide::Type::Glissando)
+            glissSlide = currentGlissandos[number];
+        else if (glissSlideType == GlissandoSlide::Type::Slide)
+            glissSlide = currentSlides[number];
+
+        if (glissSlide != nullptr)
+        {
+            glissSlide->notes.second = currentNote;
+        }
+
+        glissSlide->defaultPositionEnd = XMLHelper::GetFloatVec2Attribute(element, "default-x", "default-y", glissSlide->defaultPositionEnd);
+        glissSlide->relativePositionEnd = XMLHelper::GetFloatVec2Attribute(element, "relative-x", "relative-y", glissSlide->relativePositionEnd);
+
+        if (glissSlideType == GlissandoSlide::Type::Glissando)
+            currentGlissandos.erase(number);
+        else if (glissSlideType == GlissandoSlide::Type::Slide)
+            currentSlides.erase(number);
+    }
 }
