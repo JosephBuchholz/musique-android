@@ -49,6 +49,7 @@ add_library( # Sets the name of the library.
         MusicData/Directions/Dynamic.cpp
         MusicData/Directions/DynamicWedge.cpp
         MusicData/Directions/MetronomeMark.cpp
+        MusicData/Directions/Marker.cpp
 
         MusicData/Page/Credit.cpp
 
@@ -63,6 +64,10 @@ add_library( # Sets the name of the library.
         MusicData/Measures/MeasureNumber.cpp
         MusicData/Pitch.cpp
         MusicData/Measures/TimeSignature.cpp
+        MusicData/Measures/Arpeggio.cpp
+
+        MusicData/Notes/TremoloSingle.cpp
+
         RenderMeasurement.cpp
 
         MusicXMLParser/MusicXMLHelper.cpp

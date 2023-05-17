@@ -46,7 +46,7 @@ public:
 
     StaffType type = StaffType::Standard;
 
-    std::vector<Measure*> measures;
+    std::vector<std::shared_ptr<Measure>> measures;
 
     int lines = 5;
 

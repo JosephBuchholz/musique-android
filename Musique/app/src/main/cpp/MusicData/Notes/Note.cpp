@@ -129,7 +129,7 @@ void Note::Render(RenderData& renderData, TablatureDisplayType tabDisplayType, f
 
     if (glissSlide)
     {
-        if (glissSlide->notes.first == this && glissSlide->notes.second != nullptr)
+        if (glissSlide->notes.first.get() == this && glissSlide->notes.second.get() != nullptr)
         {
             // TODO: fix: currently assuming that the gliss is only contained in a single measure
 
@@ -168,7 +168,7 @@ void Note::RenderDebug(RenderData& renderData) const
 
     if (glissSlide)
     {
-        if (glissSlide->notes.first == this)
+        if (glissSlide->notes.first.get() == this)
             glissSlide->RenderDebug(renderData);
     }
 
@@ -336,6 +336,12 @@ void Note::RenderNoteStem(RenderData& renderData, const Note* note, float notePo
     if (note->noteStem.stemType != NoteStem::StemType::None)
     {
         renderData.AddLine(std::make_shared<Line>(notePositionX + note->noteStem.stemPositionX, notePositionY + note->noteStem.stemStartY, notePositionX + note->noteStem.stemPositionX, notePositionY + note->noteStem.stemEndY, renderData.paints.noteStemPaint));
+
+        if (tremoloSingle)
+        {
+            float mid = ((notePositionY + note->noteStem.stemEndY) - (notePositionY + note->noteStem.stemStartY)) / 2.0f;
+            tremoloSingle->Render(renderData, { notePositionX + note->noteStem.stemPositionX, notePositionY + note->noteStem.stemStartY + mid });
+        }
     }
 
     // render grace note slash
@@ -648,9 +654,12 @@ void Note::CalculatePositionAsPaged(const MusicDisplayConstants& displayConstant
     if (fermata)
         fermata->CalculatePositionAsPaged(displayConstants, { 0.0f, -20.0f });
 
+    if (tremoloSingle)
+        tremoloSingle->CalculatePositionAsPaged(displayConstants);
+
     if (glissSlide)
     {
-        if (glissSlide->notes.first == this)
+        if (glissSlide->notes.first.get() == this)
         {
             Vec2<float> defPositionStart = { 0.0f, 0.0f };
             Vec2<float> defPositionEnd = { 0.0f, 0.0f };
@@ -703,7 +712,7 @@ void Note::UpdateBoundingBox(const MusicDisplayConstants& displayConstants, cons
 
     if (glissSlide)
     {
-        if (glissSlide->notes.first == this)
+        if (glissSlide->notes.first.get() == this)
         {
             glissSlide->UpdateBoundingBox({ 0.0f, 0.0f });
         }

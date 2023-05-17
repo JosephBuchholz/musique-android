@@ -44,7 +44,7 @@ float Staff::GetTotalBeatWidth()
 {
     float width = 0.0f;
 
-    for (auto* m : measures) {
+    for (auto m : measures) {
         width += m->GetDuration();
     }
 
@@ -54,11 +54,11 @@ float Staff::GetTotalBeatWidth()
 float Staff::GetMeasureNextBeatPosition(int measureIndex, float currentBeatPosition) {
     float position = 0.0f;
 
-    Measure* measure = measures[measureIndex];
+    std::shared_ptr<Measure> measure = measures[measureIndex];
 
     if (measure->nextBeatPosition == -1 || measure->nextBeatPosition < currentBeatPosition) { // calculate new beat position
         int i = 0;
-        for (auto* m : measures) {
+        for (auto m : measures) {
 
             if (i == measureIndex) {
                 break;
@@ -81,7 +81,7 @@ float Staff::GetMeasureBeatPosition(int measureIndex) {
     float position = 0.0f;
 
     int i = 0;
-    for (auto* m : measures) {
+    for (auto m : measures) {
 
         if (i == measureIndex) {
             break;

@@ -130,12 +130,6 @@ void ComplexLine::Render(RenderData& renderData, Vec2<float> parentPosition, Vec
     Paint paint;
     paint.rotateDegrees = 0.0f;
 
-    if (startGlyph != SMuFLID::None)
-    {
-        renderData.AddGlyph(SMuFLGlyph(startGlyph, pos.x, pos.y, paint));
-        pos.x += RenderMeasurement::MeasureGlyph(startGlyph);
-    }
-
     std::vector<SMuFLID> glyphs = GetLineSegmentsVector();
 
     Vec2<float> endPosRelativeToStart = positionEnd - positionStart;
@@ -170,6 +164,20 @@ void ComplexLine::Render(RenderData& renderData, Vec2<float> parentPosition, Vec
     Vec2<float> directionUnitVector = { endPosRelativeToStart.x / magnitude, endPosRelativeToStart.y / magnitude};
 
     float lineLength = 0.0f;
+
+    if (endGlyph != SMuFLID::None)
+    {
+        float glyphWidth = RenderMeasurement::MeasureGlyph(endGlyph);
+        lineLength += glyphWidth;
+    }
+
+    if (startGlyph != SMuFLID::None)
+    {
+        renderData.AddGlyph(SMuFLGlyph(startGlyph, pos.x, pos.y, paint));
+        float glyphWidth = RenderMeasurement::MeasureGlyph(startGlyph);
+        pos += directionUnitVector * Vec2<float>{ glyphWidth, glyphWidth };
+        lineLength += glyphWidth;
+    }
 
     int i = 0;
     while (lineLength < magnitude)

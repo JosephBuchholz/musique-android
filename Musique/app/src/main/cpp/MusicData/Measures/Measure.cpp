@@ -143,66 +143,14 @@ void Measure::RenderDebug(RenderData& renderData) const
 
     clef.boundingBox.Render(renderData, (int)0x66FF0000);
 
-    for (auto* note : notes)
+    for (auto note : notes)
     {
         note->RenderDebug(renderData);
     }
 
-    for (const Direction& direction : directions) {
-
-        for (auto& words : direction.words)
-        {
-#if DEBUG_BOUNDING_BOXES
-            words.debugBoundingBox.Render(renderData, (int)0xFF00FF00);
-#endif
-
-            words.boundingBox.Render(renderData);
-        }
-
-        for (auto& rehearsal : direction.rehearsals)
-        {
-#if DEBUG_BOUNDING_BOXES
-            rehearsal.debugBoundingBox.Render(renderData, (int)0xFF00FF00);
-#endif
-
-            rehearsal.boundingBox.Render(renderData);
-        }
-
-        for (auto& dynamic : direction.dynamics)
-        {
-#if DEBUG_BOUNDING_BOXES
-            dynamic.debugBoundingBox.Render(renderData, (int)0xFF00FF00);
-#endif
-
-            dynamic.boundingBox.Render(renderData);
-        }
-
-        if (direction.dynamicWedge != nullptr)
-        {
-#if DEBUG_BOUNDING_BOXES
-            direction.dynamicWedge->debugBoundingBox.Render(renderData, (int)0xFF00FF00);
-#endif
-
-            direction.dynamicWedge->boundingBox.Render(renderData);
-        }
-
-        if (direction.bracketDirection != nullptr)
-        {
-#if DEBUG_BOUNDING_BOXES
-            direction.bracketDirection->debugBoundingBox.Render(renderData, (int)0xFF00FF00);
-#endif
-
-            direction.bracketDirection->boundingBox.Render(renderData);
-        }
-
-        if (direction.metronomeMark != nullptr)
-        {
-#if DEBUG_BOUNDING_BOXES
-            direction.metronomeMark->debugBoundingBox.Render(renderData, (int)0xFF00FF00);
-#endif
-            direction.metronomeMark->boundingBox.Render(renderData);
-        }
-
+    for (const Direction& direction : directions)
+    {
+        direction.RenderDebug(renderData);
     }
 
     for (const Chord& chord : chords)
@@ -245,7 +193,7 @@ float Measure::GetPitchYPosition(Pitch pitch) const {
 }
 
 float Measure::CalculateNoteYPositionRelativeToMeasure(int noteIndex) const {
-    Note* note = notes[noteIndex];
+    std::shared_ptr<Note> note = notes[noteIndex];
     return GetPitchYPosition(note->pitch);
 }
 
@@ -297,6 +245,12 @@ void Measure::CalculateAsPaged(const MusicDisplayConstants& displayConstants, Sy
     timeSignature.CalculatePositionAsPaged(displayConstants);
 
     measureNumber.CalculatePositionAsPaged(displayConstants, { 0.0f, -15.0f });
+
+    for (auto arpeggio : arpeggios)
+    {
+        if (arpeggio)
+            arpeggio->CalculatePositionAsPaged(displayConstants, { 0.0f, 0.0f }, { 0.0f, 0.0f });
+    }
 }
 
 float Measure::MeausreClefWidth() const
@@ -339,7 +293,7 @@ void Measure::UpdateBoundingBoxes(const MusicDisplayConstants& displayConstants,
     measureNumber.UpdateBoundingBox(measurePosition);
     clef.UpdateBoundingBox(measurePosition, 5, true);
 
-    for (Note* note : notes)
+    for (auto note : notes)
     {
         note->UpdateBoundingBox(displayConstants, measurePosition);
     }

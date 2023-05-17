@@ -57,11 +57,11 @@ void App::LoadSongFromString(const std::string& string)
     unsigned int numMeasures = 0;
     unsigned int numNotes = 0;
     if (song != nullptr) {
-        for (Instrument *inst : song->instruments) {
+        for (auto inst : song->instruments) {
             numStaves += inst->staves.size();
-            for (Staff *staff : inst->staves) {
+            for (auto staff : inst->staves) {
                 numMeasures += staff->measures.size();
-                for (Measure *measure : staff->measures) {
+                for (auto measure : staff->measures) {
                     numNotes += measure->notes.size();
                 }
             }
@@ -90,25 +90,25 @@ void App::LoadSongFromString(const std::string& string)
 void App::DeleteSong()
 {
     LOGI("Deleting Song Data");
-    for (auto* instrument : song->instruments) {
-        for (auto* staff : instrument->staves) {
-            for (auto* measure : staff->measures) {
-                for (Note* note : measure->notes) {
-                    delete note;
+    for (auto instrument : song->instruments) {
+        for (auto staff : instrument->staves) {
+            for (auto measure : staff->measures) {
+                for (std::shared_ptr<Note> note : measure->notes) {
+                    //delete note;
                     note = nullptr;
                 }
                 measure->notes.clear();
                 measure->directions.clear();
                 measure->soundEvents.clear();
-                delete measure;
+                //delete measure;
                 measure = nullptr;
             }
             staff->measures.clear();
-            delete staff;
+            //delete staff;
             staff = nullptr;
         }
         instrument->staves.clear();
-        delete instrument;
+        //delete instrument;
         instrument = nullptr;
     }
     song->instruments.clear();
@@ -133,10 +133,10 @@ void App::OnUpdate(double dt)
 
         float playLinePosInMeasure = 0.0f;
         if (playing) {
-            for (auto *instrument : song->instruments) {
-                for (auto *staff : instrument->staves) {
+            for (auto instrument : song->instruments) {
+                for (auto staff : instrument->staves) {
                     int measureIndex = 0;
-                    for (auto *measure : staff->measures) {
+                    for (auto measure : staff->measures) {
                         float measureBeatPosition = staff->GetMeasureNextBeatPosition(measureIndex,
                                                                                       playLineBeatPosition);
 
@@ -149,7 +149,7 @@ void App::OnUpdate(double dt)
                                 currentMeasureBeatPosition = measureBeatPosition;
                             }
 
-                            for (Note *note : measure->notes) {
+                            for (std::shared_ptr<Note> note : measure->notes) {
                                 // POTENTIAL PROBLEM: if the play line skips over the note (like if it lags) then the note won't be played could become a potential problem if the song is really fast
                                 if (playLineBeatPosition >=
                                     note->beatPosition + measureBeatPosition &&
@@ -290,7 +290,7 @@ void App::OnInputEvent(const InputEvent& event)
     {
         case InputEvent::InputEventType::Tap:
         {
-            Measure* selectedMeasure = song->GetMeasureAtPoint(event.position);
+            std::shared_ptr<Measure> selectedMeasure = song->GetMeasureAtPoint(event.position);
 
             if (selectedMeasure != nullptr)
             {

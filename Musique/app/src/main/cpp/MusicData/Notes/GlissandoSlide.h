@@ -46,7 +46,7 @@ protected:
 
 public:
 
-    std::pair<Note*, Note*> notes; // the notes associated with this gliss/slide
+    std::pair<std::shared_ptr<Note>, std::shared_ptr<Note>> notes; // the notes associated with this gliss/slide
 
     // whether this is a glissando or a slide
     enum class Type {

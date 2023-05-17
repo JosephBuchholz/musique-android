@@ -18,6 +18,7 @@
 #include "../BaseElements/VisibleElement.h"
 #include "Tuplet.h"
 #include "MeasureNumber.h"
+#include "Arpeggio.h"
 
 #include <vector>
 
@@ -77,29 +78,6 @@ public:
 
     void UpdateBoundingBoxes(const MusicDisplayConstants& displayConstants, const Vec2<float>& measurePosition, float measureHeight);
 
-    /*void CopyData(Measure* measure) // copies all data from measure except any notes that don't equal this measure's 'staff' and the 'staff' variable itself
-    {
-        timeSignature = measure->timeSignature;
-        showTimeSignature = measure->showTimeSignature;
-        keySignature = measure->keySignature;
-        showKeySignature = measure->showKeySignature;
-        clef = measure->clef;
-        showClef = measure->showClef;
-        transpose = measure->transpose;
-        duration = measure->duration;
-        beatPosition = measure->beatPosition;
-        divisions = measure->divisions;
-        nextBeatPosition = measure->nextBeatPosition;
-
-        for (Note* note : measure->notes) // only notes that equal this measure's staff
-        {
-            if (note->staff == staff)
-            {
-                notes.push_back(note);
-            }
-        }
-    }*/
-
 protected:
     void CalculateAsPaged(const MusicDisplayConstants& displayConstants, System& system, int staffLines);
 
@@ -138,13 +116,14 @@ public:
     Duration duration = Duration(); // (hard coded) the duration of the measure
     float beatPosition = 0.0f; // the position in beats in the song
 
-    std::vector<Note*> notes; // the notes contained in this measure
+    std::vector<std::shared_ptr<Note>> notes; // the notes contained in this measure
     std::vector<Direction> directions; // the directions contained in this measure
     std::vector<SoundEvent> soundEvents; // the sound events contained in this measure
     std::vector<Chord> chords; // the chords contained in this measure
     std::vector<Barline> barlines; // the barlines contained in this measure
     std::vector<BeamGroup> beams; // the beams (beam groups) contained in this measure
     std::vector<std::shared_ptr<Tuplet>> tuplets; // the tuplets that are contained in this measure
+    std::vector<std::shared_ptr<Arpeggio>> arpeggios; // the arpeggios that are contained in this measure
 
     int divisions = 1;
 

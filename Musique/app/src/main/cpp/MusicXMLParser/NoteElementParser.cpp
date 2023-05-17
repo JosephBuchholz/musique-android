@@ -5,6 +5,8 @@
 #include "BaseElementParser.h"
 #include "../Utils/Converters.h"
 
+#include "MusicXMLParser.h"
+
 #include "../Exceptions/Exceptions.h"
 
 #include <unordered_map>
@@ -65,7 +67,7 @@ Lyric NoteElementParser::ParseLyric(XMLElement* lyricElement)
     return lyric;
 }
 
-void NoteElementParser::ParseNoteElement(XMLElement* noteElement, float& currentTimeInMeasure, std::vector<bool> staffIsTabInfo, Note* currentNote, Note* previousNote, std::vector<Measure*> currentMeasures, int measureNumber, std::string& error)
+void NoteElementParser::ParseNoteElement(XMLElement* noteElement, float& currentTimeInMeasure, std::vector<bool> staffIsTabInfo, std::shared_ptr<Note> currentNote, std::shared_ptr<Note> previousNote, std::vector<std::shared_ptr<Measure>> currentMeasures, int measureNumber, std::string& error)
 {
     currentNote->defaultPosition.x = XMLHelper::GetFloatAttribute(noteElement, "default-x", currentNote->defaultPosition.x);
     currentNote->defaultPosition.y = XMLHelper::GetFloatAttribute(noteElement, "default-y", currentNote->defaultPosition.y);
@@ -350,6 +352,10 @@ void NoteElementParser::ParseNoteElement(XMLElement* noteElement, float& current
                 {
                     ParseGlissandoSlideElement(element, currentNote);
                 }
+                else if (strcmp(value, "arpeggiate") == 0 ) // arpeggios
+                {
+                    MusicXMLParser::ParseArpeggioElement(element, currentMeasures[currentNote->staff - 1], currentNote);
+                }
             }
             else
             {
@@ -377,7 +383,7 @@ void NoteElementParser::ParseNoteElement(XMLElement* noteElement, float& current
     currentMeasures[currentNote->staff - 1]->notes.push_back(currentNote);
 }
 
-void NoteElementParser::ParseTechnicalElement(XMLElement* technicalElement, Note* currentNote, bool isTab)
+void NoteElementParser::ParseTechnicalElement(XMLElement* technicalElement, std::shared_ptr<Note> currentNote, bool isTab)
 {
     if (technicalElement)
     {
@@ -501,7 +507,7 @@ void NoteElementParser::ParseTechnicalElement(XMLElement* technicalElement, Note
     }
 }
 
-void NoteElementParser::ParseArticulationsElement(XMLElement* articulationsElement, Note* currentNote)
+void NoteElementParser::ParseArticulationsElement(XMLElement* articulationsElement, std::shared_ptr<Note> currentNote)
 {
     if (articulationsElement)
     {
@@ -835,7 +841,7 @@ void NoteElementParser::ParseFermataElement(XMLElement* element, std::shared_ptr
         fermata->direction = Fermata::Direction::None;
 }
 
-void NoteElementParser::ParseOrnamentsElement(XMLElement* element, Note* currentNote)
+void NoteElementParser::ParseOrnamentsElement(XMLElement* element, std::shared_ptr<Note> currentNote)
 {
     if (element)
     {
@@ -866,9 +872,13 @@ void NoteElementParser::ParseOrnamentsElement(XMLElement* element, Note* current
                     ParseMordentElement(childElement, newMordent);
                     newOrnament = newMordent;
                 }
+                else if (strcmp(value, "tremolo") == 0) // tremolo
+                {
+                    ParseTremoloElement(childElement, currentNote);
+                }
                 else
                 {
-                    AddError("Unrecognized element", "Didn't recognize element in TECHNICAL");
+                    AddError("Unrecognized element", "Didn't recognize element in ORNAMENTS");
                 }
 
                 if (newOrnament != nullptr)
@@ -927,7 +937,7 @@ void NoteElementParser::ParseMordentElement(XMLElement* element, std::shared_ptr
         newOrnament->type = Mordent::MordentType::InvertedMordent;
 }
 
-void NoteElementParser::ParseGlissandoSlideElement(XMLElement* element, Note* currentNote)
+void NoteElementParser::ParseGlissandoSlideElement(XMLElement* element, std::shared_ptr<Note> currentNote)
 {
     if (!element)
         throw IsNullException();
@@ -990,5 +1000,33 @@ void NoteElementParser::ParseGlissandoSlideElement(XMLElement* element, Note* cu
             currentGlissandos.erase(number);
         else if (glissSlideType == GlissandoSlide::Type::Slide)
             currentSlides.erase(number);
+    }
+}
+
+void NoteElementParser::ParseTremoloElement(XMLElement* element, std::shared_ptr<Note> currentNote)
+{
+    if (!element)
+        throw IsNullException();
+
+    std::string typeString = XMLHelper::GetStringAttribute(element, "type", "single");
+
+    if (typeString == "single" || typeString == "unmeasured") // single tremolo
+    {
+        std::shared_ptr<TremoloSingle> newTremoloSingle = std::make_shared<TremoloSingle>();
+
+        BaseElementParser::ParseVisibleElement(element, newTremoloSingle);
+
+        if (typeString == "single")
+            newTremoloSingle->type = TremoloSingle::Type::Normal;
+        else if (typeString == "unmeasured")
+            newTremoloSingle->type = TremoloSingle::Type::BuzzRoll; // or TremoloSingle::Type::Unmeasured
+
+        newTremoloSingle->tremoloMarks = XMLHelper::GetIntValue(element, newTremoloSingle->tremoloMarks, true);
+
+        currentNote->tremoloSingle = newTremoloSingle;
+    }
+    else if (typeString == "start" || typeString == "stop") // double tremolo
+    {
+        LOGW("Double Tremolos are not supported yet.");
     }
 }

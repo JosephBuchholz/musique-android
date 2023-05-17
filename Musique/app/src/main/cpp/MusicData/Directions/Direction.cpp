@@ -112,6 +112,72 @@ void Direction::Render(RenderData& renderData, float measurePositionX, float mea
     {
         bracketDirection->Render(renderData, { measurePositionX, measurePositionY });
     }
+
+    if (marker != nullptr)
+    {
+        marker->Render(renderData, { measurePositionX, measurePositionY });
+    }
+}
+
+void Direction::RenderDebug(RenderData& renderData) const
+{
+    for (auto& words : words)
+    {
+#if DEBUG_BOUNDING_BOXES
+        words.debugBoundingBox.Render(renderData, (int)0xFF00FF00);
+#endif
+
+        words.boundingBox.Render(renderData);
+    }
+
+    for (auto& rehearsal : rehearsals)
+    {
+#if DEBUG_BOUNDING_BOXES
+        rehearsal.debugBoundingBox.Render(renderData, (int)0xFF00FF00);
+#endif
+
+        rehearsal.boundingBox.Render(renderData);
+    }
+
+    for (auto& dynamic : dynamics)
+    {
+#if DEBUG_BOUNDING_BOXES
+        dynamic.debugBoundingBox.Render(renderData, (int)0xFF00FF00);
+#endif
+
+        dynamic.boundingBox.Render(renderData);
+    }
+
+    if (dynamicWedge != nullptr)
+    {
+#if DEBUG_BOUNDING_BOXES
+        dynamicWedge->debugBoundingBox.Render(renderData, (int)0xFF00FF00);
+#endif
+
+        dynamicWedge->boundingBox.Render(renderData);
+    }
+
+    if (bracketDirection != nullptr)
+    {
+#if DEBUG_BOUNDING_BOXES
+        bracketDirection->debugBoundingBox.Render(renderData, (int)0xFF00FF00);
+#endif
+
+        bracketDirection->boundingBox.Render(renderData);
+    }
+
+    if (metronomeMark != nullptr)
+    {
+#if DEBUG_BOUNDING_BOXES
+        metronomeMark->debugBoundingBox.Render(renderData, (int)0xFF00FF00);
+#endif
+        metronomeMark->boundingBox.Render(renderData);
+    }
+
+    if (marker)
+    {
+        marker->RenderDebug(renderData);
+    }
 }
 
 void Direction::UpdateBoundingBox(const Vec2<float>& measurePosition)
@@ -144,5 +210,10 @@ void Direction::UpdateBoundingBox(const Vec2<float>& measurePosition)
     if (bracketDirection != nullptr)
     {
         bracketDirection->UpdateBoundingBox(measurePosition);
+    }
+
+    if (marker != nullptr)
+    {
+        marker->UpdateBoundingBox(measurePosition);
     }
 }

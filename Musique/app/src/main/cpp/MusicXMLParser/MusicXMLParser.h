@@ -23,6 +23,8 @@ using namespace tinyxml2;
 class MusicXMLParser
 {
     friend class XMLHelper;
+    friend class NoteElementParser;
+
 public:
 
     /**
@@ -52,8 +54,11 @@ private:
     static MusicDisplayConstants ParseDefaultsElement(XMLElement* defaultsElement);
     static Credit ParseCreditElement(XMLElement* creditElement);
     static void ParseFrameElement(XMLElement* frameElement, Chord& chord);
-    static void ParseHarmonyElement(XMLElement* harmonyElement, float& currentTimeInMeasure, std::vector<Measure*> currentMeasures);
+    static void ParseHarmonyElement(XMLElement* harmonyElement, float& currentTimeInMeasure, std::vector<std::shared_ptr<Measure>> currentMeasures);
     static Barline ParseBarlineElement(XMLElement* barlineElement);
+    static void ParseArpeggioElement(XMLElement* element, std::shared_ptr<Measure> currentMeasure, std::shared_ptr<Note> currentNote);
+
+    static std::shared_ptr<Marker> ParseCodaSegnoElement(XMLElement* element);
 
 protected:
     static void AddError(std::string title, std::string desc, ErrorLevel errorLevel = ErrorLevel::Error) { m_Errors.emplace_back(title, desc, "MusicXMLParser", errorLevel); }

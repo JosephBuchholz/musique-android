@@ -21,7 +21,7 @@ Song::~Song()
     LOGD("done deconstructing song data");
 }
 
-Instrument* Song::GetInstrument(const std::string& id) const {
+std::shared_ptr<Instrument> Song::GetInstrument(const std::string& id) const {
     for (auto& inst : instruments) {
         if (inst->id == id) {
             return inst;
@@ -42,7 +42,7 @@ void Song::OnUpdate()
     LOGD("updating song data");
 
     songData.instrumentInfos.clear();
-    for (auto* instrument : instruments) {
+    for (auto instrument : instruments) {
         InstrumentInfo instInfo = InstrumentInfo();
         instInfo.name = instrument->name.string;
         instInfo.volume = 100;
@@ -51,17 +51,17 @@ void Song::OnUpdate()
     }
 
     // tie calculations
-    for (auto* instrument : instruments)
+    for (auto instrument : instruments)
     {
-        for (auto* staff : instrument->staves)
+        for (auto staff : instrument->staves)
         {
-            std::vector<Note*> tiedStartNotes;
+            std::vector<std::shared_ptr<Note>> tiedStartNotes;
 
             int measureIndex = 0;
-            for (auto* measure : staff->measures)
+            for (auto measure : staff->measures)
             {
                 int noteIndex = 0;
-                for (auto* note : measure->notes)
+                for (auto note : measure->notes)
                 {
                     //LOGV("s: %d", tiedStartNotes.size());
                     if (note->tie.type == NoteTie::TieType::Start)
@@ -111,12 +111,12 @@ void Song::OnUpdate()
     }
 
     // beam calculations
-    for (auto* instrument : instruments)
+    for (auto instrument : instruments)
     {
-        for (auto* staff : instrument->staves)
+        for (auto staff : instrument->staves)
         {
             int measureIndex = 0;
-            for (auto* measure : staff->measures)
+            for (auto measure : staff->measures)
             {
                 int noteIndex = 0;
                 const int maxBeamLevel = 4; // TODO: probably should be fixed
@@ -125,7 +125,7 @@ void Song::OnUpdate()
 
                 bool beamGroupIsDone = false;
 
-                for (auto* note : measure->notes)
+                for (auto note : measure->notes)
                 {
                     for (const NoteBeamData& noteBeamData : note->beamData)
                     {
@@ -204,11 +204,11 @@ void Song::OnUpdate()
     }
 
     // beat positions
-    for (auto* instrument : instruments) {
-        for (auto* staff : instrument->staves) {
+    for (auto instrument : instruments) {
+        for (auto staff : instrument->staves) {
             totalBeatWidth = staff->GetTotalBeatWidth();
             int measureIndex = 0;
-            for (auto* measure : staff->measures) {
+            for (auto measure : staff->measures) {
                 measure->beatPosition = staff->GetMeasureBeatPosition(measureIndex);
                 /*int minWidth = measure->CalculateMinWidth();
 
@@ -240,15 +240,15 @@ void Song::OnUpdate()
         }
 
         // calculate positions for notes and measures
-        for (auto* instrument : instruments)
+        for (auto instrument : instruments)
         {
-            for (auto* staff : instrument->staves)
+            for (auto staff : instrument->staves)
             {
                 staff->CalculateAsPaged(displayConstants);
 
                 int measureIndex = 0;
                 int systemIndex = -1;
-                for (auto* measure : staff->measures)
+                for (auto measure : staff->measures)
                 {
                     if (measure->startNewSystem)
                         systemIndex++;
@@ -270,7 +270,7 @@ void Song::OnUpdate()
                     systems[systemIndex].timeSignaturePositionX = std::max(measure->GetTimeSignaturePositionInMeasure(systems[systemIndex], systems[systemIndex].keySignaturePositionX), systems[systemIndex].timeSignaturePositionX);*/
 
                     int noteIndex = 0;
-                    for (auto* note : measure->notes)
+                    for (auto note : measure->notes)
                     {
                         if (note->isRest && note->type == NoteType::Tab && softwareName == "MuseScore" && softwareMajorVersion == 4) // musescore only
                         {
@@ -296,16 +296,16 @@ void Song::OnUpdate()
         }
 
         // calculate width for multi measure rests
-        for (auto* instrument : instruments)
+        for (auto instrument : instruments)
         {
-            for (auto* staff : instrument->staves)
+            for (auto staff : instrument->staves)
             {
-                std::vector<Measure*> multiMeasureRests;
+                std::vector<std::shared_ptr<Measure>> multiMeasureRests;
                 int multiMeasureRestCount = 0;
                 float totalMeasureWidth = 0.0f;
                 int measureIndex = 0;
                 int systemIndex = 0;
-                for (auto* measure : staff->measures)
+                for (auto measure : staff->measures)
                 {
                     if ((measure->startNewSystem && measureIndex != 0) || measureIndex == staff->measures.size() - 1)
                     {
@@ -327,7 +327,7 @@ void Song::OnUpdate()
                         LOGV("systemLeftMargin: %f, systemRightMargin: %f, systemWidth: %f, remainingWidth: %f, multiMeasureRestWidth: %f", systems[systemIndex].layout.systemLeftMargin, systems[systemIndex].layout.systemRightMargin,
                              systemWidth, (systemWidth - totalMeasureWidth), multiMeasureRestWidth);
 
-                        for (auto* multiMeasureRest : multiMeasureRests)
+                        for (auto multiMeasureRest : multiMeasureRests)
                         {
                             multiMeasureRest->measureWidth = multiMeasureRestWidth;
 
@@ -359,10 +359,10 @@ void Song::OnUpdate()
 
         // sort all the notes by their beat positions and put them in an array of time space points
         m_TimeSpacePoints.clear();
-        for (auto* instrument : instruments) {
-            for (auto* staff : instrument->staves) {
+        for (auto instrument : instruments) {
+            for (auto staff : instrument->staves) {
                 int measureIndex = 0;
-                for (auto* measure : staff->measures) {
+                for (auto measure : staff->measures) {
                     TimeSpacePoint beginMeasurePoint = TimeSpacePoint();
                     beginMeasurePoint.beatPositionInSong = measure->beatPosition;
                     beginMeasurePoint.position = 0.0f;
@@ -375,7 +375,7 @@ void Song::OnUpdate()
                     //AddTimeSpacePoint(beginMeasurePoint);
                     AddTimeSpacePoint(endMeasurePoint);
 
-                    for (Note* note : measure->notes) {
+                    for (std::shared_ptr<Note> note : measure->notes) {
 
                         if (note->isRest)
                             continue;
@@ -418,12 +418,12 @@ void Song::OnUpdate()
         }
 
         // calculate positions for everything else
-        for (auto* instrument : instruments)
+        for (auto instrument : instruments)
         {
-            for (auto* staff : instrument->staves)
+            for (auto staff : instrument->staves)
             {
                 int measureIndex = 0;
-                for (auto* measure : staff->measures)
+                for (auto measure : staff->measures)
                 {
                     for (auto& direction : measure->directions)
                     {
@@ -474,6 +474,11 @@ void Song::OnUpdate()
 
                             direction.bracketDirection->CalculatePositionAsPaged(displayConstants, { defaultStartX, defaultStartY }, { defaultEndX, defaultEndY });
                         }
+
+                        if (direction.marker != nullptr)
+                        {
+                            direction.marker->CalculatePositionAsPaged(displayConstants, { 0.0f, -20.0f });
+                        }
                     }
 
                     for (auto& chord : measure->chords)
@@ -489,7 +494,7 @@ void Song::OnUpdate()
                         tuplet->CalculatePositionAsPaged(displayConstants, { 0.0f, 0.0f }, { 0.0f, 0.0f });
                     }
 
-                    for (auto* note : measure->notes)
+                    for (auto note : measure->notes)
                     {
                         if (note->isRest && (softwareName == "MuseScore" && softwareMajorVersion == 3))
                         {
@@ -507,8 +512,8 @@ void Song::OnUpdate()
                     {
                         if (!beamGroup.notes.empty())
                         {
-                            Note* firstNote = beamGroup.notes[0];
-                            Note* lastNote = beamGroup.notes[beamGroup.notes.size() - 1];
+                            std::shared_ptr<Note> firstNote = beamGroup.notes[0];
+                            std::shared_ptr<Note> lastNote = beamGroup.notes[beamGroup.notes.size() - 1];
 
                             beamGroup.beamStartPositionX = firstNote->positionX + firstNote->noteStem.stemPositionX;
                             beamGroup.beamStartPositionY = firstNote->positionY + firstNote->noteStem.stemEndY;
@@ -521,8 +526,8 @@ void Song::OnUpdate()
                         {
                             if (!beam.notes.empty())
                             {
-                                Note* firstNote = beam.notes[0];
-                                Note* lastNote = beam.notes[beam.notes.size() - 1];
+                                std::shared_ptr<Note> firstNote = beam.notes[0];
+                                std::shared_ptr<Note> lastNote = beam.notes[beam.notes.size() - 1];
 
                                 beam.beamStartPositionX = firstNote->positionX + firstNote->noteStem.stemPositionX;
                                 beam.beamStartPositionY = beamGroup.GetPositionYOnBeam(firstNote->positionX);
@@ -535,7 +540,7 @@ void Song::OnUpdate()
                         }
 
                         // calculate stem lengths
-                        for (Note* beamNote : beamGroup.notes)
+                        for (std::shared_ptr<Note> beamNote : beamGroup.notes)
                         {
                             float beamPositionYAtNote = beamGroup.GetPositionYOnBeam(beamNote->positionX);
                             beamNote->noteStem.stemEndY = beamPositionYAtNote - beamNote->positionY;
@@ -550,19 +555,19 @@ void Song::OnUpdate()
     else if (settings.musicLayout == Settings::MusicLayout::Vertical || settings.musicLayout == Settings::MusicLayout::Horizontal)
     {
         // sort all the notes by their stop times(beatPositionInSong + duration) from smallest to largest
-        std::vector<Note*> orderedNotes;
-        for (auto* instrument : instruments) {
-            for (auto* staff : instrument->staves) {
+        std::vector<std::shared_ptr<Note>> orderedNotes;
+        for (auto instrument : instruments) {
+            for (auto staff : instrument->staves) {
                 int measureIndex = 0;
-                for (auto* measure : staff->measures) {
+                for (auto measure : staff->measures) {
                     float measureBeatPosition = staff->GetMeasureBeatPosition(measureIndex);
 
-                    for (Note* note : measure->notes) {
+                    for (std::shared_ptr<Note> note : measure->notes) {
                         float noteBeatPosition = note->beatPosition + measureBeatPosition;
                         float noteBeatLength = note->duration.duration;
 
                         int insertIndex = 0;
-                        for (Note* orderedNote : orderedNotes) {
+                        for (std::shared_ptr<Note> orderedNote : orderedNotes) {
                             if (orderedNote->beatPositionInSong + orderedNote->duration.duration > note->beatPositionInSong + note->duration.duration)
                             {
                                 break; // note should come before orderedNote
@@ -590,7 +595,7 @@ void Song::OnUpdate()
             int measureIndex = 0;
             float width = 0.0f;
             int noteIndex = 0;
-            for (Note* note : orderedNotes) {
+            for (std::shared_ptr<Note> note : orderedNotes) {
                 //LOGD("stop position %f", note->beatPositionInSong + note->duration.duration);
                 float startTime = note->beatPositionInSong;
                 if (startTime >= time) {
@@ -624,7 +629,7 @@ void Song::OnUpdate()
 
         {
             int nx_debug = 0;
-            for (Note *note: orderedNotes) {
+            for (auto note : orderedNotes) {
                 float noteStartX = -1.0f;
                 float noteStopX = -1.0f;
                 float position = 0.0f;
@@ -745,10 +750,10 @@ void Song::OnUpdate()
         }
 
         // calculate measure widths
-        for (auto* instrument : instruments) {
-            for (auto* staff : instrument->staves) {
+        for (auto instrument : instruments) {
+            for (auto staff : instrument->staves) {
                 int measureIndex = 0;
-                for (auto* measure : staff->measures) {
+                for (auto measure : staff->measures) {
                     // these were ints (this comment is only here be cause I could have caused a bug)
                     float minWidth = measure->CalculateMinWidth(measuresNotesWidths[measureIndex]);
                     float beginWidth = measure->GetBeginningWidth();
@@ -776,17 +781,17 @@ void Song::OnUpdate()
             //LOGD("width: %f pos: %f notesWidth: %f", m_MeasureWidths[i], GetMeasurePositionX(i), measuresNotesWidths[i]);
         }
 
-        for (auto* instrument : instruments)
+        for (auto instrument : instruments)
         {
-            for (auto* staff : instrument->staves)
+            for (auto staff : instrument->staves)
             {
                 int measureIndex = 0;
-                for (auto* measure : staff->measures)
+                for (auto measure : staff->measures)
                 {
                     measure->measureWidth = GetMeasureWidth(measureIndex);
 
                     int noteIndex = 0;
-                    for (auto* note : measure->notes)
+                    for (auto note : measure->notes)
                     {
                         if (note->isRest) { // is a rest
                             float ls;
@@ -858,13 +863,13 @@ void Song::AddTimeSpacePoint(TimeSpacePoint point)
 
 void Song::CalculateNoteBeatPositionsInSong()
 {
-    for (auto* instrument : instruments) {
-        for (auto* staff : instrument->staves) {
+    for (auto instrument : instruments) {
+        for (auto staff : instrument->staves) {
             int measureIndex = 0;
-            for (auto* measure : staff->measures) {
+            for (auto measure : staff->measures) {
                 float measureBeatPosition = staff->GetMeasureBeatPosition(measureIndex);
 
-                for (Note* note : measure->notes) {
+                for (std::shared_ptr<Note> note : measure->notes) {
                     note->beatPositionInSong = note->beatPosition + measureBeatPosition;
                 }
 
@@ -894,12 +899,12 @@ void Song::CalculateNoteBeatPositionsInSong()
     }
 }
 
-float Song::GetNoteMinWidthInFront(Note* note) const
+float Song::GetNoteMinWidthInFront(std::shared_ptr<Note> note) const
 {
     return note->GetMinWidth();
 }
 
-float Song::GetNoteMinWidthBehind(Note* note) const
+float Song::GetNoteMinWidthBehind(std::shared_ptr<Note> note) const
 {
     return 0.0f;
 }
@@ -1094,7 +1099,7 @@ float Song::GetPositionXInSong(float beatPositionInSong, int currentMeasureIndex
     return position;
 }
 
-Measure* Song::GetMeasure(int measureIndex) const
+std::shared_ptr<Measure> Song::GetMeasure(int measureIndex) const
 {
     if (!instruments.empty())
         if (!instruments[0]->staves.empty())
@@ -1105,13 +1110,13 @@ Measure* Song::GetMeasure(int measureIndex) const
 
 bool Song::DoesMeasureStartNewSystem(int measureIndex) const
 {
-    Measure* measure = GetMeasure(measureIndex);
+    std::shared_ptr<Measure> measure = GetMeasure(measureIndex);
     return measure->startNewSystem;
 }
 
 bool Song::DoesMeasureStartNewPage(int measureIndex) const
 {
-    Measure* measure = GetMeasure(measureIndex);
+    std::shared_ptr<Measure> measure = GetMeasure(measureIndex);
 
     if (measure != nullptr)
         return measure->startNewPage;
@@ -1123,8 +1128,8 @@ float Song::GetSystemPositionY(int measureIndex) const // TODO: needs finnished
 {
     float instYPosition = 0.0f;
     int instrumentIndex = 0;
-    Instrument* prevInstrument = nullptr;
-    for (auto* instrument: instruments) {
+    std::shared_ptr<Instrument> prevInstrument = nullptr;
+    for (auto instrument: instruments) {
 
         if (songData.instrumentInfos[instrumentIndex].visible) {
             if (prevInstrument != nullptr)
@@ -1158,7 +1163,7 @@ int Song::GetSystemIndex(int measureIndex) const
     if (instruments[0]->staves.empty())
         throw IsEmptyException("Staves empty");
 
-    for (auto* measure : instruments[0]->staves[0]->measures)
+    for (auto measure : instruments[0]->staves[0]->measures)
     {
         if (measure == nullptr)
             throw IsNullException("Measure is nullptr");
@@ -1185,7 +1190,7 @@ int Song::GetPageIndex(int measureIndex) const
     if (instruments[0]->staves.empty())
         return 0;
 
-    for (auto* measure : instruments[0]->staves[0]->measures)
+    for (auto measure : instruments[0]->staves[0]->measures)
     {
         if (measure->startNewPage)
             pageIndex++;
@@ -1207,7 +1212,7 @@ int Song::GetFirstMeasureOnPage(int pageIndex) const
         return 0;
 
     int i = -1;
-    for (auto* measure : instruments[0]->staves[0]->measures)
+    for (auto measure : instruments[0]->staves[0]->measures)
     {
         if (measure->startNewPage)
             i++;
@@ -1231,7 +1236,7 @@ int Song::GetFirstMeasureInSystem(int systemIndex) const
         return 0;
 
     int i = -1;
-    for (auto* measure : instruments[0]->staves[0]->measures)
+    for (auto measure : instruments[0]->staves[0]->measures)
     {
         if (measure->startNewSystem)
             i++;
@@ -1254,7 +1259,7 @@ int Song::GetNumPages() const
     if (instruments[0]->staves.empty())
         return 0;
 
-    for (auto* measure : instruments[0]->staves[0]->measures)
+    for (auto measure : instruments[0]->staves[0]->measures)
     {
         if (measure->startNewPage)
             numPages++;
@@ -1305,9 +1310,9 @@ float Song::GetInstrumentPositionY(int measureIndex, int instrumentIndex) const
 {
     float instrumentPositionY = 0.0f;
 
-    Instrument *prevInstrument = nullptr;
+    std::shared_ptr<Instrument> prevInstrument = nullptr;
     int currentInstrumentIndex = 0;
-    for (auto* instrument : instruments)
+    for (auto instrument : instruments)
     {
         if (prevInstrument != nullptr)
         {
@@ -1334,17 +1339,17 @@ void Song::UpdateBoundingBoxes(const std::vector<Vec2<float>>& pagePositions, co
         throw IsEmptyException("Missing positioning data");
 
     int instrumentIndex = 0;
-    for (auto* instrument : instruments) {
+    for (auto instrument : instruments) {
 
         int staffIndex = 0;
-        for (auto* staff : instrument->staves) {
+        for (auto staff : instrument->staves) {
             float ls = displayConstants.lineSpacing;
             if (staff->type == Staff::StaffType::Tab) {
                 ls = displayConstants.tabLineSpacing;
             }
 
             int measureIndex = 0;
-            for (auto* measure : staff->measures) {
+            for (auto measure : staff->measures) {
 
                 float instPositionY = GetInstrumentPositionY(measureIndex, instrumentIndex) + systemPositions[GetSystemIndex(measureIndex)].y + pagePositions[GetPageIndex(measureIndex)].y;
                 //float instPositionY = systemPositions[GetSystemIndex(measureIndex)].y;
@@ -1397,10 +1402,10 @@ void Song::UpdateBoundingBoxes(const std::vector<Vec2<float>>& pagePositions, co
 
 void Song::RenderBoundingBoxes(RenderData& renderData, const std::vector<Vec2<float>>& pagePositions, const std::vector<Vec2<float>>& systemPositions)
 {
-    for (auto* instrument : instruments) {
-        for (auto* staff : instrument->staves) {
+    for (auto instrument : instruments) {
+        for (auto staff : instrument->staves) {
             int measureIndex = 0;
-            for (auto* measure : staff->measures) {
+            for (auto measure : staff->measures) {
 
                 measure->RenderDebug(renderData);
 
@@ -1412,12 +1417,12 @@ void Song::RenderBoundingBoxes(RenderData& renderData, const std::vector<Vec2<fl
 
 void Song::ResolveCollisions()
 {
-    for (auto* instrument : instruments) {
-        for (auto* staff : instrument->staves) {
+    for (auto instrument : instruments) {
+        for (auto staff : instrument->staves) {
 
             int measureIndex = 0;
             int pageIndex = -1;
-            for (auto* measure : staff->measures) {
+            for (auto measure : staff->measures) {
 
                 if (DoesMeasureStartNewPage(measureIndex))
                     pageIndex++;
@@ -1428,7 +1433,7 @@ void Song::ResolveCollisions()
                 ResolveCollisionsWith(measure->measureNumber.boundingBox, pageIndex);
                 ResolveCollisionsWith(measure->clef.boundingBox, pageIndex);
 
-                for (auto* note : measure->notes)
+                for (auto note : measure->notes)
                 {
                     ResolveCollisionsWith(note->boundingBox, pageIndex);
 
@@ -1478,6 +1483,11 @@ void Song::ResolveCollisions()
                     {
                         ResolveCollisionsWith(direction.metronomeMark->boundingBox, pageIndex);
                     }
+
+                    if (direction.marker != nullptr)
+                    {
+                        ResolveCollisionsWith(direction.marker->boundingBox, pageIndex);
+                    }
                 }
 
                 for (Chord& chord : measure->chords)
@@ -1493,14 +1503,14 @@ void Song::ResolveCollisions()
 
 void Song::ResolveCollisionsWith(const BoundingBox& box, int pageIndex)
 {
-    for (auto* instrument : instruments) {
-        for (auto* staff : instrument->staves) {
+    for (auto instrument : instruments) {
+        for (auto staff : instrument->staves) {
             int measureIndex = 0;
-            for (auto* measure : staff->measures) {
+            for (auto measure : staff->measures) {
 
                 if (GetPageIndex(measureIndex) == pageIndex)
                 {
-                    for (auto* note : measure->notes)
+                    for (auto note : measure->notes)
                     {
                         /*Vec2<float> offset = box.ResolveOverlapStatically(note->boundingBox);
 
@@ -1581,6 +1591,13 @@ void Song::ResolveCollisionsWith(const BoundingBox& box, int pageIndex)
                             direction.metronomeMark->positionX += offset.x;
                             direction.metronomeMark->positionY += offset.y;
                         }
+
+                        if (direction.marker)
+                        {
+                            Vec2<float> offset = box.ResolveOverlapStatically(direction.marker->boundingBox);
+
+                            direction.marker->position += offset;
+                        }
                     }
 
                     for (Chord& chord : measure->chords)
@@ -1641,14 +1658,14 @@ std::vector<Vec2<float>> Song::GetSystemPositions() const
     return systemPositions;
 }
 
-Measure* Song::GetMeasureAtPoint(Vec2<float> point) const
+std::shared_ptr<Measure> Song::GetMeasureAtPoint(Vec2<float> point) const
 {
-    for (auto* instrument : instruments)
+    for (auto instrument : instruments)
     {
-        for (auto* staff: instrument->staves)
+        for (auto staff: instrument->staves)
         {
             int measureIndex = 0;
-            for (auto* measure: staff->measures)
+            for (auto measure: staff->measures)
             {
                 if (measure->boundingBox.DoesOverlapWithPoint(point))
                     return measure;

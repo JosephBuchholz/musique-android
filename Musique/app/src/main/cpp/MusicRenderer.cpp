@@ -317,10 +317,10 @@ void MusicRenderer::RenderMusicToPage(std::shared_ptr<Song> song, int page, Rend
 
 Vec2<float> MusicRenderer::RenderSystem(RenderData& renderData, std::shared_ptr<Song> song, unsigned int startMeasure, unsigned int endMeasure, int systemIndex, Vec2<float> systemPosition, Vec2<float> pagePosition, bool drawFullInstNames)
 {
-    Instrument *prevInstrument = nullptr;
+    std::shared_ptr<Instrument> prevInstrument = nullptr;
     int instrumentIndex = 0;
     float instYPosition = systemPosition.y;
-    for (auto *instrument: song->instruments) {
+    for (auto instrument: song->instruments) {
 
         if (song->songData.instrumentInfos[instrumentIndex].visible) {
 
@@ -346,7 +346,7 @@ Vec2<float> MusicRenderer::RenderSystem(RenderData& renderData, std::shared_ptr<
             }
 
             int staffIndex = 0;
-            for (Staff* staff : instrument->staves) {
+            for (auto staff : instrument->staves) {
                 float ls = song->displayConstants.lineSpacing;
                 if (staff->type == Staff::StaffType::Tab) {
                     ls = song->displayConstants.tabLineSpacing;
@@ -396,7 +396,7 @@ void MusicRenderer::RenderWithRenderData()
     }
 }
 
-void MusicRenderer::RenderLineOfMeasures(RenderData& renderData, std::shared_ptr<Song> song, unsigned int startMeasure, unsigned int endMeasure, const System& system, Staff* staff, float systemPositionX, float staffPositionY, float lineSpacing, bool isTopMeasureLine)
+void MusicRenderer::RenderLineOfMeasures(RenderData& renderData, std::shared_ptr<Song> song, unsigned int startMeasure, unsigned int endMeasure, const System& system, std::shared_ptr<Staff> staff, float systemPositionX, float staffPositionY, float lineSpacing, bool isTopMeasureLine)
 {
     bool multiMeasureRest = false; // whether the measure is part of a multi measure rest
     unsigned int numberOfMeasuresInMultiMeasureRest = 0; // number of measures left in multi measure rest
@@ -414,7 +414,7 @@ void MusicRenderer::RenderLineOfMeasures(RenderData& renderData, std::shared_ptr
     for (int m = (int)startMeasure; m <= endMeasure; m++) {
         //renderableSong.systems[systemIndex].instruments[instrumentIndex].staves[staffIndex].measures.emplace_back();
 
-        Measure* measure = staff->measures[m];
+        std::shared_ptr<Measure> measure = staff->measures[m];
 
         nextMeasurePositionX = measurePositionX + measure->measureWidth;
 
@@ -423,10 +423,10 @@ void MusicRenderer::RenderLineOfMeasures(RenderData& renderData, std::shared_ptr
 
         //LOGE("i: %d, width: %f, pos: %f", m, measure->measureWidth, measurePositionX);
 
-        /*if (m == currentMeasure)
-        {
-            playLinePosition = song->GetPositionXInMeasure(playLineBeatPosition, currentMeasure) + measurePositionX;
-        }*/
+        //if (m == currentMeasure)
+        //{
+        //    playLinePosition = song->GetPositionXInMeasure(playLineBeatPosition, currentMeasure) + measurePositionX;
+        //}
 
         if (multiMeasureRest)
         {
@@ -519,9 +519,8 @@ void MusicRenderer::RenderLineOfMeasures(RenderData& renderData, std::shared_ptr
             if (!measure->startsMultiMeasureRest)
             {
                 int noteIndex = 0;
-                for (Note *note: measure->notes) {
+                for (auto note : measure->notes) {
                     note->Render(renderData, staff->tablatureDisplayType, measure->CalculateNoteYPositionRelativeToMeasure(noteIndex), staff->lines, { measurePositionX, staffPositionY }, nextMeasurePositionX, measure->measureWidth, measureNumber, lineSpacing, { 0.0f, 0.0f }, noteIndex, isLastMeasureInSystem);
-                    //RenderNote(renderData, note, measure, measurePositionX, staff, staffPositionY, measure->measureWidth, measureNumber, lineSpacing, 0.0f, 0.0f, noteIndex);
                     noteIndex++;
                 }
 
@@ -532,6 +531,15 @@ void MusicRenderer::RenderLineOfMeasures(RenderData& renderData, std::shared_ptr
                     {
                         if (beamGroup.notes.empty())
                             break;
+
+                        if (beamGroup.notes[0] == nullptr)
+                        {
+                            LOGE("NOTE[0] IS NULL POINTER!!!!!");
+                            break;
+                        }
+
+                        //LOGD("noteSize: %d", beamGroup.notes[0]->noteSize);
+                        //LOGD("durationType: %d", beamGroup.notes[0]->durationType);
 
                         float size;
                         if (beamGroup.notes[0]->noteSize == NoteSize::Grace)
@@ -580,6 +588,14 @@ void MusicRenderer::RenderLineOfMeasures(RenderData& renderData, std::shared_ptr
                     float measurePositionY = staffPositionY;
                     tuplet->Render(renderData, Vec2<float>(measurePositionX, measurePositionY));
                 }
+
+                for (auto arpeggio : measure->arpeggios)
+                {
+                    float measurePositionY = staffPositionY;
+                    float notePositionX = measurePositionX;
+                    if (arpeggio)
+                        arpeggio->Render(renderData, notePositionX, measurePositionY);
+                }
             }
 
             currentMeasureRenderedCount++;
@@ -588,6 +604,8 @@ void MusicRenderer::RenderLineOfMeasures(RenderData& renderData, std::shared_ptr
         measureNumber++;
         measureIndex++;
     } // measures loop
+
+
 }
 
 void MusicRenderer::RenderMultiMeasureRest(RenderData& renderData, unsigned int measureRestCount, float measurePositionX, float measurePositionY, float measureWidth, int lineCount, float lineSpacing)

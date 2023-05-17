@@ -5,10 +5,15 @@
 #include "../Collisions/Vec2.h"
 #include "BaseElementParser.h"
 #include "NoteElementParser.h"
+#include "../Exceptions/Exceptions.h"
 
 static std::unordered_map<int, std::shared_ptr<DynamicWedge>> currentDynamicWedges;
 static std::unordered_map<int, std::shared_ptr<BracketDirection>> currentDashes;
 static std::unordered_map<int, std::shared_ptr<BracketDirection>> currentBrackets;
+
+static std::unordered_map<int, std::shared_ptr<Arpeggio>> currentArpeggios;
+static float currentArpeggiosBeatPosition = 0.0f;
+static int currentArpeggiosMeasureIndex = 0;
 
 // ---- Parse Functions ----
 
@@ -515,6 +520,20 @@ Direction MusicXMLParser::ParseDirection(XMLElement* directionElement, bool& isN
                         if (direction.bracketDirection == nullptr)
                             isNewDirection = false;
                     }
+
+                    // segno
+                    XMLElement* segnoElement = directionTypeElement->FirstChildElement("segno");
+                    if (segnoElement)
+                    {
+                        direction.marker = ParseCodaSegnoElement(segnoElement);
+                    }
+
+                    // coda
+                    XMLElement* codaElement = directionTypeElement->FirstChildElement("coda");
+                    if (codaElement)
+                    {
+                        direction.marker = ParseCodaSegnoElement(codaElement);
+                    }
                 }
                 else if (strcmp(value, "offset") == 0) // offset
                 {
@@ -827,7 +846,7 @@ void MusicXMLParser::ParseFrameElement(XMLElement* frameElement, Chord& chord)
     }
 }
 
-void MusicXMLParser::ParseHarmonyElement(XMLElement* harmonyElement, float& currentTimeInMeasure, std::vector<Measure*> currentMeasures)
+void MusicXMLParser::ParseHarmonyElement(XMLElement* harmonyElement, float& currentTimeInMeasure, std::vector<std::shared_ptr<Measure>> currentMeasures)
 {
     Chord newChord;
 
@@ -1029,6 +1048,77 @@ Barline MusicXMLParser::ParseBarlineElement(XMLElement* barlineElement)
     return barline;
 }
 
+void MusicXMLParser::ParseArpeggioElement(XMLElement* element, std::shared_ptr<Measure> currentMeasure, std::shared_ptr<Note> currentNote)
+{
+    if (element)
+    {
+        LOGW("currentNoteBeatPosition: %f, currentArpeggiosBeatPosition: %f", currentNote->beatPosition, currentArpeggiosBeatPosition);
+        if (currentNote->beatPosition != currentArpeggiosBeatPosition || currentNote->measureIndex != currentArpeggiosMeasureIndex)
+            currentArpeggios.clear();
+
+        int number = XMLHelper::GetNumberAttribute(element, "number", 1);
+
+        LOGD("number: %d", number);
+
+        if (currentArpeggios.find(number) != currentArpeggios.end()) // an arpeggio exists at 'number'
+        {
+            LOGV("using old arpeggio!");
+
+            std::shared_ptr<Arpeggio> arpeggio = currentArpeggios[number];
+
+            arpeggio->notes.push_back(currentNote);
+        }
+        else // create new arpeggio
+        {
+            LOGE("creating new arpeggio!!!!!!!!!!!!!!!!!!!!!!!");
+            std::shared_ptr<Arpeggio> arpeggio = std::make_shared<Arpeggio>();
+
+            BaseElementParser::ParseVisibleElement(element, arpeggio);
+
+            arpeggio->defaultPositionStart = XMLHelper::GetFloatVec2Attribute(element, "default-x", "default-y", arpeggio->defaultPositionStart);
+            arpeggio->relativePositionStart = XMLHelper::GetFloatVec2Attribute(element, "relative-x", "relative-y", arpeggio->relativePositionStart);
+
+            std::string directionString = XMLHelper::GetStringAttribute(element, "direction", "");
+
+            if (directionString.empty())
+                arpeggio->type = Arpeggio::ArpeggioType::Arpeggio;
+            else if (directionString == "up")
+                arpeggio->type = Arpeggio::ArpeggioType::ArpeggioUpArrow;
+            else if (directionString == "down")
+                arpeggio->type = Arpeggio::ArpeggioType::ArpeggioDownArrow;
+
+            arpeggio->notes.push_back(currentNote);
+
+            currentMeasure->arpeggios.push_back(arpeggio);
+
+            currentArpeggios[number] = arpeggio;
+            currentArpeggiosBeatPosition = currentNote->beatPosition;
+            currentArpeggiosMeasureIndex = currentNote->measureIndex;
+        }
+    }
+}
+
+std::shared_ptr<Marker> MusicXMLParser::ParseCodaSegnoElement(XMLElement* element)
+{
+    if (!element)
+        throw IsNullException();
+
+    std::shared_ptr<Marker> newMarker = std::make_shared<Marker>();
+
+    BaseElementParser::ParseVisibleElement(element, newMarker);
+
+    newMarker->defaultPosition = XMLHelper::GetFloatVec2Attribute(element, "default-x", "default-y", newMarker->defaultPosition);
+    newMarker->relativePosition = XMLHelper::GetFloatVec2Attribute(element, "relative-x", "relative-y", newMarker->relativePosition);
+
+    const char* value = element->Value();
+    if (strcmp(value, "coda") == 0)
+        newMarker->type = Marker::MarkerType::Coda;
+    else if (strcmp(value, "segno") == 0)
+        newMarker->type = Marker::MarkerType::Segno;
+
+    return newMarker;
+}
+
 // main file parsing
 void MusicXMLParser::ParseMusicXML(const std::string& data, std::string& error, std::shared_ptr<Song> song)
 {
@@ -1115,7 +1205,7 @@ void MusicXMLParser::ParseMusicXML(const std::string& data, std::string& error, 
                     if (previousScorePartElement)
                     {
                         XMLElement* scorePart = previousScorePartElement->ToElement();
-                        Instrument* instrument = new Instrument();
+                        std::shared_ptr<Instrument> instrument = std::make_shared<Instrument>();
                         song->instruments.push_back(instrument);
 
                         // part id
@@ -1194,7 +1284,7 @@ void MusicXMLParser::ParseMusicXML(const std::string& data, std::string& error, 
                 {
                     XMLElement* part = previous->ToElement();
                     std::string id = part->Attribute("id");
-                    Instrument* currentInst = song->GetInstrument(id);
+                    std::shared_ptr<Instrument> currentInst = song->GetInstrument(id);
                     if (currentInst == nullptr) {
                         error = "Instrument " + id + " does not exist";
                         AddError("Error", "Instrument " + id + " does not exist");
@@ -1215,7 +1305,7 @@ void MusicXMLParser::ParseMusicXML(const std::string& data, std::string& error, 
 
 
                     XMLNode* previousMeasureElement = part->FirstChildElement("measure");
-                    std::vector<Measure*> previousMeasures;
+                    std::vector<std::shared_ptr<Measure>> previousMeasures;
 
                     while (true)
                     {
@@ -1232,7 +1322,7 @@ void MusicXMLParser::ParseMusicXML(const std::string& data, std::string& error, 
                             bool startNewSystem = false;
                             bool startNewPage = false;
 
-                            std::vector<Measure*> currentMeasures;
+                            std::vector<std::shared_ptr<Measure>> currentMeasures;
 
                             // adding staves
                             if (firstMeasure)
@@ -1251,7 +1341,7 @@ void MusicXMLParser::ParseMusicXML(const std::string& data, std::string& error, 
                                     // adding staves
                                     for (int i = 0; i < numStaves; i++)
                                     {
-                                        currentInst->staves.push_back(new Staff());
+                                        currentInst->staves.push_back(std::make_shared<Staff>());
 
                                         staffIsTabInfo.push_back(false);
                                     }
@@ -1263,7 +1353,7 @@ void MusicXMLParser::ParseMusicXML(const std::string& data, std::string& error, 
                             // creating measures for each staff
                             for (int i = 0; i < currentInst->staves.size(); i++)
                             {
-                                Measure* newMeasure = new Measure();
+                                std::shared_ptr<Measure> newMeasure = std::make_shared<Measure>();
                                 newMeasure->measureNumber = MeasureNumber(measureNumber);
                                 newMeasure->implicit = implicitMeasure;
                                 newMeasure->index = measureNumber - 1;
@@ -1441,7 +1531,7 @@ void MusicXMLParser::ParseMusicXML(const std::string& data, std::string& error, 
 
                                 // change the measure's clef the the previous measure's clef if a new clef was not specified (and set the clef changed attribute)
                                 int i = 0;
-                                for (Measure* m : currentMeasures)
+                                for (auto m : currentMeasures)
                                 {
                                     if (i < previousMeasures.size())
                                     {
@@ -1502,7 +1592,7 @@ void MusicXMLParser::ParseMusicXML(const std::string& data, std::string& error, 
                                     if (currentInst->staves.back()->type == Staff::StaffType::Tab) {
                                         XMLNode *previousStaffTuning = staffDetails->FirstChildElement("staff-tuning");
 
-                                        Staff* tabStaff = currentInst->staves.back();
+                                        std::shared_ptr<Staff> tabStaff = currentInst->staves.back();
 
                                         while (true) {
                                             if (previousStaffTuning) {
@@ -1569,7 +1659,7 @@ void MusicXMLParser::ParseMusicXML(const std::string& data, std::string& error, 
                             else
                             {
                                 if (firstMeasure)
-                                    currentInst->staves.push_back(new Staff());
+                                    currentInst->staves.push_back(std::make_shared<Staff>());
 
                                 if (!previousMeasures.empty() && previousMeasures.size() == currentMeasures.size())
                                 {
@@ -1591,7 +1681,7 @@ void MusicXMLParser::ParseMusicXML(const std::string& data, std::string& error, 
 
                             XMLNode* previousElement = measure->FirstChildElement(); // the first element
                             //XMLNode* previousNoteElement = measure->FirstChildElement("note");
-                            Note* previousNote = nullptr;
+                            std::shared_ptr<Note> previousNote = nullptr;
                             while (true)
                             {
                                 if (previousElement)
@@ -1600,7 +1690,7 @@ void MusicXMLParser::ParseMusicXML(const std::string& data, std::string& error, 
                                     const char* value = element->Value();
                                     if (strcmp(value, "note") == 0) // note
                                     {
-                                        Note* currentNote = new Note();
+                                        std::shared_ptr<Note> currentNote = std::make_shared<Note>();
                                         NoteElementParser::ParseNoteElement(element, currentTimeInMeasure, staffIsTabInfo, currentNote, previousNote, currentMeasures, measureNumber, error);
                                         previousNote = currentNote;
                                     }
@@ -1726,7 +1816,7 @@ void MusicXMLParser::ParseMusicXML(const std::string& data, std::string& error, 
                             LOGD("setting previous measure");*/
 
                             // adding measures to correct staves
-                            for (Measure* m : currentMeasures)
+                            for (auto m : currentMeasures)
                             {
                                 currentInst->staves[m->staff-1]->measures.push_back(m);
                             }
@@ -1772,12 +1862,12 @@ void MusicXMLParser::ParseMusicXML(const std::string& data, std::string& error, 
     bool multiMeasureRest = false; // whether the measure is part of a multi measure rest
     unsigned int numberOfMeasuresInMultiMeasureRest = 0; // number of measures left in multi measure rest
     unsigned int measureThatStartedMultiMeasureRest = 0; // the index of the measure that started the multi measure rest
-    for (auto* instrument : song->instruments)
+    for (auto instrument : song->instruments)
     {
-        for (auto* staff : instrument->staves)
+        for (auto staff : instrument->staves)
         {
             int measureIndex = 0;
-            for (auto* measure : staff->measures)
+            for (auto measure : staff->measures)
             {
                 if (multiMeasureRest)
                 {

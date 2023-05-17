@@ -14,7 +14,7 @@
 #include "Dynamic.h"
 #include "DynamicWedge.h"
 #include "BracketDirection.h"
-#include "BracketDirection.h"
+#include "Marker.h"
 
 #include "../Types.h"
 
@@ -27,7 +27,8 @@
 /**
  * Represents a musical direction (such as a rehearsal or metronome mark).
  */
-class Direction : public BaseElement {
+class Direction : public BaseElement
+{
 public:
     Direction() {}
 
@@ -42,6 +43,13 @@ public:
      */
     void Render(RenderData& renderData, float measurePositionX, float measurePositionY, float offsetX = 0.0f, float offsetY = 0.0f) const;
 
+    /**
+     * Renders any debug info.
+     *
+     * @param renderData The RenderData object to render to.
+     */
+    void RenderDebug(RenderData& renderData) const;
+
     void UpdateBoundingBox(const Vec2<float>& measurePosition);
 
 public:
@@ -55,6 +63,7 @@ public:
     std::vector<Dynamic> dynamics;
     std::shared_ptr<DynamicWedge> dynamicWedge = nullptr;
     std::shared_ptr<BracketDirection> bracketDirection = nullptr;
+    std::shared_ptr<Marker> marker = nullptr;
 
     AboveBelowType placement = AboveBelowType::Above;
 };

@@ -17,7 +17,7 @@ public:
 
 public:
 
-    std::vector<Note*> notes; // the notes that this beam group is associated with
+    std::vector<std::shared_ptr<Note>> notes; // the notes that this beam group is associated with
 
     std::vector<Beam> beams;
 

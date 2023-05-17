@@ -41,7 +41,7 @@ public:
         None = 0, Duplet, Triplet, Quadrulpet, Quintuplet, Sextuplet, Septuplet, Octuplet, Nonuplet
     } tupletType = TupletType::Triplet;
 
-    std::vector<Note*> notes; // pointers to the notes that this tuplet is associated with
+    std::vector<std::shared_ptr<Note>> notes; // pointers to the notes that this tuplet is associated with
 
     bool hasBracket = false;
 

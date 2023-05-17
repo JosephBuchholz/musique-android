@@ -31,7 +31,7 @@ public:
 
     MidiInstrument midiInstrument = MidiInstrument();
 
-    std::vector<Staff*> staves;
+    std::vector<std::shared_ptr<Staff>> staves;
 };
 
 #endif // MUSIQUE_INSTRUMENT_H

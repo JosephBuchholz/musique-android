@@ -71,7 +71,7 @@ public:
         return midiPitch;
     }
 
-    void PlayNote(Note* note, Measure* measure, int channel = 0)
+    void PlayNote(std::shared_ptr<Note> note, std::shared_ptr<Measure> measure, int channel = 0)
     {
         if (!note->isRest)
         {
@@ -83,7 +83,7 @@ public:
         }
     }
 
-    void StopNote(Note* note, Measure* measure, int channel = 0)
+    void StopNote(std::shared_ptr<Note> note, std::shared_ptr<Measure> measure, int channel = 0)
     {
         if (!note->isRest)
         {

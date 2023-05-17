@@ -25,6 +25,7 @@
 #include "Fermata.h"
 #include "Ornaments/Ornaments.h"
 #include "GlissandoSlide.h"
+#include "TremoloSingle.h"
 
 /**
  * Class that represents a note, whether it is TAB or not.
@@ -111,8 +112,8 @@ public:
     std::vector<std::shared_ptr<Ornament>> ornaments;
 
     std::shared_ptr<Fermata> fermata;
-
     std::shared_ptr<GlissandoSlide> glissSlide;
+    std::shared_ptr<TremoloSingle> tremoloSingle;
 
     NoteTie tie = NoteTie();
 

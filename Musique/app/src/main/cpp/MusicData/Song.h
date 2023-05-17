@@ -19,7 +19,7 @@ public:
     Song();
     ~Song();
 
-    Instrument* GetInstrument(const std::string& id) const;
+    std::shared_ptr<Instrument> GetInstrument(const std::string& id) const;
 
     void OnLayoutChanged(Settings::MusicLayout layout);
 
@@ -118,7 +118,7 @@ public:
      * @param note A pointer to the note.
      * @return The amount of space in front of the note.
      */
-    float GetNoteMinWidthInFront(Note* note) const;
+    float GetNoteMinWidthInFront(std::shared_ptr<Note> note) const;
 
     /**
      * Finds the minimum amount of space needed behind the note.
@@ -126,7 +126,7 @@ public:
      * @param note A pointer to the note.
      * @return The amount of space behind the note.
      */
-    float GetNoteMinWidthBehind(Note* note) const;
+    float GetNoteMinWidthBehind(std::shared_ptr<Note> note) const;
 
     /**
      * Gets the measure at the given index (this will be the measure in the first instrument and staff).
@@ -134,7 +134,7 @@ public:
      * @param measureIndex the index of the measure
      * @return a pointer to the measure
      */
-    Measure* GetMeasure(int measureIndex) const;
+    std::shared_ptr<Measure> GetMeasure(int measureIndex) const;
 
     /**
      * Finds whether the measure at the given index is at the start of the system (i.e. it starts a new system).
@@ -199,7 +199,7 @@ public:
      * @return A pointer to the Measure that collides with that point,
      * returns nullptr if the point doesn't collide with any Measures.
      */
-    Measure* GetMeasureAtPoint(Vec2<float> point) const;
+    std::shared_ptr<Measure> GetMeasureAtPoint(Vec2<float> point) const;
 
     void ResolveCollisions();
 private:
@@ -228,7 +228,7 @@ public:
 
     //std::vector<System::SystemLayout> systemLayouts;
 
-    std::vector<Instrument*> instruments;
+    std::vector<std::shared_ptr<Instrument>> instruments;
     std::vector<System> systems;
 
     std::vector<Credit> credits;

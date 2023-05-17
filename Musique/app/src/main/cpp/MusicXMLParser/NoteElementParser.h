@@ -55,11 +55,11 @@ public:
      * @param measureNumber The measure number.
      * @param error An error string (this should be deleted)
      */
-    static void ParseNoteElement(XMLElement* noteElement, float& currentTimeInMeasure, std::vector<bool> staffIsTabInfo, Note* currentNote, Note* previousNote, std::vector<Measure*> currentMeasures, int measureNumber, std::string& error);
+    static void ParseNoteElement(XMLElement* noteElement, float& currentTimeInMeasure, std::vector<bool> staffIsTabInfo, std::shared_ptr<Note> currentNote, std::shared_ptr<Note> previousNote, std::vector<std::shared_ptr<Measure>> currentMeasures, int measureNumber, std::string& error);
 
 private:
     static Lyric ParseLyric(XMLElement* lyricElement);
-    static void ParseTechnicalElement(XMLElement* technicalElement, Note* currentNote, bool isTab);
+    static void ParseTechnicalElement(XMLElement* technicalElement, std::shared_ptr<Note> currentNote, bool isTab);
 
     static void ParseAccentElement(XMLElement* element, std::shared_ptr<Accent> newAccent);
     static void ParseStaccatoArticulationElement(XMLElement* element, std::shared_ptr<StaccatoArticulation> newArticulation);
@@ -68,7 +68,7 @@ private:
     static void ParseCaesuraElement(XMLElement* element, std::shared_ptr<Caesura> newCaesura);
     static void ParseStressElement(XMLElement* element, std::shared_ptr<Stress> newStress);
 
-    static void ParseArticulationsElement(XMLElement* articulationsElement, Note* currentNote);
+    static void ParseArticulationsElement(XMLElement* articulationsElement, std::shared_ptr<Note> currentNote);
 
     static void ParseBowingElement(XMLElement* element, std::shared_ptr<Bowing> newBowing);
     static void ParseGuitarTechnique(XMLElement* element, std::shared_ptr<GuitarTechnique> newTechnique);
@@ -78,13 +78,14 @@ private:
 
     static void ParseFermataElement(XMLElement* element, std::shared_ptr<Fermata> fermata);
 
-    static void ParseOrnamentsElement(XMLElement* element, Note* currentNote);
+    static void ParseOrnamentsElement(XMLElement* element, std::shared_ptr<Note> currentNote);
     static void ParseTrillMarkElement(XMLElement* element, std::shared_ptr<TrillMark> newOrnament);
     static void ParseTurnElement(XMLElement* element, std::shared_ptr<Turn> newOrnament);
     static void ParseMordentElement(XMLElement* element, std::shared_ptr<Mordent> newOrnament);
 
-    static void ParseGlissandoSlideElement(XMLElement* element, Note* currentNote);
+    static void ParseGlissandoSlideElement(XMLElement* element, std::shared_ptr<Note> currentNote);
 
+    static void ParseTremoloElement(XMLElement* element, std::shared_ptr<Note> currentNote);
 
 protected:
     static void AddError(std::string title, std::string desc, ErrorLevel errorLevel = ErrorLevel::Error) { m_Errors.emplace_back(title, desc, "BaseElementParser", errorLevel); }

@@ -14,7 +14,7 @@ class Note;
 class Beam
 {
 public:
-    std::vector<Note*> notes; // the notes that this beam is associated with
+    std::vector<std::shared_ptr<Note>> notes; // the notes that this beam is associated with
 
     // relative to start of measure and top staff line
     float beamStartPositionX = 0.0f;
