@@ -13,7 +13,7 @@ void DynamicWedge::UpdateBoundingBox(const Vec2<float>& parentPosition)
 #endif
 }
 
-void DynamicWedge::Render(RenderData& renderData, float measurePositionX, float measurePositionY, float offsetX, float offsetY) const
+void DynamicWedge::Render(RenderData& renderData, Vec2<float> measurePosition, Vec2<float> offset) const
 {
     //LOGE("Rendering dynamic wedge: sPos.x: %f | sPos.y: %f | ePos.x: %f | ePos.y: %f", positionStart.x, positionStart.y, positionEnd.x, positionEnd.y);
 
@@ -24,19 +24,14 @@ void DynamicWedge::Render(RenderData& renderData, float measurePositionX, float 
 
     if (type == WedgeType::Crescendo)
     {
-        renderData.AddLine(positionStart.x + measurePositionX + offsetX, positionStart.y + measurePositionY + offsetY, positionEnd.x + measurePositionX + offsetX, positionEnd.y + measurePositionY + offsetY + (spread/2.0f), paint); // bottom line
-        renderData.AddLine(positionStart.x + measurePositionX + offsetX, positionStart.y + measurePositionY + offsetY, positionEnd.x + measurePositionX + offsetX, positionEnd.y + measurePositionY + offsetY - (spread/2.0f), paint); // top line
+        renderData.AddLine(positionStart.x + measurePosition.x + offset.x, positionStart.y + measurePosition.y + offset.y, positionEnd.x + measurePosition.x + offset.x, positionEnd.y + measurePosition.y + offset.y + (spread/2.0f), paint); // bottom line
+        renderData.AddLine(positionStart.x + measurePosition.x + offset.x, positionStart.y + measurePosition.y + offset.y, positionEnd.x + measurePosition.x + offset.x, positionEnd.y + measurePosition.y + offset.y - (spread/2.0f), paint); // top line
     }
     else if (type == WedgeType::Diminuendo)
     {
-        renderData.AddLine(positionStart.x + measurePositionX + offsetX, positionStart.y + measurePositionY + offsetY + (spread/2.0f), positionEnd.x + measurePositionX + offsetX, positionEnd.y + measurePositionY + offsetY, paint); // bottom line
-        renderData.AddLine(positionStart.x + measurePositionX + offsetX, positionStart.y + measurePositionY + offsetY - (spread/2.0f), positionEnd.x + measurePositionX + offsetX, positionEnd.y + measurePositionY + offsetY, paint); // top line
+        renderData.AddLine(positionStart.x + measurePosition.x + offset.x, positionStart.y + measurePosition.y + offset.y + (spread/2.0f), positionEnd.x + measurePosition.x + offset.x, positionEnd.y + measurePosition.y + offset.y, paint); // bottom line
+        renderData.AddLine(positionStart.x + measurePosition.x + offset.x, positionStart.y + measurePosition.y + offset.y - (spread/2.0f), positionEnd.x + measurePosition.x + offset.x, positionEnd.y + measurePosition.y + offset.y, paint); // top line
     }
-
-    //renderData.AddLine(positionStart.x + measurePositionX + offsetX, positionStart.y + measurePositionY + offsetY, positionEnd.x + measurePositionX + offsetX, positionEnd.y + measurePositionY + offsetY, Paint(color.color));
-    //renderData.AddLine(positionStart.x + measurePositionX + offsetX, positionStart.y + measurePositionY + offsetY, positionEnd.x + measurePositionX + offsetX, positionEnd.y + measurePositionY + offsetY, Paint(color.color));
-
-    //renderData.AddDebugDot(positionStart.x + measurePositionX + offsetX, positionStart.y + measurePositionY + offsetY);
 }
 
 void DynamicWedge::CalculatePositionAsPaged(const MusicDisplayConstants& displayConstants, Vec2<float> defPositionStart, Vec2<float> defPositionEnd, float defSpread)

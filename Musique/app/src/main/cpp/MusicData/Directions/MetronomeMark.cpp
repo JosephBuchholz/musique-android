@@ -1,5 +1,46 @@
 #include "MetronomeMark.h"
 
+void MetronomeMark::Render(RenderData& renderData, Vec2<float> measurePosition, Vec2<float> offset) const
+{
+    std::string string = " = " + tempo;
+
+    std::vector<uint16_t> chars;
+    chars.push_back((uint16_t)GetMetronomeNoteSMuFLID(mainNoteUnit.noteValue));
+    if (mainNoteUnit.isDotted)
+        chars.push_back((uint16_t)SMuFLID::metAugmentationDot);
+
+    for (auto& c : string)
+    {
+        if (c == '\0')
+            break;
+        chars.push_back(c);
+    }
+
+    std::vector<TextSpan> spans;
+    Paint glyphPaint = Paint(color.color);
+    glyphPaint.useMusicFont = true;
+    glyphPaint.textSize = 40.0f;
+    glyphPaint.align = Paint::Align::Left;
+
+    Paint paint = Paint(color.color);
+    paint.isBold = true;
+    paint.textSize = 26.0f;
+    paint.align = Paint::Align::Left;
+
+    if (mainNoteUnit.isDotted)
+    {
+        spans.emplace_back(0, 2, glyphPaint);
+        spans.emplace_back(2, 10, paint);
+    }
+    else
+    {
+        spans.emplace_back(0, 1, glyphPaint);
+        spans.emplace_back(1, 10, paint);
+    }
+
+    renderData.AddSpannableText(std::make_shared<SpannableText>(chars, positionX + measurePosition.x + offset.x, positionY + measurePosition.y + offset.y, spans, Paint(color.color)));
+}
+
 void MetronomeMark::UpdateBoundingBox(const Vec2<float>& parentPosition)
 {
     Paint paint = Paint();

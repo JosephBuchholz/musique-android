@@ -28,6 +28,7 @@ add_library( # Sets the name of the library.
         MusicRenderer.cpp
         MusicData/BaseElements/LineElement.cpp
         MusicData/BaseElements/TextualElement.cpp
+        MusicData/BaseElements/VisibleElement.cpp
         MusicData/Song.cpp
         MusicData/SongData.cpp
         MusicData/Notes/Note.cpp
@@ -49,6 +50,7 @@ add_library( # Sets the name of the library.
         MusicData/Directions/Dynamic.cpp
         MusicData/Directions/DynamicWedge.cpp
         MusicData/Directions/MetronomeMark.cpp
+        MusicData/Directions/Rehearsal.cpp
         MusicData/Directions/Marker.cpp
 
         MusicData/Page/Credit.cpp
@@ -65,6 +67,7 @@ add_library( # Sets the name of the library.
         MusicData/Pitch.cpp
         MusicData/Measures/TimeSignature.cpp
         MusicData/Measures/Arpeggio.cpp
+        MusicData/Measures/Ending.cpp
 
         MusicData/Notes/TremoloSingle.cpp
 

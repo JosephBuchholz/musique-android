@@ -27,11 +27,11 @@ void Dynamic::UpdateBoundingBox(const Vec2<float>& parentPosition)
 #endif
 }
 
-void Dynamic::Render(RenderData& renderData, float measurePositionX, float measurePositionY, float offsetX, float offsetY) const
+void Dynamic::Render(RenderData& renderData, Vec2<float> measurePosition, Vec2<float> offset) const
 {
     Paint paint;
     TextualElement::ModifyPaint(paint);
-    renderData.AddGlyph(SMuFLGlyph(GetDynamicSMuFLID(), position.x + measurePositionX + offsetX, position.y + measurePositionY + offsetY, paint));
+    renderData.AddGlyph(SMuFLGlyph(GetDynamicSMuFLID(), position.x + measurePosition.x + offset.x, position.y + measurePosition.y + offset.y, paint));
 }
 
 SMuFLID Dynamic::GetDynamicSMuFLID() const

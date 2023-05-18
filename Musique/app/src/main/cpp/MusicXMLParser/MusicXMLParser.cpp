@@ -15,6 +15,9 @@ static std::unordered_map<int, std::shared_ptr<Arpeggio>> currentArpeggios;
 static float currentArpeggiosBeatPosition = 0.0f;
 static int currentArpeggiosMeasureIndex = 0;
 
+static std::unordered_map<std::string, std::shared_ptr<Ending>> currentEndings;
+
+
 // ---- Parse Functions ----
 
 Rehearsal MusicXMLParser::ParseRehearsal(XMLElement* element)
@@ -1052,17 +1055,13 @@ void MusicXMLParser::ParseArpeggioElement(XMLElement* element, std::shared_ptr<M
 {
     if (element)
     {
-        LOGW("currentNoteBeatPosition: %f, currentArpeggiosBeatPosition: %f", currentNote->beatPosition, currentArpeggiosBeatPosition);
         if (currentNote->beatPosition != currentArpeggiosBeatPosition || currentNote->measureIndex != currentArpeggiosMeasureIndex)
             currentArpeggios.clear();
 
         int number = XMLHelper::GetNumberAttribute(element, "number", 1);
 
-        LOGD("number: %d", number);
-
         if (currentArpeggios.find(number) != currentArpeggios.end()) // an arpeggio exists at 'number'
         {
-            LOGV("using old arpeggio!");
 
             std::shared_ptr<Arpeggio> arpeggio = currentArpeggios[number];
 
@@ -1070,7 +1069,6 @@ void MusicXMLParser::ParseArpeggioElement(XMLElement* element, std::shared_ptr<M
         }
         else // create new arpeggio
         {
-            LOGE("creating new arpeggio!!!!!!!!!!!!!!!!!!!!!!!");
             std::shared_ptr<Arpeggio> arpeggio = std::make_shared<Arpeggio>();
 
             BaseElementParser::ParseVisibleElement(element, arpeggio);
@@ -1117,6 +1115,86 @@ std::shared_ptr<Marker> MusicXMLParser::ParseCodaSegnoElement(XMLElement* elemen
         newMarker->type = Marker::MarkerType::Segno;
 
     return newMarker;
+}
+
+void MusicXMLParser::ParseEndingElement(XMLElement* element, std::shared_ptr<Song> song, std::vector<std::shared_ptr<Measure>> currentMeasures)
+{
+    if (!element)
+        throw IsNullException();
+
+    std::string typeString = XMLHelper::GetStringAttribute(element, "type", "", true);
+
+    if (typeString == "start")
+    {
+        std::shared_ptr<Ending> newEnding = std::make_shared<Ending>();
+
+        BaseElementParser::ParseTextualElement(element, newEnding);
+        BaseElementParser::ParseLineElement(element, newEnding);
+
+        newEnding->defaultPosition = XMLHelper::GetFloatVec2Attribute(element, "default-x", "default-y", newEnding->defaultPosition);
+        newEnding->relativePosition = XMLHelper::GetFloatVec2Attribute(element, "relative-x", "relative-y", newEnding->relativePosition);
+        newEnding->defaultTextPosition = XMLHelper::GetFloatVec2Attribute(element, "text-x", "text-y", newEnding->defaultTextPosition);
+
+        newEnding->jogLength = XMLHelper::GetFloatAttribute(element, "end-length", newEnding->jogLength);
+
+        std::string endingNumbersString = XMLHelper::GetStringAttribute(element, "number", "", true);
+        std::string endingNumbersDisplayText = XMLHelper::GetStringValue(element, "");
+
+        if (endingNumbersDisplayText.empty())
+            newEnding->endingNumbersText = endingNumbersString;
+        else
+            newEnding->endingNumbersText = endingNumbersDisplayText;
+
+        if (!currentMeasures.empty())
+        {
+            newEnding->startMeasureIndex = currentMeasures[0]->index;
+            newEnding->endMeasureIndex = currentMeasures[0]->index + 1;
+        }
+        else
+        {
+            newEnding->startMeasureIndex = 0;
+            newEnding->endMeasureIndex = 1;
+        }
+
+        if (song)
+        {
+            song->endings.push_back(newEnding);
+        }
+
+        currentEndings[endingNumbersString] = newEnding;
+    }
+    else if (typeString == "stop")
+    {
+        std::shared_ptr<Ending> ending = currentEndings[typeString];
+
+        if (ending)
+        {
+            ending->hasFinalDownwardJog = true;
+
+            if (!currentMeasures.empty())
+            {
+                ending->endMeasureIndex = currentMeasures[0]->index;
+            }
+        }
+    }
+    else if (typeString == "discontinue")
+    {
+        std::shared_ptr<Ending> ending = currentEndings[typeString];
+
+        if (ending)
+        {
+            ending->hasFinalDownwardJog = false;
+
+            if (!currentMeasures.empty())
+            {
+                ending->endMeasureIndex = currentMeasures[0]->index;
+            }
+        }
+    }
+    else
+    {
+        throw InvalidValueException("The only valid values for a ending element are: 'start', 'stop', and 'discontinue'. This value is not in that list: '" + typeString + "'.");
+    }
 }
 
 // main file parsing
@@ -1783,6 +1861,13 @@ void MusicXMLParser::ParseMusicXML(const std::string& data, std::string& error, 
                                         Barline barline = ParseBarlineElement(element);
 
                                         for (auto m : currentMeasures) { m->barlines.push_back(barline); }
+
+                                        // ending
+                                        XMLElement* endingElement = element->FirstChildElement("ending");
+                                        if (endingElement)
+                                        {
+                                            ParseEndingElement(endingElement, song, currentMeasures);
+                                        }
                                     }
                                 }
                                 else

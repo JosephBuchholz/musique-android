@@ -9,15 +9,6 @@ void Marker::Render(RenderData& renderData, Vec2<float> measurePosition, Vec2<fl
     renderData.AddGlyph(SMuFLGlyph(GetSMuFLID(), position.x + measurePosition.x + offset.x, position.y + measurePosition.y + offset.y, paint));
 }
 
-void Marker::RenderDebug(RenderData& renderData) const
-{
-#if DEBUG_BOUNDING_BOXES
-    debugBoundingBox.Render(renderData, 0xFF00FF00);
-#endif
-
-    boundingBox.Render(renderData, 0xFF00FFFF);
-}
-
 SMuFLID Marker::GetSMuFLID() const
 {
     switch (type)

@@ -11,6 +11,7 @@
 #include "Page/Credit.h"
 #include "System.h"
 #include "Page/PageNumber.h"
+#include "Measures/Ending.h"
 
 class Song {
 
@@ -277,6 +278,8 @@ public:
     Date encodingDate = Date();
 
     float totalBeatWidth = 0.0f;
+
+    std::vector<std::shared_ptr<Ending>> endings;
 
 private:
     std::vector<float> m_MeasureWidths; // the widths of the measures

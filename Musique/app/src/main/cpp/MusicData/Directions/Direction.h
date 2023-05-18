@@ -33,15 +33,13 @@ public:
     Direction() {}
 
     /**
-     * Renders this class
+     * Renders this class.
      *
-     * @param[out] renderData The RenderData object to render to
-     * @param[in] measurePositionX The x position of the parent measure
-     * @param[in] measurePositionY The y position of the parent measure
-     * @param[in] offsetX offset in x direction
-     * @param[in] offsetY offset in y direction
+     * @param[out] renderData The RenderData object to render to.
+     * @param[in] measurePosition The position of the parent measure.
+     * @param[in] offset An offset.
      */
-    void Render(RenderData& renderData, float measurePositionX, float measurePositionY, float offsetX = 0.0f, float offsetY = 0.0f) const;
+    void Render(RenderData& renderData, Vec2<float> measurePosition, Vec2<float> offset = { 0.0f, 0.0f }) const;
 
     /**
      * Renders any debug info.

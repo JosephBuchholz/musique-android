@@ -239,6 +239,12 @@ void Song::OnUpdate()
             credit.CalculatePositionAsPaged();
         }
 
+        for (auto ending : endings)
+        {
+            if (ending)
+                ending->CalculatePositionAsPaged(displayConstants);
+        }
+
         // calculate positions for notes and measures
         for (auto instrument : instruments)
         {
@@ -1426,8 +1432,6 @@ void Song::ResolveCollisions()
 
                 if (DoesMeasureStartNewPage(measureIndex))
                     pageIndex++;
-
-                LOGW("pageIndex: %d, measureIndex: %d", pageIndex, measureIndex);
 
                 ResolveCollisionsWith(measure->boundingBox, pageIndex);
                 ResolveCollisionsWith(measure->measureNumber.boundingBox, pageIndex);

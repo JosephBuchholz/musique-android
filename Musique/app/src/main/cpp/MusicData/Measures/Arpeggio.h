@@ -14,7 +14,8 @@
 /**
  * This class represents a musical arpeggio symbol (including strums and non-arpeggio brackets).
  */
-class Arpeggio : public VisibleElement {
+class Arpeggio : public VisibleElement
+{
     friend class Measure;
     friend class MusicXMLParser;
 

@@ -312,6 +312,22 @@ void MusicRenderer::RenderMusicToPage(std::shared_ptr<Song> song, int page, Rend
             if (systemIndex >= systemPositions.size())
                 systemPositions.push_back(systemPosition);
         }
+
+        for (auto ending : song->endings)
+        {
+            Vec2<float> systemPosition = { 0.0f, 0.0f };
+            int systemIndex = song->GetSystemIndex(ending->startMeasureIndex);
+            if (systemIndex < systemPositions.size())
+            {
+                systemPosition.x = systemPositions[systemIndex].x;
+                systemPosition.y = systemPositions[systemIndex].y;
+            }
+
+            Vec2<float> measureStartPosition = { systemPosition.x + song->GetMeasurePositionX(ending->startMeasureIndex), systemPosition.y };
+            Vec2<float> measureEndPosition = { systemPosition.x + song->GetMeasurePositionX(ending->endMeasureIndex - 1) + song->GetMeasureWidth(ending->endMeasureIndex - 1), systemPosition.y };
+            if (ending)
+                ending->Render(pageRenderData, measureStartPosition, measureEndPosition);
+        }
     }
 }
 
@@ -412,7 +428,6 @@ void MusicRenderer::RenderLineOfMeasures(RenderData& renderData, std::shared_ptr
     int currentMeasureRenderedCount = 0; // the number of measures that have been rendered
     bool isLastMeasureInSystem = false;
     for (int m = (int)startMeasure; m <= endMeasure; m++) {
-        //renderableSong.systems[systemIndex].instruments[instrumentIndex].staves[staffIndex].measures.emplace_back();
 
         std::shared_ptr<Measure> measure = staff->measures[m];
 
@@ -420,8 +435,6 @@ void MusicRenderer::RenderLineOfMeasures(RenderData& renderData, std::shared_ptr
 
         if (m == endMeasure)
             isLastMeasureInSystem = true;
-
-        //LOGE("i: %d, width: %f, pos: %f", m, measure->measureWidth, measurePositionX);
 
         //if (m == currentMeasure)
         //{
@@ -458,8 +471,6 @@ void MusicRenderer::RenderLineOfMeasures(RenderData& renderData, std::shared_ptr
                 RenderMultiMeasureRest(renderData, measure->numberOfMeasuresInMultiMeasureRest, measurePositionX, staffPositionY, measure->measureWidth, staff->lines, lineSpacing);
             }
 
-            //float measureWidth = song->GetMeasureWidth(measureNumber);
-
             // staff lines
             for (int j = 0; j < staff->lines; j++) {
                 float endX = measurePositionX + measure->measureWidth;
@@ -478,28 +489,30 @@ void MusicRenderer::RenderLineOfMeasures(RenderData& renderData, std::shared_ptr
             x += measure->measureWidth;
             renderData.AddLine(std::make_shared<Line>(x, 0.0f + staffPositionY, x,(lineSpacing * float(staff->lines - 1)) + staffPositionY, BarLinePaint));
 
-
             auto measureDataItem = system.systemMeasureData.find(measure->index);
 
-            bool showTimeSignature = measure->showTimeSignature || (system.showBeginningTimeSignature && song->DoesMeasureStartNewSystem(measure->index));
-            measure->timeSignature.Render(renderData, showTimeSignature, measureDataItem->second.timeSignaturePositionX + measurePositionX, staffPositionY, lineSpacing, staff->lines);
-
-            bool showKeySignature = (measure->showKeySignature || (system.showBeginningKeySignature && song->DoesMeasureStartNewSystem(measure->index)));
-            measure->keySignature.Render(renderData, showKeySignature, measureDataItem->second.keySignaturePositionX + measurePositionX, lineSpacing, staff->lines, measure->clef, 0.0f, staffPositionY);
-
-            bool showSystemClef = (system.showBeginningClef && song->DoesMeasureStartNewSystem(measure->index));
-
-            float clefPositionX;
-            if (measure->clef.clefChanged)
+            if (measureDataItem != system.systemMeasureData.end())
             {
-                clefPositionX = measurePositionX - 28.0f;
-            }
-            else
-            {
-                clefPositionX = measureDataItem->second.clefPositionX + measurePositionX;
-            }
+                bool showTimeSignature = measure->showTimeSignature || (system.showBeginningTimeSignature && song->DoesMeasureStartNewSystem(measure->index));
+                measure->timeSignature.Render(renderData, showTimeSignature, measureDataItem->second.timeSignaturePositionX + measurePositionX, staffPositionY, lineSpacing, staff->lines);
 
-            measure->clef.Render(renderData, showSystemClef, clefPositionX, song->displayConstants, staff->lines, 0.0f, staffPositionY);
+                bool showKeySignature = (measure->showKeySignature || (system.showBeginningKeySignature && song->DoesMeasureStartNewSystem(measure->index)));
+                measure->keySignature.Render(renderData, showKeySignature, measureDataItem->second.keySignaturePositionX + measurePositionX, lineSpacing, staff->lines, measure->clef, 0.0f, staffPositionY);
+
+                bool showSystemClef = (system.showBeginningClef && song->DoesMeasureStartNewSystem(measure->index));
+
+                float clefPositionX;
+                if (measure->clef.clefChanged)
+                {
+                    clefPositionX = measurePositionX - 28.0f;
+                }
+                else
+                {
+                    clefPositionX = measureDataItem->second.clefPositionX + measurePositionX;
+                }
+
+                measure->clef.Render(renderData, showSystemClef, clefPositionX, song->displayConstants, staff->lines, 0.0f, staffPositionY);
+            }
 
             if (startMeasure == m && isTopMeasureLine && measure->measureNumber.GetNumber() != 1)
             {
@@ -510,10 +523,7 @@ void MusicRenderer::RenderLineOfMeasures(RenderData& renderData, std::shared_ptr
             for (const Direction &direction: measure->directions) {
                 float measurePositionY = staffPositionY;
 
-                //LOGE("rendering direction: %d", renderData.Texts.size());
-                //renderData.AddDebugDot(measurePositionX, measurePositionY);
-
-                direction.Render(renderData, measurePositionX, measurePositionY);
+                direction.Render(renderData, { measurePositionX, measurePositionY });
             }
 
             if (!measure->startsMultiMeasureRest)
@@ -537,9 +547,6 @@ void MusicRenderer::RenderLineOfMeasures(RenderData& renderData, std::shared_ptr
                             LOGE("NOTE[0] IS NULL POINTER!!!!!");
                             break;
                         }
-
-                        //LOGD("noteSize: %d", beamGroup.notes[0]->noteSize);
-                        //LOGD("durationType: %d", beamGroup.notes[0]->durationType);
 
                         float size;
                         if (beamGroup.notes[0]->noteSize == NoteSize::Grace)
@@ -604,8 +611,6 @@ void MusicRenderer::RenderLineOfMeasures(RenderData& renderData, std::shared_ptr
         measureNumber++;
         measureIndex++;
     } // measures loop
-
-
 }
 
 void MusicRenderer::RenderMultiMeasureRest(RenderData& renderData, unsigned int measureRestCount, float measurePositionX, float measurePositionY, float measureWidth, int lineCount, float lineSpacing)

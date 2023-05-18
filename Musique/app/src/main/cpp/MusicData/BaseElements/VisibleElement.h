@@ -22,6 +22,13 @@ public:
      */
     void ModifyPaint(Paint& paint) const { paint.color = color.color; }
 
+    /**
+     * Renders any debug info.
+     *
+     * @param renderData The RenderData object to render to.
+     */
+    virtual void RenderDebug(RenderData& renderData) const;
+
 public:
     Color color = Color();
 

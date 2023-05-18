@@ -37,4 +37,14 @@ public:
     IsEmptyException(const std::string& msg) : BaseException(msg) {}
 };
 
+/**
+ * This exception is thrown if an invalid value has been obtained.
+ */
+class InvalidValueException : public BaseException
+{
+public:
+    InvalidValueException() : BaseException("An invalid value has been obtained.") {}
+    InvalidValueException(const std::string& msg) : BaseException(msg) {}
+};
+
 #endif //MUSIQUE_EXCEPTIONS_H

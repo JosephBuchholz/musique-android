@@ -57,6 +57,7 @@ private:
     static void ParseHarmonyElement(XMLElement* harmonyElement, float& currentTimeInMeasure, std::vector<std::shared_ptr<Measure>> currentMeasures);
     static Barline ParseBarlineElement(XMLElement* barlineElement);
     static void ParseArpeggioElement(XMLElement* element, std::shared_ptr<Measure> currentMeasure, std::shared_ptr<Note> currentNote);
+    static void ParseEndingElement(XMLElement* element, std::shared_ptr<Song> song, std::vector<std::shared_ptr<Measure>> currentMeasures);
 
     static std::shared_ptr<Marker> ParseCodaSegnoElement(XMLElement* element);
 

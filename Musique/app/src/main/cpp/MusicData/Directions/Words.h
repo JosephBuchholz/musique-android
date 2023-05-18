@@ -22,6 +22,15 @@ public:
     Words() {  }
 
     /**
+     * Renders this class.
+     *
+     * @param[out] renderData The RenderData object to render to.
+     * @param[in] measurePosition The position of the parent measure.
+     * @param[in] offset An offset.
+     */
+    virtual void Render(RenderData& renderData, Vec2<float> measurePosition, Vec2<float> offset = { 0.0f, 0.0f }) const;
+
+    /**
      * Updates the position and size of this object's bounding box.
      *
      * @param parentPosition The position of the parent.

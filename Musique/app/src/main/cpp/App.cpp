@@ -112,6 +112,8 @@ void App::DeleteSong()
         instrument = nullptr;
     }
     song->instruments.clear();
+    song->systems.clear();
+    song->pageNumbers.clear();
     song = nullptr;
 }
 

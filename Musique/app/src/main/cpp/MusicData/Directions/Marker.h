@@ -25,15 +25,10 @@ public:
      * Renders this class.
      *
      * @param[out] renderData The RenderData object to render to.
+     * @param[in] measurePosition The position of the parent measure.
+     * @param[in] offset An offset.
      */
     void Render(RenderData& renderData, Vec2<float> measurePosition, Vec2<float> offset = { 0.0f, 0.0f }) const;
-
-    /**
-     * Renders any debug info.
-     *
-     * @param renderData The RenderData object to render to.
-     */
-    void RenderDebug(RenderData& renderData) const;
 
     SMuFLID GetSMuFLID() const;
 

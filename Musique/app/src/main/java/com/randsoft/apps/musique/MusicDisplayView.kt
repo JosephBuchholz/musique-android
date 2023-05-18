@@ -268,7 +268,7 @@ class MusicDisplayView(context: Context, attrs: AttributeSet? = null): View(cont
         //val paint = Paint()
 
         val rect = Rect()
-        Log.e(TAG, "text: ${text.text}, t_length: ${text.text.length}");
+        //Log.e(TAG, "text: ${text.text}, t_length: ${text.text.length}");
         paint.getTextBounds(text.text, 0, text.text.length, rect) // this is the error line
 
         val rectF = RectF()
