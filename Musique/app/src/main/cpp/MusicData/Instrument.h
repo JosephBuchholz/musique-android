@@ -6,6 +6,7 @@
 #include <string>
 #include "String.h"
 #include "MidiInstrument.h"
+#include "Notes/Slur.h"
 
 class Instrument {
 
@@ -32,6 +33,8 @@ public:
     MidiInstrument midiInstrument = MidiInstrument();
 
     std::vector<std::shared_ptr<Staff>> staves;
+
+    //std::vector<std::shared_ptr<Slur>> slurs; // slurs that are contained in this part (including cross system slurs and cross staff slurs)
 };
 
 #endif // MUSIQUE_INSTRUMENT_H

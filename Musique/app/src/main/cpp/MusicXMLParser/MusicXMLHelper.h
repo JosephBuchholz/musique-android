@@ -53,6 +53,7 @@ public:
     static FontStyle GetFontStyleAttribute(XMLElement* element, const char* s, FontStyle defaultValue = FontStyle::Normal, bool required = false);
     static FontWeight GetFontWeightAttribute(XMLElement* element, const char* s, FontWeight defaultValue = FontWeight::Normal, bool required = false);
     static Justify GetJustifyAttribute(XMLElement* element, const char* s, Justify defaultValue = Justify::None, bool required = false);
+    static CurveOrientation GetCurveOrientationAttribute(XMLElement* element, const char* s, CurveOrientation defaultValue = CurveOrientation::None, bool required = false);
 
 protected:
     static void AddError(std::string title, std::string desc, ErrorLevel errorLevel = ErrorLevel::Error) { m_Errors.emplace_back(title, desc, "MusicXMLHelper", errorLevel); }

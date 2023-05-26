@@ -25,6 +25,14 @@ public:
 
     float GetNoteHeadWidth(const MusicDisplayConstants& displayConstants) const;
 
+    /**
+     * Updates the position and size of this object's bounding box.
+     *
+     * @param displayConstants The display constants.
+     * @param parentPosition The position of the parent.
+     */
+    void UpdateBoundingBox(const MusicDisplayConstants& displayConstants, Vec2<float> parentPosition);
+
 protected:
 
     void CalculateAsPaged(const MusicDisplayConstants& displayConstants, NoteSize noteSize);

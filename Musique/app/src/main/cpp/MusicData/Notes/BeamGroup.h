@@ -7,9 +7,13 @@
 
 #include <vector>
 
-#include "Beam.h"
+class Beam;
 
-class BeamGroup
+#include "Beam.h"
+#include "../BaseElements/VisibleElement.h"
+#include "../BaseElements/LineElement.h"
+
+class BeamGroup : public VisibleElement, public LineElement
 {
 public:
 

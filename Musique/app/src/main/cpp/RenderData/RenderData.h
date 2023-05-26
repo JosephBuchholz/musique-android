@@ -23,7 +23,7 @@ public:
         linePaint.strokeWidth = 1.4f;
 
         noteStemPaint = Paint();
-        noteStemPaint.strokeWidth = 0.8333f;
+        noteStemPaint.strokeWidth = 1.25f;
         noteStemPaint.strokeCap = Paint::Cap::Round;
 
         noteBeamPaint = Paint();
@@ -32,18 +32,20 @@ public:
         noteBeamPaint.verticalEnds = true;
 
         barlinePaint = Paint();
-        barlinePaint.strokeWidth = 1.25f;
+        barlinePaint.strokeWidth = 2.0833f;
         barlinePaint.strokeCap = Paint::Cap::Butt;
 
         heavyBarlinePaint = Paint();
-        heavyBarlinePaint.strokeWidth = 5.0f;
+        heavyBarlinePaint.strokeWidth = 6.6667f;
         heavyBarlinePaint.strokeCap = Paint::Cap::Butt;
 
         tabSlurPaint = Paint();
         tabSlurPaint.strokeWidth = 1.25f;
 
         tiePaint = Paint();
-        tiePaint.strokeWidth = 1.25f;
+        //tiePaint.strokeWidth = 1.25f;
+        tiePaint.strokeWidth = 0.6f;
+        tiePaint.strokeCap = Paint::Cap::Round;
 
         textPaint = Paint();
         textPaint.textSize = 30.0f;

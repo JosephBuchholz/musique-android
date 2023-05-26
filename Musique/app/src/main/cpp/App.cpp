@@ -89,32 +89,36 @@ void App::LoadSongFromString(const std::string& string)
 
 void App::DeleteSong()
 {
-    LOGI("Deleting Song Data");
-    for (auto instrument : song->instruments) {
-        for (auto staff : instrument->staves) {
-            for (auto measure : staff->measures) {
-                for (std::shared_ptr<Note> note : measure->notes) {
-                    //delete note;
-                    note = nullptr;
+    LOGI("Going To Delete Song Data");
+    if (song != nullptr)
+    {
+        LOGI("Deleting Song Data");
+        for (auto instrument : song->instruments) {
+            for (auto staff : instrument->staves) {
+                for (auto measure : staff->measures) {
+                    for (std::shared_ptr<Note> note : measure->notes) {
+                        //delete note;
+                        note = nullptr;
+                    }
+                    measure->notes.clear();
+                    measure->directions.clear();
+                    measure->soundEvents.clear();
+                    //delete measure;
+                    measure = nullptr;
                 }
-                measure->notes.clear();
-                measure->directions.clear();
-                measure->soundEvents.clear();
-                //delete measure;
-                measure = nullptr;
+                staff->measures.clear();
+                //delete staff;
+                staff = nullptr;
             }
-            staff->measures.clear();
-            //delete staff;
-            staff = nullptr;
+            instrument->staves.clear();
+            //delete instrument;
+            instrument = nullptr;
         }
-        instrument->staves.clear();
-        //delete instrument;
-        instrument = nullptr;
+        song->instruments.clear();
+        song->systems.clear();
+        song->pageNumbers.clear();
+        song = nullptr;
     }
-    song->instruments.clear();
-    song->systems.clear();
-    song->pageNumbers.clear();
-    song = nullptr;
 }
 
 void App::OnMidiStart()

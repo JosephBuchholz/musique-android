@@ -7,11 +7,18 @@
 
 #include <string>
 
+#include "../BaseElements/VisibleElement.h"
+#include "TremoloSingle.h"
+
 /**
  * This class represents a note stem on a note.
  */
-class NoteStem
+class NoteStem : public VisibleElement
 {
+public:
+
+    void Render(RenderData& renderData, Vec2<float> notePosition, std::shared_ptr<TremoloSingle> tremoloSingle, bool isGraceNote, bool hasSlash, float noteHeadWidth, Vec2<float> offset = { 0.0f, 0.0f }) const;
+
 public:
     NoteStem() {}
 

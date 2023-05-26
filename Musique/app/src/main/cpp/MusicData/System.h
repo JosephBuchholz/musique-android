@@ -36,6 +36,9 @@ public:
         float timeSignaturePositionX = 0.0f;
         float clefPositionX = 0.0f;
         float keySignaturePositionX = 0.0f;
+
+        float measureWidth = 0.0f;
+        float measureBeginningWidth = 0.0f; // the width of the beginning part of the measure (the clef + time signature + key signature (basically up until the first note starts))
     };
 
     // key: the measure index | value: the system wide data for the measure

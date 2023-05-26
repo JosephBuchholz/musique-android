@@ -68,8 +68,15 @@ add_library( # Sets the name of the library.
         MusicData/Measures/TimeSignature.cpp
         MusicData/Measures/Arpeggio.cpp
         MusicData/Measures/Ending.cpp
+        MusicData/Measures/MeasureRepeat.cpp
 
+        MusicData/Notes/NoteChord.cpp
+        MusicData/Notes/NoteFlag.cpp
+        MusicData/Notes/NoteStem.cpp
         MusicData/Notes/TremoloSingle.cpp
+        MusicData/Notes/Slur.cpp
+        MusicData/Notes/TABSlur.cpp
+        MusicData/Notes/Tie.cpp
 
         RenderMeasurement.cpp
 

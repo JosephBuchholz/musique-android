@@ -472,9 +472,12 @@ void MusicRenderer::RenderLineOfMeasures(RenderData& renderData, std::shared_ptr
             }
 
             // staff lines
+            Paint staffLinePaint = BarLinePaint;
+            staffLinePaint.strokeWidth = renderData.displayConstants.staffLineWidth;
+
             for (int j = 0; j < staff->lines; j++) {
                 float endX = measurePositionX + measure->measureWidth;
-                std::shared_ptr<Line> line = renderData.AddLine(measurePositionX, (lineSpacing * (float)j) + staffPositionY, endX,(lineSpacing * (float)j) + staffPositionY,BarLinePaint);
+                std::shared_ptr<Line> line = renderData.AddLine(measurePositionX, (lineSpacing * (float)j) + staffPositionY, endX,(lineSpacing * (float)j) + staffPositionY, staffLinePaint);
                 //renderableSong.systems[systemIndex].instruments[instrumentIndex].staves[staffIndex].measures[measureIndex].staffLines.push_back(std::make_shared<Line>(0.0f, 0.0f, 0.0f, 1.0f));
             }
 
@@ -520,18 +523,31 @@ void MusicRenderer::RenderLineOfMeasures(RenderData& renderData, std::shared_ptr
             }
 
             // render directions
-            for (const Direction &direction: measure->directions) {
+            for (const Direction& direction: measure->directions) {
                 float measurePositionY = staffPositionY;
 
                 direction.Render(renderData, { measurePositionX, measurePositionY });
             }
 
-            if (!measure->startsMultiMeasureRest)
+            if (measure->isMeasureRepeat && measure->measureRepeat != nullptr)
+            {
+                measure->measureRepeat->Render(renderData, { measurePositionX, staffPositionY });
+            }
+
+            if (!measure->startsMultiMeasureRest && !measure->isMeasureRepeat)
             {
                 int noteIndex = 0;
-                for (auto note : measure->notes) {
-                    note->Render(renderData, staff->tablatureDisplayType, measure->CalculateNoteYPositionRelativeToMeasure(noteIndex), staff->lines, { measurePositionX, staffPositionY }, nextMeasurePositionX, measure->measureWidth, measureNumber, lineSpacing, { 0.0f, 0.0f }, noteIndex, isLastMeasureInSystem);
+                for (auto note : measure->notes)
+                {
+                    if (!note->isChord)
+                        note->Render(renderData, staff->tablatureDisplayType, measure->CalculateNoteYPositionRelativeToMeasure(noteIndex), staff->lines, { measurePositionX, staffPositionY }, nextMeasurePositionX, measure->measureWidth, measureNumber, lineSpacing, { 0.0f, 0.0f }, noteIndex, isLastMeasureInSystem);
                     noteIndex++;
+                }
+
+                noteIndex = 0;
+                for (auto noteChord : measure->noteChords)
+                {
+                    noteChord->Render(renderData, staff->tablatureDisplayType, measure->CalculateNoteYPositionRelativeToMeasure(noteIndex), staff->lines, { measurePositionX, staffPositionY }, nextMeasurePositionX, measure->measureWidth, measureNumber, lineSpacing, { 0.0f, 0.0f }, noteIndex, isLastMeasureInSystem, measure);
                 }
 
                 // rendering note beams
@@ -602,6 +618,13 @@ void MusicRenderer::RenderLineOfMeasures(RenderData& renderData, std::shared_ptr
                     float notePositionX = measurePositionX;
                     if (arpeggio)
                         arpeggio->Render(renderData, notePositionX, measurePositionY);
+                }
+
+                for (auto slur : measure->slurs)
+                {
+                    Vec2<float> measurePosition = { measurePositionX, staffPositionY };
+                    if (slur)
+                        slur->Render(renderData, measurePosition, measurePosition);
                 }
             }
 

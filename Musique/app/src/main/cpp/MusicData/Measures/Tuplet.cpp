@@ -59,6 +59,6 @@ void Tuplet::CalculatePositionAsPaged(const MusicDisplayConstants& displayConsta
     if (notes.empty())
         return;
 
-    positionStart = { notes[0]->positionX, notes[0]->positionY + 50.0f };
-    positionEnd = { notes[1]->positionX + notes[1]->noteHead.GetNoteHeadWidth(displayConstants), notes[1]->positionY + 50.0f };
+    positionStart = { notes[0]->position.x, notes[0]->position.y + 50.0f };
+    positionEnd = { notes[1]->position.x + notes[1]->noteHead.GetNoteHeadWidth(displayConstants), notes[1]->position.y + 50.0f };
 }

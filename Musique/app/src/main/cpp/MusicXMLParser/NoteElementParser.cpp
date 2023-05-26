@@ -15,6 +15,9 @@ static std::unordered_map<int, std::shared_ptr<Tuplet>> currentTuplets;
 
 static std::unordered_map<int, std::shared_ptr<GlissandoSlide>> currentGlissandos;
 static std::unordered_map<int, std::shared_ptr<GlissandoSlide>> currentSlides;
+static std::unordered_map<int, std::shared_ptr<NoteTie>> currentTies;
+
+static std::shared_ptr<NoteChord> currentNoteChord;
 
 Lyric NoteElementParser::ParseLyric(XMLElement* lyricElement)
 {
@@ -105,6 +108,24 @@ void NoteElementParser::ParseNoteElement(XMLElement* noteElement, float& current
     if (chordElement)
     {
         currentNote->isChord = true;
+
+        if (!previousNote->isChord)
+        {
+            currentNoteChord = std::make_shared<NoteChord>();
+
+            previousNote->isChord = true;
+            currentNoteChord->notes.push_back(previousNote); // push the previous note to the note chord
+            //currentMeasures[currentNote->staff - 1]->notes.pop_back(); // pop it from the measure's notes vector
+
+            currentNoteChord->notes.push_back(currentNote);
+
+            currentNoteChord->measureIndex = measureNumber - 1;
+            currentMeasures[currentNote->staff - 1]->noteChords.push_back(currentNoteChord);
+        }
+        else
+        {
+            currentNoteChord->notes.push_back(currentNote);
+        }
     }
 
     // rest
@@ -185,18 +206,34 @@ void NoteElementParser::ParseNoteElement(XMLElement* noteElement, float& current
     }*/
 
     // tie
-    XMLElement* tieElement = noteElement->FirstChildElement("tie");
-    if (tieElement)
+    /*XMLNode* previousTieElement = noteElement->FirstChildElement("tie");
+    while (true)
     {
-        std::string typeString = XMLHelper::GetStringAttribute(tieElement, "type", "", true);
+        if (previousTieElement)
+        {
+            XMLElement* tieElement = previousTieElement->ToElement();
 
-        if (typeString == "start")
-            currentNote->tie.type = NoteTie::TieType::Start;
-        else if (typeString == "stop")
-            currentNote->tie.type = NoteTie::TieType::Stop;
+            int number = XMLHelper::GetNumberAttribute(tieElement, "number", 1);
+            std::string typeString = XMLHelper::GetStringAttribute(tieElement, "type", "", true);
+
+            if (typeString == "start")
+            {
+                std::shared_ptr<NoteTie> newTie = std::make_shared<NoteTie>();
+
+
+            }
+            else if (typeString == "stop")
+            {
+            }
+            else
+                LOGE("Invalid value in tie element.");
+        }
         else
-            currentNote->tie.type = NoteTie::TieType::None;
-    }
+        {
+            break;
+        }
+        previousTieElement = previousTieElement->NextSiblingElement("tie");
+    }*/
 
     // voice
     XMLElement* voiceElement = noteElement->FirstChildElement("voice");
@@ -244,7 +281,8 @@ void NoteElementParser::ParseNoteElement(XMLElement* noteElement, float& current
     XMLElement* stemElement = noteElement->FirstChildElement("stem");
     if (stemElement)
     {
-        currentNote->noteStem.stemType = currentNote->noteStem.CalculateStemTypeFromString(stemElement->GetText());
+        currentNote->noteStem = std::make_shared<NoteStem>();
+        currentNote->noteStem->stemType = currentNote->noteStem->CalculateStemTypeFromString(stemElement->GetText());
     }
 
     // notehead
@@ -283,11 +321,22 @@ void NoteElementParser::ParseNoteElement(XMLElement* noteElement, float& current
         XMLElement* slurElement = notations->FirstChildElement("slur");
         if (slurElement)
         {
-            Slur slur = Slur();
-            slur.id = XMLHelper::GetNumberAttribute(slurElement, "number");
-            slur.placement = MusicXMLHelper::GetAboveBelowAttribute(slurElement, "placement");
-            slur.type = MusicXMLHelper::GetStartStopAttribute(slurElement, "type");
-            currentNote->slurs.push_back(slur);
+            MusicXMLParser::ParseSlurElement(slurElement, currentMeasures[currentNote->staff-1], currentNote);
+        }
+
+        // ties
+        XMLNode* previousTiedElement = notations->FirstChildElement("tied");
+        while (true)
+        {
+            if (previousTiedElement)
+            {
+                ParseTiedElement(previousTiedElement->ToElement(), currentNote);
+            }
+            else
+            {
+                break;
+            }
+            previousTiedElement = previousTiedElement->NextSiblingElement("tied");
         }
 
         // technical
@@ -435,8 +484,10 @@ void NoteElementParser::ParseTechnicalElement(XMLElement* technicalElement, std:
 
     if (technicalElement)
     {
+        // TODO: hammer-ons and pull-offs are commented out since currently MuseScore doesn't export those elements
+
         // hammer ons
-        XMLNode* previousHammerOnElement = technicalElement->FirstChildElement("hammer-on");
+        /*XMLNode* previousHammerOnElement = technicalElement->FirstChildElement("hammer-on");
         while (true)
         {
             if (previousHammerOnElement) {
@@ -447,7 +498,7 @@ void NoteElementParser::ParseTechnicalElement(XMLElement* technicalElement, std:
                     tabSlur.slurType = TABSlur::SlurType::HammerOn;
                     tabSlur.id = XMLHelper::GetNumberAttribute(hammerOnElement, "number");
                     tabSlur.placement = MusicXMLHelper::GetAboveBelowAttribute(hammerOnElement, "placement");
-                    tabSlur.type = MusicXMLHelper::GetStartStopAttribute(hammerOnElement, "type");
+                    //tabSlur.type = MusicXMLHelper::GetStartStopAttribute(hammerOnElement, "type");
                     if (hammerOnElement->GetText()) {
                         tabSlur.text = hammerOnElement->GetText();
                     }
@@ -473,7 +524,7 @@ void NoteElementParser::ParseTechnicalElement(XMLElement* technicalElement, std:
                     tabSlur.slurType = TABSlur::SlurType::PullOff;
                     tabSlur.id = XMLHelper::GetNumberAttribute(pullOffElement, "number");
                     tabSlur.placement = MusicXMLHelper::GetAboveBelowAttribute(pullOffElement, "placement");
-                    tabSlur.type = MusicXMLHelper::GetStartStopAttribute(pullOffElement, "type");
+                    //tabSlur.type = MusicXMLHelper::GetStartStopAttribute(pullOffElement, "type");
                     if (pullOffElement->GetText()) {
                         tabSlur.text = pullOffElement->GetText();
                     }
@@ -485,7 +536,7 @@ void NoteElementParser::ParseTechnicalElement(XMLElement* technicalElement, std:
                 break;
             }
             previousPullOffElement = previousPullOffElement->NextSiblingElement("pull_off");
-        }
+        }*/
 
         // - TAB only -
         if (currentNote->type == NoteType::Tab && isTab) {
@@ -1029,4 +1080,75 @@ void NoteElementParser::ParseTremoloElement(XMLElement* element, std::shared_ptr
     {
         LOGW("Double Tremolos are not supported yet.");
     }
+}
+
+void NoteElementParser::ParseTiedElement(XMLElement* element, std::shared_ptr<Note> currentNote)
+{
+    if (!element)
+        throw IsNullException();
+
+    int number = XMLHelper::GetNumberAttribute(element, "number", -1);
+    int pitch = currentNote->pitch.GetPitchValue();
+    std::string typeString = XMLHelper::GetStringAttribute(element, "type", "", true);
+
+    if (typeString == "start")
+    {
+        std::shared_ptr<NoteTie> newTie = std::make_shared<NoteTie>();
+
+        BaseElementParser::ParseVisibleElement(element, newTie);
+        BaseElementParser::ParseLineElement(element, newTie);
+
+        newTie->placement = MusicXMLHelper::GetAboveBelowAttribute(element, "placement", newTie->placement);
+
+        CurveOrientation defaultOrientation = newTie->orientation;
+        if (newTie->placement == AboveBelowType::Above)
+            defaultOrientation = CurveOrientation::Over;
+        else if (newTie->placement == AboveBelowType::Below)
+            defaultOrientation = CurveOrientation::Under;
+        newTie->orientation = MusicXMLHelper::GetCurveOrientationAttribute(element, "orientation", defaultOrientation);
+
+        newTie->notes.first = currentNote;
+
+        currentNote->tie = newTie;
+
+        if (number != -1)
+        {
+            currentTies[number] = newTie;
+        }
+        else
+        {
+            currentTies[pitch] = newTie;
+        }
+    }
+    else if (typeString == "stop")
+    {
+        std::shared_ptr<NoteTie> tie;
+        if (number != -1)
+        {
+            tie = currentTies[number];
+        }
+        else
+        {
+            tie = currentTies[pitch];
+        }
+
+        if (tie)
+        {
+            tie->notes.second = currentNote;
+
+            currentNote->tie = tie;
+        }
+
+        currentTies.erase(number);
+    }
+    else if (typeString == "continue")
+    {
+        LOGW("continue is not handled in tie element");
+    }
+    else if (typeString == "let-ring")
+    {
+        LOGW("let-ring is not handled in tie element");
+    }
+    else
+        LOGE("Invalid value in tie element.");
 }

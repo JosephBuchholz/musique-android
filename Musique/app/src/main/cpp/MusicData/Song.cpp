@@ -51,7 +51,7 @@ void Song::OnUpdate()
     }
 
     // tie calculations
-    for (auto instrument : instruments)
+    /*for (auto instrument : instruments)
     {
         for (auto staff : instrument->staves)
         {
@@ -108,7 +108,7 @@ void Song::OnUpdate()
                 measureIndex++;
             }
         }
-    }
+    }*/
 
     // beam calculations
     for (auto instrument : instruments)
@@ -135,7 +135,7 @@ void Song::OnUpdate()
                             {
                                 beamGroup = BeamGroup();
 
-                                if (note->noteStem.stemType == NoteStem::StemType::Up)
+                                if (note->noteStem->stemType == NoteStem::StemType::Up)
                                     beamGroup.isAboveNote = true;
                             }
 
@@ -269,7 +269,7 @@ void Song::OnUpdate()
                     if (staff->type == Staff::StaffType::Tab)
                         measure->showKeySignature = false;
 
-                    m_MeasureBeginWidths[measureIndex] = std::max(measure->GetBeginningWidth(), m_MeasureBeginWidths[measureIndex]);
+                    //m_MeasureBeginWidths[measureIndex] = std::max(measure->GetBeginningWidth(), m_MeasureBeginWidths[measureIndex]);
 
                     /*systems[systemIndex].clefPositionX = std::max(measure->GetClefPositionInMeasure(systems[systemIndex]), systems[systemIndex].clefPositionX);
                     systems[systemIndex].keySignaturePositionX = std::max(measure->GetKeySignaturePositionInMeasure(systems[systemIndex], systems[systemIndex].clefPositionX), systems[systemIndex].keySignaturePositionX);
@@ -286,7 +286,7 @@ void Song::OnUpdate()
                         note->CalculatePositionAsPaged(displayConstants, staff->lines);
 
                         if (note->type == NoteType::Standard && !note->isRest)
-                            note->positionY = (displayConstants.lineSpacing * measure->CalculateNoteYPositionRelativeToMeasure(noteIndex));
+                            note->position.y = (displayConstants.lineSpacing * measure->CalculateNoteYPositionRelativeToMeasure(noteIndex));
 
                         for (auto& lyric : note->lyrics)
                         {
@@ -294,6 +294,11 @@ void Song::OnUpdate()
                         }
 
                         noteIndex++;
+                    }
+
+                    for (auto noteChord : measure->noteChords)
+                    {
+                        noteChord->CalculatePositionAsPaged(displayConstants, staff->lines, measure, (softwareName == "MuseScore" && softwareMajorVersion == 4));
                     }
 
                     measureIndex++;
@@ -393,7 +398,7 @@ void Song::OnUpdate()
                             {
                                 TimeSpacePoint newPoint = TimeSpacePoint();
                                 newPoint.beatPositionInSong = note->beatPositionInSong;
-                                newPoint.position = note->positionX;
+                                newPoint.position = note->position.x;
                                 newPoint.measureIndex = measureIndex;
                                 m_TimeSpacePoints.insert(m_TimeSpacePoints.begin() + insertIndex, newPoint); // insert note at insertIndex
                                 added = true;
@@ -412,7 +417,7 @@ void Song::OnUpdate()
                         {
                             TimeSpacePoint newPoint = TimeSpacePoint();
                             newPoint.beatPositionInSong = note->beatPositionInSong;
-                            newPoint.position = note->positionX;
+                            newPoint.position = note->position.x;
                             newPoint.measureIndex = measureIndex;
                             m_TimeSpacePoints.push_back(newPoint);
                         }
@@ -504,10 +509,10 @@ void Song::OnUpdate()
                     {
                         if (note->isRest && (softwareName == "MuseScore" && softwareMajorVersion == 3))
                         {
-                            note->positionX = GetPositionXInMeasure(note->beatPositionInSong, measureIndex);
+                            note->position.x = GetPositionXInMeasure(note->beatPositionInSong, measureIndex);
                             if (note->isFullMeasureRest)
                             {
-                                note->positionX = measure->measureWidth / 2.0f;
+                                note->position.x = measure->measureWidth / 2.0f;
                             }
                         }
                     }
@@ -521,11 +526,11 @@ void Song::OnUpdate()
                             std::shared_ptr<Note> firstNote = beamGroup.notes[0];
                             std::shared_ptr<Note> lastNote = beamGroup.notes[beamGroup.notes.size() - 1];
 
-                            beamGroup.beamStartPositionX = firstNote->positionX + firstNote->noteStem.stemPositionX;
-                            beamGroup.beamStartPositionY = firstNote->positionY + firstNote->noteStem.stemEndY;
+                            beamGroup.beamStartPositionX = firstNote->position.x + firstNote->noteStem->stemPositionX;
+                            beamGroup.beamStartPositionY = firstNote->position.y + firstNote->noteStem->stemEndY;
 
-                            beamGroup.beamEndPositionX = lastNote->positionX + lastNote->noteStem.stemPositionX;
-                            beamGroup.beamEndPositionY = lastNote->positionY + lastNote->noteStem.stemEndY;
+                            beamGroup.beamEndPositionX = lastNote->position.x + lastNote->noteStem->stemPositionX;
+                            beamGroup.beamEndPositionY = lastNote->position.y + lastNote->noteStem->stemEndY;
                         }
 
                         for (Beam& beam : beamGroup.beams)
@@ -535,11 +540,11 @@ void Song::OnUpdate()
                                 std::shared_ptr<Note> firstNote = beam.notes[0];
                                 std::shared_ptr<Note> lastNote = beam.notes[beam.notes.size() - 1];
 
-                                beam.beamStartPositionX = firstNote->positionX + firstNote->noteStem.stemPositionX;
-                                beam.beamStartPositionY = beamGroup.GetPositionYOnBeam(firstNote->positionX);
+                                beam.beamStartPositionX = firstNote->position.x + firstNote->noteStem->stemPositionX;
+                                beam.beamStartPositionY = beamGroup.GetPositionYOnBeam(firstNote->position.x);
 
-                                beam.beamEndPositionX = lastNote->positionX + lastNote->noteStem.stemPositionX;
-                                beam.beamEndPositionY = beamGroup.GetPositionYOnBeam(lastNote->positionX);
+                                beam.beamEndPositionX = lastNote->position.x + lastNote->noteStem->stemPositionX;
+                                beam.beamEndPositionY = beamGroup.GetPositionYOnBeam(lastNote->position.x);
                             }
                             else
                                 LOGE("Beam has no notes associated with it");
@@ -548,8 +553,8 @@ void Song::OnUpdate()
                         // calculate stem lengths
                         for (std::shared_ptr<Note> beamNote : beamGroup.notes)
                         {
-                            float beamPositionYAtNote = beamGroup.GetPositionYOnBeam(beamNote->positionX);
-                            beamNote->noteStem.stemEndY = beamPositionYAtNote - beamNote->positionY;
+                            float beamPositionYAtNote = beamGroup.GetPositionYOnBeam(beamNote->position.x);
+                            beamNote->noteStem->stemEndY = beamPositionYAtNote - beamNote->position.y;
                         }
                     }
 
@@ -762,7 +767,8 @@ void Song::OnUpdate()
                 for (auto measure : staff->measures) {
                     // these were ints (this comment is only here be cause I could have caused a bug)
                     float minWidth = measure->CalculateMinWidth(measuresNotesWidths[measureIndex]);
-                    float beginWidth = measure->GetBeginningWidth();
+                    //float beginWidth = measure->GetBeginningWidth();
+                    float beginWidth = 20.0f;
 
                     if ((int)m_MeasureWidths.size() - 1 >= measureIndex) { // if there is all ready a width at measureNumber
                         if (m_MeasureWidths[measureIndex] < minWidth) { // if the width of this measure is bigger than the widths of the previous measures
@@ -805,18 +811,18 @@ void Song::OnUpdate()
                                 ls = displayConstants.tabLineSpacing;
                             else
                                 ls = displayConstants.lineSpacing;
-                            note->positionX = GetPositionXInMeasure(note->beatPositionInSong, measureIndex);
-                            note->positionY = ((ls * float(staff->lines - 1)) / 2.0f);
+                            note->position.x = GetPositionXInMeasure(note->beatPositionInSong, measureIndex);
+                            note->position.y = ((ls * float(staff->lines - 1)) / 2.0f);
                         }
                         else if (note->type == NoteType::Tab) // is a tab note
                         {
-                            note->positionX = GetPositionXInMeasure(note->beatPositionInSong, measureIndex);
-                            note->positionY = (displayConstants.tabLineSpacing * float(note->string - 1));
+                            note->position.x = GetPositionXInMeasure(note->beatPositionInSong, measureIndex);
+                            note->position.y = (displayConstants.tabLineSpacing * float(note->string - 1));
                         }
                         else // is a standard note
                         {
-                            note->positionX = GetPositionXInMeasure(note->beatPositionInSong, measureIndex);
-                            note->positionY = (displayConstants.lineSpacing * measure->CalculateNoteYPositionRelativeToMeasure(noteIndex));
+                            note->position.x = GetPositionXInMeasure(note->beatPositionInSong, measureIndex);
+                            note->position.y = (displayConstants.lineSpacing * measure->CalculateNoteYPositionRelativeToMeasure(noteIndex));
                         }
 
                         noteIndex++;
@@ -1454,6 +1460,11 @@ void Song::ResolveCollisions()
                     {
                         ResolveCollisionsWith(lyric.boundingBox, pageIndex);
                     }
+                }
+
+                for (auto noteChord : measure->noteChords)
+                {
+                    ResolveCollisionsWith(noteChord->boundingBox, pageIndex);
                 }
 
                 for (Direction& direction : measure->directions) {

@@ -8,8 +8,8 @@ void Arpeggio::Render(RenderData& renderData, float notePositionX, float measure
         if (notes.empty())
             return;
 
-        complexLine->positionStart = positionStart + Vec2<float>{ notes[0]->positionX + notePositionX, measurePositionY + notes[0]->positionY } + offset;
-        complexLine->positionEnd = positionEnd + Vec2<float>{ notes[0]->positionX + notePositionX, measurePositionY + notes[notes.size()-1]->positionY } + offset;
+        complexLine->positionStart = positionStart + Vec2<float>{ notes[0]->position.x + notePositionX, measurePositionY + notes[0]->position.y } + offset;
+        complexLine->positionEnd = positionEnd + Vec2<float>{ notes[0]->position.x + notePositionX, measurePositionY + notes[notes.size()-1]->position.y } + offset;
 
         LOGD("complexPosStart: %s, complexPosEnd: %s", complexLine->positionStart.GetPrintableString().c_str(), complexLine->positionEnd.GetPrintableString().c_str());
 

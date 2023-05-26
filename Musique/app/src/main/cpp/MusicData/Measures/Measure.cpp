@@ -23,32 +23,17 @@ float Measure::GetTotalHeight(float staffLineCount, float lineSpacing)
     GetBelowHeight(staffLineCount, lineSpacing);
 }
 
-float Measure::GetBeginningWidth() const {
-    float width = 20.0f;
+float Measure::GetBeginningWidth(System& system) const {
+    float width = 0.0f;
 
-    if (showKeySignature)
-    {
-        width += 20.0f;
-        width += 20.0f;
-    }
-
-    if (showTimeSignature)
-    {
-        width += 16.0f;
-        width += 20.0f;
-    }
-
-    if (clef.showClef)
-    {
-        width += 17.0f;
-        width += 20.0f;
-    }
+    width += GetTimeSignaturePositionInMeasure(system, GetKeySignaturePositionInMeasure(system, GetClefPositionInMeasure(system)));
 
     return width;
 }
 
 float Measure::CalculateMinWidth(float notesWidth) const {
-    float width = GetBeginningWidth();
+    //float width = GetBeginningWidth();
+    float width = 20.0f;
 
     /*for (auto& note : notes) {
         if (!note->isChord) {
@@ -78,7 +63,8 @@ float Measure::GetNotePositionInMeasure(float width, int noteIndex) const {
         break;
     }
 
-    float position = GetBeginningWidth();
+    //float position = GetBeginningWidth();
+    float position = 20.0f;
     int i = 0;
     for (auto& note : notes) {
 
@@ -148,6 +134,11 @@ void Measure::RenderDebug(RenderData& renderData) const
         note->RenderDebug(renderData);
     }
 
+    for (auto noteChord : noteChords)
+    {
+        noteChord->RenderDebug(renderData);
+    }
+
     for (const Direction& direction : directions)
     {
         direction.RenderDebug(renderData);
@@ -194,6 +185,11 @@ float Measure::GetPitchYPosition(Pitch pitch) const {
 
 float Measure::CalculateNoteYPositionRelativeToMeasure(int noteIndex) const {
     std::shared_ptr<Note> note = notes[noteIndex];
+    return CalculateNoteYPositionRelativeToMeasure(note);
+}
+
+float Measure::CalculateNoteYPositionRelativeToMeasure(std::shared_ptr<Note> note) const
+{
     return GetPitchYPosition(note->pitch);
 }
 
@@ -236,9 +232,13 @@ void Measure::CalculateAsPaged(const MusicDisplayConstants& displayConstants, Sy
 
     auto measureDataItem = system.systemMeasureData.find(index);
 
+    // TODO: this measure data won't be finished until all measures have called CalculateAsPaged, thus this code needs to be moved
     measureDataItem->second.clefPositionX = std::max(GetClefPositionInMeasure(system), measureDataItem->second.clefPositionX);
     measureDataItem->second.keySignaturePositionX = std::max(GetKeySignaturePositionInMeasure(system, measureDataItem->second.clefPositionX), measureDataItem->second.keySignaturePositionX);
     measureDataItem->second.timeSignaturePositionX = std::max(GetTimeSignaturePositionInMeasure(system, measureDataItem->second.keySignaturePositionX), measureDataItem->second.timeSignaturePositionX);
+
+    measureDataItem->second.measureWidth = measureWidth;
+    measureDataItem->second.measureBeginningWidth = std::max(GetBeginningWidth(system), measureDataItem->second.measureBeginningWidth);
 
     clef.CalculatePositionAsPaged(displayConstants, staffLines);
     keySignature.CalculatePositionAsPaged(displayConstants);
@@ -246,10 +246,25 @@ void Measure::CalculateAsPaged(const MusicDisplayConstants& displayConstants, Sy
 
     measureNumber.CalculatePositionAsPaged(displayConstants, { 0.0f, -15.0f });
 
+    float lineSpacing;
+    if (type == MeasureType::Tab)
+        lineSpacing = displayConstants.tabLineSpacing;
+    else
+        lineSpacing = displayConstants.lineSpacing;
+
+    if (isMeasureRepeat && measureRepeat != nullptr)
+        measureRepeat->CalculatePositionAsPaged(displayConstants, measureDataItem->second, { measureWidth, GetMiddleHeight(staffLines, lineSpacing) });
+
     for (auto arpeggio : arpeggios)
     {
         if (arpeggio)
             arpeggio->CalculatePositionAsPaged(displayConstants, { 0.0f, 0.0f }, { 0.0f, 0.0f });
+    }
+
+    for (auto slur : slurs)
+    {
+        if (slur)
+            slur->CalculatePositionAsPaged(displayConstants);
     }
 }
 
@@ -281,7 +296,8 @@ float Measure::MeausreTimeSignatureWidth() const
 
 float Measure::GetRepeatBarlinePositionX() const
 {
-    return GetBeginningWidth();
+    return 20.0f;
+    //return GetBeginningWidth();
 }
 
 void Measure::UpdateBoundingBoxes(const MusicDisplayConstants& displayConstants, const Vec2<float>& measurePosition, float measureHeight)
@@ -296,6 +312,11 @@ void Measure::UpdateBoundingBoxes(const MusicDisplayConstants& displayConstants,
     for (auto note : notes)
     {
         note->UpdateBoundingBox(displayConstants, measurePosition);
+    }
+
+    for (auto noteChord : noteChords)
+    {
+        noteChord->UpdateBoundingBox(displayConstants, measurePosition);
     }
 
     for (Direction& direction : directions)

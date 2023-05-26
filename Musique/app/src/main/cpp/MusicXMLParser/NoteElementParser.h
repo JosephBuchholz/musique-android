@@ -86,6 +86,7 @@ private:
     static void ParseGlissandoSlideElement(XMLElement* element, std::shared_ptr<Note> currentNote);
 
     static void ParseTremoloElement(XMLElement* element, std::shared_ptr<Note> currentNote);
+    static void ParseTiedElement(XMLElement* element, std::shared_ptr<Note> currentNote);
 
 protected:
     static void AddError(std::string title, std::string desc, ErrorLevel errorLevel = ErrorLevel::Error) { m_Errors.emplace_back(title, desc, "BaseElementParser", errorLevel); }

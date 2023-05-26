@@ -86,6 +86,22 @@ float NoteHead::GetNoteHeadWidth(const MusicDisplayConstants& displayConstants) 
     return GetDimensions(displayConstants).x;
 }
 
+void NoteHead::UpdateBoundingBox(const MusicDisplayConstants& displayConstants, Vec2<float> parentPosition)
+{
+    boundingBox.size = GetDimensions(displayConstants);
+    boundingBox.position.x = parentPosition.x;
+    boundingBox.position.y = parentPosition.y - (boundingBox.size.y / 2.0f);
+
+    /*if (type == NoteType::Tab)
+    {
+        boundingBox.position.x -= boundingBox.size.x / 2.0f;
+    }*/
+
+#if DEBUG_BOUNDING_BOXES
+    debugBoundingBox = boundingBox;
+#endif
+}
+
 void NoteHead::CalculateAsPaged(const MusicDisplayConstants& displayConstants, NoteSize noteSize)
 {
     if (noteSize == NoteSize::Grace)

@@ -316,6 +316,15 @@ enum class SMuFLID : uint16_t
     restHalfLegerLine = 0xE4F5,
     restQuarterZ = 0xE4F6,
 
+    // bar repeats
+
+    repeat1Bar = 0xE500,
+    repeat2Bars = 0xE501,
+    repeat4Bars = 0xE502,
+    repeatBarUpperDot = 0xE503,
+    repeatBarSlash = 0xE504,
+    repeatBarLowerDot = 0xE505,
+
     // dynamics
     dynamicPiano = 0xE520,
     dynamicMezzo = 0xE521,

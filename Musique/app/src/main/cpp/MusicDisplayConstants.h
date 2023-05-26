@@ -49,6 +49,7 @@ struct MusicDisplayConstants
 
     Scaling scaling;
 
+    float ledgerLineMargin = 3.5f;
 };
 
 #endif // MUSIQUE_MUSICDISPLAYCONSTANTS_H

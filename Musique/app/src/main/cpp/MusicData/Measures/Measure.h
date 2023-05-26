@@ -5,6 +5,12 @@
 #ifndef MUSIQUE_MEASURE_H
 #define MUSIQUE_MEASURE_H
 
+class Measure;
+class BeamGroup;
+class Tuplet;
+class Arpeggio;
+class Slur;
+
 #include "../Notes/Note.h"
 #include "TimeSignature.h"
 #include "KeySignature.h"
@@ -19,6 +25,9 @@
 #include "Tuplet.h"
 #include "MeasureNumber.h"
 #include "Arpeggio.h"
+#include "MeasureRepeat.h"
+#include "../Notes/Slur.h"
+#include "../Notes/NoteChord.h"
 
 #include <vector>
 
@@ -38,7 +47,7 @@ public:
     float GetAboveHeight(float staffLineCount, float lineSpacing);
     float GetBelowHeight(float staffLineCount, float lineSpacing);
     float GetTotalHeight(float staffLineCount, float lineSpacing);
-    float GetBeginningWidth() const;
+    float GetBeginningWidth(System& system) const;
 
     float CalculateMinWidth(float notesWidth) const;
 
@@ -64,6 +73,7 @@ public:
 
     float GetPitchYPosition(Pitch pitch) const;
     float CalculateNoteYPositionRelativeToMeasure(int noteIndex) const;
+    float CalculateNoteYPositionRelativeToMeasure(std::shared_ptr<Note> note) const;
     int GetLetterNumber(const std::string& s) const;
 
     float GetPlayLinePositionInMeasure(float playLineBeatPositionInMeasure, float width) {
@@ -117,6 +127,8 @@ public:
     float beatPosition = 0.0f; // the position in beats in the song
 
     std::vector<std::shared_ptr<Note>> notes; // the notes contained in this measure
+    std::vector<std::shared_ptr<NoteChord>> noteChords; // the note chords contained in this measure
+
     std::vector<Direction> directions; // the directions contained in this measure
     std::vector<SoundEvent> soundEvents; // the sound events contained in this measure
     std::vector<Chord> chords; // the chords contained in this measure
@@ -124,6 +136,7 @@ public:
     std::vector<BeamGroup> beams; // the beams (beam groups) contained in this measure
     std::vector<std::shared_ptr<Tuplet>> tuplets; // the tuplets that are contained in this measure
     std::vector<std::shared_ptr<Arpeggio>> arpeggios; // the arpeggios that are contained in this measure
+    std::vector<std::shared_ptr<Slur>> slurs; // slurs that are contained in this measures
 
     int divisions = 1;
 
@@ -134,6 +147,10 @@ public:
     unsigned int numberOfMeasuresInMultiMeasureRest = 0; // only used when 'startsMultiMeasureRest' is true
 
     bool isPartOfMultiMeasureRest = false; // if this is true and 'startsMultiMeasureRest' is not, then this measure should not be rendered
+
+
+    bool isMeasureRepeat = false; // whether a simile symbol is used for this measure
+    std::shared_ptr<MeasureRepeat> measureRepeat; // a simile/measure repeat symbol (only used if 'isMeasureRepeat' is true)
 
 protected:
     // -- Constants In MusicXML --

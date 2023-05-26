@@ -352,3 +352,18 @@ Justify MusicXMLHelper::GetJustifyAttribute(XMLElement* element, const char* s, 
     AddErrorIf(required, "Required parse attribute error", "Failed to get attribute when required");
     return defaultValue;
 }
+
+CurveOrientation MusicXMLHelper::GetCurveOrientationAttribute(XMLElement* element, const char* s, CurveOrientation defaultValue, bool required)
+{
+    const char* attribute = element->Attribute(s);
+    if (attribute) {
+        if (strcmp(attribute, "over") == 0) {
+            return CurveOrientation::Over;
+        } else if (strcmp(attribute, "under") == 0) {
+            return CurveOrientation::Under;
+        }
+    }
+
+    AddErrorIf(required, "Required parse attribute error", "Failed to get attribute when required");
+    return defaultValue;
+}

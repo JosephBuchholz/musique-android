@@ -12,6 +12,7 @@ void GlissandoSlide::UpdateBoundingBox(const Vec2<float>& parentPositionCenter)
 void GlissandoSlide::Render(RenderData& renderData, Vec2<float> startNotePosition, Vec2<float> endNotePosition, Vec2<float> offset) const
 {
     Paint linePaint;
+    VisibleElement::ModifyPaint(linePaint);
     LineElement::ModifyPaint(linePaint);
     linePaint.strokeWidth = 1.6f;
 

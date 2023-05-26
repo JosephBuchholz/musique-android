@@ -7,7 +7,9 @@
 
 #include <string>
 
-struct NoteBeamData {
+class NoteBeamData
+{
+public:
 
     NoteBeamData() {}
 

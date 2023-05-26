@@ -17,6 +17,8 @@ static int currentArpeggiosMeasureIndex = 0;
 
 static std::unordered_map<std::string, std::shared_ptr<Ending>> currentEndings;
 
+static std::unordered_map<int, std::shared_ptr<Slur>> currentSlurs;
+
 
 // ---- Parse Functions ----
 
@@ -1117,6 +1119,48 @@ std::shared_ptr<Marker> MusicXMLParser::ParseCodaSegnoElement(XMLElement* elemen
     return newMarker;
 }
 
+void MusicXMLParser::ParseSlurElement(XMLElement* element, std::shared_ptr<Measure> currentMeasure, std::shared_ptr<Note> currentNote)
+{
+    if (element)
+    {
+        StartStopType startStopType = MusicXMLHelper::GetStartStopAttribute(element, "type", StartStopType::None, true);
+        int number = XMLHelper::GetNumberAttribute(element, "number", 1);
+
+        if (startStopType == StartStopType::Start)
+        {
+            std::shared_ptr<Slur> newSlur = std::make_shared<Slur>();
+
+            newSlur->placement = MusicXMLHelper::GetAboveBelowAttribute(element, "placement", newSlur->placement);
+
+            CurveOrientation defaultOrientation = newSlur->orientation;
+            if (newSlur->placement == AboveBelowType::Above)
+                defaultOrientation = CurveOrientation::Over;
+            else if (newSlur->placement == AboveBelowType::Below)
+                defaultOrientation = CurveOrientation::Under;
+            newSlur->orientation = MusicXMLHelper::GetCurveOrientationAttribute(element, "orientation", defaultOrientation);
+
+            newSlur->notes.push_back(currentNote);
+
+            newSlur->startMeasureIndex = currentMeasure->index;
+
+            currentMeasure->slurs.push_back(newSlur);
+            currentSlurs[number] = newSlur;
+        }
+        else if (startStopType == StartStopType::Stop)
+        {
+            std::shared_ptr<Slur> slur = currentSlurs[number];
+
+            slur->notes.push_back(currentNote);
+
+            slur->endMeasureIndex = currentMeasure->index;
+        }
+        else if (startStopType == StartStopType::Continue) // TODO: implement?
+        {
+            std::shared_ptr<Slur> slur = currentSlurs[number];
+        }
+    }
+}
+
 void MusicXMLParser::ParseEndingElement(XMLElement* element, std::shared_ptr<Song> song, std::vector<std::shared_ptr<Measure>> currentMeasures)
 {
     if (!element)
@@ -1444,6 +1488,17 @@ void MusicXMLParser::ParseMusicXML(const std::string& data, std::string& error, 
                                         newMeasure->type = Measure::MeasureType::Tab;
                                 }
 
+                                if (i < previousMeasures.size())
+                                {
+                                    if (previousMeasures[i]->isMeasureRepeat && previousMeasures[i]->measureRepeat != nullptr)
+                                    {
+                                        newMeasure->isMeasureRepeat = true;
+                                        newMeasure->measureRepeat = std::make_shared<MeasureRepeat>();
+                                        newMeasure->measureRepeat->measureRepeatLength = previousMeasures[i]->measureRepeat->measureRepeatLength;
+                                        newMeasure->measureRepeat->measureRepeatSlashes = previousMeasures[i]->measureRepeat->measureRepeatSlashes;
+                                    }
+                                }
+
                                 currentMeasures.push_back(newMeasure);
                             }
 
@@ -1707,7 +1762,7 @@ void MusicXMLParser::ParseMusicXML(const std::string& data, std::string& error, 
                                 {
                                     int staffNumber = XMLHelper::GetNumberAttribute(measureStyleElement, "number", -1);
 
-                                    // measure style
+                                    // measure rest
                                     XMLElement* multipleRestElement = measureStyleElement->FirstChildElement("multiple-rest");
                                     if (multipleRestElement)
                                     {
@@ -1730,6 +1785,30 @@ void MusicXMLParser::ParseMusicXML(const std::string& data, std::string& error, 
                                             currentMeasures[staffNumber-1]->isPartOfMultiMeasureRest = true;
                                             currentMeasures[staffNumber-1]->useSymbolsForMultiMeasureRest = useSymbols;
                                             currentMeasures[staffNumber-1]->numberOfMeasuresInMultiMeasureRest = numberOfMeasures;
+                                        }
+                                    }
+
+                                    XMLElement* measureRepeatElement = measureStyleElement->FirstChildElement("measure-repeat");
+                                    if (measureRepeatElement)
+                                    {
+                                        std::string typeString = XMLHelper::GetStringAttribute(measureRepeatElement, "type", "", true);
+
+                                        if (typeString == "start")
+                                        {
+                                            currentMeasures[staffNumber-1]->isMeasureRepeat = true;
+                                            currentMeasures[staffNumber-1]->measureRepeat = std::make_shared<MeasureRepeat>();
+
+                                            currentMeasures[staffNumber-1]->measureRepeat->measureRepeatLength = XMLHelper::GetIntValue(measureRepeatElement, currentMeasures[staffNumber-1]->measureRepeat->measureRepeatLength);
+                                            currentMeasures[staffNumber-1]->measureRepeat->measureRepeatSlashes = XMLHelper::GetNumberAttribute(measureRepeatElement, "slashes", currentMeasures[staffNumber-1]->measureRepeat->measureRepeatSlashes);
+                                        }
+                                        else if (typeString == "stop")
+                                        {
+                                            currentMeasures[staffNumber-1]->isMeasureRepeat = false;
+                                            currentMeasures[staffNumber-1]->measureRepeat = nullptr;
+                                        }
+                                        else
+                                        {
+                                            throw InvalidValueException();
                                         }
                                     }
                                 }

@@ -8,10 +8,13 @@
 #include <vector>
 
 #include "Note.h"
+#include "NoteChord.h"
+#include "../BaseElements/VisibleElement.h"
+#include "../BaseElements/LineElement.h"
 
 class Note;
 
-class Beam
+class Beam : public VisibleElement, public LineElement
 {
 public:
     std::vector<std::shared_ptr<Note>> notes; // the notes that this beam is associated with
