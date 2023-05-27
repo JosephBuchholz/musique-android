@@ -553,7 +553,8 @@ void MusicRenderer::RenderLineOfMeasures(RenderData& renderData, std::shared_ptr
                 // rendering note beams
                 for (const BeamGroup& beamGroup : measure->beams)
                 {
-                    for (const Beam& beam : beamGroup.beams)
+                    beamGroup.Render(renderData, { measurePositionX, staffPositionY });
+                    /*for (const Beam& beam : beamGroup.beams)
                     {
                         if (beamGroup.notes.empty())
                             break;
@@ -596,7 +597,7 @@ void MusicRenderer::RenderLineOfMeasures(RenderData& renderData, std::shared_ptr
                         {
                             renderData.AddLine(std::make_shared<Line>(beam.beamStartPositionX + measurePositionX, beam.beamStartPositionY + staffPositionY - beamYOffset, beam.beamStartPositionX + measurePositionX - hookOffset, beamGroup.GetPositionYOnBeam(beam.beamStartPositionX - hookOffset) + staffPositionY - beamYOffset, paint));
                         }
-                    }
+                    }*/
                 }
 
                 // render all chords in this measure
@@ -622,9 +623,16 @@ void MusicRenderer::RenderLineOfMeasures(RenderData& renderData, std::shared_ptr
 
                 for (auto slur : measure->slurs)
                 {
-                    Vec2<float> measurePosition = { measurePositionX, staffPositionY };
+                    Vec2<float> startMeasurePosition = { measurePositionX, staffPositionY };
+                    Vec2<float> endMeasurePosition = { measurePositionX, staffPositionY };
+
+                    if (slur->startMeasureIndex != slur->endMeasureIndex)
+                    {
+                        endMeasurePosition.x = nextMeasurePositionX;
+                    }
+
                     if (slur)
-                        slur->Render(renderData, measurePosition, measurePosition);
+                        slur->Render(renderData, startMeasurePosition, endMeasurePosition);
                 }
             }
 

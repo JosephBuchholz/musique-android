@@ -5,7 +5,7 @@
 #ifndef MUSIQUE_NOTEBEAMDATA_H
 #define MUSIQUE_NOTEBEAMDATA_H
 
-#include <string>
+#include "../../../../../../../../../../../../AppData/Local/Android/Sdk/ndk/23.1.7779620/toolchains/llvm/prebuilt/windows-x86_64/sysroot/usr/include/c++/v1/string"
 
 class NoteBeamData
 {

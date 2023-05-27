@@ -49,6 +49,12 @@ public:
      */
     void AddPadding(float padding);
 
+    /**
+     * Makes the dimensions of this bounding box positive while adjusting
+     * the position so that the bounding box is in the spot.
+     */
+    void MakeDimensionsPositive();
+
     void Render(RenderData& renderData, const int& color = 0xFFFF00FF) const;
 
     std::string GetPrintableString() const { return "position: " + position.GetPrintableString() + " | size: " + size.GetPrintableString(); }

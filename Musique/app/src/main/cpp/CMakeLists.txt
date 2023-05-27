@@ -40,8 +40,8 @@ add_library( # Sets the name of the library.
         MusicData/Notes/Lyric.cpp
         MusicData/Directions/Words.cpp
         MusicData/Notes/AugmentationDot.cpp
-        MusicData/Notes/Beam.cpp
-        MusicData/Notes/BeamGroup.cpp
+        MusicData/Notes/Beams/Beam.cpp
+        MusicData/Notes/Beams/BeamGroup.cpp
         MusicData/Notes/NoteHead.cpp
         MusicData/Notes/Fermata.cpp
 

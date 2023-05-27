@@ -526,11 +526,11 @@ void Song::OnUpdate()
                             std::shared_ptr<Note> firstNote = beamGroup.notes[0];
                             std::shared_ptr<Note> lastNote = beamGroup.notes[beamGroup.notes.size() - 1];
 
-                            beamGroup.beamStartPositionX = firstNote->position.x + firstNote->noteStem->stemPositionX;
-                            beamGroup.beamStartPositionY = firstNote->position.y + firstNote->noteStem->stemEndY;
+                            beamGroup.beamStartPosition.x = firstNote->position.x + firstNote->noteStem->stemPositionX;
+                            beamGroup.beamStartPosition.y = firstNote->position.y + firstNote->noteStem->stemEndY;
 
-                            beamGroup.beamEndPositionX = lastNote->position.x + lastNote->noteStem->stemPositionX;
-                            beamGroup.beamEndPositionY = lastNote->position.y + lastNote->noteStem->stemEndY;
+                            beamGroup.beamEndPosition.x = lastNote->position.x + lastNote->noteStem->stemPositionX;
+                            beamGroup.beamEndPosition.y = lastNote->position.y + lastNote->noteStem->stemEndY;
                         }
 
                         for (Beam& beam : beamGroup.beams)
@@ -540,11 +540,11 @@ void Song::OnUpdate()
                                 std::shared_ptr<Note> firstNote = beam.notes[0];
                                 std::shared_ptr<Note> lastNote = beam.notes[beam.notes.size() - 1];
 
-                                beam.beamStartPositionX = firstNote->position.x + firstNote->noteStem->stemPositionX;
-                                beam.beamStartPositionY = beamGroup.GetPositionYOnBeam(firstNote->position.x);
+                                beam.beamStartPosition.x = firstNote->position.x + firstNote->noteStem->stemPositionX;
+                                beam.beamStartPosition.y = beamGroup.GetPositionYOnBeam(beam.beamStartPosition.x);
 
-                                beam.beamEndPositionX = lastNote->position.x + lastNote->noteStem->stemPositionX;
-                                beam.beamEndPositionY = beamGroup.GetPositionYOnBeam(lastNote->position.x);
+                                beam.beamEndPosition.x = lastNote->position.x + lastNote->noteStem->stemPositionX;
+                                beam.beamEndPosition.y = beamGroup.GetPositionYOnBeam(beam.beamEndPosition.x);
                             }
                             else
                                 LOGE("Beam has no notes associated with it");
@@ -553,7 +553,7 @@ void Song::OnUpdate()
                         // calculate stem lengths
                         for (std::shared_ptr<Note> beamNote : beamGroup.notes)
                         {
-                            float beamPositionYAtNote = beamGroup.GetPositionYOnBeam(beamNote->position.x);
+                            float beamPositionYAtNote = beamGroup.GetPositionYOnBeam(beamNote->position.x + beamNote->noteStem->stemPositionX);
                             beamNote->noteStem->stemEndY = beamPositionYAtNote - beamNote->position.y;
                         }
                     }
@@ -1465,6 +1465,11 @@ void Song::ResolveCollisions()
                 for (auto noteChord : measure->noteChords)
                 {
                     ResolveCollisionsWith(noteChord->boundingBox, pageIndex);
+                }
+
+                for (auto beamGroup : measure->beams)
+                {
+                    ResolveCollisionsWith(beamGroup.boundingBox, pageIndex);
                 }
 
                 for (Direction& direction : measure->directions) {

@@ -127,6 +127,22 @@ void BoundingBox::AddPadding(float padding)
     size.y += padding * 2.0f;
 }
 
+void BoundingBox::MakeDimensionsPositive()
+{
+    if (size.x < 0.0f)
+    {
+        size.x = -size.x; // make positive
+        position.x -= size.x; // adjust position
+    }
+
+    // same as x
+    if (size.y < 0.0f)
+    {
+        size.y = -size.y;
+        position.y -= size.y;
+    }
+}
+
 void BoundingBox::Render(RenderData& renderData, const int& color) const
 {
     Paint paint = Paint();

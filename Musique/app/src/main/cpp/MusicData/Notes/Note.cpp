@@ -33,7 +33,7 @@ void Note::Render(RenderData& renderData, TablatureDisplayType tabDisplayType, f
             ledgerLinePaint.strokeWidth = renderData.displayConstants.legerLineWidth;
             ledgerLinePaint.strokeCap = Paint::Cap::Butt;
 
-            float ledgerLineMargin = renderData.displayConstants.ledgerLineMargin;
+            float ledgerLineMargin = renderData.displayConstants.ledgerLineMargin * size;
             float noteHeadWidth = noteHead.GetNoteHeadWidth(renderData.displayConstants);
             if (notePositionRelativeToMeasure >= (float)lines) // ledger lines below staff
             {
@@ -56,8 +56,6 @@ void Note::Render(RenderData& renderData, TablatureDisplayType tabDisplayType, f
                 }
             }
         }
-
-        RenderTie(renderData, GetCenterPosition(renderData.displayConstants).x + measurePosition.x + mainPosition.x, renderPositionY + mainPosition.y, measurePosition.x + mainPosition.x, measurePosition.y + mainPosition.y, measureWidth);
 
         if (!isChord)
         {
@@ -300,110 +298,9 @@ void Note::RenderTabNote(RenderData& renderData, TablatureDisplayType tabDisplay
         if (noteFlag)
             noteFlag->Render(renderData, { tabPositionX + noteStem->stemPositionX, tabPositionY + noteStem->stemEndY });
 
-        RenderTie(renderData, tabPositionX, tabPositionY, measurePositionX + offsetX, offsetY, measureWidth);
-
         // aug dot
         RenderAugmentationDots(renderData, tabPositionX, tabPositionY);
     }
-}
-
-void Note::RenderTie(RenderData& renderData, float noteCenterPositionX, float notePositionY, float measurePositionX, float measurePositionY, float measureWidth) const
-{
-
-    // tie
-    /*if (tie.type == NoteTie::TieType::Start && tie.tiedNote != nullptr)
-    {
-        CubicCurve curve = CubicCurve();
-
-        float direction = 1.0f;
-
-        float offsetY = -10.0f;
-
-        if (tie.orientation == CurveOrientation::Under)
-            direction = -1.0f;
-
-        if (tie.placement == AboveBelowType::Below)
-            offsetY = 10.0f;
-
-
-        float startCurveX = noteCenterPositionX;
-        float startCurveY = notePositionY + offsetY;
-
-        float endCurveX;
-        float endCurveY;
-
-        if (tie.tiedNote->measureIndex > measureIndex) // if the tied note is in the next measure
-        {
-            // if (song->DoesMeasureStartNewSystem(tie.tiedNote->measureIndex))
-            if (false) // if the tied note is on the next system
-            {
-                endCurveX = measurePositionX + measureWidth;
-                endCurveY = tie.tiedNote->position.y + measurePositionY + offsetY;
-
-                // render second tie object
-                // TODO: finnish 2nd curve
-
-                //start//float startCurveX2 = noteCenterPositionX;
-                float startCurveY2 = tie.tiedNote->position.y + measurePositionY + offsetY;
-
-                float endCurveX2 = tie.tiedNote->GetCenterPositionX() + measurePositionX + measureWidth;
-                float endCurveY2 = tie.tiedNote->position.y + measurePositionY + offsetY;
-
-                CubicCurve curve2 = CubicCurve();
-
-                // start
-                curve2.x1 = startCurveX2;
-                curve2.y1 = startCurveY2;
-
-                // curve points
-                curve2.x2 = startCurveX2 + 10.0f;
-                curve2.y2 = startCurveY2 - 10.0f * direction;
-
-                curve2.x3 = endCurveX2 - 10.0f;
-                curve2.y3 = endCurveY2 - 10.0f * direction;
-
-                // end
-                curve2.x4 = endCurveX2;
-                curve2.y4 = endCurveY2;
-
-                curve2.paint = TiePaint;
-
-                renderData.AddCubicCurve(curve2);//end//
-            }
-            else
-            {
-                endCurveX = tie.tiedNote->GetCenterPosition(renderData.displayConstants).x + measurePositionX + measureWidth;
-                endCurveY = tie.tiedNote->position.y + measurePositionY + offsetY;
-            }
-        }
-        else
-        {
-            endCurveX = tie.tiedNote->GetCenterPosition(renderData.displayConstants).x + measurePositionX;
-            endCurveY = tie.tiedNote->position.y + measurePositionY + offsetY;
-        }
-
-        //renderData.AddDebugDot(startCurveX, startCurveY);
-        //renderData.AddDebugDot(endCurveX, endCurveY);
-
-        // start
-        curve.x1 = startCurveX;
-        curve.y1 = startCurveY;
-
-        // curve points
-        curve.x2 = startCurveX + 10.0f;
-        curve.y2 = startCurveY - 10.0f * direction;
-
-        curve.x3 = endCurveX - 10.0f;
-        curve.y3 = endCurveY - 10.0f * direction;
-
-        // end
-        curve.x4 = endCurveX;
-        curve.y4 = endCurveY;
-
-        curve.paint = renderData.paints.tiePaint;
-
-        renderData.AddCubicCurve(curve);
-    }*/
 }
 
 void Note::RenderAugmentationDots(RenderData& renderData, float notePositionX, float notePositionY) const
@@ -652,7 +549,7 @@ void Note::CalculatePositionAsPaged(const MusicDisplayConstants& displayConstant
 
     if (tie)
     {
-        tie->CalculatePositionAsPaged(displayConstants, { 0.0f, 0.0f }, { 0.0f, 0.0f });
+        tie->CalculatePositionAsPaged(displayConstants, { 0.0f, 0.0f }, { 0.0f, 0.0f }, isChord);
     }
 }
 

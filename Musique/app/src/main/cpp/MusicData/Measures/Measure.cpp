@@ -139,6 +139,11 @@ void Measure::RenderDebug(RenderData& renderData) const
         noteChord->RenderDebug(renderData);
     }
 
+    for (const BeamGroup& beamGroup : beams)
+    {
+        beamGroup.RenderDebug(renderData);
+    }
+
     for (const Direction& direction : directions)
     {
         direction.RenderDebug(renderData);
@@ -266,6 +271,11 @@ void Measure::CalculateAsPaged(const MusicDisplayConstants& displayConstants, Sy
         if (slur)
             slur->CalculatePositionAsPaged(displayConstants);
     }
+
+    for (BeamGroup& beamGroup : beams)
+    {
+        beamGroup.CalculateAsPaged(displayConstants);
+    }
 }
 
 float Measure::MeausreClefWidth() const
@@ -317,6 +327,11 @@ void Measure::UpdateBoundingBoxes(const MusicDisplayConstants& displayConstants,
     for (auto noteChord : noteChords)
     {
         noteChord->UpdateBoundingBox(displayConstants, measurePosition);
+    }
+
+    for (BeamGroup& beamGroup : beams)
+    {
+        beamGroup.UpdateBoundingBox(displayConstants, measurePosition);
     }
 
     for (Direction& direction : directions)

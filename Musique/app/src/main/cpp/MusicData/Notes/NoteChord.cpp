@@ -39,7 +39,7 @@ void NoteChord::Render(RenderData& renderData, TablatureDisplayType tabDisplayTy
     float topNotePositionYRelativeToMeasure = measure->CalculateNoteYPositionRelativeToMeasure(topNote);
 
     // ledger lines
-    float ledgerLineMargin = renderData.displayConstants.ledgerLineMargin;
+    float ledgerLineMargin = renderData.displayConstants.ledgerLineMargin * rootNote->size;
     float noteHeadWidth = rootNote->noteHead.GetNoteHeadWidth(renderData.displayConstants);
     if (rootNotePositionYRelativeToMeasure >= (float)lines) // ledger lines below staff
     {

@@ -12,12 +12,12 @@ class Note;
 #include "../Pitch.h"
 #include "TABSlur.h"
 #include "NoteStem.h"
-#include "NoteBeamData.h"
+#include "Beams/NoteBeamData.h"
 #include "Accidental.h"
 #include "Lyric.h"
 #include "../../MusicDisplayConstants.h"
 #include "AugmentationDot.h"
-#include "Beam.h"
+#include "Beams/Beam.h"
 #include "Tie.h"
 #include "../BaseElements/VisibleElement.h"
 #include "Articulations/Articulation.h"
@@ -75,8 +75,6 @@ protected:
 private:
     void RenderRest(RenderData& renderData, float measurePositionX, int lines, float ls, float offsetX, float offsetY) const;
     void RenderTabNote(RenderData& renderData, TablatureDisplayType tabDisplayType, float measurePositionX, float measureWidth, int lines, float ls, float offsetX, float offsetY) const;
-
-    void RenderTie(RenderData& renderData, float noteCenterPositionX, float notePositionY, float measurePositionX, float measurePositionY, float measureWidth) const;
 
     void RenderAugmentationDots(RenderData& renderData, float notePositionX, float notePositionY) const;
 

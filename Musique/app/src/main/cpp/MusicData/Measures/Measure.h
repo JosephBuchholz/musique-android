@@ -20,7 +20,7 @@ class Slur;
 #include "../SoundEvent.h"
 #include "../Chords/Chord.h"
 #include "Barline.h"
-#include "../Notes/BeamGroup.h"
+#include "../Notes/Beams/BeamGroup.h"
 #include "../BaseElements/VisibleElement.h"
 #include "Tuplet.h"
 #include "MeasureNumber.h"
