@@ -248,6 +248,9 @@ void Song::OnUpdate()
         // calculate positions for notes and measures
         for (auto instrument : instruments)
         {
+            if (instrument->instrumentBracket)
+                instrument->instrumentBracket->CalculateAsPaged(displayConstants, -15.0f);
+
             for (auto staff : instrument->staves)
             {
                 staff->CalculateAsPaged(displayConstants);
@@ -278,7 +281,12 @@ void Song::OnUpdate()
                     int noteIndex = 0;
                     for (auto note : measure->notes)
                     {
-                        if (note->isRest && note->type == NoteType::Tab && softwareName == "MuseScore" && softwareMajorVersion == 4) // musescore only
+                        /*if (note->isRest && note->type == NoteType::Tab && softwareName == "MuseScore" && softwareMajorVersion == 4) // musescore only
+                        {
+                            note->defaultPosition.y = INVALID_FLOAT_VALUE;
+                        }*/
+
+                        if (note->isRest)
                         {
                             note->defaultPosition.y = INVALID_FLOAT_VALUE;
                         }
@@ -306,6 +314,45 @@ void Song::OnUpdate()
             }
         }
 
+        // calculate rest y positions
+        for (auto instrument : instruments)
+        {
+            for (auto staff : instrument->staves)
+            {
+                for (auto measure : staff->measures)
+                {
+                    for (auto restNote : measure->notes)
+                    {
+                        if (restNote->isRest)
+                        {
+                            for (auto note : measure->notes)
+                            {
+                                if (restNote->beatPosition == note->beatPosition && restNote != note)
+                                {
+                                    restNote->position.y = note->position.y;
+
+                                    float offset = 35.0f;
+
+                                    if (note->noteStem->stemType == NoteStem::StemType::Up)
+                                    {
+                                        restNote->position.y += offset;
+                                        break;
+                                    }
+                                    else if (note->noteStem->stemType == NoteStem::StemType::Down)
+                                    {
+                                        restNote->position.y -= offset;
+                                        break;
+                                    }
+                                    else
+                                        LOGW("this stem type is not handled");
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
         // calculate width for multi measure rests
         for (auto instrument : instruments)
         {
@@ -314,19 +361,42 @@ void Song::OnUpdate()
                 std::vector<std::shared_ptr<Measure>> multiMeasureRests;
                 int multiMeasureRestCount = 0;
                 float totalMeasureWidth = 0.0f;
+
+                std::shared_ptr<Measure> previousMultiMeasureRest = nullptr;
+                std::shared_ptr<Measure> previousMeasure = nullptr;
+
                 int measureIndex = 0;
                 int systemIndex = 0;
                 for (auto measure : staff->measures)
                 {
                     if ((measure->startNewSystem && measureIndex != 0) || measureIndex == staff->measures.size() - 1)
                     {
-                        /*if (measure->startsMultiMeasureRest && measureIndex == staff->measures.size() - 1)
+                        if (measureIndex == staff->measures.size() - 1)
                         {
-                            multiMeasureRests.push_back(measure);
-                            multiMeasureRestCount++;
-                        }*/
+                            if (measure->isPartOfMultiMeasureRest)
+                            {
+                                measure->measureWidth = 0.0f;
+                                m_MeasureWidths[measure->index] = measure->measureWidth;
+                            }
+
+                            totalMeasureWidth += measure->measureWidth;
+                        }
+                        //if (measure->startsMultiMeasureRest && measureIndex == staff->measures.size() - 1)
+                        //{
+                        //    multiMeasureRests.push_back(measure);
+                        //    multiMeasureRestCount++;
+                        //}
 
                         float systemWidth = displayConstants.pageWidth - systems[systemIndex].layout.systemLeftMargin - systems[systemIndex].layout.systemRightMargin - displayConstants.leftMargin - displayConstants.rightMargin;
+
+                        if (previousMeasure)
+                        {
+                            if (previousMeasure->isPartOfMultiMeasureRest)
+                            {
+                                if (systemIndex + 1 < systems.size())
+                                    systems[systemIndex + 1].layout.systemDistance /= 4.0f;
+                            }
+                        }
 
                         float multiMeasureRestWidth = 0.0f;
                         if (multiMeasureRestCount != 0)
@@ -342,7 +412,20 @@ void Song::OnUpdate()
                         {
                             multiMeasureRest->measureWidth = multiMeasureRestWidth;
 
-                            m_MeasureWidths[multiMeasureRest->index] = measure->measureWidth;
+                            m_MeasureWidths[multiMeasureRest->index] = multiMeasureRest->measureWidth;
+
+                            if (multiMeasureRest->startsMultiMeasureRest && multiMeasureRest->multiMeasureRestSymbol != nullptr)
+                            {
+                                float lineSpacing;
+                                if (multiMeasureRest->type == Measure::MeasureType::Tab)
+                                    lineSpacing = displayConstants.tabLineSpacing;
+                                else
+                                    lineSpacing = displayConstants.lineSpacing;
+
+                                auto measureDataItem = systems[systemIndex].systemMeasureData.find(multiMeasureRest->index);
+
+                                multiMeasureRest->multiMeasureRestSymbol->CalculateAsPaged(displayConstants, lineSpacing, staff->lines, multiMeasureRest->measureWidth, measureDataItem->second.measureBeginningWidth);
+                            }
                         }
 
                         multiMeasureRests.clear();
@@ -354,19 +437,33 @@ void Song::OnUpdate()
                     if (measure->startsMultiMeasureRest)
                     {
                         multiMeasureRests.push_back(measure);
+                        previousMultiMeasureRest = measure;
                         multiMeasureRestCount++;
                     }
                     else
                     {
+                        /*if (previousMultiMeasureRest)
+                        {
+                            if (measure->index - previousMultiMeasureRest->index < previousMultiMeasureRest->numberOfMeasuresInMultiMeasureRest) // is part of multi measure rest
+                            {
+
+                            }
+                        }*/
+
+                        if (measure->isPartOfMultiMeasureRest)
+                        {
+                            measure->measureWidth = 0.0f;
+                            m_MeasureWidths[measure->index] = measure->measureWidth;
+                        }
+
                         totalMeasureWidth += measure->measureWidth;
                     }
 
+                    previousMeasure = measure;
                     measureIndex++;
                 }
             }
         }
-
-
 
         // sort all the notes by their beat positions and put them in an array of time space points
         m_TimeSpacePoints.clear();
@@ -384,12 +481,12 @@ void Song::OnUpdate()
                     endMeasurePoint.measureIndex = measureIndex;
 
                     //AddTimeSpacePoint(beginMeasurePoint);
-                    AddTimeSpacePoint(endMeasurePoint);
+                    //AddTimeSpacePoint(endMeasurePoint);
 
                     for (std::shared_ptr<Note> note : measure->notes) {
 
-                        if (note->isRest)
-                            continue;
+                        //if (note->isRest)
+                        //    continue;
 
                         int insertIndex = 0;
                         bool added = false;
@@ -531,6 +628,23 @@ void Song::OnUpdate()
 
                             beamGroup.beamEndPosition.x = lastNote->position.x + lastNote->noteStem->stemPositionX;
                             beamGroup.beamEndPosition.y = lastNote->position.y + lastNote->noteStem->stemEndY;
+
+                            float slope = std::abs(beamGroup.GetSlope());
+
+                            if (slope > displayConstants.maxBeamSlope) // slope needs to be smaller
+                            {
+                                float run = beamGroup.beamEndPosition.x - beamGroup.beamStartPosition.x;
+                                float maxRise = run * displayConstants.maxBeamSlope; // since: (run * maxslope) / run = maxslope
+
+                                if (beamGroup.beamStartPosition.y > beamGroup.beamEndPosition.y)
+                                {
+                                    beamGroup.beamStartPosition.y = beamGroup.beamEndPosition.y + maxRise;
+                                }
+                                else if (beamGroup.beamEndPosition.y > beamGroup.beamStartPosition.y)
+                                {
+                                    beamGroup.beamEndPosition.y = beamGroup.beamStartPosition.y + maxRise;
+                                }
+                            }
                         }
 
                         for (Beam& beam : beamGroup.beams)
@@ -551,10 +665,51 @@ void Song::OnUpdate()
                         }
 
                         // calculate stem lengths
+                        float smallestStemHeight = INFINITY;
+                        float direction = 1.0f;
+                        if (beamGroup.notes[0]->noteStem->stemEndY < beamGroup.notes[0]->noteStem->stemStartY)
+                            direction = -1.0f;
+
                         for (std::shared_ptr<Note> beamNote : beamGroup.notes)
                         {
                             float beamPositionYAtNote = beamGroup.GetPositionYOnBeam(beamNote->position.x + beamNote->noteStem->stemPositionX);
                             beamNote->noteStem->stemEndY = beamPositionYAtNote - beamNote->position.y;
+
+                            float stemHeight = beamNote->noteStem->stemEndY - beamNote->noteStem->stemStartY;
+
+                            if (std::abs(stemHeight) < smallestStemHeight)
+                            {
+                                smallestStemHeight = std::abs(stemHeight);
+                            }
+
+                            LOGW("smallestStemHeight: %f, stemHeight: %f", smallestStemHeight, stemHeight);
+                        }
+
+                        LOGE("smallestStemHeight: %f", smallestStemHeight);
+
+                        if (smallestStemHeight < displayConstants.minNoteStemHeight) // stems need to be longer
+                        {
+                            float heightOffset = displayConstants.minNoteStemHeight - smallestStemHeight; // how much to offset the beam
+                            heightOffset *= direction;
+                            heightOffset += 20.0f * direction; // TODO: temp
+
+                            LOGV("heightOffset: %f", heightOffset);
+
+                            beamGroup.beamStartPosition.y += heightOffset;
+                            beamGroup.beamEndPosition.y += heightOffset;
+
+                            for (Beam& beam : beamGroup.beams)
+                            {
+                                beam.beamStartPosition.y += heightOffset;
+                                beam.beamEndPosition.y += heightOffset;
+                            }
+
+                            // recalculate stem lengths
+                            for (std::shared_ptr<Note> beamNote : beamGroup.notes)
+                            {
+                                float beamPositionYAtNote = beamGroup.GetPositionYOnBeam(beamNote->position.x + beamNote->noteStem->stemPositionX);
+                                beamNote->noteStem->stemEndY = beamPositionYAtNote - beamNote->position.y;
+                            }
                         }
                     }
 
@@ -563,7 +718,7 @@ void Song::OnUpdate()
             }
         }
     }
-    else if (settings.musicLayout == Settings::MusicLayout::Vertical || settings.musicLayout == Settings::MusicLayout::Horizontal)
+    /*else if (settings.musicLayout == Settings::MusicLayout::Vertical || settings.musicLayout == Settings::MusicLayout::Horizontal)
     {
         // sort all the notes by their stop times(beatPositionInSong + duration) from smallest to largest
         std::vector<std::shared_ptr<Note>> orderedNotes;
@@ -694,13 +849,13 @@ void Song::OnUpdate()
                     position += minNoteData.width;
                     time += minNoteData.duration;
                     previousNoteData = &minNoteData;
-                    /*previousNoteData.beatPositionInSong = minNoteData.beatPositionInSong;
-                    previousNoteData.duration = minNoteData.duration;
-                    previousNoteData.width = minNoteData.width;*/
-                    /*if (note->beatPositionInSong >= minNoteData.beatPositionInSong && note->beatPositionInSong <= minNoteData.beatPositionInSong + minNoteData.duration) {
-                        float pos = note->beatPositionInSong
-                    }
-                    position*/
+                    //previousNoteData.beatPositionInSong = minNoteData.beatPositionInSong;
+                    //previousNoteData.duration = minNoteData.duration;
+                    //previousNoteData.width = minNoteData.width;
+                    //if (note->beatPositionInSong >= minNoteData.beatPositionInSong && note->beatPositionInSong <= minNoteData.beatPositionInSong + minNoteData.duration) {
+                    //    float pos = note->beatPositionInSong
+                    //}
+                    //position
                 } // m_MinNoteData for loop
 
                 float noteWidth = noteStopX - noteStartX;
@@ -832,7 +987,7 @@ void Song::OnUpdate()
                 }
             }
         }
-    }
+    }*/
 
     int numPages = GetNumPages();
 

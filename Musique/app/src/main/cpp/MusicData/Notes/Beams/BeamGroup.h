@@ -30,6 +30,8 @@ public:
 
     float GetPositionYOnBeam(float positionX) const;
 
+    float GetSlope() const;
+
     void CalculateAsPaged(const MusicDisplayConstants& displayConstants);
 
 public:

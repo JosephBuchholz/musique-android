@@ -83,6 +83,12 @@ float Staff::GetMeasureBeatPosition(int measureIndex) {
     int i = 0;
     for (auto m : measures) {
 
+        if (!m)
+        {
+            LOGE("measure is nullptr!!!");
+            break;
+        }
+
         if (i == measureIndex) {
             break;
         } else {

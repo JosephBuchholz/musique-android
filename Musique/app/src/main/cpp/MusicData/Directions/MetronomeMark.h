@@ -15,8 +15,8 @@
 /**
  * This class represents a metronome/tempo marking.
  */
-class MetronomeMark : public TextualElement {
-    friend class Song;
+class MetronomeMark : public TextualElement
+{
     friend class MusicXMLParser;
 
 public:
@@ -30,6 +30,9 @@ public:
      */
     void Render(RenderData& renderData, Vec2<float> measurePosition, Vec2<float> offset = { 0.0f, 0.0f }) const;
 
+    Vec2<float> GetDimensions() const;
+    Paint GetPaint() const;
+
     /**
      * Updates the position and size of this object's bounding box.
      *
@@ -37,7 +40,6 @@ public:
      */
     void UpdateBoundingBox(const Vec2<float> &parentPosition);
 
-protected:
     void CalculatePositionAsPaged(const MusicDisplayConstants& displayConstants, float defaultX, float defaultY);
 
 public:

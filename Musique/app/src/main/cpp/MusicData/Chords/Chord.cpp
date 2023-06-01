@@ -5,18 +5,39 @@ void Chord::Render(RenderData& renderData, float measurePositionX, float measure
 {
     // paint
     Paint paint = Paint();
-    paint.textSize = 16.0f;
-    if (fontStyle == FontStyle::Italic)
-        paint.isItalic = true;
-    if (fontWeight == FontWeight::Bold)
-        paint.isBold = true;
-    paint.textSize = fontSize.size;
+    TextualElement::ModifyPaint(paint);
 
     // render
-    renderData.AddText(Text(chordName.string, positionX + measurePositionX + offsetX, positionY + measurePositionY + offsetY, Paint(color.color, paint)));
+    renderData.AddText(Text(chordName.string, positionX + measurePositionX + offsetX, positionY + measurePositionY + offsetY, paint));
 
     if (chordDiagram)
         chordDiagram->Render(renderData, { positionX + measurePositionX, positionY + measurePositionY }, { offsetX, offsetY });
+
+    /*std::vector<uint16_t> chars;
+    chars.push_back((uint16_t)SMuFLID::accidentalFlat);
+
+    for (auto& c : chordName.string)
+    {
+        if (c == '\0')
+            break;
+        chars.push_back(c);
+    }
+
+    std::vector<TextSpan> spans;
+    Paint glyphPaint = Paint(color.color);
+    glyphPaint.useMusicFont = true;
+    glyphPaint.textSize = 40.0f;
+    glyphPaint.align = Paint::Align::Left;
+
+    Paint normalPaint = Paint(color.color);
+    paint.isBold = true;
+    paint.textSize = 16.0f;
+    paint.align = Paint::Align::Left;
+
+    spans.emplace_back(0, 1, glyphPaint);
+    spans.emplace_back(1, 10, normalPaint);
+
+    renderData.AddSpannableText(std::make_shared<SpannableText>(chars, positionX + measurePositionX + offsetX, positionY + measurePositionY + offsetY, spans, paint));*/
 }
 
 void Chord::UpdateBoundingBox(const Vec2<float> &parentPosition)
@@ -55,6 +76,11 @@ void Chord::UpdateBoundingBox(const Vec2<float> &parentPosition)
 void Chord::CalculateChordName()
 {
     chordName.string = rootPitch.step;
+
+    if (rootPitch.alter == -1)
+        chordName.string += "b";
+    else if (rootPitch.alter == 1)
+        chordName.string += "#";
 
     if (!harmonyTypeText.empty())
     {

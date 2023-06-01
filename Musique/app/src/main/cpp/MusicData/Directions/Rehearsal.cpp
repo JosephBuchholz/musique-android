@@ -11,4 +11,5 @@ void Rehearsal::Render(RenderData& renderData, Vec2<float> measurePosition, Vec2
     paint.textSize = fontSize.size;
 
     renderData.AddText(Text(text.string, positionX + measurePosition.x + offset.x, positionY + measurePosition.y + offset.y, Paint(color.color, paint)));
+    //renderData.AddDebugDot(positionX + measurePosition.x + offset.x, positionY + measurePosition.y + offset.y);
 }

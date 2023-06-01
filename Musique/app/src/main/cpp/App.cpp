@@ -256,6 +256,9 @@ bool App::OnUpdatePrintLayout()
     PrintRenderData printRenderData = PrintRenderData();
     bool layoutChanged = true;
 
+    musicRenderer->systemPositions.clear();
+    musicRenderer->pagePositions.clear();
+
     int totalPages = musicRenderer->OnCalculateNumPages(song);
     int pageIndex = 0;
     while (pageIndex < totalPages)

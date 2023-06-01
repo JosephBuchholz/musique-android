@@ -28,6 +28,7 @@ class Slur;
 #include "MeasureRepeat.h"
 #include "../Notes/Slur.h"
 #include "../Notes/NoteChord.h"
+#include "MultiMeasureRestSymbol.h"
 
 #include <vector>
 
@@ -65,11 +66,11 @@ public:
     void RenderDebug(RenderData& renderData) const;
 
     /**
-     * The x position at which a repeat barline at the beginning of the measure would be
+     * The x position at which a repeat barline at the beginning of the measure would be.
      *
-     * @return the x position relative to the start of the measure
+     * @return the x position relative to the start of the measure.
      */
-    float GetRepeatBarlinePositionX() const;
+    float GetRepeatBarlinePositionX(System& system) const;
 
     float GetPitchYPosition(Pitch pitch) const;
     float CalculateNoteYPositionRelativeToMeasure(int noteIndex) const;
@@ -143,11 +144,9 @@ public:
     float measureWidth = 0.0f;
 
     bool startsMultiMeasureRest = false;
-    bool useSymbolsForMultiMeasureRest = false; // only used when 'startsMultiMeasureRest' is true
-    unsigned int numberOfMeasuresInMultiMeasureRest = 0; // only used when 'startsMultiMeasureRest' is true
+    std::shared_ptr<MultiMeasureRestSymbol> multiMeasureRestSymbol; // only used when 'startsMultiMeasureRest' is true
 
     bool isPartOfMultiMeasureRest = false; // if this is true and 'startsMultiMeasureRest' is not, then this measure should not be rendered
-
 
     bool isMeasureRepeat = false; // whether a simile symbol is used for this measure
     std::shared_ptr<MeasureRepeat> measureRepeat; // a simile/measure repeat symbol (only used if 'isMeasureRepeat' is true)

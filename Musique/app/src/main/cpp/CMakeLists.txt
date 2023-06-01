@@ -22,29 +22,27 @@ add_library( # Sets the name of the library.
         # Provides a relative path to your source file(s).
         Main.cpp
         Callbacks.cpp
-        RenderData/RenderData.cpp
-        RenderData/Line.cpp
         App.cpp
         MusicRenderer.cpp
+        RenderMeasurement.cpp
+
+        RenderData/RenderData.cpp
+        RenderData/Line.cpp
+
+        MusicData/Song.cpp
+        MusicData/SongData.cpp
+        MusicData/Staff.cpp
+        MusicData/Instrument.cpp
+        MusicData/Pitch.cpp
+        MusicData/ComplexLine.cpp
+        MusicData/InstrumentBracket.cpp
+
         MusicData/BaseElements/LineElement.cpp
         MusicData/BaseElements/TextualElement.cpp
         MusicData/BaseElements/VisibleElement.cpp
-        MusicData/Song.cpp
-        MusicData/SongData.cpp
-        MusicData/Notes/Note.cpp
-        MusicData/Notes/Accidental.cpp
-        MusicData/Measures/Measure.cpp
-        MusicData/Staff.cpp
-        MusicData/Instrument.cpp
-        MusicData/Chords/Chord.cpp
-        MusicData/Notes/Lyric.cpp
-        MusicData/Directions/Words.cpp
-        MusicData/Notes/AugmentationDot.cpp
-        MusicData/Notes/Beams/Beam.cpp
-        MusicData/Notes/Beams/BeamGroup.cpp
-        MusicData/Notes/NoteHead.cpp
-        MusicData/Notes/Fermata.cpp
+        MusicData/BaseElements/NumberElement.cpp
 
+        MusicData/Directions/Words.cpp
         MusicData/Directions/BracketDirection.cpp
         MusicData/Directions/Direction.cpp
         MusicData/Directions/Dynamic.cpp
@@ -53,23 +51,30 @@ add_library( # Sets the name of the library.
         MusicData/Directions/Rehearsal.cpp
         MusicData/Directions/Marker.cpp
 
-        MusicData/Page/Credit.cpp
-
+        MusicData/Chords/Chord.cpp
         MusicData/Chords/ChordDiagram.cpp
 
-        MusicData/BaseElements/NumberElement.cpp
+        MusicData/Page/Credit.cpp
         MusicData/Page/PageNumber.cpp
 
+        MusicData/Measures/Measure.cpp
         MusicData/Measures/KeySignature.cpp
         MusicData/Measures/Clef.cpp
         MusicData/Measures/Tuplet.cpp
         MusicData/Measures/MeasureNumber.cpp
-        MusicData/Pitch.cpp
         MusicData/Measures/TimeSignature.cpp
         MusicData/Measures/Arpeggio.cpp
         MusicData/Measures/Ending.cpp
         MusicData/Measures/MeasureRepeat.cpp
+        MusicData/Measures/Barline.cpp
+        MusicData/Measures/MultiMeasureRestSymbol.cpp
 
+        MusicData/Notes/Note.cpp
+        MusicData/Notes/Accidental.cpp
+        MusicData/Notes/Lyric.cpp
+        MusicData/Notes/AugmentationDot.cpp
+        MusicData/Notes/NoteHead.cpp
+        MusicData/Notes/Fermata.cpp
         MusicData/Notes/NoteChord.cpp
         MusicData/Notes/NoteFlag.cpp
         MusicData/Notes/NoteStem.cpp
@@ -77,15 +82,10 @@ add_library( # Sets the name of the library.
         MusicData/Notes/Slur.cpp
         MusicData/Notes/TABSlur.cpp
         MusicData/Notes/Tie.cpp
+        MusicData/Notes/GlissandoSlide.cpp
 
-        RenderMeasurement.cpp
-
-        MusicXMLParser/MusicXMLHelper.cpp
-        MusicXMLParser/MusicXMLParser.cpp
-        MusicXMLParser/XMLHelper.cpp
-        MusicXMLParser/ParseError.cpp
-        MusicXMLParser/NoteElementParser.cpp
-        MusicXMLParser/BaseElementParser.cpp
+        MusicData/Notes/Beams/Beam.cpp
+        MusicData/Notes/Beams/BeamGroup.cpp
 
         MusicData/Notes/Articulations/Accent.cpp
         MusicData/Notes/Articulations/BreathMark.cpp
@@ -104,16 +104,20 @@ add_library( # Sets the name of the library.
         MusicData/Notes/Ornaments/Turn.cpp
         MusicData/Notes/Ornaments/Vibrato.cpp
 
+        MusicXMLParser/MusicXMLHelper.cpp
+        MusicXMLParser/MusicXMLParser.cpp
+        MusicXMLParser/XMLHelper.cpp
+        MusicXMLParser/ParseError.cpp
+        MusicXMLParser/NoteElementParser.cpp
+        MusicXMLParser/BaseElementParser.cpp
+
         Utils/Math.cpp
-
-        MusicData/Notes/GlissandoSlide.cpp
-
-        MusicData/ComplexLine.cpp
+        Utils/Converters.cpp
 
         Collisions/BoundingBox.cpp
 
         JNIHelpers/JNIHelper.cpp
-        Utils/Converters.cpp
+
         libs/tinyxml/tinystr.cpp
         libs/tinyxml/tinyxml.cpp
         libs/tinyxml/tinyxmlerror.cpp

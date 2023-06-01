@@ -50,6 +50,12 @@ struct MusicDisplayConstants
     Scaling scaling;
 
     float ledgerLineMargin = 3.5f;
+
+    // notes stems
+    float minNoteStemHeight = 15.0f; // the minimum height for a note stem (not including the beam height)
+
+    // beams
+    float maxBeamSlope = 0.333f; // the maximum (abs value) slope that a beam can have
 };
 
 #endif // MUSIQUE_MUSICDISPLAYCONSTANTS_H

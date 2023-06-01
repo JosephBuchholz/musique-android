@@ -14,8 +14,8 @@
 /**
  * This class represents a textual music direction (such as rit. or cresc.).
  */
-class Words : public TextualElement {
-    friend class Song;
+class Words : public TextualElement
+{
     friend class MusicXMLParser;
 
 public:
@@ -37,7 +37,6 @@ public:
      */
     void UpdateBoundingBox(const Vec2<float> &parentPosition);
 
-protected:
     void CalculatePositionAsPaged(const MusicDisplayConstants& displayConstants, float defaultX, float defaultY);
 
 public:

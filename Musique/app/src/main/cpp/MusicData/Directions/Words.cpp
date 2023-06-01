@@ -35,6 +35,7 @@ void Words::UpdateBoundingBox(const Vec2<float>& parentPosition)
     BoundingBox bb = BoundingBox();
     bb.position.x = 0.0f;
     bb.position.y = -paint.textSize * 2.0f;
+    //bb.position.y = 0.0f;
     bb.size.x = paint.textSize * (float)text.string.size();
     bb.size.y = paint.textSize * 2.0f;
 #endif
@@ -50,9 +51,9 @@ void Words::UpdateBoundingBox(const Vec2<float>& parentPosition)
     debugBoundingBox = boundingBox;
 #endif
 
-    LOGV("Updated bounding box for WORDS: %s", boundingBox.GetPrintableString().c_str());
+    /*LOGV("Updated bounding box for WORDS: %s", boundingBox.GetPrintableString().c_str());
     LOGV("parentPosition: %s", parentPosition.GetPrintableString().c_str());
-    LOGD("boundingBoxPosition: %s", bb.GetPrintableString().c_str());
+    LOGD("boundingBoxPosition: %s", bb.GetPrintableString().c_str());*/
 }
 
 void Words::CalculatePositionAsPaged(const MusicDisplayConstants& displayConstants, float defaultX, float defaultY)

@@ -160,85 +160,6 @@ void MusicRenderer::RenderMusicToPage(std::shared_ptr<Song> song, int page, Rend
 
     LOGI("Rendering pages for printing");
 
-    /*std::shared_ptr<ComplexLine> wavyLine = std::make_shared<ComplexLine>(ComplexLine::ComplexLineType::WavyTrill);
-    Vec2<float> pos = { pageX + 10.0f + pageRenderData.displayConstants.pageWidth, pageY + 10.0f };
-
-    wavyLine->positionStart = { 0.0f, 0.0f };
-    wavyLine->positionEnd = { 500.0f, 1.0f };
-
-    wavyLine->complexLineType = ComplexLine::ComplexLineType::WavyTrill;
-    wavyLine->Render(pageRenderData, pos);
-    pos.y += 20.0f;
-
-    wavyLine->complexLineType = ComplexLine::ComplexLineType::WavyVibrato;
-    wavyLine->Render(pageRenderData, pos);
-    pos.y += 20.0f;
-
-    wavyLine->complexLineType = ComplexLine::ComplexLineType::WavyVibratoWide;
-    wavyLine->Render(pageRenderData, pos);
-    pos.y += 20.0f;
-
-    wavyLine->complexLineType = ComplexLine::ComplexLineType::WavyGuitarVibrato;
-    wavyLine->Render(pageRenderData, pos);
-    pos.y += 20.0f;
-
-    wavyLine->complexLineType = ComplexLine::ComplexLineType::WavyGuitarWideVibrato;
-    wavyLine->Render(pageRenderData, pos);
-    pos.y += 20.0f;
-
-    wavyLine->complexLineType = ComplexLine::ComplexLineType::Wavy;
-    wavyLine->Render(pageRenderData, pos);
-    pos.y += 20.0f;
-
-    wavyLine->complexLineType = ComplexLine::ComplexLineType::Sawtooth;
-    wavyLine->Render(pageRenderData, pos);
-    pos.y += 50.0f;
-
-    wavyLine->complexLineType = ComplexLine::ComplexLineType::Squaretooth;
-    wavyLine->Render(pageRenderData, pos);
-    pos.y += 50.0f;
-
-    wavyLine->complexLineType = ComplexLine::ComplexLineType::Circular;
-    wavyLine->Render(pageRenderData, pos);
-    pos.y += 50.0f;
-
-    wavyLine->complexLineType = ComplexLine::ComplexLineType::AccelRitBeam;
-    wavyLine->Render(pageRenderData, pos);
-    pos.y += 50.0f;
-
-    wavyLine->complexLineType = ComplexLine::ComplexLineType::Random;
-    wavyLine->Render(pageRenderData, pos);
-    pos.y += 100.0f;
-
-    wavyLine = std::make_shared<ComplexLine>(ComplexLine::ComplexLineType::ArpeggioUp);
-    wavyLine->endGlyph = SMuFLID::wiggleArpeggiatoUpArrow;
-    wavyLine->positionStart = pos;
-    wavyLine->positionEnd = { pos.x + 1.0f, pos.y + 1.0f };
-    wavyLine->Render(pageRenderData, pos);
-    wavyLine->positionEnd = { pos.x - 20.0f, pos.y + 20.0f };
-    wavyLine->Render(pageRenderData, pos);
-    wavyLine->positionEnd = { pos.x + 1.0f, pos.y - 1.0f };
-    wavyLine->Render(pageRenderData, pos);
-    wavyLine->positionEnd = { pos.x - 1.0f, pos.y - 1.0f };
-    wavyLine->Render(pageRenderData, pos);
-    wavyLine->positionEnd = { pos.x + 1.0f, pos.y };
-    wavyLine->Render(pageRenderData, pos);
-    wavyLine->positionEnd = { pos.x, pos.y + 1.0f };
-    wavyLine->Render(pageRenderData, pos);
-    wavyLine->positionEnd = { pos.x - 1.0f, pos.y };
-    wavyLine->Render(pageRenderData, pos);
-    wavyLine->positionEnd = { pos.x, pos.y - 1.0f };
-    wavyLine->Render(pageRenderData, pos);
-    wavyLine->positionEnd = { pos.x + 30.0f, pos.y - 3.0f };
-    wavyLine->Render(pageRenderData, pos);
-
-    pos.y += 20.0f;*/
-
-    /*wavyLine = std::make_shared<ComplexLine>(ComplexLine::ComplexLineType::ArpeggioDown);
-    wavyLine->startGlyph = SMuFLID::wiggleArpeggiatoDownArrow;
-    wavyLine->Render(pageRenderData, pos);
-    pos.y += 20.0f;*/
-
     // --- MAIN RENDERING ---
 
     /*
@@ -315,18 +236,23 @@ void MusicRenderer::RenderMusicToPage(std::shared_ptr<Song> song, int page, Rend
 
         for (auto ending : song->endings)
         {
-            Vec2<float> systemPosition = { 0.0f, 0.0f };
-            int systemIndex = song->GetSystemIndex(ending->startMeasureIndex);
-            if (systemIndex < systemPositions.size())
+            if (song->GetPageIndex(ending->startMeasureIndex) == page)
             {
-                systemPosition.x = systemPositions[systemIndex].x;
-                systemPosition.y = systemPositions[systemIndex].y;
-            }
+                Vec2<float> systemPosition = { 0.0f, 0.0f };
+                int systemIndex = song->GetSystemIndex(ending->startMeasureIndex);
+                if (systemIndex < systemPositions.size())
+                {
+                    systemPosition.x = systemPositions[systemIndex].x;
+                    systemPosition.y = systemPositions[systemIndex].y;
+                }
 
-            Vec2<float> measureStartPosition = { systemPosition.x + song->GetMeasurePositionX(ending->startMeasureIndex), systemPosition.y };
-            Vec2<float> measureEndPosition = { systemPosition.x + song->GetMeasurePositionX(ending->endMeasureIndex - 1) + song->GetMeasureWidth(ending->endMeasureIndex - 1), systemPosition.y };
-            if (ending)
-                ending->Render(pageRenderData, measureStartPosition, measureEndPosition);
+                Vec2<float> measureStartPosition = { systemPosition.x + song->GetMeasurePositionX(ending->startMeasureIndex), systemPosition.y };
+                Vec2<float> measureEndPosition = { systemPosition.x + song->GetMeasurePositionX(ending->endMeasureIndex - 1) + song->GetMeasureWidth(ending->endMeasureIndex - 1), systemPosition.y };
+                //Vec2<float> pagePosition = { pageX, pageY };
+
+                if (ending)
+                    ending->Render(pageRenderData, measureStartPosition, measureEndPosition);
+            }
         }
     }
 }
@@ -353,11 +279,11 @@ Vec2<float> MusicRenderer::RenderSystem(RenderData& renderData, std::shared_ptr<
                 float textPositionY = instYPosition + (instrument->GetMiddleHeight(song->displayConstants.lineSpacing, song->displayConstants.tabLineSpacing, 0, 1) / 2.0f);
                 if (drawFullInstNames)
                 {
-                    renderData.AddText(Text(instrument->name.string, systemPosition.x - 10.0f, textPositionY, InstNameTextPaint));
+                    renderData.AddText(Text(instrument->name.string, systemPosition.x - 20.0f, textPositionY, InstNameTextPaint));
                 }
                 else
                 {
-                    renderData.AddText(Text(instrument->nameAbbreviation.string, systemPosition.x - 10.0f, textPositionY, InstNameTextPaint));
+                    renderData.AddText(Text(instrument->nameAbbreviation.string, systemPosition.x - 20.0f, textPositionY, InstNameTextPaint));
                 }
             }
 
@@ -381,6 +307,13 @@ Vec2<float> MusicRenderer::RenderSystem(RenderData& renderData, std::shared_ptr<
 
                 staffIndex++;
             } // staves loop
+
+            if (instrument->instrumentBracket)
+            {
+                float height = instrument->GetMiddleHeight(10.0f, 13.33f, startMeasure, endMeasure);
+
+                instrument->instrumentBracket->Render(renderData, { systemPosition.x, instYPosition }, height);
+            }
 
             prevInstrument = instrument;
         } // instrument is visible
@@ -465,10 +398,12 @@ void MusicRenderer::RenderLineOfMeasures(RenderData& renderData, std::shared_ptr
             {
                 //measure->measureWidth = 80.0f;
                 multiMeasureRest = true;
-                numberOfMeasuresInMultiMeasureRest = measure->numberOfMeasuresInMultiMeasureRest;
+                numberOfMeasuresInMultiMeasureRest = measure->multiMeasureRestSymbol->numberOfMeasures;
                 measureThatStartedMultiMeasureRest = measureIndex;
 
-                RenderMultiMeasureRest(renderData, measure->numberOfMeasuresInMultiMeasureRest, measurePositionX, staffPositionY, measure->measureWidth, staff->lines, lineSpacing);
+                measure->multiMeasureRestSymbol->Render(renderData, { measurePositionX, staffPositionY });
+
+                //RenderMultiMeasureRest(renderData, measure->multiMeasureRestSymbol->numberOfMeasures, measurePositionX, staffPositionY, measure->measureWidth, staff->lines, lineSpacing);
             }
 
             // staff lines
@@ -482,15 +417,7 @@ void MusicRenderer::RenderLineOfMeasures(RenderData& renderData, std::shared_ptr
             }
 
             //LOGV("barline count: %d, measure index: %d", measure->barlines.size(), measure->index);
-            RenderBarlines(renderData, measure->barlines, measurePositionX, staffPositionY, measure->measureWidth, staff->lines, lineSpacing);
-            // measure lines (bar lines)
-            float x = measurePositionX;
-            if (!(startMeasure == m && song->instruments.size() == 1)) // !(it is the first measure and only one instrument)
-            {
-                renderData.AddLine(std::make_shared<Line>(x, 0.0f + staffPositionY, x, (lineSpacing * float(staff->lines - 1)) + staffPositionY, BarLinePaint));
-            }
-            x += measure->measureWidth;
-            renderData.AddLine(std::make_shared<Line>(x, 0.0f + staffPositionY, x,(lineSpacing * float(staff->lines - 1)) + staffPositionY, BarLinePaint));
+            RenderBarlines(renderData, measure->barlines, measurePositionX, staffPositionY, measure->measureWidth, staff->lines, lineSpacing, isTopMeasureLine);
 
             auto measureDataItem = system.systemMeasureData.find(measure->index);
 
@@ -551,53 +478,56 @@ void MusicRenderer::RenderLineOfMeasures(RenderData& renderData, std::shared_ptr
                 }
 
                 // rendering note beams
-                for (const BeamGroup& beamGroup : measure->beams)
+                if (staff->tablatureDisplayType == TablatureDisplayType::Full || staff->type == Staff::StaffType::Standard)
                 {
-                    beamGroup.Render(renderData, { measurePositionX, staffPositionY });
-                    /*for (const Beam& beam : beamGroup.beams)
+                    for (const BeamGroup &beamGroup: measure->beams)
                     {
-                        if (beamGroup.notes.empty())
-                            break;
-
-                        if (beamGroup.notes[0] == nullptr)
+                        beamGroup.Render(renderData, {measurePositionX, staffPositionY});
+                        /*for (const Beam& beam : beamGroup.beams)
                         {
-                            LOGE("NOTE[0] IS NULL POINTER!!!!!");
-                            break;
-                        }
+                            if (beamGroup.notes.empty())
+                                break;
 
-                        float size;
-                        if (beamGroup.notes[0]->noteSize == NoteSize::Grace)
-                            size = renderData.displayConstants.graceNoteSize;
-                        else if (beamGroup.notes[0]->noteSize == NoteSize::Cue)
-                            size = renderData.displayConstants.cueNoteSize;
-                        else
-                            size = 1.0f;
+                            if (beamGroup.notes[0] == nullptr)
+                            {
+                                LOGE("NOTE[0] IS NULL POINTER!!!!!");
+                                break;
+                            }
 
-                        const float beamDistance = 8.0f * size;
-                        const float hookOffset = 10.0f * size;
-                        float beamYOffset = (beamDistance * float(beam.beamLevel-1));
+                            float size;
+                            if (beamGroup.notes[0]->noteSize == NoteSize::Grace)
+                                size = renderData.displayConstants.graceNoteSize;
+                            else if (beamGroup.notes[0]->noteSize == NoteSize::Cue)
+                                size = renderData.displayConstants.cueNoteSize;
+                            else
+                                size = 1.0f;
 
-                        Paint paint = NoteBeamPaint;
-                        paint.strokeWidth *= size;
+                            const float beamDistance = 8.0f * size;
+                            const float hookOffset = 10.0f * size;
+                            float beamYOffset = (beamDistance * float(beam.beamLevel-1));
 
-                        if (beamGroup.isAboveNote)
-                        {
-                            beamYOffset = -beamYOffset;
-                        }
+                            Paint paint = NoteBeamPaint;
+                            paint.strokeWidth *= size;
 
-                        if (beam.beamType == Beam::BeamType::Normal)
-                        {
-                            renderData.AddLine(std::make_shared<Line>(beam.beamStartPositionX + measurePositionX, beam.beamStartPositionY + staffPositionY - beamYOffset, beam.beamEndPositionX + measurePositionX, beam.beamEndPositionY + staffPositionY - beamYOffset, paint));
-                        }
-                        else if (beam.beamType == Beam::BeamType::ForwardHook)
-                        {
-                            renderData.AddLine(std::make_shared<Line>(beam.beamStartPositionX + measurePositionX, beam.beamStartPositionY + staffPositionY - beamYOffset, beam.beamStartPositionX + measurePositionX + hookOffset, beamGroup.GetPositionYOnBeam(beam.beamStartPositionX + hookOffset) + staffPositionY - beamYOffset, paint));
-                        }
-                        else if (beam.beamType == Beam::BeamType::BackwardHook)
-                        {
-                            renderData.AddLine(std::make_shared<Line>(beam.beamStartPositionX + measurePositionX, beam.beamStartPositionY + staffPositionY - beamYOffset, beam.beamStartPositionX + measurePositionX - hookOffset, beamGroup.GetPositionYOnBeam(beam.beamStartPositionX - hookOffset) + staffPositionY - beamYOffset, paint));
-                        }
-                    }*/
+                            if (beamGroup.isAboveNote)
+                            {
+                                beamYOffset = -beamYOffset;
+                            }
+
+                            if (beam.beamType == Beam::BeamType::Normal)
+                            {
+                                renderData.AddLine(std::make_shared<Line>(beam.beamStartPositionX + measurePositionX, beam.beamStartPositionY + staffPositionY - beamYOffset, beam.beamEndPositionX + measurePositionX, beam.beamEndPositionY + staffPositionY - beamYOffset, paint));
+                            }
+                            else if (beam.beamType == Beam::BeamType::ForwardHook)
+                            {
+                                renderData.AddLine(std::make_shared<Line>(beam.beamStartPositionX + measurePositionX, beam.beamStartPositionY + staffPositionY - beamYOffset, beam.beamStartPositionX + measurePositionX + hookOffset, beamGroup.GetPositionYOnBeam(beam.beamStartPositionX + hookOffset) + staffPositionY - beamYOffset, paint));
+                            }
+                            else if (beam.beamType == Beam::BeamType::BackwardHook)
+                            {
+                                renderData.AddLine(std::make_shared<Line>(beam.beamStartPositionX + measurePositionX, beam.beamStartPositionY + staffPositionY - beamYOffset, beam.beamStartPositionX + measurePositionX - hookOffset, beamGroup.GetPositionYOnBeam(beam.beamStartPositionX - hookOffset) + staffPositionY - beamYOffset, paint));
+                            }
+                        }*/
+                    }
                 }
 
                 // render all chords in this measure
@@ -692,7 +622,7 @@ void MusicRenderer::RenderMultiMeasureRest(RenderData& renderData, unsigned int 
     }
 }
 
-void MusicRenderer::RenderBarlines(RenderData& renderData, const std::vector<Barline>& barlines, float measurePositionX, float measurePositionY, float measureWidth, int lineCount, float lineSpacing)
+void MusicRenderer::RenderBarlines(RenderData& renderData, const std::vector<Barline>& barlines, float measurePositionX, float measurePositionY, float measureWidth, int lineCount, float lineSpacing, bool isTopStaff)
 {
     float measureHeight = (lineSpacing * float(lineCount - 1));
     float barlineLeftPositionX = measurePositionX;
@@ -700,124 +630,22 @@ void MusicRenderer::RenderBarlines(RenderData& renderData, const std::vector<Bar
     float barlinePositionYTop = measurePositionY;
     float barlinePositionYBottom = measurePositionY + measureHeight;
 
-    float positionX = 0.0f;
     bool renderedRightBarline = false;
 
     for (const auto& barline : barlines)
     {
         if (barline.location == Barline::Location::Right)
-            positionX = barlineRightPositionX, renderedRightBarline = true;
-        else if (barline.location == Barline::Location::Left)
-            positionX = barlineLeftPositionX;
-        else if (barline.location == Barline::Location::Middle)
-            LOGW("That barline location is not supported");
+            renderedRightBarline = true;
 
-        RenderBarline(renderData, barline, positionX, barlinePositionYTop, measureHeight, lineCount, lineSpacing);
+        barline.Render(renderData, { measurePositionX, measurePositionY }, measureHeight, lineSpacing, lineCount, isTopStaff);
     }
 
     if (!renderedRightBarline)
-        renderData.AddLine(std::make_shared<Line>(barlineRightPositionX, barlinePositionYTop, barlineRightPositionX, barlinePositionYBottom, BarLinePaint));
+        renderData.AddLine(std::make_shared<Line>(barlineRightPositionX, barlinePositionYTop, barlineRightPositionX, barlinePositionYBottom, renderData.paints.barlinePaint));
 
     // debug lines
     //renderData.AddLine(std::make_shared<Line>(barlineRightPositionX, barlinePositionYTop, barlineRightPositionX, barlinePositionYBottom, Paint(0xFFFF00FF)));
     //renderData.AddLine(std::make_shared<Line>(barlineLeftPositionX, barlinePositionYTop, barlineLeftPositionX, barlinePositionYBottom, Paint(0xFFFF00FF)));
-}
-
-void MusicRenderer::RenderBarline(RenderData& renderData, const Barline& barline, float barlinePositionX, float barlinePositionY, float barlineHeight, int lineCount, float lineSpacing)
-{
-    float barlinePositionYBottom = barlinePositionY + barlineHeight;
-
-    float doubleBarlineOffset = 8.0f;
-    float doubleBarlineOffsetDirection = 1.0f;
-
-    // dots for repeat barlines
-
-    if (barline.isRepeatBarLine)
-    {
-        float dotsPositionX = 0.0f;
-
-        if (barline.facing == Barline::Direction::Forward)
-            dotsPositionX = barlinePositionX + 15.0f;
-        else if (barline.facing == Barline::Direction::Backward)
-            dotsPositionX = barlinePositionX - 15.0f;
-
-        if (barline.location == Barline::Location::Right)
-            doubleBarlineOffsetDirection = -1.0f;
-        else if (barline.location == Barline::Location::Left)
-            doubleBarlineOffsetDirection = 0.0f;
-
-        int spaces = lineCount - 1; // the number of spaces on the staff
-
-        // the space that has the top most dot
-        int topDotSpace = int(spaces / 2); // floor(spaces / 2)
-
-        // the space that has the bottom most dot
-        int bottomDotSpace = int((float)spaces / 2.0f + 1.5f); // floor
-
-        float dotsPositionY = barlinePositionY + ((float)topDotSpace * lineSpacing) - (0.5f * lineSpacing); // barlineY + the spaces (scaled to lineSpcaing) - half a space to center the dot
-        renderData.AddGlyph(SMuFLGlyph(SMuFLID::repeatDot, dotsPositionX, dotsPositionY, Paint(0xff000000)));
-
-        // same thing but with bottomDotSpace
-        dotsPositionY = barlinePositionY + ((float)bottomDotSpace * lineSpacing) - (0.5f * lineSpacing);
-        renderData.AddGlyph(SMuFLGlyph(SMuFLID::repeatDot, dotsPositionX, dotsPositionY, Paint(0xff000000)));
-    }
-
-    // actual bar line
-
-    if (barline.location == Barline::Location::Right)
-        doubleBarlineOffsetDirection = -1.0f;
-    else if (barline.location == Barline::Location::Left)
-        doubleBarlineOffsetDirection = 0.0f;
-
-    float barlineWidth = 8.0f;
-
-    Paint paint = BarLinePaint;
-    barline.VisibleElement::ModifyPaint(paint);
-    barline.LineElement::ModifyPaint(paint);
-
-    switch (barline.barlineStyle)
-    {
-        case Barline::BarlineStyle::Regular:
-        {
-            renderData.AddLine(std::make_shared<Line>(barlinePositionX, barlinePositionY, barlinePositionX, barlinePositionYBottom, paint));
-            break;
-        }
-        case Barline::BarlineStyle::LightLight:
-        {
-            barlinePositionX += barlineWidth * doubleBarlineOffsetDirection;
-            renderData.AddLine(std::make_shared<Line>(barlinePositionX, barlinePositionY, barlinePositionX, barlinePositionYBottom, paint));
-            barlinePositionX += doubleBarlineOffset;
-            renderData.AddLine(std::make_shared<Line>(barlinePositionX, barlinePositionY, barlinePositionX, barlinePositionYBottom, paint));
-            break;
-        }
-        case Barline::BarlineStyle::HeavyLight:
-        {
-            barlinePositionX += barlineWidth * doubleBarlineOffsetDirection;
-            renderData.AddLine(std::make_shared<Line>(barlinePositionX, barlinePositionY, barlinePositionX, barlinePositionYBottom, HeavyBarLinePaint));
-            barlinePositionX += doubleBarlineOffset;
-            renderData.AddLine(std::make_shared<Line>(barlinePositionX, barlinePositionY, barlinePositionX, barlinePositionYBottom, paint));
-            break;
-        }
-        case Barline::BarlineStyle::LightHeavy:
-        {
-            barlinePositionX += barlineWidth * doubleBarlineOffsetDirection;
-            renderData.AddLine(std::make_shared<Line>(barlinePositionX, barlinePositionY, barlinePositionX, barlinePositionYBottom, paint));
-            barlinePositionX += doubleBarlineOffset;
-            renderData.AddLine(std::make_shared<Line>(barlinePositionX, barlinePositionY, barlinePositionX, barlinePositionYBottom, HeavyBarLinePaint));
-            break;
-        }
-        case Barline::BarlineStyle::HeavyHeavy:
-        {
-            barlinePositionX += barlineWidth * doubleBarlineOffsetDirection;
-            renderData.AddLine(std::make_shared<Line>(barlinePositionX, barlinePositionY, barlinePositionX, barlinePositionYBottom, HeavyBarLinePaint));
-            barlinePositionX += doubleBarlineOffset;
-            renderData.AddLine(std::make_shared<Line>(barlinePositionX, barlinePositionY, barlinePositionX, barlinePositionYBottom, HeavyBarLinePaint));
-            break;
-        }
-        case Barline::BarlineStyle::NoBarline:
-        default:
-            break; // do nothing
-    }
 }
 
 void MusicRenderer::RenderCredits(RenderData& renderData, std::shared_ptr<Song> song, const MusicDisplayConstants& displayConstants, const std::vector<Credit>& credits, float pageX, float pageY)

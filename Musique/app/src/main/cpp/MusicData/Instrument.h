@@ -8,6 +8,8 @@
 #include "MidiInstrument.h"
 #include "Notes/Slur.h"
 
+#include "InstrumentBracket.h"
+
 class Instrument {
 
 public:
@@ -35,6 +37,8 @@ public:
     std::vector<std::shared_ptr<Staff>> staves;
 
     //std::vector<std::shared_ptr<Slur>> slurs; // slurs that are contained in this part (including cross system slurs and cross staff slurs)
+
+    std::shared_ptr<InstrumentBracket> instrumentBracket;
 };
 
 #endif // MUSIQUE_INSTRUMENT_H

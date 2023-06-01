@@ -23,15 +23,22 @@ float Measure::GetTotalHeight(float staffLineCount, float lineSpacing)
     GetBelowHeight(staffLineCount, lineSpacing);
 }
 
-float Measure::GetBeginningWidth(System& system) const {
+float Measure::GetBeginningWidth(System& system) const
+{
     float width = 0.0f;
 
     width += GetTimeSignaturePositionInMeasure(system, GetKeySignaturePositionInMeasure(system, GetClefPositionInMeasure(system)));
 
+    bool isBeginningMeasure = (system.beginningMeasureIndex == index);
+
+    if (showTimeSignature || (system.showBeginningTimeSignature && isBeginningMeasure))
+        width += MeausreTimeSignatureWidth();
+
     return width;
 }
 
-float Measure::CalculateMinWidth(float notesWidth) const {
+float Measure::CalculateMinWidth(float notesWidth) const
+{
     //float width = GetBeginningWidth();
     float width = 20.0f;
 
@@ -52,7 +59,8 @@ float Measure::CalculateMinWidth(float notesWidth) const {
 }
 
 // update to use width
-float Measure::GetNotePositionInMeasure(float width, int noteIndex) const {
+float Measure::GetNotePositionInMeasure(float width, int noteIndex) const
+{
 
     // if the note index is a chord it gets the root note of the chord
     while (true) {
@@ -82,7 +90,8 @@ float Measure::GetNotePositionInMeasure(float width, int noteIndex) const {
     return position;
 }
 
-float Measure::GetKeySignaturePositionInMeasure(const System& system, float clefPositionX) const {
+float Measure::GetKeySignaturePositionInMeasure(const System& system, float clefPositionX) const
+{
 
     float position;
 
@@ -100,7 +109,8 @@ float Measure::GetKeySignaturePositionInMeasure(const System& system, float clef
     return position;
 }
 
-float Measure::GetTimeSignaturePositionInMeasure(const System& system, float keySignaturePositionX) const {
+float Measure::GetTimeSignaturePositionInMeasure(const System& system, float keySignaturePositionX) const
+{
     float position;
     bool isBeginningMeasure = (system.beginningMeasureIndex == index);
 
@@ -116,7 +126,8 @@ float Measure::GetTimeSignaturePositionInMeasure(const System& system, float key
     return position;
 }
 
-float Measure::GetClefPositionInMeasure(const System& system) const {
+float Measure::GetClefPositionInMeasure(const System& system) const
+{
     float position = 5.0f;
 
     return position;
@@ -167,7 +178,8 @@ void Measure::RenderDebug(RenderData& renderData) const
     }
 }
 
-float Measure::GetPitchYPosition(Pitch pitch) const {
+float Measure::GetPitchYPosition(Pitch pitch) const
+{
     float position = 0.0f;
 
     // transpose pitch
@@ -180,6 +192,9 @@ float Measure::GetPitchYPosition(Pitch pitch) const {
         int octave = 4; // the octave of the clef sign
         if (clef.sign == "F")
             octave = 3;
+
+        octave += clef.octaveChange;
+
         int clefY = GetLetterNumber(clef.sign) + octave*7; // the y position of pitch of the clef
 
         position = (float)line - (y - clefY) * 0.5f; // the y position of the note on the staff
@@ -188,7 +203,8 @@ float Measure::GetPitchYPosition(Pitch pitch) const {
     return position;
 }
 
-float Measure::CalculateNoteYPositionRelativeToMeasure(int noteIndex) const {
+float Measure::CalculateNoteYPositionRelativeToMeasure(int noteIndex) const
+{
     std::shared_ptr<Note> note = notes[noteIndex];
     return CalculateNoteYPositionRelativeToMeasure(note);
 }
@@ -198,7 +214,8 @@ float Measure::CalculateNoteYPositionRelativeToMeasure(std::shared_ptr<Note> not
     return GetPitchYPosition(note->pitch);
 }
 
-int Measure::GetLetterNumber(const std::string& s) const {
+int Measure::GetLetterNumber(const std::string& s) const
+{
     int num = 0;
     if (s == "C") {
         num = 0;
@@ -245,6 +262,8 @@ void Measure::CalculateAsPaged(const MusicDisplayConstants& displayConstants, Sy
     measureDataItem->second.measureWidth = measureWidth;
     measureDataItem->second.measureBeginningWidth = std::max(GetBeginningWidth(system), measureDataItem->second.measureBeginningWidth);
 
+    measureDataItem->second.repeatBarlinePositionX = std::max(GetRepeatBarlinePositionX(system), measureDataItem->second.repeatBarlinePositionX);
+
     clef.CalculatePositionAsPaged(displayConstants, staffLines);
     keySignature.CalculatePositionAsPaged(displayConstants);
     timeSignature.CalculatePositionAsPaged(displayConstants);
@@ -276,6 +295,18 @@ void Measure::CalculateAsPaged(const MusicDisplayConstants& displayConstants, Sy
     {
         beamGroup.CalculateAsPaged(displayConstants);
     }
+
+    for (auto& barline : barlines)
+    {
+        float repeatBarlineOffset = 0.0f;
+
+        if (startNewSystem)
+        {
+            repeatBarlineOffset = measureDataItem->second.repeatBarlinePositionX;
+        }
+
+        barline.CalculateAsPaged(displayConstants, measureWidth, repeatBarlineOffset);
+    }
 }
 
 float Measure::MeausreClefWidth() const
@@ -304,10 +335,18 @@ float Measure::MeausreTimeSignatureWidth() const
     return std::max(topNumWidth, bottomNumWidth) + 10.0f; // adding margins of 10.0f
 }
 
-float Measure::GetRepeatBarlinePositionX() const
+float Measure::GetRepeatBarlinePositionX(System& system) const
 {
-    return 20.0f;
-    //return GetBeginningWidth();
+    float width = 0.0f;
+
+    width += GetTimeSignaturePositionInMeasure(system, GetKeySignaturePositionInMeasure(system, GetClefPositionInMeasure(system)));
+
+    bool isBeginningMeasure = (system.beginningMeasureIndex == index);
+
+    if (showTimeSignature || (system.showBeginningTimeSignature && isBeginningMeasure))
+        width += MeausreTimeSignatureWidth();
+
+    return width;
 }
 
 void Measure::UpdateBoundingBoxes(const MusicDisplayConstants& displayConstants, const Vec2<float>& measurePosition, float measureHeight)

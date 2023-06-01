@@ -64,7 +64,7 @@ BoundingBox BoundingBox::CombineBoundingBoxes(const BoundingBox& boundingBox1, c
 
 Vec2<float> BoundingBox::ResolveOverlapStatically(BoundingBox& boundingBox) const
 {
-    Vec2<float> overlapOffset;
+    Vec2<float> overlapOffset = { 0.0f, 0.0f };
 
     BoundingBox oldBoundingBox = boundingBox;
 

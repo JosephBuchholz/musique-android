@@ -13,8 +13,6 @@ void NoteChord::Render(RenderData& renderData, TablatureDisplayType tabDisplayTy
     if (rootNote == nullptr || topNote == nullptr)
         throw IsNullException();
 
-    LOGE("first note pitch: %s", rootNote->pitch.step.c_str());
-
     Vec2<float> position = { rootNote->position.x + measurePosition.x + offset.x, rootNote->position.y + measurePosition.y + offset.y };
 
     for (auto note : notes)

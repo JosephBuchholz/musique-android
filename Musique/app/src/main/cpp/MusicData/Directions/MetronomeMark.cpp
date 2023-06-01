@@ -39,17 +39,31 @@ void MetronomeMark::Render(RenderData& renderData, Vec2<float> measurePosition, 
     }
 
     renderData.AddSpannableText(std::make_shared<SpannableText>(chars, positionX + measurePosition.x + offset.x, positionY + measurePosition.y + offset.y, spans, Paint(color.color)));
+    //renderData.AddDebugDot(positionX + measurePosition.x + offset.x, positionY + measurePosition.y + offset.y);
 }
 
-void MetronomeMark::UpdateBoundingBox(const Vec2<float>& parentPosition)
+Vec2<float> MetronomeMark::GetDimensions() const
+{
+    Paint paint = GetPaint();
+
+    return { paint.textSize * ((float)tempo.size() + 5), paint.textSize * 3.0f }; // TODO: temp
+}
+
+Paint MetronomeMark::GetPaint() const
 {
     Paint paint = Paint();
-
     if (fontStyle == FontStyle::Italic)
         paint.isItalic = true;
     if (fontWeight == FontWeight::Bold)
         paint.isBold = true;
     paint.textSize = fontSize.size;
+
+    return paint;
+}
+
+void MetronomeMark::UpdateBoundingBox(const Vec2<float>& parentPosition)
+{
+    Paint paint = GetPaint();
 
     BoundingBox bb = BoundingBox();
     bb.position.x = 0.0f;
@@ -79,4 +93,6 @@ void MetronomeMark::CalculatePositionAsPaged(const MusicDisplayConstants& displa
         positionY = defaultY + -relY;
     else
         positionY = -defY + -relY;
+
+    positionX = defaultX - (GetDimensions().x / 2.0f);
 }

@@ -76,9 +76,14 @@ float BeamGroup::GetPositionYOnBeam(float positionX) const
         return 0.0f;
     }
 
-    float slope = (beamStartPosition.y - beamEndPosition.y) / (beamStartPosition.x - beamEndPosition.x); // the slope of the beam
+    float slope = GetSlope(); // the slope of the beam
 
     float yIntercept = beamStartPosition.y - (slope * beamStartPosition.x); // solve for b (b = y - mx)
 
     return (slope * positionX) + yIntercept; // y = mx + b
+}
+
+float BeamGroup::GetSlope() const
+{
+    return (beamStartPosition.y - beamEndPosition.y) / (beamStartPosition.x - beamEndPosition.x);
 }

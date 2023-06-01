@@ -39,6 +39,8 @@ public:
 
         float measureWidth = 0.0f;
         float measureBeginningWidth = 0.0f; // the width of the beginning part of the measure (the clef + time signature + key signature (basically up until the first note starts))
+
+        float repeatBarlinePositionX = 0.0f; // the position of the repeat barline at the beginning of the measure.
     };
 
     // key: the measure index | value: the system wide data for the measure

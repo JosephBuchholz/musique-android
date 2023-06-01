@@ -46,16 +46,29 @@ float Clef::GetClefLinePositionY(const MusicDisplayConstants& displayConstants, 
 SMuFLID Clef::GetClefSMuFLID(const Clef& clef, int staffLines)
 {
     if (clef.sign == "G") {
-        return SMuFLID::GClef;
+        if (clef.octaveChange == 0)
+            return SMuFLID::gClef;
+        else if (clef.octaveChange == 1)
+            return SMuFLID::gClef8va;
+        else if (clef.octaveChange == -1)
+            return SMuFLID::gClef8vb;
     } else if (clef.sign == "F") {
-        return SMuFLID::FClef;
+        if (clef.octaveChange == 0)
+            return SMuFLID::fClef;
+        else if (clef.octaveChange == 1)
+            return SMuFLID::fClef8va;
+        else if (clef.octaveChange == -1)
+            return SMuFLID::fClef8vb;
     } else if (clef.sign == "C") {
-        return SMuFLID::CClef;
+        if (clef.octaveChange == 0)
+            return SMuFLID::cClef;
+        else if (clef.octaveChange == -1)
+            return SMuFLID::cClef8vb;
     } else if (clef.sign == "TAB") {
         if (staffLines == 6)
-            return SMuFLID::StringTabClef6;
+            return SMuFLID::stringTabClef6;
         else
-            return SMuFLID::StringTabClef4;
+            return SMuFLID::stringTabClef4;
     } else if (clef.sign == "percussion") {
         return SMuFLID::unpitchedPercussionClef1;
     }

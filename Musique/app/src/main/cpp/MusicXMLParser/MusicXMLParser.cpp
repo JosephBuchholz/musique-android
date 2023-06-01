@@ -1472,13 +1472,19 @@ void MusicXMLParser::ParseMusicXML(const std::string& data, std::string& error, 
                                 }
                             }
 
+                            if (currentInst->staves.size() >= 2)
+                            {
+                                currentInst->instrumentBracket = std::make_shared<InstrumentBracket>();
+                                currentInst->instrumentBracket->type = InstrumentBracket::InstrumentBracketType::Brace;
+                            }
+
                             // creating measures for each staff
                             for (int i = 0; i < currentInst->staves.size(); i++)
                             {
                                 std::shared_ptr<Measure> newMeasure = std::make_shared<Measure>();
                                 newMeasure->measureNumber = MeasureNumber(measureNumber);
                                 newMeasure->implicit = implicitMeasure;
-                                newMeasure->index = measureNumber - 1;
+                                newMeasure->index = measureIndex;
                                 newMeasure->staff = i+1;
                                 newMeasure->defaultMeasureWidth = measureWidth;
 
@@ -1652,7 +1658,7 @@ void MusicXMLParser::ParseMusicXML(const std::string& data, std::string& error, 
                                             if (line)
                                                 currentMeasures[staffNumber-1]->clef.line = ToInt(line->GetText());
 
-                                            currentMeasures[staffNumber-1]->clef.octaveChange = XMLHelper::GetIntValue("", clefElement, currentMeasures[staffNumber-1]->clef.octaveChange);
+                                            currentMeasures[staffNumber-1]->clef.octaveChange = XMLHelper::GetIntValue("clef-octave-change", clefElement, currentMeasures[staffNumber-1]->clef.octaveChange);
                                         }
                                         else // no more clefs
                                         {
@@ -1775,16 +1781,18 @@ void MusicXMLParser::ParseMusicXML(const std::string& data, std::string& error, 
                                             {
                                                 m->startsMultiMeasureRest = true;
                                                 m->isPartOfMultiMeasureRest = true;
-                                                m->useSymbolsForMultiMeasureRest = useSymbols;
-                                                m->numberOfMeasuresInMultiMeasureRest = numberOfMeasures;
+                                                m->multiMeasureRestSymbol = std::make_shared<MultiMeasureRestSymbol>();
+                                                m->multiMeasureRestSymbol->useSymbols = useSymbols;
+                                                m->multiMeasureRestSymbol->numberOfMeasures = numberOfMeasures;
                                             }
                                         }
                                         else // applies only to the specified staff
                                         {
                                             currentMeasures[staffNumber-1]->startsMultiMeasureRest = true;
                                             currentMeasures[staffNumber-1]->isPartOfMultiMeasureRest = true;
-                                            currentMeasures[staffNumber-1]->useSymbolsForMultiMeasureRest = useSymbols;
-                                            currentMeasures[staffNumber-1]->numberOfMeasuresInMultiMeasureRest = numberOfMeasures;
+                                            currentMeasures[staffNumber-1]->multiMeasureRestSymbol = std::make_shared<MultiMeasureRestSymbol>();
+                                            currentMeasures[staffNumber-1]->multiMeasureRestSymbol->useSymbols = useSymbols;
+                                            currentMeasures[staffNumber-1]->multiMeasureRestSymbol->numberOfMeasures = numberOfMeasures;
                                         }
                                     }
 
@@ -2046,10 +2054,11 @@ void MusicXMLParser::ParseMusicXML(const std::string& data, std::string& error, 
                         measureThatStartedMultiMeasureRest = 0;
                     }
                 }
-                else if (measure->startsMultiMeasureRest)
+
+                if (measure->startsMultiMeasureRest)
                 {
                     multiMeasureRest = true;
-                    numberOfMeasuresInMultiMeasureRest = measure->numberOfMeasuresInMultiMeasureRest;
+                    numberOfMeasuresInMultiMeasureRest = measure->multiMeasureRestSymbol->numberOfMeasures;
                     measureThatStartedMultiMeasureRest = measureIndex;
                 }
 
