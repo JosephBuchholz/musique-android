@@ -39,6 +39,10 @@ public:
         heavyBarlinePaint.strokeWidth = 6.6667f;
         heavyBarlinePaint.strokeCap = Paint::Cap::Butt;
 
+        staffLinePaint = Paint();
+        staffLinePaint.strokeWidth = DEFAULT_STAFF_LINE_WIDTH;
+        staffLinePaint.strokeCap = Paint::Cap::Butt;
+
         tabSlurPaint = Paint();
         tabSlurPaint.strokeWidth = 1.25f;
 
@@ -65,6 +69,8 @@ public:
     Paint noteBeamPaint;
     Paint barlinePaint;
     Paint heavyBarlinePaint;
+
+    Paint staffLinePaint;
 
     Paint tabSlurPaint;
     Paint tiePaint;

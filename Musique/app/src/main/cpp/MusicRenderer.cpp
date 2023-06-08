@@ -296,14 +296,16 @@ Vec2<float> MusicRenderer::RenderSystem(RenderData& renderData, std::shared_ptr<
 
                 // staff y position
                 float staffYPosition = 0.0f;
-                if (staffIndex == 0) {
+                if (staffIndex == 0)
+                {
                     staffYPosition = 0.0f;
-                } else if (staffIndex >= 1) {
-                    staffYPosition += staff->measures[startMeasure]->staffDistance +
-                                      instrument->staves[staffIndex - 1]->GetMiddleHeight(ls);
+                }
+                else if (staffIndex >= 1)
+                {
+                    staffYPosition += staff->measures[startMeasure]->staffDistance + instrument->staves[staffIndex - 1]->GetMiddleHeight(ls);
                 }
 
-                RenderLineOfMeasures(renderData, song, startMeasure, endMeasure, song->systems[systemIndex], staff, systemPosition.x, staffYPosition + instYPosition, ls, instrumentIndex == 0 && staffIndex == 0);
+                RenderLineOfMeasures(renderData, startMeasure, endMeasure, song->systems[systemIndex], staff, systemPosition.x, staffYPosition + instYPosition, ls, instrumentIndex == 0 && staffIndex == 0);
 
                 staffIndex++;
             } // staves loop
@@ -345,7 +347,7 @@ void MusicRenderer::RenderWithRenderData()
     }
 }
 
-void MusicRenderer::RenderLineOfMeasures(RenderData& renderData, std::shared_ptr<Song> song, unsigned int startMeasure, unsigned int endMeasure, const System& system, std::shared_ptr<Staff> staff, float systemPositionX, float staffPositionY, float lineSpacing, bool isTopMeasureLine)
+void MusicRenderer::RenderLineOfMeasures(RenderData& renderData, unsigned int startMeasure, unsigned int endMeasure, const System& system, std::shared_ptr<Staff> staff, float systemPositionX, float staffPositionY, float lineSpacing, bool isTopMeasureLine)
 {
     bool multiMeasureRest = false; // whether the measure is part of a multi measure rest
     unsigned int numberOfMeasuresInMultiMeasureRest = 0; // number of measures left in multi measure rest
@@ -360,8 +362,8 @@ void MusicRenderer::RenderLineOfMeasures(RenderData& renderData, std::shared_ptr
     int measureRenderCount = 15; // the number of measures that need to be rendered
     int currentMeasureRenderedCount = 0; // the number of measures that have been rendered
     bool isLastMeasureInSystem = false;
-    for (int m = (int)startMeasure; m <= endMeasure; m++) {
-
+    for (int m = (int)startMeasure; m <= endMeasure; m++)
+    {
         std::shared_ptr<Measure> measure = staff->measures[m];
 
         nextMeasurePositionX = measurePositionX + measure->measureWidth;
@@ -396,256 +398,20 @@ void MusicRenderer::RenderLineOfMeasures(RenderData& renderData, std::shared_ptr
         {
             if (measure->startsMultiMeasureRest)
             {
-                //measure->measureWidth = 80.0f;
                 multiMeasureRest = true;
                 numberOfMeasuresInMultiMeasureRest = measure->multiMeasureRestSymbol->numberOfMeasures;
                 measureThatStartedMultiMeasureRest = measureIndex;
-
-                measure->multiMeasureRestSymbol->Render(renderData, { measurePositionX, staffPositionY });
-
-                //RenderMultiMeasureRest(renderData, measure->multiMeasureRestSymbol->numberOfMeasures, measurePositionX, staffPositionY, measure->measureWidth, staff->lines, lineSpacing);
             }
 
-            // staff lines
-            Paint staffLinePaint = BarLinePaint;
-            staffLinePaint.strokeWidth = renderData.displayConstants.staffLineWidth;
-
-            for (int j = 0; j < staff->lines; j++) {
-                float endX = measurePositionX + measure->measureWidth;
-                std::shared_ptr<Line> line = renderData.AddLine(measurePositionX, (lineSpacing * (float)j) + staffPositionY, endX,(lineSpacing * (float)j) + staffPositionY, staffLinePaint);
-                //renderableSong.systems[systemIndex].instruments[instrumentIndex].staves[staffIndex].measures[measureIndex].staffLines.push_back(std::make_shared<Line>(0.0f, 0.0f, 0.0f, 1.0f));
-            }
-
-            //LOGV("barline count: %d, measure index: %d", measure->barlines.size(), measure->index);
-            RenderBarlines(renderData, measure->barlines, measurePositionX, staffPositionY, measure->measureWidth, staff->lines, lineSpacing, isTopMeasureLine);
-
-            auto measureDataItem = system.systemMeasureData.find(measure->index);
-
-            if (measureDataItem != system.systemMeasureData.end())
-            {
-                bool showTimeSignature = measure->showTimeSignature || (system.showBeginningTimeSignature && song->DoesMeasureStartNewSystem(measure->index));
-                measure->timeSignature.Render(renderData, showTimeSignature, measureDataItem->second.timeSignaturePositionX + measurePositionX, staffPositionY, lineSpacing, staff->lines);
-
-                bool showKeySignature = (measure->showKeySignature || (system.showBeginningKeySignature && song->DoesMeasureStartNewSystem(measure->index)));
-                measure->keySignature.Render(renderData, showKeySignature, measureDataItem->second.keySignaturePositionX + measurePositionX, lineSpacing, staff->lines, measure->clef, 0.0f, staffPositionY);
-
-                bool showSystemClef = (system.showBeginningClef && song->DoesMeasureStartNewSystem(measure->index));
-
-                float clefPositionX;
-                if (measure->clef.clefChanged)
-                {
-                    clefPositionX = measurePositionX - 28.0f;
-                }
-                else
-                {
-                    clefPositionX = measureDataItem->second.clefPositionX + measurePositionX;
-                }
-
-                measure->clef.Render(renderData, showSystemClef, clefPositionX, song->displayConstants, staff->lines, 0.0f, staffPositionY);
-            }
-
-            if (startMeasure == m && isTopMeasureLine && measure->measureNumber.GetNumber() != 1)
-            {
-                measure->measureNumber.Render(renderData, {measurePositionX, staffPositionY });
-            }
-
-            // render directions
-            for (const Direction& direction: measure->directions) {
-                float measurePositionY = staffPositionY;
-
-                direction.Render(renderData, { measurePositionX, measurePositionY });
-            }
-
-            if (measure->isMeasureRepeat && measure->measureRepeat != nullptr)
-            {
-                measure->measureRepeat->Render(renderData, { measurePositionX, staffPositionY });
-            }
-
-            if (!measure->startsMultiMeasureRest && !measure->isMeasureRepeat)
-            {
-                int noteIndex = 0;
-                for (auto note : measure->notes)
-                {
-                    if (!note->isChord)
-                        note->Render(renderData, staff->tablatureDisplayType, measure->CalculateNoteYPositionRelativeToMeasure(noteIndex), staff->lines, { measurePositionX, staffPositionY }, nextMeasurePositionX, measure->measureWidth, measureNumber, lineSpacing, { 0.0f, 0.0f }, noteIndex, isLastMeasureInSystem);
-                    noteIndex++;
-                }
-
-                noteIndex = 0;
-                for (auto noteChord : measure->noteChords)
-                {
-                    noteChord->Render(renderData, staff->tablatureDisplayType, measure->CalculateNoteYPositionRelativeToMeasure(noteIndex), staff->lines, { measurePositionX, staffPositionY }, nextMeasurePositionX, measure->measureWidth, measureNumber, lineSpacing, { 0.0f, 0.0f }, noteIndex, isLastMeasureInSystem, measure);
-                }
-
-                // rendering note beams
-                if (staff->tablatureDisplayType == TablatureDisplayType::Full || staff->type == Staff::StaffType::Standard)
-                {
-                    for (const BeamGroup &beamGroup: measure->beams)
-                    {
-                        beamGroup.Render(renderData, {measurePositionX, staffPositionY});
-                        /*for (const Beam& beam : beamGroup.beams)
-                        {
-                            if (beamGroup.notes.empty())
-                                break;
-
-                            if (beamGroup.notes[0] == nullptr)
-                            {
-                                LOGE("NOTE[0] IS NULL POINTER!!!!!");
-                                break;
-                            }
-
-                            float size;
-                            if (beamGroup.notes[0]->noteSize == NoteSize::Grace)
-                                size = renderData.displayConstants.graceNoteSize;
-                            else if (beamGroup.notes[0]->noteSize == NoteSize::Cue)
-                                size = renderData.displayConstants.cueNoteSize;
-                            else
-                                size = 1.0f;
-
-                            const float beamDistance = 8.0f * size;
-                            const float hookOffset = 10.0f * size;
-                            float beamYOffset = (beamDistance * float(beam.beamLevel-1));
-
-                            Paint paint = NoteBeamPaint;
-                            paint.strokeWidth *= size;
-
-                            if (beamGroup.isAboveNote)
-                            {
-                                beamYOffset = -beamYOffset;
-                            }
-
-                            if (beam.beamType == Beam::BeamType::Normal)
-                            {
-                                renderData.AddLine(std::make_shared<Line>(beam.beamStartPositionX + measurePositionX, beam.beamStartPositionY + staffPositionY - beamYOffset, beam.beamEndPositionX + measurePositionX, beam.beamEndPositionY + staffPositionY - beamYOffset, paint));
-                            }
-                            else if (beam.beamType == Beam::BeamType::ForwardHook)
-                            {
-                                renderData.AddLine(std::make_shared<Line>(beam.beamStartPositionX + measurePositionX, beam.beamStartPositionY + staffPositionY - beamYOffset, beam.beamStartPositionX + measurePositionX + hookOffset, beamGroup.GetPositionYOnBeam(beam.beamStartPositionX + hookOffset) + staffPositionY - beamYOffset, paint));
-                            }
-                            else if (beam.beamType == Beam::BeamType::BackwardHook)
-                            {
-                                renderData.AddLine(std::make_shared<Line>(beam.beamStartPositionX + measurePositionX, beam.beamStartPositionY + staffPositionY - beamYOffset, beam.beamStartPositionX + measurePositionX - hookOffset, beamGroup.GetPositionYOnBeam(beam.beamStartPositionX - hookOffset) + staffPositionY - beamYOffset, paint));
-                            }
-                        }*/
-                    }
-                }
-
-                // render all chords in this measure
-                for (Chord &chord : measure->chords) {
-                    chord.CalculateChordName();
-                    float measurePositionY = staffPositionY;
-                    chord.Render(renderData, measurePositionX, measurePositionY);
-                }
-
-                for (auto tuplet : measure->tuplets)
-                {
-                    float measurePositionY = staffPositionY;
-                    tuplet->Render(renderData, Vec2<float>(measurePositionX, measurePositionY));
-                }
-
-                for (auto arpeggio : measure->arpeggios)
-                {
-                    float measurePositionY = staffPositionY;
-                    float notePositionX = measurePositionX;
-                    if (arpeggio)
-                        arpeggio->Render(renderData, notePositionX, measurePositionY);
-                }
-
-                for (auto slur : measure->slurs)
-                {
-                    Vec2<float> startMeasurePosition = { measurePositionX, staffPositionY };
-                    Vec2<float> endMeasurePosition = { measurePositionX, staffPositionY };
-
-                    if (slur->startMeasureIndex != slur->endMeasureIndex)
-                    {
-                        endMeasurePosition.x = nextMeasurePositionX;
-                    }
-
-                    if (slur)
-                        slur->Render(renderData, startMeasurePosition, endMeasurePosition);
-                }
-            }
+            measure->Render(renderData, { measurePositionX, staffPositionY }, nextMeasurePositionX, system, staff->lines, lineSpacing, isTopMeasureLine, isLastMeasureInSystem, staff->tablatureDisplayType);
 
             currentMeasureRenderedCount++;
         }
+
         measurePositionX = nextMeasurePositionX;
         measureNumber++;
         measureIndex++;
     } // measures loop
-}
-
-void MusicRenderer::RenderMultiMeasureRest(RenderData& renderData, unsigned int measureRestCount, float measurePositionX, float measurePositionY, float measureWidth, int lineCount, float lineSpacing)
-{
-    int spaces = lineCount - 1;
-    float hBarYPosition = (lineSpacing * ((float)spaces/2.0f)) + measurePositionY; // the middle of staff
-
-    float hBarSideMargin = 8.0f;
-    float hBarPositionX = measurePositionX + hBarSideMargin;
-    float hBarWidth = measureWidth - (hBarSideMargin * 2.0f);
-    float hBarMidThickness = 8.0f;
-
-    float hBarTotalHeight = 20.0f;
-    float hBarOutsideLineThickness = 1.75f;
-
-    Paint midLinePaint = Paint();
-    midLinePaint.strokeWidth = hBarMidThickness;
-    midLinePaint.strokeCap = Paint::Cap::Butt;
-
-    // middle line
-    renderData.AddLine(hBarPositionX,  hBarYPosition, hBarPositionX + hBarWidth,hBarYPosition, midLinePaint);
-
-    Paint sideLinePaint = Paint();
-    sideLinePaint.strokeWidth = hBarOutsideLineThickness;
-    sideLinePaint.strokeCap = Paint::Cap::Butt;
-
-    // side lines
-    renderData.AddLine(hBarPositionX, hBarYPosition - (hBarTotalHeight/2.0f), hBarPositionX,hBarYPosition + (hBarTotalHeight/2.0f), sideLinePaint);
-    renderData.AddLine(hBarPositionX + hBarWidth, hBarYPosition - (hBarTotalHeight/2.0f), hBarPositionX + hBarWidth,hBarYPosition + (hBarTotalHeight/2.0f), sideLinePaint);
-
-    // render digits above
-
-    std::string numberString = ToString(measureRestCount);
-    float timeDigitWidth = 16.0f;
-    float totalWidth = timeDigitWidth * (float)numberString.length();
-    float startPositionX = ((measureWidth / 2.0f) - (totalWidth / 2.0f)) + measurePositionX;
-
-    float positionY = measurePositionY - 20.0f;
-
-    for (const char& c : numberString)
-    {
-        SMuFLID glyphID = GetTimeSignatureSMuFLID(ToInt(c));
-        //LOGE("C: %c, value: %d, numMeasures: %d, string: %s", c, ToInt(c), measureRestCount, numberString.c_str());
-
-        renderData.AddGlyph(SMuFLGlyph(glyphID, startPositionX, positionY, Paint(0xff000000)));
-
-        startPositionX += timeDigitWidth;
-    }
-}
-
-void MusicRenderer::RenderBarlines(RenderData& renderData, const std::vector<Barline>& barlines, float measurePositionX, float measurePositionY, float measureWidth, int lineCount, float lineSpacing, bool isTopStaff)
-{
-    float measureHeight = (lineSpacing * float(lineCount - 1));
-    float barlineLeftPositionX = measurePositionX;
-    float barlineRightPositionX = measurePositionX + measureWidth;
-    float barlinePositionYTop = measurePositionY;
-    float barlinePositionYBottom = measurePositionY + measureHeight;
-
-    bool renderedRightBarline = false;
-
-    for (const auto& barline : barlines)
-    {
-        if (barline.location == Barline::Location::Right)
-            renderedRightBarline = true;
-
-        barline.Render(renderData, { measurePositionX, measurePositionY }, measureHeight, lineSpacing, lineCount, isTopStaff);
-    }
-
-    if (!renderedRightBarline)
-        renderData.AddLine(std::make_shared<Line>(barlineRightPositionX, barlinePositionYTop, barlineRightPositionX, barlinePositionYBottom, renderData.paints.barlinePaint));
-
-    // debug lines
-    //renderData.AddLine(std::make_shared<Line>(barlineRightPositionX, barlinePositionYTop, barlineRightPositionX, barlinePositionYBottom, Paint(0xFFFF00FF)));
-    //renderData.AddLine(std::make_shared<Line>(barlineLeftPositionX, barlinePositionYTop, barlineLeftPositionX, barlinePositionYBottom, Paint(0xFFFF00FF)));
 }
 
 void MusicRenderer::RenderCredits(RenderData& renderData, std::shared_ptr<Song> song, const MusicDisplayConstants& displayConstants, const std::vector<Credit>& credits, float pageX, float pageY)

@@ -1,5 +1,7 @@
 #include "Measure.h"
+
 #include "../../RenderMeasurement.h"
+#include "../../Exceptions/Exceptions.h"
 
 float Measure::GetMiddleHeight(float staffLineCount, float lineSpacing)
 {
@@ -14,6 +16,168 @@ float Measure::GetAboveHeight(float staffLineCount, float lineSpacing)
 float Measure::GetBelowHeight(float staffLineCount, float lineSpacing)
 {
     return 50.0f;
+}
+
+void Measure::Render(RenderData& renderData, Vec2<float> measurePosition, float nextMeasurePositionX, const System& system, int staffLineCount, float staffLineSpacing, bool isTopMeasureLine, bool isLastMeasureInSystem, TablatureDisplayType tablatureDisplayType) const
+{
+    if (startsMultiMeasureRest)
+    {
+        multiMeasureRestSymbol->Render(renderData, measurePosition);
+    }
+
+    RenderStaffLines(renderData, measurePosition, staffLineCount, staffLineSpacing);
+
+    RenderBarlines(renderData, measurePosition.x, measurePosition.y, measureWidth, staffLineCount, staffLineSpacing, isTopMeasureLine);
+
+    RenderMeasureBeginning(renderData, measurePosition, system, staffLineCount, staffLineSpacing, isTopMeasureLine);
+
+    // render directions
+    if (!isMeasureRepeat)
+    {
+        for (const Direction& direction : directions)
+        {
+            direction.Render(renderData, measurePosition);
+        }
+    }
+
+    if (isMeasureRepeat && measureRepeat != nullptr)
+    {
+        measureRepeat->Render(renderData, measurePosition);
+    }
+
+    if (!startsMultiMeasureRest && !isMeasureRepeat)
+    {
+        int noteIndex = 0;
+        for (auto note : notes)
+        {
+            if (!note->isChord)
+                note->Render(renderData, tablatureDisplayType, CalculateNoteYPositionRelativeToMeasure(noteIndex), staffLineCount, measurePosition, nextMeasurePositionX, measureWidth, index, staffLineSpacing, { 0.0f, 0.0f }, noteIndex, isLastMeasureInSystem);
+            noteIndex++;
+        }
+
+        noteIndex = 0;
+        for (auto noteChord : noteChords)
+        {
+            if (noteChord->notes.empty())
+                throw IsEmptyException();
+            float rootNotePositionYRelativeToMeasure = CalculateNoteYPositionRelativeToMeasure(noteChord->notes[0]);
+            float topNotePositionYRelativeToMeasure = CalculateNoteYPositionRelativeToMeasure(noteChord->notes[noteChord->notes.size()-1]);
+            noteChord->Render(renderData, tablatureDisplayType, rootNotePositionYRelativeToMeasure, topNotePositionYRelativeToMeasure, staffLineCount, measurePosition, nextMeasurePositionX, measureWidth, index, staffLineSpacing, { 0.0f, 0.0f }, noteIndex, isLastMeasureInSystem);
+        }
+
+        // rendering note beams
+        if (tablatureDisplayType == TablatureDisplayType::Full || type == Measure::MeasureType::Standard)
+        {
+            for (const BeamGroup &beamGroup : beams)
+            {
+                beamGroup.Render(renderData, measurePosition);
+            }
+        }
+
+        // render all chords in this measure
+        for (const Chord& chord : chords)
+        {
+            chord.Render(renderData, measurePosition.x, measurePosition.y);
+        }
+
+        for (auto tuplet : tuplets)
+        {
+            tuplet->Render(renderData, measurePosition);
+        }
+
+        for (auto arpeggio : arpeggios)
+        {
+            float notePositionX = measurePosition.x;
+            if (arpeggio)
+                arpeggio->Render(renderData, notePositionX, measurePosition.y);
+        }
+
+        for (auto slur : slurs)
+        {
+            Vec2<float> startMeasurePosition = measurePosition;
+            Vec2<float> endMeasurePosition = measurePosition;
+
+            if (slur->startMeasureIndex != slur->endMeasureIndex)
+            {
+                endMeasurePosition.x = nextMeasurePositionX;
+            }
+
+            if (slur)
+                slur->Render(renderData, startMeasurePosition, endMeasurePosition);
+        }
+    }
+}
+
+void Measure::RenderStaffLines(RenderData& renderData, Vec2<float> measurePosition, int staffLineCount, float staffLineSpacing) const
+{
+    // staff lines
+    Paint staffLinePaint = renderData.paints.barlinePaint;
+    staffLinePaint.strokeWidth = renderData.displayConstants.staffLineWidth;
+
+    for (int j = 0; j < staffLineCount; j++)
+    {
+        float endX = measurePosition.x + measureWidth;
+        std::shared_ptr<Line> line = renderData.AddLine(measurePosition.x, (staffLineSpacing * (float)j) + measurePosition.y, endX, (staffLineSpacing * (float)j) + measurePosition.y, staffLinePaint);
+    }
+}
+
+void Measure::RenderMeasureBeginning(RenderData& renderData, Vec2<float> measurePosition, const System& system, int staffLineCount, float staffLineSpacing, bool isTopMeasureLine) const
+{
+    auto measureDataItem = system.systemMeasureData.find(index);
+
+    if (measureDataItem != system.systemMeasureData.end())
+    {
+        bool displayTimeSignature = showTimeSignature || (system.showBeginningTimeSignature && startNewSystem);
+        timeSignature.Render(renderData, displayTimeSignature, measureDataItem->second.timeSignaturePositionX + measurePosition.x, measurePosition.y, staffLineSpacing, staffLineCount);
+
+        bool displayKeySignature = (showKeySignature || (system.showBeginningKeySignature && startNewSystem));
+        keySignature.Render(renderData, displayKeySignature, measureDataItem->second.keySignaturePositionX + measurePosition.x, staffLineSpacing, staffLineCount, clef, 0.0f, measurePosition.y);
+
+        bool showSystemClef = (system.showBeginningClef && startNewSystem);
+
+        float clefPositionX;
+        if (clef.clefChanged)
+        {
+            clefPositionX = measurePosition.x - 28.0f;
+        }
+        else
+        {
+            clefPositionX = measureDataItem->second.clefPositionX + measurePosition.x;
+        }
+
+        clef.Render(renderData, showSystemClef, clefPositionX, renderData.displayConstants, staffLineCount, 0.0f, measurePosition.y);
+    }
+
+    if (startNewSystem && isTopMeasureLine && measureNumber.GetNumber() != 1)
+    {
+        measureNumber.Render(renderData, measurePosition);
+    }
+}
+
+void Measure::RenderBarlines(RenderData& renderData, float measurePositionX, float measurePositionY, float measureWidth, int lineCount, float lineSpacing, bool isTopStaff) const
+{
+    float measureHeight = (lineSpacing * float(lineCount - 1));
+    float barlineLeftPositionX = measurePositionX;
+    float barlineRightPositionX = measurePositionX + measureWidth;
+    float barlinePositionYTop = measurePositionY;
+    float barlinePositionYBottom = measurePositionY + measureHeight;
+
+    bool renderedRightBarline = false;
+
+    for (const auto& barline : barlines)
+    {
+        if (barline.location == Barline::Location::Right)
+            renderedRightBarline = true;
+
+        barline.Render(renderData, { measurePositionX, measurePositionY }, measureHeight, lineSpacing, lineCount, isTopStaff);
+    }
+
+    if (!renderedRightBarline)
+        renderData.AddLine(std::make_shared<Line>(barlineRightPositionX, barlinePositionYTop, barlineRightPositionX, barlinePositionYBottom, renderData.paints.barlinePaint));
+
+    // debug lines
+    //renderData.AddLine(std::make_shared<Line>(barlineRightPositionX, barlinePositionYTop, barlineRightPositionX, barlinePositionYBottom, Paint(0xFFFF00FF)));
+    //renderData.AddLine(std::make_shared<Line>(barlineLeftPositionX, barlinePositionYTop, barlineLeftPositionX, barlinePositionYBottom, Paint(0xFFFF00FF)));
 }
 
 float Measure::GetTotalHeight(float staffLineCount, float lineSpacing)
@@ -306,6 +470,11 @@ void Measure::CalculateAsPaged(const MusicDisplayConstants& displayConstants, Sy
         }
 
         barline.CalculateAsPaged(displayConstants, measureWidth, repeatBarlineOffset);
+    }
+
+    for (auto& chord : chords)
+    {
+        chord.CalculateChordName();
     }
 }
 

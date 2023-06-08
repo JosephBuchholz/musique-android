@@ -1023,7 +1023,7 @@ void NoteElementParser::ParseGlissandoSlideElement(XMLElement* element, std::sha
         if (!glissSlide->text.empty())
             glissSlide->displayText = true;
 
-        currentNote->glissSlide = glissSlide;
+        currentNote->glissSlides.push_back(glissSlide);
 
         if (glissSlideType == GlissandoSlide::Type::Glissando)
             currentGlissandos[number] = glissSlide;
@@ -1046,6 +1046,8 @@ void NoteElementParser::ParseGlissandoSlideElement(XMLElement* element, std::sha
 
         glissSlide->defaultPositionEnd = XMLHelper::GetFloatVec2Attribute(element, "default-x", "default-y", glissSlide->defaultPositionEnd);
         glissSlide->relativePositionEnd = XMLHelper::GetFloatVec2Attribute(element, "relative-x", "relative-y", glissSlide->relativePositionEnd);
+
+        currentNote->glissSlides.push_back(glissSlide);
 
         if (glissSlideType == GlissandoSlide::Type::Glissando)
             currentGlissandos.erase(number);

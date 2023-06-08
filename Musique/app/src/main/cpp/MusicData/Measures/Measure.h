@@ -58,6 +58,8 @@ public:
     float GetTimeSignaturePositionInMeasure(const System& system, float keySignaturePositionX) const;
     float GetClefPositionInMeasure(const System& system) const;
 
+    void Render(RenderData& renderData, Vec2<float> measurePosition, float nextMeasurePositionX, const System& system, int staffLineCount, float staffLineSpacing, bool isTopMeasureLine, bool isLastMeasureInSystem, TablatureDisplayType tablatureDisplayType) const;
+
     /**
      * Renders any debug info.
      *
@@ -96,6 +98,10 @@ private:
     float MeausreClefWidth() const;
     float MeausreKeySignatureWidth() const;
     float MeausreTimeSignatureWidth() const;
+
+    void RenderBarlines(RenderData& renderData, float measurePositionX, float measurePositionY, float measureWidth, int lineCount, float lineSpacing, bool isTopStaff) const;
+    void RenderMeasureBeginning(RenderData& renderData, Vec2<float> measurePosition, const System& system, int staffLineCount, float staffLineSpacing, bool isTopMeasureLine) const;
+    void RenderStaffLines(RenderData& renderData, Vec2<float> measurePosition, int staffLineCount, float staffLineSpacing) const;
 
 public:
 

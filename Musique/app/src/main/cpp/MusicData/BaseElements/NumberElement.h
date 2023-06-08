@@ -17,7 +17,7 @@ public:
     NumberElement(int number = 0);
 
     void SetNumber(int number) { this->number = number; displayNumber = ToString(number); };
-    int GetNumber() { return number; }
+    int GetNumber() const { return number; }
 
 protected:
 

@@ -18,16 +18,16 @@ class NoteTie;
  */
 class NoteTie : public VisibleElement, public LineElement
 {
-    friend class Note;
     friend class MusicXMLParser;
 
 public:
 
-    void Render(RenderData& renderData, Vec2<float> startNotePosition, Vec2<float> endNotePosition, Vec2<float> offset = { 0.0f, 0.0f }) const;
-
-protected:
+    void Render(RenderData& renderData, Vec2<float> startNotePosition, Vec2<float> endNotePosition, bool isFirstNote, Vec2<float> offset = { 0.0f, 0.0f }) const;
 
     void CalculatePositionAsPaged(const MusicDisplayConstants& displayConstants, Vec2<float> defPositionStart, Vec2<float> defPositionEnd, bool isNoteChord);
+
+private:
+    void RenderCurve(RenderData& renderData, Vec2<float> startPosition, Vec2<float> endPosition) const;
 
 public:
 

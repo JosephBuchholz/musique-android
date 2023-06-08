@@ -612,6 +612,28 @@ void Song::OnUpdate()
                                 note->position.x = measure->measureWidth / 2.0f;
                             }
                         }
+
+                        if (note->tie)
+                        {
+                            if (note->tie->notes.second == note) // the second note of tie
+                            {
+                                if (measure->startNewSystem && note->tie->notes.first->measureIndex != note->tie->notes.second->measureIndex) // the notes of the tie are on different systems
+                                {
+                                    note->tie->isBroken = true;
+                                }
+                            }
+                        }
+
+                        for (auto glissSlide : note->glissSlides)
+                        {
+                            if (glissSlide->notes.second == note) // the second note
+                            {
+                                if (measure->startNewSystem && glissSlide->notes.first->measureIndex != glissSlide->notes.second->measureIndex) // the notes are on different systems
+                                {
+                                    glissSlide->isBroken = true;
+                                }
+                            }
+                        }
                     }
 
 
@@ -681,19 +703,13 @@ void Song::OnUpdate()
                             {
                                 smallestStemHeight = std::abs(stemHeight);
                             }
-
-                            LOGW("smallestStemHeight: %f, stemHeight: %f", smallestStemHeight, stemHeight);
                         }
-
-                        LOGE("smallestStemHeight: %f", smallestStemHeight);
 
                         if (smallestStemHeight < displayConstants.minNoteStemHeight) // stems need to be longer
                         {
                             float heightOffset = displayConstants.minNoteStemHeight - smallestStemHeight; // how much to offset the beam
                             heightOffset *= direction;
                             heightOffset += 20.0f * direction; // TODO: temp
-
-                            LOGV("heightOffset: %f", heightOffset);
 
                             beamGroup.beamStartPosition.y += heightOffset;
                             beamGroup.beamEndPosition.y += heightOffset;

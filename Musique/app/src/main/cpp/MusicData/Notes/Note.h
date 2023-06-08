@@ -111,10 +111,10 @@ public:
     std::vector<std::shared_ptr<Ornament>> ornaments;
 
     std::shared_ptr<Fermata> fermata;
-    std::shared_ptr<GlissandoSlide> glissSlide;
+    std::vector<std::shared_ptr<GlissandoSlide>> glissSlides; // including incoming and outgoing slides
     std::shared_ptr<TremoloSingle> tremoloSingle;
 
-    std::shared_ptr<NoteTie> tie;
+    std::shared_ptr<NoteTie> tie; // TODO: should be vector (to include incoming and outgoing ties)
 
     int staff = 1;
     int voice = 1;

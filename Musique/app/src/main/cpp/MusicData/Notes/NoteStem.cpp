@@ -5,12 +5,16 @@ void NoteStem::Render(RenderData& renderData, Vec2<float> notePosition, std::sha
     // note stem
     if (stemType != NoteStem::StemType::None)
     {
-        renderData.AddLine(std::make_shared<Line>(notePosition.x + stemPositionX, notePosition.y + stemStartY, notePosition.x + stemPositionX, notePosition.y + stemEndY, renderData.paints.noteStemPaint));
+        Paint linePaint = renderData.paints.noteStemPaint;
+        VisibleElement::ModifyPaint(linePaint);
+
+        float lineX = notePosition.x + stemPositionX + offset.x;
+        renderData.AddLine(std::make_shared<Line>(lineX, notePosition.y + stemStartY, lineX, notePosition.y + stemEndY, linePaint));
 
         if (tremoloSingle)
         {
             float mid = ((notePosition.y + stemEndY) - (notePosition.y + stemStartY)) / 2.0f;
-            tremoloSingle->Render(renderData, { notePosition.x + stemPositionX, notePosition.y + stemStartY + mid });
+            tremoloSingle->Render(renderData, { lineX, notePosition.y + stemStartY + mid });
         }
     }
 

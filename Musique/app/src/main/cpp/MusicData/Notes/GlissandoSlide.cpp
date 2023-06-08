@@ -9,23 +9,32 @@ void GlissandoSlide::UpdateBoundingBox(const Vec2<float>& parentPositionCenter)
 #endif
 }
 
-void GlissandoSlide::Render(RenderData& renderData, Vec2<float> startNotePosition, Vec2<float> endNotePosition, Vec2<float> offset) const
+void GlissandoSlide::Render(RenderData& renderData, Vec2<float> startNotePosition, Vec2<float> endNotePosition, bool isFirstNote, Vec2<float> offset) const
 {
-    Paint linePaint;
-    VisibleElement::ModifyPaint(linePaint);
-    LineElement::ModifyPaint(linePaint);
-    linePaint.strokeWidth = 1.6f;
-
-    if (lineType == LineType::Wavy)
+    LOGE("gliss is broken: %d", isBroken);
+    if (isFirstNote && !isBroken) // not broken
     {
-        complexLine->positionStart = positionStart + startNotePosition + offset;
-        complexLine->positionEnd = positionEnd + endNotePosition + offset;
-
-        complexLine->Render(renderData, { 0.0f, 0.0f });
+        RenderLine(renderData, positionStart + startNotePosition + offset, positionEnd + endNotePosition + offset);
     }
-    else
+    else if (isFirstNote && isBroken) // the first part of the broken gliss/slide
     {
-        renderData.AddLine(std::make_shared<Line>(positionStart.x + startNotePosition.x + offset.x, positionStart.y + startNotePosition.y + offset.y, positionEnd.x + endNotePosition.x + offset.x, positionEnd.y + endNotePosition.y + offset.y, linePaint));
+        Vec2<float> startPos = startNotePosition + positionStart + offset;
+        Vec2<float> endPos;
+        endPos.x = startNotePosition.x + positionStart.x + offset.x;
+        endPos.y = startNotePosition.y + positionEnd.y + offset.y;
+        endPos.x += 15.0f;
+
+        RenderLine(renderData, startPos, endPos);
+    }
+    else if (!isFirstNote && isBroken) // the second part of the broken gliss/slide
+    {
+        Vec2<float> startPos;
+        startPos.x = startNotePosition.x + positionEnd.x + offset.x;
+        startPos.y = startNotePosition.y + positionStart.y + offset.y;
+        startPos.x -= 15.0f;
+        Vec2<float> endPos = startNotePosition + positionEnd + offset;
+
+        RenderLine(renderData, startPos, endPos);
     }
 
     return; // TODO: finnish display text
@@ -120,5 +129,25 @@ void GlissandoSlide::CalculatePositionAsPaged(const MusicDisplayConstants& displ
 
         complexLine->positionStart = positionStart;
         complexLine->positionEnd = positionEnd;
+    }
+}
+
+void GlissandoSlide::RenderLine(RenderData& renderData, Vec2<float> startPosition, Vec2<float> endPosition) const
+{
+    Paint linePaint;
+    VisibleElement::ModifyPaint(linePaint);
+    LineElement::ModifyPaint(linePaint);
+    linePaint.strokeWidth = 1.6f;
+
+    if (lineType == LineType::Wavy)
+    {
+        complexLine->positionStart = startPosition;
+        complexLine->positionEnd = endPosition;
+
+        complexLine->Render(renderData, { 0.0f, 0.0f });
+    }
+    else
+    {
+        renderData.AddLine(std::make_shared<Line>(startPosition.x, startPosition.y, endPosition.x, endPosition.y, linePaint));
     }
 }

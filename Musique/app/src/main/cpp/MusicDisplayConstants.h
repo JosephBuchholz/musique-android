@@ -3,6 +3,8 @@
 
 #include "MusicData/System.h"
 
+#define DEFAULT_STAFF_LINE_WIDTH 0.8333f
+
 struct Scaling
 {
     float millimeters;
@@ -30,7 +32,7 @@ struct MusicDisplayConstants
 
     float stemLineWidth = 1.25f;
     float beamLineWidth = 5.0f;
-    float staffLineWidth = 0.8333f;
+    float staffLineWidth = DEFAULT_STAFF_LINE_WIDTH;
     float lightBarLineWidth = 2.0833f;
     float heavyBarLineWidth = 6.6667f;
     float legerLineWidth = 1.25f;

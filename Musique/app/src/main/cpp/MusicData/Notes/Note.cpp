@@ -104,9 +104,9 @@ void Note::Render(RenderData& renderData, TablatureDisplayType tabDisplayType, f
         fermata->Render(renderData, {position.x + measurePosition.x + centerOffset, measurePosition.y});
     }
 
-    if (glissSlide)
+    for (auto glissSlide : glissSlides)
     {
-        if (glissSlide->notes.first.get() == this && glissSlide->notes.second != nullptr)
+        if (glissSlide->notes.first.get() == this && glissSlide->notes.second != nullptr) // this note is the start of glissSlide
         {
             // TODO: fix: currently assuming that the gliss is only contained in a single measure
 
@@ -120,14 +120,24 @@ void Note::Render(RenderData& renderData, TablatureDisplayType tabDisplayType, f
             if (type == NoteType::Standard)
             {
                 glissSlide->Render(renderData, {position.x + measurePosition.x + (noteHead.GetNoteHeadWidth(renderData.displayConstants) / 2.0f), position.y + measurePosition.y },
-                                   { glissSlide->notes.second->position.x + otherNoteMeasurePosition.x + (glissSlide->notes.second->noteHead.GetNoteHeadWidth(renderData.displayConstants) / 2.0f), glissSlide->notes.second->position.y + otherNoteMeasurePosition.y });
+                                   { glissSlide->notes.second->position.x + otherNoteMeasurePosition.x + (glissSlide->notes.second->noteHead.GetNoteHeadWidth(renderData.displayConstants) / 2.0f), glissSlide->notes.second->position.y + otherNoteMeasurePosition.y }, true);
             }
             else
             {
-                glissSlide->Render(renderData, {position.x + measurePosition.x, position.y + measurePosition.y }, { glissSlide->notes.second->position.x + otherNoteMeasurePosition.x, glissSlide->notes.second->position.y + otherNoteMeasurePosition.y });
+                glissSlide->Render(renderData, {position.x + measurePosition.x, position.y + measurePosition.y }, { glissSlide->notes.second->position.x + otherNoteMeasurePosition.x, glissSlide->notes.second->position.y + otherNoteMeasurePosition.y }, true);
             }
 
             //glissSlide->Render(renderData, {position.x + measurePosition.x, position.y + measurePosition.y }, { glissSlide->notes.second->position.x + measurePosition.x, glissSlide->notes.second->position.y + measurePosition.y });
+        }
+        else if (glissSlide->notes.second.get() == this && glissSlide->notes.first != nullptr) // if this note is the end of the glissSlide
+        {
+            if (glissSlide->isBroken)
+            {
+                // render the "second" (broken) glissSlide
+                Vec2<float> startNotePosition = measurePosition + GetCenterPosition(renderData.displayConstants);
+
+                glissSlide->Render(renderData, startNotePosition, { 0.0f, 0.0f }, false);
+            }
         }
     }
 
@@ -144,7 +154,17 @@ void Note::Render(RenderData& renderData, TablatureDisplayType tabDisplayType, f
             }
             Vec2<float> endNotePosition = otherNoteMeasurePosition + tie->notes.second->GetCenterPosition(renderData.displayConstants);
 
-            tie->Render(renderData, startNotePosition, endNotePosition);
+            tie->Render(renderData, startNotePosition, endNotePosition, true);
+        }
+        else if (tie->notes.second.get() == this && tie->notes.first != nullptr) // if this note is the end of the tie
+        {
+            if (tie->isBroken)
+            {
+                // render the "second" (broken) tie
+                Vec2<float> startNotePosition = measurePosition + GetCenterPosition(renderData.displayConstants);
+
+                tie->Render(renderData, startNotePosition, { 0.0f, 0.0f }, false);
+            }
         }
     }
 
@@ -160,7 +180,7 @@ void Note::RenderDebug(RenderData& renderData) const
     if (fermata)
         fermata->RenderDebug(renderData);
 
-    if (glissSlide)
+    for (auto glissSlide : glissSlides)
     {
         if (glissSlide->notes.first.get() == this)
             glissSlide->RenderDebug(renderData);
@@ -486,16 +506,19 @@ void Note::CalculatePositionAsPaged(const MusicDisplayConstants& displayConstant
         float notePositionX = 0.0f;
         float notePositionY = 0.0f;
 
-        float stemStokeWidth = 0.8333f * size;
+        float stemStokeWidth = displayConstants.stemLineWidth * size;
 
         float stemLength = 30.0f * size;
-        if (noteStem->stemType == NoteStem::StemType::Up) {
-            noteStem->stemPositionX = notePositionX + noteWidth - stemStokeWidth / 2.0f;
+        if (noteStem->stemType == NoteStem::StemType::Up)
+        {
+            noteStem->stemPositionX = notePositionX + noteWidth - stemStokeWidth;
 
             noteStem->stemStartY = notePositionY;
             noteStem->stemEndY = notePositionY - stemLength;
-        } else if (noteStem->stemType == NoteStem::StemType::Down) {
-            noteStem->stemPositionX = notePositionX + stemStokeWidth / 2.0f;
+        }
+        else if (noteStem->stemType == NoteStem::StemType::Down)
+        {
+            noteStem->stemPositionX = notePositionX + stemStokeWidth;
 
             noteStem->stemStartY = notePositionY;
             noteStem->stemEndY = notePositionY + stemLength;
@@ -531,7 +554,7 @@ void Note::CalculatePositionAsPaged(const MusicDisplayConstants& displayConstant
     if (tremoloSingle)
         tremoloSingle->CalculatePositionAsPaged(displayConstants);
 
-    if (glissSlide)
+    for (auto glissSlide : glissSlides)
     {
         if (glissSlide->notes.first.get() == this)
         {
@@ -589,7 +612,7 @@ void Note::UpdateBoundingBox(const MusicDisplayConstants& displayConstants, cons
     if (fermata)
         fermata->UpdateBoundingBox({ position.x + parentPosition.x, parentPosition.y });
 
-    if (glissSlide)
+    for (auto glissSlide : glissSlides)
     {
         if (glissSlide->notes.first.get() == this)
         {

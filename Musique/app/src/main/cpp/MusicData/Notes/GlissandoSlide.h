@@ -20,7 +20,6 @@ class GlissandoSlide;
 class GlissandoSlide : public TextualElement, public LineElement
 {
     friend class NoteElementParser;
-    friend class Note;
 
 public:
 
@@ -31,7 +30,7 @@ public:
      */
     void UpdateBoundingBox(const Vec2<float>& parentPositionCenter);
 
-    void Render(RenderData& renderData, Vec2<float> startNotePosition, Vec2<float> endNotePosition, Vec2<float> offset = { 0.0f, 0.0f }) const;
+    void Render(RenderData& renderData, Vec2<float> startNotePosition, Vec2<float> endNotePosition, bool isFirstNote, Vec2<float> offset = { 0.0f, 0.0f }) const;
 
     /**
      * Renders any debug info.
@@ -40,9 +39,10 @@ public:
      */
     void RenderDebug(RenderData& renderData) const;
 
-protected:
-
     void CalculatePositionAsPaged(const MusicDisplayConstants& displayConstants, Vec2<float> defPositionStart, Vec2<float> defPositionEnd, bool isTab);
+
+private:
+    void RenderLine(RenderData& renderData, Vec2<float> startPosition, Vec2<float> endPosition) const;
 
 public:
 

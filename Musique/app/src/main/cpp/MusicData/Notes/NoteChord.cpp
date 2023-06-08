@@ -2,7 +2,7 @@
 
 #include "../../Exceptions/Exceptions.h"
 
-void NoteChord::Render(RenderData& renderData, TablatureDisplayType tabDisplayType, float notePositionRelativeToMeasure, int lines, Vec2<float> measurePosition, float nextMeasurePositionX, float measureWidth, int measureNumber, float ls, Vec2<float> mainPosition, int noteIndex, bool isLastMeasureInSystem, std::shared_ptr<Measure> measure, Vec2<float> offset) const
+void NoteChord::Render(RenderData& renderData, TablatureDisplayType tabDisplayType, float rootNotePositionYRelativeToMeasure, float topNotePositionYRelativeToMeasure, int lines, Vec2<float> measurePosition, float nextMeasurePositionX, float measureWidth, int measureNumber, float ls, Vec2<float> mainPosition, int noteIndex, bool isLastMeasureInSystem, Vec2<float> offset) const
 {
     if (notes.empty())
         throw IsEmptyException();
@@ -17,7 +17,7 @@ void NoteChord::Render(RenderData& renderData, TablatureDisplayType tabDisplayTy
 
     for (auto note : notes)
     {
-        note->Render(renderData, tabDisplayType, notePositionRelativeToMeasure, lines, measurePosition, nextMeasurePositionX, measureWidth, measureNumber, ls, mainPosition, noteIndex, isLastMeasureInSystem, offset);
+        note->Render(renderData, tabDisplayType, 0.0f, lines, measurePosition, nextMeasurePositionX, measureWidth, measureNumber, ls, mainPosition, noteIndex, isLastMeasureInSystem, offset);
     }
 
     // rhythm notation
@@ -32,9 +32,6 @@ void NoteChord::Render(RenderData& renderData, TablatureDisplayType tabDisplayTy
     Paint ledgerLinePaint;
     ledgerLinePaint.strokeWidth = renderData.displayConstants.legerLineWidth;
     ledgerLinePaint.strokeCap = Paint::Cap::Butt;
-
-    float rootNotePositionYRelativeToMeasure = measure->CalculateNoteYPositionRelativeToMeasure(rootNote);
-    float topNotePositionYRelativeToMeasure = measure->CalculateNoteYPositionRelativeToMeasure(topNote);
 
     // ledger lines
     float ledgerLineMargin = renderData.displayConstants.ledgerLineMargin * rootNote->size;
