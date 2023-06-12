@@ -37,7 +37,10 @@ public:
      */
     void UpdateBoundingBox(const Vec2<float> &parentPosition);
 
+    void Move(Vec2<float> positionOffset, Vec2<float> sizeOffset = { 0.0f, 0.0f }, float rotationOffset = 0.0f) override;
+
     void CalculatePositionAsPaged(const MusicDisplayConstants& displayConstants, float defaultX, float defaultY);
+
 
 public:
     String text;

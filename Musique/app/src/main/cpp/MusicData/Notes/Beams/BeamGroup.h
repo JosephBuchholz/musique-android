@@ -44,8 +44,6 @@ public:
     Vec2<float> beamStartPosition = { 0.0f, 0.0f };
     Vec2<float> beamEndPosition = { 0.0f, 0.0f };
 
-    float size = 1.0f;
-
     bool isAboveNote = false;
 };
 

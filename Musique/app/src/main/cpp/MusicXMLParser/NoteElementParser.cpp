@@ -429,7 +429,10 @@ void NoteElementParser::ParseNoteElement(XMLElement* noteElement, float& current
     }
 
     currentNote->measureIndex = measureNumber - 1;
-    currentMeasures[currentNote->staff - 1]->notes.push_back(currentNote);
+    if (!currentNote->isChord) // only add the note if it is not in a note chord
+    {
+        currentMeasures[currentNote->staff - 1]->notes.push_back(currentNote);
+    }
 }
 
 void NoteElementParser::ParseTechnicalElement(XMLElement* technicalElement, std::shared_ptr<Note> currentNote, bool isTab)

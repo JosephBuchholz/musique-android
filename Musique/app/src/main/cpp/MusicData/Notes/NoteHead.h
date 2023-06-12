@@ -52,9 +52,6 @@ public:
     bool filled = false;
     bool hasParentheses = false;
 
-    // the size of this object (as a percentage)
-    float size = 1.0f;
-
     // tab only
     int fret = 0;
 };

@@ -52,9 +52,6 @@ public:
         None = 0, Begin, End, Middle, Single
     };
 
-    float positionX = 0.0f;
-    float positionY = 0.0f;
-
     int number = 1;
     std::vector<LyricText> text;
     std::vector<SyllabicType> syllabics;

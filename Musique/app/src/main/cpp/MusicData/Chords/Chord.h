@@ -12,7 +12,8 @@
 #include "../../MusicDisplayConstants.h"
 #include "../../RenderData/RenderData.h"
 
-class Chord : public TextualElement {
+class Chord : public TextualElement
+{
     friend class Song;
     friend class MusicXMLParser;
 
@@ -34,9 +35,6 @@ protected:
     void CalculatePositionAsPaged(const MusicDisplayConstants& displayConstants, float defaultX, float defaultY);
 
 public:
-
-    float positionX = 0.0f;
-    float positionY = 0.0f;
 
     int staff = 1;
 

@@ -7,6 +7,8 @@ void BracketDirection::UpdateBoundingBox(const Vec2<float>& parentPosition)
     boundingBox.size.x = positionEnd.x - positionStart.x;
     boundingBox.size.y = 2.0f;
 
+    boundingBox.constraints.emplace_back(Constraint::ConstraintType::NoHorizontal);
+
 #if DEBUG_BOUNDING_BOXES
     debugBoundingBox = boundingBox;
 #endif

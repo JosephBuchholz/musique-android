@@ -48,11 +48,8 @@ public:
         None = 0, Upright, Inverted
     } direction = Direction::Upright;
 
-    // -- Positioning Attributes --
-
-    // x is relative to the center of note or barline
-    // y is relative to the top staff line
-    Vec2<float> position = { 0.0f, 0.0f };
+    // x pos is relative to the center of note or barline
+    // y pos is relative to the top staff line
 
 protected:
 

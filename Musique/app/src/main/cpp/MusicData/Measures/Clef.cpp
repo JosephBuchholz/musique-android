@@ -94,6 +94,8 @@ void Clef::UpdateBoundingBox(const Vec2<float> &parentPosition, int staffLines, 
         boundingBox.size.x = bb.size.x;
         boundingBox.size.y = bb.size.y;
 
+        boundingBox.constraints.emplace_back(Constraint::ConstraintType::Static);
+
 #if DEBUG_BOUNDING_BOXES
         debugBoundingBox = boundingBox;
 #endif

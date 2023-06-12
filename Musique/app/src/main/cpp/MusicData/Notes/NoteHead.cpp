@@ -70,13 +70,13 @@ Paint NoteHead::GetPaint(const MusicDisplayConstants& displayConstants) const
 
     if (noteType == NoteType::Tab)
     {
-        paint.textSize = 16.0f * size;
+        paint.textSize = 16.0f * sizeFactor;
         paint.isTablature = true;
         paint.align = Paint::Align::Center;
     }
 
     VisibleElement::ModifyPaint(paint);
-    paint.glyphSizeFactor = size;
+    paint.glyphSizeFactor = sizeFactor;
 
     return paint;
 }
@@ -97,6 +97,8 @@ void NoteHead::UpdateBoundingBox(const MusicDisplayConstants& displayConstants, 
         boundingBox.position.x -= boundingBox.size.x / 2.0f;
     }*/
 
+    boundingBox.constraints.emplace_back(Constraint::ConstraintType::Static);
+
 #if DEBUG_BOUNDING_BOXES
     debugBoundingBox = boundingBox;
 #endif
@@ -105,9 +107,9 @@ void NoteHead::UpdateBoundingBox(const MusicDisplayConstants& displayConstants, 
 void NoteHead::CalculateAsPaged(const MusicDisplayConstants& displayConstants, NoteSize noteSize)
 {
     if (noteSize == NoteSize::Grace)
-        size = displayConstants.graceNoteSize;
+        sizeFactor = displayConstants.graceNoteSize;
     else if (noteSize == NoteSize::Cue)
-        size = displayConstants.cueNoteSize;
+        sizeFactor = displayConstants.cueNoteSize;
     else
-        size = 1.0f;
+        sizeFactor = 1.0f;
 }

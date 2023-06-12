@@ -39,6 +39,8 @@ void Beam::UpdateBoundingBox(const MusicDisplayConstants& displayConstants, Vec2
     boundingBox.MakeDimensionsPositive();
     boundingBox.AddPadding(displayConstants.beamLineWidth);
 
+    boundingBox.constraints.emplace_back(Constraint::ConstraintType::Static);
+
 #if DEBUG_BOUNDING_BOXES
     debugBoundingBox = boundingBox;
 #endif

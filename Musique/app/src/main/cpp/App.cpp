@@ -7,6 +7,9 @@
 #include "MusicXMLParser/MusicXMLParser.h"
 #include "Debuging/Debug.h"
 
+#include <chrono>
+using namespace std::chrono;
+
 App::App()
 {
     musicRenderer = std::make_shared<MusicRenderer>();
@@ -227,7 +230,20 @@ void App::OnUpdate(double dt)
                 }
 
                 song->UpdateBoundingBoxes(musicRenderer->pagePositions, song->GetSystemPositions());
-                song->ResolveCollisions();
+                auto totalStart = high_resolution_clock::now();
+                for (int i = 0; i < 5; i++)
+                {
+                    LOGI("Start resolving collisions (number %d)", i);
+                    auto start = high_resolution_clock::now();
+                    song->ResolveCollisions();
+                    auto stop = high_resolution_clock::now();
+                    auto duration = duration_cast<milliseconds>(stop - start);
+                    LOGI("Time taken by collision function: %lld milliseconds | %f seconds", duration.count(), duration.count() / 1000.0f);
+                }
+                auto totalStop = high_resolution_clock::now();
+                auto totalDuration = duration_cast<milliseconds>(totalStop - totalStart);
+                LOGI("Total time taken by collision resolver: %lld milliseconds | %f seconds", totalDuration.count(), totalDuration.count() / 1000.0f);
+
                 songUpdated = true;
             }
 

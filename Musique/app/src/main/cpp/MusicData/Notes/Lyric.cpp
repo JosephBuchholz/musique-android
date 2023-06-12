@@ -10,7 +10,7 @@ void Lyric::Render(RenderData& renderData, float notePositionX, float measurePos
         paint.isBold = true;
     paint.textSize = fontSize.size;
 
-    renderData.AddText(Text(text[0].text, positionX + notePositionX + offsetX, positionY + measurePositionY + offsetY, Paint(color.color, paint)));
+    renderData.AddText(Text(text[0].text, position.x + notePositionX + offsetX, position.y + measurePositionY + offsetY, Paint(color.color, paint)));
 }
 
 void Lyric::UpdateBoundingBox(const Vec2<float>& parentPosition)
@@ -28,12 +28,14 @@ void Lyric::UpdateBoundingBox(const Vec2<float>& parentPosition)
     bb.size.x = (paint.textSize * (float)text[0].text.size()) + (paint.textSize * 2.0f);
     bb.size.y = paint.textSize * 2.0f;
 
-    boundingBox.position.x = bb.position.x + positionX + parentPosition.x;
-    boundingBox.position.y = bb.position.y + positionY + parentPosition.y;
+    boundingBox.position.x = bb.position.x + position.x + parentPosition.x;
+    boundingBox.position.y = bb.position.y + position.y + parentPosition.y;
     boundingBox.position.x -= bb.size.x / 2.0f;
     boundingBox.position.y += bb.size.y / 2.0f;
     boundingBox.size.x = bb.size.x;
     boundingBox.size.y = bb.size.y;
+
+    boundingBox.constraints.emplace_back(Constraint::ConstraintType::Static);
 
 #if DEBUG_BOUNDING_BOXES
     debugBoundingBox = boundingBox;
@@ -42,9 +44,9 @@ void Lyric::UpdateBoundingBox(const Vec2<float>& parentPosition)
 
 void Lyric::CalculatePositionAsPaged(const MusicDisplayConstants& displayConstants)
 {
-    positionX = defX;
-    positionY = -defY;
+    position.x = defX;
+    position.y = -defY;
 
-    positionX += relX;
-    positionY -= relY;
+    position.x += relX;
+    position.y -= relY;
 }

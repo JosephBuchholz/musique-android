@@ -39,6 +39,8 @@ void BeamGroup::UpdateBoundingBox(const MusicDisplayConstants& displayConstants,
     boundingBox.MakeDimensionsPositive();
     boundingBox.AddPadding(displayConstants.beamLineWidth);
 
+    boundingBox.constraints.emplace_back(Constraint::ConstraintType::Static);
+
 #if DEBUG_BOUNDING_BOXES
     debugBoundingBox = boundingBox;
 #endif
@@ -56,15 +58,15 @@ void BeamGroup::CalculateAsPaged(const MusicDisplayConstants& displayConstants)
     }
 
     if (notes[0]->noteSize == NoteSize::Grace)
-        size = displayConstants.graceNoteSize;
+        sizeFactor = displayConstants.graceNoteSize;
     else if (notes[0]->noteSize == NoteSize::Cue)
-        size = displayConstants.cueNoteSize;
+        sizeFactor = displayConstants.cueNoteSize;
     else
-        size = 1.0f;
+        sizeFactor = 1.0f;
 
     for (Beam& beam : beams)
     {
-        beam.CalculateAsPaged(displayConstants, size);
+        beam.CalculateAsPaged(displayConstants, sizeFactor);
     }
 }
 

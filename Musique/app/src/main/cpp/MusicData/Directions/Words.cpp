@@ -47,6 +47,8 @@ void Words::UpdateBoundingBox(const Vec2<float>& parentPosition)
     boundingBox.size.x = bb.size.x;
     boundingBox.size.y = bb.size.y;
 
+    boundingBox.constraints.emplace_back(Constraint::ConstraintType::None);
+
 #if DEBUG_BOUNDING_BOXES
     debugBoundingBox = boundingBox;
 #endif
@@ -54,6 +56,12 @@ void Words::UpdateBoundingBox(const Vec2<float>& parentPosition)
     /*LOGV("Updated bounding box for WORDS: %s", boundingBox.GetPrintableString().c_str());
     LOGV("parentPosition: %s", parentPosition.GetPrintableString().c_str());
     LOGD("boundingBoxPosition: %s", bb.GetPrintableString().c_str());*/
+}
+
+void Words::Move(Vec2<float> positionOffset, Vec2<float> sizeOffset, float rotationOffset)
+{
+    positionX += positionOffset.x;
+    positionY += positionOffset.y;
 }
 
 void Words::CalculatePositionAsPaged(const MusicDisplayConstants& displayConstants, float defaultX, float defaultY)

@@ -67,7 +67,7 @@ public:
      * @param displayConstants The display constants.
      * @param parentPosition The position of the parent.
      */
-    void UpdateBoundingBox(const MusicDisplayConstants& displayConstants, const Vec2<float> &parentPosition);
+    void UpdateBoundingBox(const MusicDisplayConstants& displayConstants, Vec2<float> parentPosition);
 
 protected:
     void CalculatePositionAsPaged(const MusicDisplayConstants& displayConstants, int staffLines);
@@ -134,13 +134,6 @@ public:
     int fret = 0;
 
     //std::vector<TABSlur> tabSlurs; // hammer ons and pull offs
-
-    // -- Positioning Attributes --
-
-    Vec2<float> position = { 0.0f, 0.0f }; // relative to measure
-
-    // the size of this note (as a percentage)
-    float size = 1.0f;
 
 protected:
 

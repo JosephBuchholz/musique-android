@@ -15,8 +15,8 @@
 /**
  * This class represents a musical markers such as the coda and segno
  */
-class Marker : public VisibleElement {
-    friend class Song;
+class Marker : public VisibleElement
+{
     friend class MusicXMLParser;
 
 public:
@@ -39,7 +39,6 @@ public:
      */
     void UpdateBoundingBox(Vec2<float> parentPosition);
 
-protected:
     void CalculatePositionAsPaged(const MusicDisplayConstants& displayConstants, Vec2<float> defPosition);
 
 public:
@@ -48,10 +47,6 @@ public:
     {
         None = 0, Coda, Segno
     } type = MarkerType::None;
-
-    // -- Positioning Attributes --
-
-    Vec2<float> position = { 0.0f, 0.0f }; // relative to measure
 
 protected:
 

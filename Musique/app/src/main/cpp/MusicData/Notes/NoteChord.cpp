@@ -34,7 +34,7 @@ void NoteChord::Render(RenderData& renderData, TablatureDisplayType tabDisplayTy
     ledgerLinePaint.strokeCap = Paint::Cap::Butt;
 
     // ledger lines
-    float ledgerLineMargin = renderData.displayConstants.ledgerLineMargin * rootNote->size;
+    float ledgerLineMargin = renderData.displayConstants.ledgerLineMargin * rootNote->sizeFactor;
     float noteHeadWidth = rootNote->noteHead.GetNoteHeadWidth(renderData.displayConstants);
     if (rootNotePositionYRelativeToMeasure >= (float)lines) // ledger lines below staff
     {
@@ -86,6 +86,8 @@ void NoteChord::UpdateBoundingBox(const MusicDisplayConstants& displayConstants,
         notes[i]->UpdateBoundingBox(displayConstants, parentPosition);
         boundingBox = BoundingBox::CombineBoundingBoxes(boundingBox, notes[i]->boundingBox);
     }
+
+    boundingBox.constraints.emplace_back(Constraint::ConstraintType::Static);
 
 #if DEBUG_BOUNDING_BOXES
     debugBoundingBox = boundingBox;
@@ -148,7 +150,7 @@ void NoteChord::CalculatePositionAsPaged(const MusicDisplayConstants& displayCon
             stemLength *= 2.0f/3.0f;
         }
 
-        stemLength *= rootNote->size;
+        stemLength *= rootNote->sizeFactor;
 
         float topNotePositionY = topNote->position.y - rootNote->position.y;
 
@@ -203,9 +205,9 @@ void NoteChord::CalculatePositionAsPaged(const MusicDisplayConstants& displayCon
 
         float topNotePositionY = topNote->position.y - rootNote->position.y;
 
-        float stemStokeWidth = 0.8333f * rootNote->size;
+        float stemStokeWidth = 0.8333f * rootNote->sizeFactor;
 
-        float stemLength = 30.0f * rootNote->size;
+        float stemLength = 30.0f * rootNote->sizeFactor;
         if (noteStem->stemType == NoteStem::StemType::Up) {
             if (isDoubleNoteStack)
             {

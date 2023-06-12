@@ -77,9 +77,17 @@ void MetronomeMark::UpdateBoundingBox(const Vec2<float>& parentPosition)
     boundingBox.size.x = bb.size.x;
     boundingBox.size.y = bb.size.y;
 
+    boundingBox.constraints.emplace_back(Constraint::ConstraintType::None);
+
 #if DEBUG_BOUNDING_BOXES
     debugBoundingBox = boundingBox;
 #endif
+}
+
+void MetronomeMark::Move(Vec2<float> positionOffset, Vec2<float> sizeOffset, float rotationOffset)
+{
+    positionX += positionOffset.x;
+    positionY += positionOffset.y;
 }
 
 void MetronomeMark::CalculatePositionAsPaged(const MusicDisplayConstants& displayConstants, float defaultX, float defaultY)
@@ -90,7 +98,7 @@ void MetronomeMark::CalculatePositionAsPaged(const MusicDisplayConstants& displa
         positionX = defX + relX;
 
     if (noDefY)
-        positionY = defaultY + -relY;
+        positionY = defaultY;
     else
         positionY = -defY + -relY;
 

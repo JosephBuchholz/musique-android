@@ -33,7 +33,7 @@ void Note::Render(RenderData& renderData, TablatureDisplayType tabDisplayType, f
             ledgerLinePaint.strokeWidth = renderData.displayConstants.legerLineWidth;
             ledgerLinePaint.strokeCap = Paint::Cap::Butt;
 
-            float ledgerLineMargin = renderData.displayConstants.ledgerLineMargin * size;
+            float ledgerLineMargin = renderData.displayConstants.ledgerLineMargin * sizeFactor;
             float noteHeadWidth = noteHead.GetNoteHeadWidth(renderData.displayConstants);
             if (notePositionRelativeToMeasure >= (float)lines) // ledger lines below staff
             {
@@ -410,9 +410,9 @@ void Note::CalculatePositionAsPaged(const MusicDisplayConstants& displayConstant
     accidental.CalculateAsPaged(displayConstants, noteSize);
 
     if (noteSize == NoteSize::Grace)
-        size = displayConstants.graceNoteSize;
+        sizeFactor = displayConstants.graceNoteSize;
     else if (noteSize == NoteSize::Cue)
-        size = displayConstants.cueNoteSize;
+        sizeFactor = displayConstants.cueNoteSize;
 
     if (isRest) // is a rest
     {
@@ -467,7 +467,7 @@ void Note::CalculatePositionAsPaged(const MusicDisplayConstants& displayConstant
                 stemLength *= 2.0f/3.0f;
             }
 
-            stemLength *= size;
+            stemLength *= sizeFactor;
 
             noteStem->stemPositionX = 0.0f;
 
@@ -506,9 +506,9 @@ void Note::CalculatePositionAsPaged(const MusicDisplayConstants& displayConstant
         float notePositionX = 0.0f;
         float notePositionY = 0.0f;
 
-        float stemStokeWidth = displayConstants.stemLineWidth * size;
+        float stemStokeWidth = displayConstants.stemLineWidth * sizeFactor;
 
-        float stemLength = 30.0f * size;
+        float stemLength = 30.0f * sizeFactor;
         if (noteStem->stemType == NoteStem::StemType::Up)
         {
             noteStem->stemPositionX = notePositionX + noteWidth - stemStokeWidth;
@@ -584,13 +584,14 @@ Vec2<float> Note::GetCenterPosition(const MusicDisplayConstants& displayConstant
     return { position.x + (noteHead.GetNoteHeadWidth(displayConstants) / 2.0f), position.y };
 }
 
-void Note::UpdateBoundingBox(const MusicDisplayConstants& displayConstants, const Vec2<float> &parentPosition)
+void Note::UpdateBoundingBox(const MusicDisplayConstants& displayConstants, Vec2<float> parentPosition)
 {
     noteHead.UpdateBoundingBox(displayConstants, position + parentPosition);
+    noteStem->UpdateBoundingBox(displayConstants, position + parentPosition);
 
-    boundingBox = noteHead.boundingBox;
+    boundingBox = BoundingBox::CombineBoundingBoxes(noteHead.boundingBox, noteStem->boundingBox);
 
-    if (type == NoteType::Tab)
+    /*if (type == NoteType::Tab)
     {
         boundingBox.position.x -= boundingBox.size.x / 2.0f;
     }
@@ -603,7 +604,9 @@ void Note::UpdateBoundingBox(const MusicDisplayConstants& displayConstants, cons
             boundingBox.size.y = 10.0f;
     }
     else
-        boundingBox.size.y = 10.0f;
+        boundingBox.size.y = 10.0f;*/
+
+    boundingBox.constraints.emplace_back(Constraint::ConstraintType::Static);
 
 #if DEBUG_BOUNDING_BOXES
     debugBoundingBox = boundingBox;

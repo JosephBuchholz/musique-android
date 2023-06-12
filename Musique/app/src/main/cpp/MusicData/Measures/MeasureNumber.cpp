@@ -28,6 +28,8 @@ void MeasureNumber::UpdateBoundingBox(const Vec2<float>& parentPosition)
 
     boundingBox.AddPadding(2.0f);
 
+    boundingBox.constraints.emplace_back(Constraint::ConstraintType::Static);
+
 #if DEBUG_BOUNDING_BOXES
     debugBoundingBox = boundingBox;
 #endif

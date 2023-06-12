@@ -60,10 +60,6 @@ public:
 
     AboveBelowType placement = AboveBelowType::None;
 
-    // -- Positioning Attributes --
-
-    Vec2<float> position = { 0.0f, 0.0f }; // relative to measure
-
 protected:
 
     // -- MusicXML Positioning Attributes --

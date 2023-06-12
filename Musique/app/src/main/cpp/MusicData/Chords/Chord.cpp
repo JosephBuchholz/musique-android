@@ -1,6 +1,8 @@
 #include "Chord.h"
 #include "../../Utils/Converters.h"
 
+#include "../../RenderMeasurement.h"
+
 void Chord::Render(RenderData& renderData, float measurePositionX, float measurePositionY, float offsetX, float offsetY) const
 {
     // paint
@@ -8,10 +10,10 @@ void Chord::Render(RenderData& renderData, float measurePositionX, float measure
     TextualElement::ModifyPaint(paint);
 
     // render
-    renderData.AddText(Text(chordName.string, positionX + measurePositionX + offsetX, positionY + measurePositionY + offsetY, paint));
+    renderData.AddText(Text(chordName.string, position.x + measurePositionX + offsetX, position.y + measurePositionY + offsetY, paint));
 
     if (chordDiagram)
-        chordDiagram->Render(renderData, { positionX + measurePositionX, positionY + measurePositionY }, { offsetX, offsetY });
+        chordDiagram->Render(renderData, { position.x + measurePositionX, position.y + measurePositionY }, { offsetX, offsetY });
 
     /*std::vector<uint16_t> chars;
     chars.push_back((uint16_t)SMuFLID::accidentalFlat);
@@ -49,24 +51,30 @@ void Chord::UpdateBoundingBox(const Vec2<float> &parentPosition)
         paint.isBold = true;
     paint.textSize = fontSize.size;
 
-    BoundingBox bb = BoundingBox();
+    BoundingBox bb = RenderMeasurement::GetTextBoundingBox(Text(chordName.string, position.x, position.y, paint));
+
+    /*BoundingBox bb = BoundingBox();
     bb.position.x = 0.0f;
     bb.position.y = -paint.textSize * 2.0f;
     bb.size.x = (paint.textSize * (float)chordName.string.size()) + (paint.textSize * 2.0f);
-    bb.size.y = paint.textSize * 2.0f;
+    bb.size.y = paint.textSize * 2.0f;*/
 
-    boundingBox.position.x = bb.position.x + positionX + parentPosition.x;
-    boundingBox.position.y = bb.position.y + positionY + parentPosition.y;
+    boundingBox.position.x = bb.position.x + position.x + parentPosition.x;
+    boundingBox.position.y = bb.position.y + position.y + parentPosition.y;
     boundingBox.position.x -= bb.size.x / 2.0f;
     boundingBox.position.y += bb.size.y / 2.0f;
     boundingBox.size.x = bb.size.x;
     boundingBox.size.y = bb.size.y;
 
+    boundingBox.AddPadding();
+
     if (chordDiagram)
     {
-        chordDiagram->UpdateBoundingBox({positionX + parentPosition.x, positionY + parentPosition.y});
+        chordDiagram->UpdateBoundingBox({ position.x + parentPosition.x, position.y + parentPosition.y});
         boundingBox = BoundingBox::CombineBoundingBoxes(boundingBox, chordDiagram->boundingBox);
     }
+
+    boundingBox.constraints.emplace_back(Constraint::ConstraintType::NoHorizontal);
 
 #if DEBUG_BOUNDING_BOXES
     debugBoundingBox = boundingBox;
@@ -135,8 +143,8 @@ void Chord::CalculateChordName()
 
 void Chord::CalculatePositionAsPaged(const MusicDisplayConstants& displayConstants, float defaultX, float defaultY)
 {
-    positionX = defaultX;
-    positionY = defaultY;
+    position.x = defaultX;
+    position.y = defaultY;
 
     if (chordDiagram)
         chordDiagram->CalculatePositionAsPaged(displayConstants, { 0.0f, 18.0f });

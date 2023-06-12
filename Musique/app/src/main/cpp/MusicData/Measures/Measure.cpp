@@ -523,32 +523,37 @@ void Measure::UpdateBoundingBoxes(const MusicDisplayConstants& displayConstants,
     boundingBox.position = measurePosition;
     boundingBox.size.x = measureWidth;
     boundingBox.size.y = measureHeight;
+    boundingBox.constraints.emplace_back(Constraint::ConstraintType::Static);
 
     measureNumber.UpdateBoundingBox(measurePosition);
-    clef.UpdateBoundingBox(measurePosition, 5, true);
 
-    for (auto note : notes)
+    if (!isMeasureRepeat)
     {
-        note->UpdateBoundingBox(displayConstants, measurePosition);
-    }
+        clef.UpdateBoundingBox(measurePosition, 5, true);
 
-    for (auto noteChord : noteChords)
-    {
-        noteChord->UpdateBoundingBox(displayConstants, measurePosition);
-    }
+        for (auto note: notes)
+        {
+            note->UpdateBoundingBox(displayConstants, measurePosition);
+        }
 
-    for (BeamGroup& beamGroup : beams)
-    {
-        beamGroup.UpdateBoundingBox(displayConstants, measurePosition);
-    }
+        for (auto noteChord: noteChords)
+        {
+            noteChord->UpdateBoundingBox(displayConstants, measurePosition);
+        }
 
-    for (Direction& direction : directions)
-    {
-        direction.UpdateBoundingBox(measurePosition);
-    }
+        for (BeamGroup &beamGroup: beams)
+        {
+            beamGroup.UpdateBoundingBox(displayConstants, measurePosition);
+        }
 
-    for (Chord& chord : chords)
-    {
-        chord.UpdateBoundingBox(measurePosition);
+        for (Direction &direction: directions)
+        {
+            direction.UpdateBoundingBox(measurePosition);
+        }
+
+        for (Chord &chord: chords)
+        {
+            chord.UpdateBoundingBox(measurePosition);
+        }
     }
 }

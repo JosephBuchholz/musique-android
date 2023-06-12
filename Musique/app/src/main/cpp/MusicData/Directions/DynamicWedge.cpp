@@ -8,6 +8,8 @@ void DynamicWedge::UpdateBoundingBox(const Vec2<float>& parentPosition)
     boundingBox.position.x = positionStart.x + parentPosition.x;
     boundingBox.position.y = positionStart.y - (boundingBox.size.y / 2.0f) + parentPosition.y;
 
+    boundingBox.constraints.emplace_back(Constraint::ConstraintType::None);
+
 #if DEBUG_BOUNDING_BOXES
     debugBoundingBox = boundingBox;
 #endif
@@ -24,13 +26,13 @@ void DynamicWedge::Render(RenderData& renderData, Vec2<float> measurePosition, V
 
     if (type == WedgeType::Crescendo)
     {
-        renderData.AddLine(positionStart.x + measurePosition.x + offset.x, positionStart.y + measurePosition.y + offset.y, positionEnd.x + measurePosition.x + offset.x, positionEnd.y + measurePosition.y + offset.y + (spread/2.0f), paint); // bottom line
-        renderData.AddLine(positionStart.x + measurePosition.x + offset.x, positionStart.y + measurePosition.y + offset.y, positionEnd.x + measurePosition.x + offset.x, positionEnd.y + measurePosition.y + offset.y - (spread/2.0f), paint); // top line
+        renderData.AddLine(positionStart.x + position.x + measurePosition.x + offset.x, positionStart.y + position.y + measurePosition.y + offset.y, positionEnd.x + position.x + measurePosition.x + offset.x, positionEnd.y + position.y + measurePosition.y + offset.y + (spread/2.0f), paint); // bottom line
+        renderData.AddLine(positionStart.x + position.x + measurePosition.x + offset.x, positionStart.y + position.y + measurePosition.y + offset.y, positionEnd.x + position.x + measurePosition.x + offset.x, positionEnd.y + position.y + measurePosition.y + offset.y - (spread/2.0f), paint); // top line
     }
     else if (type == WedgeType::Diminuendo)
     {
-        renderData.AddLine(positionStart.x + measurePosition.x + offset.x, positionStart.y + measurePosition.y + offset.y + (spread/2.0f), positionEnd.x + measurePosition.x + offset.x, positionEnd.y + measurePosition.y + offset.y, paint); // bottom line
-        renderData.AddLine(positionStart.x + measurePosition.x + offset.x, positionStart.y + measurePosition.y + offset.y - (spread/2.0f), positionEnd.x + measurePosition.x + offset.x, positionEnd.y + measurePosition.y + offset.y, paint); // top line
+        renderData.AddLine(positionStart.x + position.x + measurePosition.x + offset.x, positionStart.y + position.y + measurePosition.y + offset.y - (spread/2.0f), positionEnd.x + position.x + measurePosition.x + offset.x, positionEnd.y + position.y + measurePosition.y + offset.y, paint); // top line
+        renderData.AddLine(positionStart.x + position.x + measurePosition.x + offset.x, positionStart.y + position.y + measurePosition.y + offset.y + (spread/2.0f), positionEnd.x + position.x + measurePosition.x + offset.x, positionEnd.y + position.y + measurePosition.y + offset.y, paint); // bottom line
     }
 }
 

@@ -20,7 +20,7 @@ public:
      *
      * @param[out] paint The paint object to be modified.
      */
-    void ModifyPaint(Paint& paint) const { paint.color = color.color; }
+    void ModifyPaint(Paint& paint) const;
 
     /**
      * Renders any debug info.
@@ -29,8 +29,25 @@ public:
      */
     virtual void RenderDebug(RenderData& renderData) const;
 
+    /**
+     * The function to call when this object needs to be moved (or resized). This
+     * is specifically for bounding boxes/collisions.
+     *
+     * @param positionOffset The offset for the position.
+     * @param sizeOffset The offset for the size.
+     * @param rotationOffset The offset for the rotation.
+     */
+    virtual void Move(Vec2<float> positionOffset, Vec2<float> sizeOffset = { 0.0f, 0.0f }, float rotationOffset = 0.0f);
+
 public:
     Color color = Color();
+
+    // relative to the parent
+    Vec2<float> position = { 0.0f, 0.0f };
+
+    float sizeFactor = 1.0f;
+
+    float rotation = 0.0f;
 
     BoundingBox boundingBox;
 

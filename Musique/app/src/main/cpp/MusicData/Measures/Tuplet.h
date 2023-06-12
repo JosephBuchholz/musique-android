@@ -14,7 +14,8 @@
 /**
  * This class represents a tuplet (such as a triplet or duplet).
  */
-class Tuplet : public VisibleElement {
+class Tuplet : public VisibleElement
+{
     friend class Song;
     friend class MusicXMLParser;
 
@@ -49,6 +50,8 @@ public:
     int normalNotes;
 
     float endLengthHeight = 8.0f;
+
+    AboveBelowType placement = AboveBelowType::Below;
 
     // -- Positioning Attributes --
 

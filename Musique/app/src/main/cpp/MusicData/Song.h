@@ -1,3 +1,7 @@
+/**
+ * This file contains the definition for the 'Song' class.
+ */
+
 #ifndef MUSIQUE_SONG_H
 #define MUSIQUE_SONG_H
 
@@ -13,7 +17,11 @@
 #include "Page/PageNumber.h"
 #include "Measures/Ending.h"
 
-class Song {
+/**
+ * Represents and holds all the musical data for a song/piece.
+ */
+class Song
+{
 
 public:
 
@@ -215,7 +223,10 @@ private:
 
     void AddTimeSpacePoint(TimeSpacePoint point);
 
-    void ResolveCollisionsWith(const BoundingBox& box, int pageIndex);
+    void ResolveCollisionsWith(BoundingBox& box, int pageIndex);
+
+    void ResolveCollisionWith(std::shared_ptr<VisibleElement> element, BoundingBox& box);
+    void ResolveCollisionWith(VisibleElement* element, BoundingBox& box);
 
 public:
 

@@ -26,3 +26,19 @@ void NoteStem::Render(RenderData& renderData, Vec2<float> notePosition, std::sha
         renderData.AddLine(std::make_shared<Line>(notePosition.x + positionStart.x, notePosition.y + positionStart.y + stemStartY, notePosition.x + positionEnd.x, notePosition.y + positionEnd.y + stemStartY, renderData.paints.noteStemPaint));
     }
 }
+
+void NoteStem::UpdateBoundingBox(const MusicDisplayConstants& displayConstants, Vec2<float> parentPosition)
+{
+    boundingBox.position.x = stemPositionX + position.x + parentPosition.x;
+    boundingBox.position.y = stemStartY + position.y + parentPosition.y;
+    boundingBox.size.x = displayConstants.stemLineWidth;
+    boundingBox.size.y = stemEndY - stemStartY;
+
+    boundingBox.MakeDimensionsPositive(); // since the height may be negative
+
+    boundingBox.constraints.emplace_back(Constraint::ConstraintType::Static);
+
+#if DEBUG_BOUNDING_BOXES
+    debugBoundingBox = boundingBox;
+#endif
+}

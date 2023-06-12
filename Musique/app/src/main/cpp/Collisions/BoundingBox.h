@@ -5,9 +5,44 @@
 #include "../RenderData/RenderData.h"
 #include "../Utils/Converters.h"
 
+#define DEFAULT_PADDING 2.0f
+
+class Constraint
+{
+public:
+
+    enum class ConstraintType
+    {
+        None = 0,       /** No Constraint */
+        Static,         /** Cannot be moved (has every constraint) */
+        NoHorizontal,   /** Cannot be moved horizontally */
+        NoVertical,     /** Cannot be moved vertically */
+        NoRotation,     /** Cannot be rotated */
+        NoResize,       /** Cannot be resized */
+        NoResizeWidth,  /** The width cannot be resized */
+        NoResizeHeight, /** The height cannot be resized */
+    };
+
+    Constraint() {}
+    Constraint(ConstraintType type)
+        : constraintType(type) {}
+
+public:
+
+    bool operator==(const Constraint& rhs)
+    {
+        return (this->constraintType == rhs.constraintType);
+    }
+
+public:
+    ConstraintType constraintType = ConstraintType::None;
+};
+
 class BoundingBox
 {
 public:
+
+    BoundingBox();
 
     /**
      * Calculates whether the given bounding box overlaps with this one.
@@ -30,9 +65,10 @@ public:
     bool IsCloseTo(const BoundingBox& boundingBox, float minDistance) const;
     bool IsFarFrom(const BoundingBox& boundingBox, float maxDistance) const;
 
-    void ResolveOverlap(BoundingBox boundingBox);
 
     static BoundingBox CombineBoundingBoxes(const BoundingBox& boundingBox1, const BoundingBox& boundingBox2);
+
+    static void ResolveOverlap(BoundingBox& boundingBox1, BoundingBox& boundingBox2);
 
     /**
      * Resolve the overlap with out moving `this.`
@@ -42,12 +78,18 @@ public:
      */
     Vec2<float> ResolveOverlapStatically(BoundingBox& boundingBox) const;
 
+    void ResolveOverlapWithNoConstraints(BoundingBox& boundingBox);
+
+    bool IsStatic() const;
+    bool HasNoConstraints() const;
+    bool HasConstraint(Constraint constraint) const;
+
     /**
      * Adds the given amount of padding to the outside edges.
      *
      * @param padding The amount of padding.
      */
-    void AddPadding(float padding);
+    void AddPadding(float padding = DEFAULT_PADDING);
 
     /**
      * Makes the dimensions of this bounding box positive while adjusting
@@ -57,7 +99,19 @@ public:
 
     void Render(RenderData& renderData, const int& color = 0xFFFF00FF) const;
 
+    /**
+     * Debug only.
+     *
+     * @return The string.
+     */
     std::string GetPrintableString() const { return "position: " + position.GetPrintableString() + " | size: " + size.GetPrintableString(); }
+
+    /**
+     * Debug only.
+     *
+     * @return The string.
+     */
+    std::string GetPrintableConstraints() const;
 
 public:
 
@@ -70,8 +124,9 @@ public:
 
     // from the top left hand corner
     Vec2<float> position;
-
     Vec2<float> size;
+
+    std::vector<Constraint> constraints;
 };
 
 #endif //MUSIQUE_BOUNDINGBOX_H

@@ -39,6 +39,8 @@ void TrillMark::UpdateBoundingBox(const Vec2<float>& parentPosition)
 
     boundingBox.AddPadding(3.0f);
 
+    boundingBox.constraints.emplace_back(Constraint::ConstraintType::NoHorizontal);
+
 #if DEBUG_BOUNDING_BOXES
     debugBoundingBox = boundingBox;
 #endif

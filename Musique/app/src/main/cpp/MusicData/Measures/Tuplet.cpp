@@ -29,9 +29,13 @@ void Tuplet::Render(RenderData& renderData, Vec2<float> measurePosition, Vec2<fl
     {
         Paint bracketPaint = Paint(color.color);
 
+        float direction = 1.0f;
+        if (placement == AboveBelowType::Below)
+            direction = -1.0f;
+
         // bracket ends
-        renderData.AddLine(std::make_shared<Line>(positionStart.x + measurePosition.x + offset.x, positionStart.y + measurePosition.y + offset.y, positionStart.x + measurePosition.x + offset.x, positionStart.y + measurePosition.y + offset.y - endLengthHeight, bracketPaint));
-        renderData.AddLine(std::make_shared<Line>(positionEnd.x + measurePosition.x + offset.x, positionEnd.y + measurePosition.y + offset.y, positionEnd.x + measurePosition.x + offset.x, positionEnd.y + measurePosition.y + offset.y - endLengthHeight, bracketPaint));
+        renderData.AddLine(std::make_shared<Line>(positionStart.x + measurePosition.x + offset.x, positionStart.y + measurePosition.y + offset.y, positionStart.x + measurePosition.x + offset.x, positionStart.y + measurePosition.y + offset.y + (endLengthHeight * direction), bracketPaint));
+        renderData.AddLine(std::make_shared<Line>(positionEnd.x + measurePosition.x + offset.x, positionEnd.y + measurePosition.y + offset.y, positionEnd.x + measurePosition.x + offset.x, positionEnd.y + measurePosition.y + offset.y + (endLengthHeight * direction), bracketPaint));
 
         // main line
         renderData.AddLine(std::make_shared<Line>(positionStart.x + measurePosition.x + offset.x, positionStart.y + measurePosition.y + offset.y, positionEnd.x + measurePosition.x + offset.x, positionEnd.y + measurePosition.y + offset.y, bracketPaint));
@@ -59,6 +63,26 @@ void Tuplet::CalculatePositionAsPaged(const MusicDisplayConstants& displayConsta
     if (notes.empty())
         return;
 
-    positionStart = { notes[0]->position.x, notes[0]->position.y + 50.0f };
-    positionEnd = { notes[1]->position.x + notes[1]->noteHead.GetNoteHeadWidth(displayConstants), notes[1]->position.y + 50.0f };
+    std::shared_ptr<Note> firstNote = notes[0];
+    std::shared_ptr<Note> lastNote = notes[notes.size() - 1];
+
+    if (firstNote->noteStem->stemType == NoteStem::StemType::Up)
+    {
+        placement = AboveBelowType::Above;
+    }
+    else
+    {
+        placement = AboveBelowType::Below;
+    }
+
+    if (placement == AboveBelowType::Above)
+    {
+        positionStart = { firstNote->position.x, firstNote->position.y - 50.0f };
+        positionEnd = { lastNote->position.x + lastNote->noteHead.GetNoteHeadWidth(displayConstants), lastNote->position.y - 50.0f };
+    }
+    else if (placement == AboveBelowType::Below)
+    {
+        positionStart = { firstNote->position.x, firstNote->position.y + 50.0f };
+        positionEnd = { lastNote->position.x + lastNote->noteHead.GetNoteHeadWidth(displayConstants), lastNote->position.y + 50.0f };
+    }
 }
