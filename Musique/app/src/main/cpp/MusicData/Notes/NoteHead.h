@@ -25,6 +25,8 @@ public:
 
     float GetNoteHeadWidth(const MusicDisplayConstants& displayConstants) const;
 
+    float GetCenterPositionX(const MusicDisplayConstants& displayConstants) const;
+
     /**
      * Updates the position and size of this object's bounding box.
      *

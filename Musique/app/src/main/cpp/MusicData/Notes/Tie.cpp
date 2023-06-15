@@ -15,14 +15,14 @@ void NoteTie::Render(RenderData& renderData, Vec2<float> startNotePosition, Vec2
     {
         Vec2<float> startCurvePosition = startNotePosition + positionStart + offset;
         Vec2<float> endCurvePosition = startNotePosition + positionStart + offset;
-        endCurvePosition.x += 15.0f;
+        endCurvePosition.x += 10.0f;
 
         RenderCurve(renderData, startCurvePosition, endCurvePosition);
     }
     else if (!isFirstNote && isBroken) // the second part of the broken tie
     {
         Vec2<float> startCurvePosition = startNotePosition + positionEnd + offset;
-        startCurvePosition.x -= 15.0f;
+        startCurvePosition.x -= 10.0f;
         Vec2<float> endCurvePosition = startNotePosition + positionEnd + offset;
 
         RenderCurve(renderData, startCurvePosition, endCurvePosition);

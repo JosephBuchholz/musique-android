@@ -2,7 +2,7 @@
 
 #include "../../Exceptions/Exceptions.h"
 
-void NoteChord::Render(RenderData& renderData, TablatureDisplayType tabDisplayType, float rootNotePositionYRelativeToMeasure, float topNotePositionYRelativeToMeasure, int lines, Vec2<float> measurePosition, float nextMeasurePositionX, float measureWidth, int measureNumber, float ls, Vec2<float> mainPosition, int noteIndex, bool isLastMeasureInSystem, Vec2<float> offset) const
+void NoteChord::Render(RenderData& renderData, TablatureDisplayType tabDisplayType, float rootNotePositionYRelativeToMeasure, float topNotePositionYRelativeToMeasure, int lines, Vec2<float> measurePosition, float nextMeasurePositionX, float ls) const
 {
     if (notes.empty())
         throw IsEmptyException();
@@ -13,11 +13,11 @@ void NoteChord::Render(RenderData& renderData, TablatureDisplayType tabDisplayTy
     if (rootNote == nullptr || topNote == nullptr)
         throw IsNullException();
 
-    Vec2<float> position = { rootNote->position.x + measurePosition.x + offset.x, rootNote->position.y + measurePosition.y + offset.y };
+    Vec2<float> position = { rootNote->position.x + measurePosition.x, rootNote->position.y + measurePosition.y };
 
     for (auto note : notes)
     {
-        note->Render(renderData, tabDisplayType, 0.0f, lines, measurePosition, nextMeasurePositionX, measureWidth, measureNumber, ls, mainPosition, noteIndex, isLastMeasureInSystem, offset);
+        note->Render(renderData, tabDisplayType, 0.0f, lines, measurePosition, nextMeasurePositionX, ls);
     }
 
     // rhythm notation
@@ -42,7 +42,7 @@ void NoteChord::Render(RenderData& renderData, TablatureDisplayType tabDisplayTy
         float y = measurePosition.y + ((float)lines * ls);
         for (int i = 0; i < ledgerLineCount; i++)
         {
-            renderData.AddLine(std::make_shared<Line>(position.x - ledgerLineMargin + mainPosition.x, y + mainPosition.y, position.x + noteHeadWidth + ledgerLineMargin + mainPosition.x, y + mainPosition.y, ledgerLinePaint));
+            renderData.AddLine(std::make_shared<Line>(position.x - ledgerLineMargin, y, position.x + noteHeadWidth + ledgerLineMargin, y, ledgerLinePaint));
             y += 1.0f * ls;
         }
     }
@@ -53,7 +53,7 @@ void NoteChord::Render(RenderData& renderData, TablatureDisplayType tabDisplayTy
         float y = measurePosition.y - (1.0f * ls);
         for (int i = 0; i < ledgerLineCount; i++)
         {
-            renderData.AddLine(std::make_shared<Line>(position.x - ledgerLineMargin + mainPosition.x, y + mainPosition.y, position.x + noteHeadWidth + ledgerLineMargin + mainPosition.x, y + mainPosition.y, ledgerLinePaint));
+            renderData.AddLine(std::make_shared<Line>(position.x - ledgerLineMargin, y, position.x + noteHeadWidth + ledgerLineMargin, y, ledgerLinePaint));
             y -= 1.0f * ls;
         }
     }
@@ -154,7 +154,7 @@ void NoteChord::CalculatePositionAsPaged(const MusicDisplayConstants& displayCon
 
         float topNotePositionY = topNote->position.y - rootNote->position.y;
 
-        noteStem->stemPositionX = 0.0f;
+        noteStem->stemPositionX = rootNote->noteHead.GetCenterPositionX(displayConstants);
 
         if (noteStem->stemType == NoteStem::StemType::Up)
         {

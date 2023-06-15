@@ -13,13 +13,20 @@ void NoteHead::Render(RenderData& renderData, Vec2<float> position, bool centerH
     }
     else if (noteType == NoteType::Tab)
     {
+        //renderData.AddDebugDot(position.x + offset.x, position.y + offset.y);
+
         if (type == NoteHeadType::X)
         {
-            position.x -= GetDimensions(renderData.displayConstants).x / 2.0f;
+            //position.x -= GetDimensions(renderData.displayConstants).x / 2.0f;
             renderData.AddGlyph(SMuFLGlyph(GetSMuFLID(), position.x + offset.x, position.y + offset.y, GetPaint(renderData.displayConstants)));
         }
         else
+        {
+            //position.x += GetDimensions(renderData.displayConstants).x / 2.0f;
             renderData.AddText(Text(ToString(fret), position.x + offset.x, position.y + offset.y, GetPaint(renderData.displayConstants)));
+        }
+
+        //renderData.AddDebugDot(position.x + offset.x, position.y + offset.y);
     }
 }
 
@@ -34,6 +41,20 @@ Vec2<float> NoteHead::GetDimensions(const MusicDisplayConstants& displayConstant
         bb = RenderMeasurement::GetTextBoundingBox(Text(ToString(fret), 0.0f, 0.0f, paint));
 
     return { bb.size.x, bb.size.y };
+}
+
+float NoteHead::GetCenterPositionX(const MusicDisplayConstants& displayConstants) const
+{
+    if (noteType == NoteType::Standard)
+    {
+        return GetNoteHeadWidth(displayConstants) / 2.0f;
+    }
+    else if (noteType == NoteType::Tab)
+    {
+        return GetNoteHeadWidth(displayConstants) / 2.0f;
+    }
+
+    return 0.0f;
 }
 
 SMuFLID NoteHead::GetSMuFLID() const
@@ -72,7 +93,6 @@ Paint NoteHead::GetPaint(const MusicDisplayConstants& displayConstants) const
     {
         paint.textSize = 16.0f * sizeFactor;
         paint.isTablature = true;
-        paint.align = Paint::Align::Center;
     }
 
     VisibleElement::ModifyPaint(paint);
@@ -81,7 +101,7 @@ Paint NoteHead::GetPaint(const MusicDisplayConstants& displayConstants) const
     return paint;
 }
 
-float NoteHead::GetNoteHeadWidth(const MusicDisplayConstants& displayConstants) const // TODO: get actual width for tab
+float NoteHead::GetNoteHeadWidth(const MusicDisplayConstants& displayConstants) const
 {
     return GetDimensions(displayConstants).x;
 }

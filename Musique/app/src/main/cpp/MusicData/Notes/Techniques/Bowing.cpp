@@ -23,7 +23,7 @@ SMuFLID Bowing::GetSMuFLID() const
     }
 }
 
-void Bowing::CalculatePositionAsPaged(const MusicDisplayConstants& displayConstants, float topStaffLineDistNote, float noteWidth, bool isTab)
+void Bowing::CalculatePositionAsPaged(const MusicDisplayConstants& displayConstants, float topStaffLineDistNote, bool isTab)
 {
     if (isTab)
     {
@@ -42,6 +42,5 @@ void Bowing::CalculatePositionAsPaged(const MusicDisplayConstants& displayConsta
         }
     }
 
-    position.x += noteWidth / 2.0f;
     position.x -= GetDimensions().x / 2.0f;
 }

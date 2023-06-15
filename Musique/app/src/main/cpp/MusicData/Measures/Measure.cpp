@@ -51,7 +51,7 @@ void Measure::Render(RenderData& renderData, Vec2<float> measurePosition, float 
         for (auto note : notes)
         {
             if (!note->isChord)
-                note->Render(renderData, tablatureDisplayType, CalculateNoteYPositionRelativeToMeasure(noteIndex), staffLineCount, measurePosition, nextMeasurePositionX, measureWidth, index, staffLineSpacing, { 0.0f, 0.0f }, noteIndex, isLastMeasureInSystem);
+                note->Render(renderData, tablatureDisplayType, CalculateNoteYPositionRelativeToMeasure(noteIndex), staffLineCount, measurePosition, nextMeasurePositionX, staffLineSpacing);
             noteIndex++;
         }
 
@@ -62,7 +62,7 @@ void Measure::Render(RenderData& renderData, Vec2<float> measurePosition, float 
                 throw IsEmptyException();
             float rootNotePositionYRelativeToMeasure = CalculateNoteYPositionRelativeToMeasure(noteChord->notes[0]);
             float topNotePositionYRelativeToMeasure = CalculateNoteYPositionRelativeToMeasure(noteChord->notes[noteChord->notes.size()-1]);
-            noteChord->Render(renderData, tablatureDisplayType, rootNotePositionYRelativeToMeasure, topNotePositionYRelativeToMeasure, staffLineCount, measurePosition, nextMeasurePositionX, measureWidth, index, staffLineSpacing, { 0.0f, 0.0f }, noteIndex, isLastMeasureInSystem);
+            noteChord->Render(renderData, tablatureDisplayType, rootNotePositionYRelativeToMeasure, topNotePositionYRelativeToMeasure, staffLineCount, measurePosition, nextMeasurePositionX, staffLineSpacing);
         }
 
         // rendering note beams

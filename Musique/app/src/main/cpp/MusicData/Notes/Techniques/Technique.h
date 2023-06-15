@@ -36,10 +36,10 @@ protected:
      * Calculates positioning variables when in paged mode.
      *
      * @param displayConstants display constants for positioning
+     * @param topStaffLineDistNote
      * @param isTab Whether the parent note is a tablature note.
-     * @param topStaffLineY The y position for the top staff line (needed for tab only).
      */
-    virtual void CalculatePositionAsPaged(const MusicDisplayConstants& displayConstants, float topStaffLineDistNote, float noteWidth, bool isTab) = 0;
+    virtual void CalculatePositionAsPaged(const MusicDisplayConstants& displayConstants, float topStaffLineDistNote, bool isTab) = 0;
 
 public:
     // Whether it this technique is above or below the note.

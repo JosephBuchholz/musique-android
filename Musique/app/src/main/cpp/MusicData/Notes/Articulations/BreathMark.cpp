@@ -18,7 +18,7 @@ SMuFLID BreathMark::GetSMuFLID() const
     return SMuFLID::breathMarkComma;
 }
 
-void BreathMark::CalculatePositionAsPaged(const MusicDisplayConstants& displayConstants, float topStaffLineDistNote, float noteWidth, bool isTab)
+void BreathMark::CalculatePositionAsPaged(const MusicDisplayConstants& displayConstants, float topStaffLineDistNote, bool isTab)
 {
     position.y -= topStaffLineDistNote;
     position.y -= 10.0f;

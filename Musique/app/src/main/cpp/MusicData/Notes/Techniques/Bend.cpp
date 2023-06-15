@@ -18,7 +18,7 @@ SMuFLID Bend::GetSMuFLID() const
     return SMuFLID::ErrorGlyph;
 }
 
-void Bend::CalculatePositionAsPaged(const MusicDisplayConstants& displayConstants, float topStaffLineDistNote, float noteWidth, bool isTab)
+void Bend::CalculatePositionAsPaged(const MusicDisplayConstants& displayConstants, float topStaffLineDistNote, bool isTab)
 {
     if (isTab)
     {
@@ -37,6 +37,5 @@ void Bend::CalculatePositionAsPaged(const MusicDisplayConstants& displayConstant
         }
     }
 
-    position.x += noteWidth / 2.0f;
     position.x -= GetDimensions().x / 2.0f;
 }

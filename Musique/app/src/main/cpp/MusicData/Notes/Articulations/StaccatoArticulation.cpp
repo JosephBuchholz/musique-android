@@ -45,7 +45,7 @@ Vec2<float> StaccatoArticulation::GetDimensions() const
     return { RenderMeasurement::MeasureGlyph(glyphID), 0.0f };
 }
 
-void StaccatoArticulation::CalculatePositionAsPaged(const MusicDisplayConstants& displayConstants, float topStaffLineDistNote, float noteWidth, bool isTab)
+void StaccatoArticulation::CalculatePositionAsPaged(const MusicDisplayConstants& displayConstants, float topStaffLineDistNote, bool isTab)
 {
     if (isTab)
     {
@@ -64,6 +64,5 @@ void StaccatoArticulation::CalculatePositionAsPaged(const MusicDisplayConstants&
         }
     }
 
-    position.x += noteWidth / 2.0f;
     position.x -= GetDimensions().x / 2.0f;
 }

@@ -29,7 +29,7 @@ SMuFLID Caesura::GetSMuFLID() const
     return glyphID;
 }
 
-void Caesura::CalculatePositionAsPaged(const MusicDisplayConstants& displayConstants, float topStaffLineDistNote, float noteWidth, bool isTab)
+void Caesura::CalculatePositionAsPaged(const MusicDisplayConstants& displayConstants, float topStaffLineDistNote, bool isTab)
 {
     position.y -= topStaffLineDistNote;
     position.y += 10.0f;

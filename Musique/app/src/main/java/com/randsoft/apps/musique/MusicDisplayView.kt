@@ -366,6 +366,7 @@ class MusicDisplayView(context: Context, attrs: AttributeSet? = null): View(cont
             if (text.paint.isTablature) {
                 paint.typeface = tablatureTypeface
                 paint.textSize = text.paint.textSize
+                paint.textAlign = Paint.Align.LEFT // ?? (should be CENTER?)
 
                 // add a white rectangle behind the text so that it is more visible
                 val rectPaint = Paint().apply {
@@ -373,12 +374,13 @@ class MusicDisplayView(context: Context, attrs: AttributeSet? = null): View(cont
                     isAntiAlias = true
                 }
 
+                val rect = Rect()
+                paint.getTextBounds(text.text, 0, text.text.length, rect)
+
                 val rectX = (text.x * scale) + offsetX
                 val rectY = (text.y * scale) + offsetY
 
-                val rect = Rect()
-                paint.getTextBounds(text.text, 0, text.text.length, rect)
-                canvas.drawRect(rectX - (rect.width()/2.0f) * scale, rectY - (rect.height()/2.0f) * scale, rectX + (rect.width()/2.0f) * scale, rectY + (rect.height()/2.0f) * scale, rectPaint)
+                canvas.drawRect(rectX + rect.left, rectY - (rect.height()/2.0f) * scale, rectX + rect.right, rectY + (rect.height()/2.0f) * scale, rectPaint)
             }
             else if (text.paint.isItalic && text.paint.isBold) {
                 paint.typeface = typefaceBoldItalic

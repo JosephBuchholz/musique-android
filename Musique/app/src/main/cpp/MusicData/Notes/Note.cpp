@@ -1,30 +1,42 @@
 #include "Note.h"
 
-void Note::Render(RenderData& renderData, TablatureDisplayType tabDisplayType, float notePositionRelativeToMeasure, int lines, Vec2<float> measurePosition, float nextMeasurePositionX, float measureWidth, int measureNumber, float ls, Vec2<float> mainPosition, int noteIndex, bool isLastMeasureInSystem, Vec2<float> offset) const
+void Note::Render(RenderData& renderData, TablatureDisplayType tabDisplayType, float notePositionRelativeToMeasure, int lines, Vec2<float> measurePosition, float nextMeasurePositionX, float ls) const
 {
-    // calculate color of the note
-    int color = renderData.defaultColor;
-    if (isPlaying) {
-        color = renderData.playedColor;
-    }
+    Vec2<float> noteRenderPosition = position + measurePosition;
 
-    if (isRest) { // is a rest
+    if (isRest) // is a rest
+    {
         if (tabDisplayType == TablatureDisplayType::Full)
-            RenderRest(renderData, measurePosition.x, lines, ls, mainPosition.x, mainPosition.y + measurePosition.y);
-    } else if (type == NoteType::Tab) // is a tab note
+        {
+            RenderRest(renderData, measurePosition.x, lines, ls, 0.0f, measurePosition.y);
+        }
+    }
+    else if (type == NoteType::Tab) // is a tab note
     {
-        RenderTabNote(renderData, tabDisplayType, measurePosition.x, measureWidth, lines, ls, mainPosition.x, mainPosition.y + measurePosition.y);
-    } else // is a standard note
-    {
-        float renderPositionX = position.x + measurePosition.x;
-        float renderPositionY = position.y + measurePosition.y;
+        noteHead.Render(renderData, noteRenderPosition, true);
 
-        noteHead.Render(renderData, { renderPositionX + mainPosition.x, renderPositionY + mainPosition.y });
+        // rhythm notation
+        if (tabDisplayType == TablatureDisplayType::Full)
+        {
+            if (!isChord)
+            {
+                noteStem->Render(renderData, noteRenderPosition, tremoloSingle, isGraceNote, hasSlash, noteHead.GetNoteHeadWidth(renderData.displayConstants));
+            }
+            if (noteFlag)
+                noteFlag->Render(renderData, { noteRenderPosition.x + noteStem->stemPositionX, noteRenderPosition.y + noteStem->stemEndY });
+
+            // aug dot
+            RenderAugmentationDots(renderData, noteRenderPosition.x, noteRenderPosition.y);
+        }
+    }
+    else // is a standard note
+    {
+        noteHead.Render(renderData, noteRenderPosition);
 
         //renderData.AddGlyph(SMuFLGlyph(GetNoteHeadSMuFLID(durationType),renderPositionX + mainPosition.x, renderPositionY + mainPosition.y, Paint(color)));
 
         // aug dot
-        RenderAugmentationDots(renderData, renderPositionX + mainPosition.x, renderPositionY + mainPosition.y);
+        RenderAugmentationDots(renderData, noteRenderPosition.x, noteRenderPosition.y);
 
         // ledger lines
         if (!isChord)
@@ -41,7 +53,7 @@ void Note::Render(RenderData& renderData, TablatureDisplayType tabDisplayType, f
                 float y = measurePosition.y + ((float)lines * ls);
                 for (int i = 0; i < ledgerLineCount; i++)
                 {
-                    renderData.AddLine(std::make_shared<Line>(renderPositionX - ledgerLineMargin + mainPosition.x, y + mainPosition.y, renderPositionX + noteHeadWidth + ledgerLineMargin + mainPosition.x, y + mainPosition.y, ledgerLinePaint));
+                    renderData.AddLine(std::make_shared<Line>(noteRenderPosition.x - ledgerLineMargin, y, noteRenderPosition.x + noteHeadWidth + ledgerLineMargin, y, ledgerLinePaint));
                     y += 1.0f * ls;
                 }
             }
@@ -51,7 +63,7 @@ void Note::Render(RenderData& renderData, TablatureDisplayType tabDisplayType, f
                 float y = measurePosition.y - (1.0f * ls);
                 for (int i = 0; i < ledgerLineCount; i++)
                 {
-                    renderData.AddLine(std::make_shared<Line>(renderPositionX - ledgerLineMargin + mainPosition.x, y + mainPosition.y, renderPositionX + noteHeadWidth + ledgerLineMargin + mainPosition.x, y + mainPosition.y, ledgerLinePaint));
+                    renderData.AddLine(std::make_shared<Line>(noteRenderPosition.x - ledgerLineMargin, y, noteRenderPosition.x + noteHeadWidth + ledgerLineMargin, y, ledgerLinePaint));
                     y -= 1.0f * ls;
                 }
             }
@@ -59,35 +71,34 @@ void Note::Render(RenderData& renderData, TablatureDisplayType tabDisplayType, f
 
         if (!isChord)
         {
-            noteStem->Render(renderData, { renderPositionX + mainPosition.x, renderPositionY + mainPosition.y }, tremoloSingle, isGraceNote, hasSlash, noteHead.GetNoteHeadWidth(renderData.displayConstants));
+            noteStem->Render(renderData, noteRenderPosition, tremoloSingle, isGraceNote, hasSlash, noteHead.GetNoteHeadWidth(renderData.displayConstants));
         }
         if (noteFlag)
-            noteFlag->Render(renderData, { renderPositionX + noteStem->stemPositionX, renderPositionY + noteStem->stemEndY });
+            noteFlag->Render(renderData, { noteRenderPosition.x + noteStem->stemPositionX, noteRenderPosition.y + noteStem->stemEndY });
 
-        accidental.Render(renderData, { renderPositionX + mainPosition.x, renderPositionY + mainPosition.y });
-
-        // render articulations
-        for (auto articulation : articulations)
-        {
-            if (articulation != nullptr)
-                articulation->Render(renderData, renderPositionX + mainPosition.x, renderPositionY + mainPosition.y);
-        }
-
-        // render techniques
-        for (auto technique : techniques)
-        {
-            if (technique != nullptr)
-                technique->Render(renderData, renderPositionX + mainPosition.x, renderPositionY + mainPosition.y);
-        }
-
-        // render ornament
-        for (auto ornament : ornaments)
-        {
-            if (ornament != nullptr)
-                ornament->Render(renderData, renderPositionX + mainPosition.x + (noteHead.GetNoteHeadWidth(renderData.displayConstants) / 2.0f), measurePosition.y);
-        }
+        accidental.Render(renderData, noteRenderPosition);
     }
 
+    // render articulations
+    for (auto articulation : articulations)
+    {
+        if (articulation != nullptr)
+            articulation->Render(renderData, noteRenderPosition.x + noteHead.GetCenterPositionX(renderData.displayConstants), noteRenderPosition.y);
+    }
+
+    // render techniques
+    for (auto technique : techniques)
+    {
+        if (technique != nullptr)
+            technique->Render(renderData, noteRenderPosition.x + noteHead.GetCenterPositionX(renderData.displayConstants), noteRenderPosition.y);
+    }
+
+    // render ornament
+    for (auto ornament : ornaments)
+    {
+        if (ornament != nullptr)
+            ornament->Render(renderData, noteRenderPosition.x + noteHead.GetCenterPositionX(renderData.displayConstants), measurePosition.y);
+    }
 
     if (fermata)
     {
@@ -117,17 +128,8 @@ void Note::Render(RenderData& renderData, TablatureDisplayType tabDisplayType, f
                 otherNoteMeasurePosition.x = nextMeasurePositionX;
             }
 
-            if (type == NoteType::Standard)
-            {
-                glissSlide->Render(renderData, {position.x + measurePosition.x + (noteHead.GetNoteHeadWidth(renderData.displayConstants) / 2.0f), position.y + measurePosition.y },
-                                   { glissSlide->notes.second->position.x + otherNoteMeasurePosition.x + (glissSlide->notes.second->noteHead.GetNoteHeadWidth(renderData.displayConstants) / 2.0f), glissSlide->notes.second->position.y + otherNoteMeasurePosition.y }, true);
-            }
-            else
-            {
-                glissSlide->Render(renderData, {position.x + measurePosition.x, position.y + measurePosition.y }, { glissSlide->notes.second->position.x + otherNoteMeasurePosition.x, glissSlide->notes.second->position.y + otherNoteMeasurePosition.y }, true);
-            }
-
-            //glissSlide->Render(renderData, {position.x + measurePosition.x, position.y + measurePosition.y }, { glissSlide->notes.second->position.x + measurePosition.x, glissSlide->notes.second->position.y + measurePosition.y });
+            glissSlide->Render(renderData, {position.x + measurePosition.x + (noteHead.GetCenterPositionX(renderData.displayConstants)), position.y + measurePosition.y },
+                               { glissSlide->notes.second->position.x + otherNoteMeasurePosition.x + (glissSlide->notes.second->noteHead.GetCenterPositionX(renderData.displayConstants)), glissSlide->notes.second->position.y + otherNoteMeasurePosition.y }, true);
         }
         else if (glissSlide->notes.second.get() == this && glissSlide->notes.first != nullptr) // if this note is the end of the glissSlide
         {
@@ -169,7 +171,7 @@ void Note::Render(RenderData& renderData, TablatureDisplayType tabDisplayType, f
     }
 
     for (const auto& lyric: lyrics) {
-        lyric.Render(renderData, position.x + measurePosition.x, measurePosition.y, mainPosition.x, mainPosition.y);
+        lyric.Render(renderData, position.x + measurePosition.x, measurePosition.y);
     } // lyrics loop
 }
 
@@ -230,99 +232,6 @@ void Note::RenderRest(RenderData& renderData, float measurePositionX, int lines,
     }
 }
 
-void Note::RenderTabNote(RenderData& renderData, TablatureDisplayType tabDisplayType, float measurePositionX, float measureWidth, int lines, float ls, float offsetX, float offsetY) const
-{
-    // calculate color of the note
-    int color = renderData.defaultColor;
-    if (isPlaying) {
-        color = renderData.playedColor;
-    }
-
-    //float position.x = song->GetPositionXInMeasure(beatPositionInSong,measureIndex) + measurePositionX + offsetX; // this line of code crashes the program
-    //float position.y = (ls * float(string - 1)) + offsetY;
-
-    float tabPositionX = position.x + measurePositionX + offsetX;
-    float tabPositionY = position.y + offsetY;
-
-    noteHead.Render(renderData, { tabPositionX, tabPositionY }, true);
-
-    /*if (noteHead.type == NoteHead::NoteHeadType::X)
-    {
-        noteHead.Render(renderData, {tabPositionX, tabPositionY}, true);
-    }
-    else
-    {
-        renderData.AddText(Text(ToString(fret), tabPositionX, tabPositionY, Paint(color, renderData.paints.tabTextPaint)));
-    }*/
-
-    // hammer-ons and pull-offs
-    /*for (const TABSlur& slur : tabSlurs) {
-        if (slur.type == StartStopType::Stop) {
-            CubicCurve curve = CubicCurve();
-
-            // start
-            curve.x1 = curveStartX;
-            curve.y1 = curveStartY;
-
-            // curve points
-            curve.x2 = curveStartX + 10.0f;
-            curve.y2 = curveStartY - 10.0f;
-
-            curve.x3 = position.x - 10.0f;
-            curve.y3 = curveStartY - 10.0f;
-
-            // end
-            curve.x4 = position.x;
-            curve.y4 = position.y - 6.0f;
-
-            curve.paint = TabSlurPaint;
-
-            renderData.AddCubicCurve(curve);
-        }
-
-        if (slur.type == StartStopType::Start)
-        {
-            curveStartX = position.x;
-            curveStartY = position.y - 6.0f;
-        }
-    }*/
-
-    // render articulations
-    for (auto articulation : articulations)
-    {
-        if (articulation != nullptr)
-            articulation->Render(renderData, tabPositionX, tabPositionY);
-    }
-
-    // render techniques
-    for (auto technique : techniques)
-    {
-        if (technique != nullptr)
-            technique->Render(renderData, tabPositionX, tabPositionY);
-    }
-
-    // render ornaments
-    for (auto ornament : ornaments)
-    {
-        if (ornament != nullptr)
-            ornament->Render(renderData, tabPositionX, offsetY);
-    }
-
-    // rhythm notation
-    if (tabDisplayType == TablatureDisplayType::Full)
-    {
-        if (!isChord)
-        {
-            noteStem->Render(renderData, { tabPositionX, tabPositionY }, tremoloSingle, isGraceNote, hasSlash, noteHead.GetNoteHeadWidth(renderData.displayConstants));
-        }
-        if (noteFlag)
-            noteFlag->Render(renderData, { tabPositionX + noteStem->stemPositionX, tabPositionY + noteStem->stemEndY });
-
-        // aug dot
-        RenderAugmentationDots(renderData, tabPositionX, tabPositionY);
-    }
-}
-
 void Note::RenderAugmentationDots(RenderData& renderData, float notePositionX, float notePositionY) const
 {
     // aug dot
@@ -344,15 +253,18 @@ bool Note::IsNoteIsHigher(Note* note1, Note* note2)
     }
 }
 
-void Note::OnPlay() {
+void Note::OnPlay()
+{
     isPlaying = true;
 }
 
-void Note::OnStop() {
+void Note::OnStop()
+{
     isPlaying = false;
 }
 
-float Note::GetMinWidth() {
+float Note::GetMinWidth()
+{
     float width = 0.0f;
     width += duration.duration * 5.0f * 10.0f; // should do a bit more calculations here
     if (!lyrics.empty())
@@ -360,7 +272,8 @@ float Note::GetMinWidth() {
     return width;
 }
 
-void Note::CalculateDurationTypeFromString(const std::string& s) {
+void Note::CalculateDurationTypeFromString(const std::string& s)
+{
     if (s == "whole") {
         durationType = NoteValue::Whole;
     } else if (s == "half") {
@@ -469,7 +382,7 @@ void Note::CalculatePositionAsPaged(const MusicDisplayConstants& displayConstant
 
             stemLength *= sizeFactor;
 
-            noteStem->stemPositionX = 0.0f;
+            noteStem->stemPositionX = noteHead.GetCenterPositionX(displayConstants);
 
             if (noteStem->stemType == NoteStem::StemType::Up)
             {
@@ -528,13 +441,13 @@ void Note::CalculatePositionAsPaged(const MusicDisplayConstants& displayConstant
     for (auto articulation : articulations)
     {
         if (articulation != nullptr)
-            articulation->CalculatePositionAsPaged(displayConstants, position.y, noteHead.GetNoteHeadWidth(displayConstants), type == NoteType::Tab);
+            articulation->CalculatePositionAsPaged(displayConstants, position.y, type == NoteType::Tab);
     }
 
     for (auto technique : techniques)
     {
         if (technique != nullptr)
-            technique->CalculatePositionAsPaged(displayConstants, position.y, noteHead.GetNoteHeadWidth(displayConstants), type == NoteType::Tab);
+            technique->CalculatePositionAsPaged(displayConstants, position.y, type == NoteType::Tab);
     }
 
     for (auto ornament : ornaments)
@@ -578,10 +491,7 @@ void Note::CalculatePositionAsPaged(const MusicDisplayConstants& displayConstant
 
 Vec2<float> Note::GetCenterPosition(const MusicDisplayConstants& displayConstants) const
 {
-    if (type == NoteType::Tab)
-        return position;
-
-    return { position.x + (noteHead.GetNoteHeadWidth(displayConstants) / 2.0f), position.y };
+    return { position.x + noteHead.GetCenterPositionX(displayConstants), position.y };
 }
 
 void Note::UpdateBoundingBox(const MusicDisplayConstants& displayConstants, Vec2<float> parentPosition)

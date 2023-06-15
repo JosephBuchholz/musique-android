@@ -14,7 +14,7 @@ Vec2<float> Slide::GetDimensions() const
     return { std::abs(lineEndPosition.x - lineStartPosition.x), std::abs(lineEndPosition.y - lineStartPosition.y) };
 }
 
-void Slide::CalculatePositionAsPaged(const MusicDisplayConstants& displayConstants, float topStaffLineDistNote, float noteWidth, bool isTab)
+void Slide::CalculatePositionAsPaged(const MusicDisplayConstants& displayConstants, float topStaffLineDistNote, bool isTab)
 {
     position = { 0.0f, 0.0f };
 

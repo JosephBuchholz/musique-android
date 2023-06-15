@@ -32,7 +32,8 @@ class Note;
 /**
  * Class that represents a note, whether it is TAB or not.
  */
-class Note : public VisibleElement {
+class Note : public VisibleElement
+{
     friend class Song;
     friend class MusicXMLParser;
     friend class NoteElementParser;
@@ -41,7 +42,18 @@ class Note : public VisibleElement {
 public:
     ~Note() {}
 
-    void Render(RenderData& renderData, TablatureDisplayType tabDisplayType, float notePositionRelativeToMeasure, int lines, Vec2<float> measurePosition, float nextMeasurePositionX, float measureWidth, int measureNumber, float ls, Vec2<float> mainPosition, int noteIndex, bool isLastMeasureInSystem, Vec2<float> offset = { 0.0f, 0.0f }) const;
+    /**
+     * Renders this note.
+     *
+     * @param renderData The RenderData to render to.
+     * @param tabDisplayType
+     * @param notePositionRelativeToMeasures
+     * @param lines The number of staff lines.
+     * @param measurePosition The position of the current measure.
+     * @param nextMeasurePositionX The x position of the next measure.
+     * @param ls Staff line spacing.
+     */
+    void Render(RenderData& renderData, TablatureDisplayType tabDisplayType, float notePositionRelativeToMeasure, int lines, Vec2<float> measurePosition, float nextMeasurePositionX, float ls) const;
 
     /**
      * Renders any debug info.
@@ -74,7 +86,6 @@ protected:
 
 private:
     void RenderRest(RenderData& renderData, float measurePositionX, int lines, float ls, float offsetX, float offsetY) const;
-    void RenderTabNote(RenderData& renderData, TablatureDisplayType tabDisplayType, float measurePositionX, float measureWidth, int lines, float ls, float offsetX, float offsetY) const;
 
     void RenderAugmentationDots(RenderData& renderData, float notePositionX, float notePositionY) const;
 
