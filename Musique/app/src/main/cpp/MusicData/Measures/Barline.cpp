@@ -156,8 +156,8 @@ void Barline::CalculateAsPaged(const MusicDisplayConstants& displayConstants, fl
     {
         repeatNumberDirection = std::make_shared<Words>();
         repeatNumberDirection->text = ToString(repeatCount) + "x";
-        repeatNumberDirection->positionX = positionX;
-        repeatNumberDirection->positionY = -20.0f;
+        repeatNumberDirection->position.x = positionX;
+        repeatNumberDirection->position.y = -20.0f;
         repeatNumberDirection->fontSize.size = 8.0f;
     }
 }

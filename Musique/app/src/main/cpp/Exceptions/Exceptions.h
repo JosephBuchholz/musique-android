@@ -47,4 +47,14 @@ public:
     InvalidValueException(const std::string& msg) : BaseException(msg) {}
 };
 
+/**
+ * This exception is thrown if an invalid index has been obtained.
+ */
+class OutOfRangeException : public BaseException
+{
+public:
+    OutOfRangeException() : BaseException("An index that is out of range has been obtained (invalid index).") {}
+    OutOfRangeException(const std::string& msg) : BaseException(msg) {}
+};
+
 #endif //MUSIQUE_EXCEPTIONS_H

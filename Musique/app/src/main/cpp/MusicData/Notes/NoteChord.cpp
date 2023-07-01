@@ -73,6 +73,36 @@ void NoteChord::RenderDebug(RenderData& renderData) const
 #endif
 }
 
+BoundingBox NoteChord::GetBoundingBoxRelativeToMeasure(const MusicDisplayConstants& displayConstants) const
+{
+    if (notes.empty())
+        throw IsEmptyException();
+
+    BoundingBox bb = notes[0]->GetBoundingBoxRelativeToMeasure(displayConstants);
+
+    for (int i = 1; i < notes.size(); i++)
+    {
+        bb = BoundingBox::CombineBoundingBoxes(bb, notes[i]->GetBoundingBoxRelativeToMeasure(displayConstants));
+    }
+
+    return bb;
+}
+
+BoundingBox NoteChord::GetTotalBoundingBoxRelativeToMeasure(const MusicDisplayConstants& displayConstants) const
+{
+    if (notes.empty())
+        throw IsEmptyException();
+
+    BoundingBox bb = notes[0]->GetTotalBoundingBoxRelativeToMeasure(displayConstants);
+
+    for (int i = 1; i < notes.size(); i++)
+    {
+        bb = BoundingBox::CombineBoundingBoxes(bb, notes[i]->GetTotalBoundingBoxRelativeToMeasure(displayConstants));
+    }
+
+    return bb;
+}
+
 void NoteChord::UpdateBoundingBox(const MusicDisplayConstants& displayConstants, Vec2<float> parentPosition)
 {
     if (notes.empty())

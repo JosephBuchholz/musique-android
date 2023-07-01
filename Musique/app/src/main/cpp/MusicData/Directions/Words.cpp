@@ -12,7 +12,15 @@ void Words::Render(RenderData& renderData, Vec2<float> measurePosition, Vec2<flo
         paint.isBold = true;
     paint.textSize = fontSize.size;
 
-    renderData.AddText(Text(text.string, positionX + measurePosition.x + offset.y, positionY + measurePosition.y + offset.y, Paint(color.color, paint)));
+    renderData.AddText(Text(text.string, position.x + measurePosition.x + offset.y, position.y + measurePosition.y + offset.y, Paint(color.color, paint)));
+}
+
+Vec2<float> Words::GetDimensions() const
+{
+    Vec2<float> dimensions;
+    dimensions.x = fontSize.size * (float)text.string.size();
+    dimensions.y = fontSize.size * 2.0f;
+    return dimensions;
 }
 
 void Words::UpdateBoundingBox(const Vec2<float>& parentPosition)
@@ -40,8 +48,8 @@ void Words::UpdateBoundingBox(const Vec2<float>& parentPosition)
     bb.size.y = paint.textSize * 2.0f;
 #endif
 
-    boundingBox.position.x = bb.position.x + positionX + parentPosition.x;
-    boundingBox.position.y = bb.position.y + positionY + parentPosition.y;
+    boundingBox.position.x = bb.position.x + position.x + parentPosition.x;
+    boundingBox.position.y = bb.position.y + position.y + parentPosition.y;
     boundingBox.position.x -= bb.size.x / 2.0f;
     boundingBox.position.y += bb.size.y / 2.0f;
     boundingBox.size.x = bb.size.x;
@@ -60,8 +68,8 @@ void Words::UpdateBoundingBox(const Vec2<float>& parentPosition)
 
 void Words::Move(Vec2<float> positionOffset, Vec2<float> sizeOffset, float rotationOffset)
 {
-    positionX += positionOffset.x;
-    positionY += positionOffset.y;
+    position.x += positionOffset.x;
+    position.y += positionOffset.y;
 }
 
 void Words::CalculatePositionAsPaged(const MusicDisplayConstants& displayConstants, float defaultX, float defaultY)
@@ -74,10 +82,10 @@ void Words::CalculatePositionAsPaged(const MusicDisplayConstants& displayConstan
     //LOGE("calculate position: x: %f, y: %f", defaultX, defaultY);
 
     if (noDefY)
-        positionY = defaultY + -relY;
+        position.y = defaultY + -relY;
     else
-        positionY = -defY + -relY;
+        position.y = -defY + -relY;
 
-    positionX = defaultX;
+    position.x = defaultX;
     //positionY = defaultY;
 }

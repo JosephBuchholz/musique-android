@@ -237,7 +237,7 @@ void Note::RenderAugmentationDots(RenderData& renderData, float notePositionX, f
     // aug dot
     for (const auto& dot : dots)
     {
-        dot.Render(renderData, notePositionX, notePositionY);
+        dot.Render(renderData, { notePositionX, notePositionY });
     }
 }
 
@@ -458,7 +458,7 @@ void Note::CalculatePositionAsPaged(const MusicDisplayConstants& displayConstant
 
     for (auto& dot : dots)
     {
-        dot.CalculatePositionAsPaged(displayConstants, ((position.y / displayConstants.lineSpacing) - floor(position.y / displayConstants.lineSpacing)) == 0.0f, type == NoteType::Tab);
+        dot.CalculatePositionAsPaged(displayConstants, ((position.y / displayConstants.lineSpacing) - floor(position.y / displayConstants.lineSpacing)) == 0.0f, type == NoteType::Tab, noteHead.GetNoteHeadWidth(displayConstants));
     }
 
     if (fermata)
@@ -492,6 +492,35 @@ void Note::CalculatePositionAsPaged(const MusicDisplayConstants& displayConstant
 Vec2<float> Note::GetCenterPosition(const MusicDisplayConstants& displayConstants) const
 {
     return { position.x + noteHead.GetCenterPositionX(displayConstants), position.y };
+}
+
+BoundingBox Note::GetBoundingBoxRelativeToMeasure(const MusicDisplayConstants& displayConstants) const
+{
+    BoundingBox bb;
+
+    bb = BoundingBox::CombineBoundingBoxes(noteHead.GetBoundingBoxRelativeToParent(displayConstants),
+                                           noteStem->GetBoundingBoxRelativeToParent(displayConstants));
+
+    bb.position += position;
+
+    return bb;
+}
+
+BoundingBox Note::GetTotalBoundingBoxRelativeToMeasure(const MusicDisplayConstants& displayConstants) const
+{
+    BoundingBox bb;
+
+    bb = BoundingBox::CombineBoundingBoxes(noteHead.GetBoundingBoxRelativeToParent(displayConstants),
+                                           noteStem->GetBoundingBoxRelativeToParent(displayConstants));
+
+    bb.position += position;
+
+    if (fermata)
+    {
+        bb = BoundingBox::CombineBoundingBoxes(bb, fermata->GetBoundingBoxRelativeToParent());
+    }
+
+    return bb;
 }
 
 void Note::UpdateBoundingBox(const MusicDisplayConstants& displayConstants, Vec2<float> parentPosition)

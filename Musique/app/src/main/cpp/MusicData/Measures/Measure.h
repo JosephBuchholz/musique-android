@@ -43,22 +43,25 @@ class Measure : public VisibleElement
 
 public:
 
+    BoundingBox GetTotalBoundingBox(const MusicDisplayConstants& displayConstants, int staffLineCount) const;
 
-    float GetMiddleHeight(float staffLineCount, float lineSpacing);
-    float GetAboveHeight(float staffLineCount, float lineSpacing);
-    float GetBelowHeight(float staffLineCount, float lineSpacing);
-    float GetTotalHeight(float staffLineCount, float lineSpacing);
-    float GetBeginningWidth(System& system) const;
+    float GetMiddleHeight(int staffLineCount, float lineSpacing);
+    float GetAboveHeight(const MusicDisplayConstants& displayConstants, int staffLineCount);
+    float GetBelowHeight(int staffLineCount, float lineSpacing);
+
+    float GetTotalHeight(const MusicDisplayConstants& displayConstants, int staffLineCount);
+
+    float GetBeginningWidth(std::shared_ptr<System> system) const;
 
     float CalculateMinWidth(float notesWidth) const;
 
     float GetNotePositionInMeasure(float width, int noteIndex) const;
 
-    float GetKeySignaturePositionInMeasure(const System& system, float clefPositionX) const;
-    float GetTimeSignaturePositionInMeasure(const System& system, float keySignaturePositionX) const;
-    float GetClefPositionInMeasure(const System& system) const;
+    float GetKeySignaturePositionInMeasure(std::shared_ptr<System> system, float clefPositionX) const;
+    float GetTimeSignaturePositionInMeasure(std::shared_ptr<System> system, float keySignaturePositionX) const;
+    float GetClefPositionInMeasure(std::shared_ptr<System> system) const;
 
-    void Render(RenderData& renderData, Vec2<float> measurePosition, float nextMeasurePositionX, const System& system, int staffLineCount, float staffLineSpacing, bool isTopMeasureLine, bool isLastMeasureInSystem, TablatureDisplayType tablatureDisplayType) const;
+    void Render(RenderData& renderData, Vec2<float> measurePosition, float nextMeasurePositionX, std::shared_ptr<System> system, int staffLineCount, float staffLineSpacing, bool isTopMeasureLine, bool isLastMeasureInSystem, TablatureDisplayType tablatureDisplayType) const;
 
     /**
      * Renders any debug info.
@@ -72,7 +75,7 @@ public:
      *
      * @return the x position relative to the start of the measure.
      */
-    float GetRepeatBarlinePositionX(System& system) const;
+    float GetRepeatBarlinePositionX(std::shared_ptr<System> system) const;
 
     float GetPitchYPosition(Pitch pitch) const;
     float CalculateNoteYPositionRelativeToMeasure(int noteIndex) const;
@@ -92,7 +95,7 @@ public:
     void UpdateBoundingBoxes(const MusicDisplayConstants& displayConstants, const Vec2<float>& measurePosition, float measureHeight);
 
 protected:
-    void CalculateAsPaged(const MusicDisplayConstants& displayConstants, System& system, int staffLines);
+    void CalculateAsPaged(const MusicDisplayConstants& displayConstants, std::shared_ptr<System> system, int staffLines);
 
 private:
     float MeausreClefWidth() const;
@@ -100,7 +103,7 @@ private:
     float MeausreTimeSignatureWidth() const;
 
     void RenderBarlines(RenderData& renderData, float measurePositionX, float measurePositionY, float measureWidth, int lineCount, float lineSpacing, bool isTopStaff) const;
-    void RenderMeasureBeginning(RenderData& renderData, Vec2<float> measurePosition, const System& system, int staffLineCount, float staffLineSpacing, bool isTopMeasureLine) const;
+    void RenderMeasureBeginning(RenderData& renderData, Vec2<float> measurePosition, std::shared_ptr<System> system, int staffLineCount, float staffLineSpacing, bool isTopMeasureLine) const;
     void RenderStaffLines(RenderData& renderData, Vec2<float> measurePosition, int staffLineCount, float staffLineSpacing) const;
 
 public:

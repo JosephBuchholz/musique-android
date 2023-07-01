@@ -74,6 +74,23 @@ public:
     Vec2<float> GetCenterPosition(const MusicDisplayConstants& displayConstants) const;
 
     /**
+     * Get the bounding box containing just this note (notehead, stem).
+     *
+     * @param displayConstants Display constants.
+     * @return The bounding box.
+     */
+    BoundingBox GetBoundingBoxRelativeToMeasure(const MusicDisplayConstants& displayConstants) const;
+
+    /**
+     * Get the bounding box containing everything including this note,
+     * fermatas, and anything else that this note contains.
+     *
+     * @param displayConstants Display constants.
+     * @return The bounding box.
+     */
+    BoundingBox GetTotalBoundingBoxRelativeToMeasure(const MusicDisplayConstants& displayConstants) const;
+
+    /**
      * Updates the position and size of this object's bounding box.
      *
      * @param displayConstants The display constants.

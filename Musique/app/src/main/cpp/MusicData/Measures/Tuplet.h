@@ -16,25 +16,24 @@
  */
 class Tuplet : public VisibleElement
 {
-    friend class Song;
     friend class MusicXMLParser;
 
 public:
+
+    void Render(RenderData& renderData, Vec2<float> measurePosition, Vec2<float> offset = { 0.0f, 0.0f }) const;
+
+    SMuFLID GetSMuFLID() const;
+
+    BoundingBox GetBoundingBoxRelativeToParent() const;
 
     /**
      * Updates the position and size of this object's bounding box.
      *
      * @param parentPosition The position of the parent.
      */
-    void UpdateBoundingBox(const Vec2<float> &parentPosition);
+    void UpdateBoundingBox(Vec2<float> parentPosition);
 
-    void Render(RenderData& renderData, Vec2<float> measurePosition, Vec2<float> offset = { 0.0f, 0.0f }) const;
-
-    SMuFLID GetSMuFLID() const;
-
-protected:
-
-    void CalculatePositionAsPaged(const MusicDisplayConstants& displayConstants, Vec2<float> defPositionStart, Vec2<float> defPositionEnd);
+    void CalculatePositionAsPaged(const MusicDisplayConstants& displayConstants, float measureHeight, Vec2<float> defPositionStart, Vec2<float> defPositionEnd);
 
 public:
 

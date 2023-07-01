@@ -1,34 +1,40 @@
 #include "AugmentationDot.h"
 
-void AugmentationDot::Render(RenderData& renderData, float notePositionX, float notePositionY, float offsetX, float offsetY) const
+#define AUGMENTATION_DOT_X_OFFSET 3.0f
+
+void AugmentationDot::Render(RenderData& renderData, Vec2<float> notePosition) const
 {
-    renderData.AddGlyph(SMuFLGlyph(SMuFLID::augmentationDot, positionX + notePositionX + offsetY, positionY + notePositionY + offsetX, Paint(color.color)));
+    Paint paint;
+    VisibleElement::ModifyPaint(paint);
+
+    renderData.AddGlyph(SMuFLGlyph(SMuFLID::augmentationDot, position.x + notePosition.x, position.y + notePosition.y, paint));
 }
 
-void AugmentationDot::CalculatePositionAsPaged(const MusicDisplayConstants& displayConstants, bool noteIsOnLine, bool isTab)
+void AugmentationDot::CalculatePositionAsPaged(const MusicDisplayConstants& displayConstants, bool noteIsOnLine, bool isTab, float noteWidth)
 {
-    positionY = 0.0f;
-    positionX = 0.0f;
+    position = { 0.0f, 0.0f };
 
     if (isTab)
     {
         if (placement == AboveBelowType::Above)
-            positionY -= displayConstants.tabLineSpacing * 0.5f;
+            position.y -= displayConstants.tabLineSpacing * 0.5f;
         else if (placement == AboveBelowType::Below)
-            positionY += displayConstants.tabLineSpacing * 0.5f;
+            position.y += displayConstants.tabLineSpacing * 0.5f;
 
-        positionX += 10.0f;
+        position.x += noteWidth;
+        position.x += AUGMENTATION_DOT_X_OFFSET;
     }
     else
     {
         if (noteIsOnLine) // if the dot is on a staff line
         {
             if (placement == AboveBelowType::Above)
-                positionY -= displayConstants.lineSpacing * 0.5f;
+                position.y -= displayConstants.lineSpacing * 0.5f;
             else if (placement == AboveBelowType::Below)
-                positionY += displayConstants.lineSpacing * 0.5f;
+                position.y += displayConstants.lineSpacing * 0.5f;
         }
 
-        positionX += 15.0f;
+        position.x += noteWidth;
+        position.x += AUGMENTATION_DOT_X_OFFSET;
     }
 }

@@ -44,6 +44,12 @@ public:
 
     BoundingBox();
 
+    float GetLeft() const { return position.x; }
+    float GetRight() const { return position.x + size.x; }
+
+    float GetTop() const { return position.y; }
+    float GetBottom() const { return position.y + size.y; }
+
     /**
      * Calculates whether the given bounding box overlaps with this one.
      *
@@ -89,7 +95,7 @@ public:
      *
      * @param padding The amount of padding.
      */
-    void AddPadding(float padding = DEFAULT_PADDING);
+    BoundingBox AddPadding(float padding = DEFAULT_PADDING);
 
     /**
      * Makes the dimensions of this bounding box positive while adjusting

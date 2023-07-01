@@ -13,39 +13,32 @@
 /**
  * Class that represents an augmentation dot that lengthens a note by its duration value * 1.5.
  */
-class AugmentationDot : public VisibleElement {
-    friend class Note;
+class AugmentationDot : public VisibleElement
+{
     friend class MusicXMLParser;
 
 public:
 
     /**
-     * Renders this class
+     * Renders this class.
      *
-     * @param[out] renderData The RenderData object to render to
-     * @param[in] notePositionX The x position of the parent note
-     * @param[in] notePositionY The y position of the parent note
-     * @param[in] offsetX offset in x direction
-     * @param[in] offsetY offset in y direction
+     * @param[out] renderData The RenderData object to render to.
+     * @param[in] notePosition The position of the parent note.
      */
-    void Render(RenderData& renderData, float notePositionX, float notePositionY, float offsetX = 0.0f, float offsetY = 0.0f) const;
-
-protected:
+    void Render(RenderData& renderData, Vec2<float> notePosition) const;
 
     /**
      * Calculates positioning variables when in paged mode.
      *
-     * @param displayConstants display constants for positioning
-     * @param noteIsOnLine whether the note that this dot belongs to is on a staff line
-     * @param isTab whether the note that this dot belongs to is a tablature note
+     * @param displayConstants Display constants for positioning.
+     * @param noteIsOnLine Whether the note that this dot belongs to is on a staff line.
+     * @param isTab Whether the note that this dot belongs to is a tablature note.
+     * @param noteWidth The width of the parent note.
      */
-    void CalculatePositionAsPaged(const MusicDisplayConstants& displayConstants, bool noteIsOnLine, bool isTab);
+    void CalculatePositionAsPaged(const MusicDisplayConstants& displayConstants, bool noteIsOnLine, bool isTab, float noteWidth);
 
 public:
     AboveBelowType placement = AboveBelowType::Above; // whether the dot appears above or below the staff line
-
-    float positionX = 0.0f; // relative to the left hand side of the note
-    float positionY = 0.0f; // relative to the top line of the staff
 };
 
 #endif // MUSIQUE_AUGMENTATIONDOT_H

@@ -332,12 +332,14 @@ bool BoundingBox::HasConstraint(Constraint constraint) const
     return false;
 }
 
-void BoundingBox::AddPadding(float padding)
+BoundingBox BoundingBox::AddPadding(float padding)
 {
     position.x -= padding;
     position.y -= padding;
     size.x += padding * 2.0f;
     size.y += padding * 2.0f;
+
+    return *this;
 }
 
 void BoundingBox::MakeDimensionsPositive()

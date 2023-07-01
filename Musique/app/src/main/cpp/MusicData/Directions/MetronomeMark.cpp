@@ -38,7 +38,7 @@ void MetronomeMark::Render(RenderData& renderData, Vec2<float> measurePosition, 
         spans.emplace_back(1, 10, paint);
     }
 
-    renderData.AddSpannableText(std::make_shared<SpannableText>(chars, positionX + measurePosition.x + offset.x, positionY + measurePosition.y + offset.y, spans, Paint(color.color)));
+    renderData.AddSpannableText(std::make_shared<SpannableText>(chars, position.x + measurePosition.x + offset.x, position.y + measurePosition.y + offset.y, spans, Paint(color.color)));
     //renderData.AddDebugDot(positionX + measurePosition.x + offset.x, positionY + measurePosition.y + offset.y);
 }
 
@@ -71,8 +71,8 @@ void MetronomeMark::UpdateBoundingBox(const Vec2<float>& parentPosition)
     bb.size.x = paint.textSize * ((float)tempo.size() + 5);
     bb.size.y = paint.textSize * 3.0f;
 
-    boundingBox.position.x = bb.position.x + positionX + parentPosition.x;
-    boundingBox.position.y = bb.position.y + positionY + parentPosition.y;
+    boundingBox.position.x = bb.position.x + position.x + parentPosition.x;
+    boundingBox.position.y = bb.position.y + position.y + parentPosition.y;
     boundingBox.position.y -= bb.size.y / 2.0f;
     boundingBox.size.x = bb.size.x;
     boundingBox.size.y = bb.size.y;
@@ -86,21 +86,20 @@ void MetronomeMark::UpdateBoundingBox(const Vec2<float>& parentPosition)
 
 void MetronomeMark::Move(Vec2<float> positionOffset, Vec2<float> sizeOffset, float rotationOffset)
 {
-    positionX += positionOffset.x;
-    positionY += positionOffset.y;
+    position += positionOffset;
 }
 
 void MetronomeMark::CalculatePositionAsPaged(const MusicDisplayConstants& displayConstants, float defaultX, float defaultY)
 {
     if (noDefX)
-        positionX = defaultX + relX;
+        position.x = defaultX + relX;
     else
-        positionX = defX + relX;
+        position.x = defX + relX;
 
     if (noDefY)
-        positionY = defaultY;
+        position.y = defaultY;
     else
-        positionY = -defY + -relY;
+        position.y = -defY + -relY;
 
-    positionX = defaultX - (GetDimensions().x / 2.0f);
+    position.x = defaultX - (GetDimensions().x / 2.0f);
 }

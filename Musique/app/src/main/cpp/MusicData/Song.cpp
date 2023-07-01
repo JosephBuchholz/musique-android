@@ -387,14 +387,14 @@ void Song::OnUpdate()
                         //    multiMeasureRestCount++;
                         //}
 
-                        float systemWidth = displayConstants.pageWidth - systems[systemIndex].layout.systemLeftMargin - systems[systemIndex].layout.systemRightMargin - displayConstants.leftMargin - displayConstants.rightMargin;
+                        float systemWidth = displayConstants.pageWidth - systems[systemIndex]->layout.systemLeftMargin - systems[systemIndex]->layout.systemRightMargin - displayConstants.leftMargin - displayConstants.rightMargin;
 
                         if (previousMeasure)
                         {
                             if (previousMeasure->isPartOfMultiMeasureRest)
                             {
                                 if (systemIndex + 1 < systems.size())
-                                    systems[systemIndex + 1].layout.systemDistance /= 4.0f;
+                                    systems[systemIndex + 1]->layout.systemDistance /= 4.0f;
                             }
                         }
 
@@ -405,7 +405,7 @@ void Song::OnUpdate()
                             multiMeasureRestWidth = remainingWidth / (float) multiMeasureRestCount;
                         }
 
-                        LOGV("systemLeftMargin: %f, systemRightMargin: %f, systemWidth: %f, remainingWidth: %f, multiMeasureRestWidth: %f", systems[systemIndex].layout.systemLeftMargin, systems[systemIndex].layout.systemRightMargin,
+                        LOGV("systemLeftMargin: %f, systemRightMargin: %f, systemWidth: %f, remainingWidth: %f, multiMeasureRestWidth: %f", systems[systemIndex]->layout.systemLeftMargin, systems[systemIndex]->layout.systemRightMargin,
                              systemWidth, (systemWidth - totalMeasureWidth), multiMeasureRestWidth);
 
                         for (auto multiMeasureRest : multiMeasureRests)
@@ -422,7 +422,7 @@ void Song::OnUpdate()
                                 else
                                     lineSpacing = displayConstants.lineSpacing;
 
-                                auto measureDataItem = systems[systemIndex].systemMeasureData.find(multiMeasureRest->index);
+                                auto measureDataItem = systems[systemIndex]->systemMeasureData.find(multiMeasureRest->index);
 
                                 multiMeasureRest->multiMeasureRestSymbol->CalculateAsPaged(displayConstants, lineSpacing, staff->lines, multiMeasureRest->measureWidth, measureDataItem->second.measureBeginningWidth);
                             }
@@ -597,9 +597,11 @@ void Song::OnUpdate()
                         chord.CalculatePositionAsPaged(displayConstants, defaultX, defaultY);
                     }
 
+                    float measureHeight = measure->GetMiddleHeight(staff->lines, staff->GetLineSpacing(displayConstants));
+
                     for (auto tuplet : measure->tuplets)
                     {
-                        tuplet->CalculatePositionAsPaged(displayConstants, { 0.0f, 0.0f }, { 0.0f, 0.0f });
+                        tuplet->CalculatePositionAsPaged(displayConstants, measureHeight, { 0.0f, 0.0f }, { 0.0f, 0.0f });
                     }
 
                     for (auto note : measure->notes)
@@ -1033,7 +1035,7 @@ void Song::OnUpdate()
         }
     }*/
 
-    int numPages = GetNumPages();
+    /*int numPages = GetNumPages();
 
     Vec2<float> pageNumberDefaultPosition = { displayConstants.pageWidth / 2.0f, displayConstants.pageHeight * (17.0f / 18.0f) };
     for (int i = 0; i < numPages; i++)
@@ -1043,9 +1045,170 @@ void Song::OnUpdate()
         newPageNumber.CalculatePosition(displayConstants, pageNumberDefaultPosition);
 
         pageNumbers.push_back(newPageNumber);
-    }
+    }*/
 
     LOGD("done updating song data");
+}
+
+void Song::CalculateSystemPositionsAndPageBreaks()
+{
+    systemBoundingBoxes.clear();
+    for (auto system : systems)
+    {
+        BoundingBox bb;
+
+        bool boundingBoxNotSet = true;
+
+        Vec2<float> previousInstPosition = { 0.0f, 0.0f };
+        float previousInstBelowAndMiddleHeight = 0.0f;
+        bool firstInst = true;
+        for (auto instrument : instruments)
+        {
+            BoundingBox instrumentBoundingBox;
+            bool instBBNotSet = true;
+
+            Vec2<float> instrumentPosition = { 0.0f, 0.0f };
+
+            instrumentBoundingBox = instrument->GetTotalBoundingBox(displayConstants, system->beginningMeasureIndex, system->endingMeasureIndex);
+
+            Vec2<float> previousStaffPosition = { 0.0f, 0.0f };
+            float previousStaffBelowAndMiddleHeight = 0.0f;
+            bool firstStaff = true;
+            for (auto staff : instrument->staves)
+            {
+                Vec2<float> staffPosition = { 0.0f, 0.0f };
+
+                int start = system->beginningMeasureIndex;
+                int end = system->endingMeasureIndex;
+
+                BoundingBox staffBoundingBox = staff->GetTotalBoundingBox(displayConstants, start, end);
+                staffBoundingBox.AddPadding(5.0f);
+
+                if (!firstStaff)
+                {
+                    staffPosition.y = -staffBoundingBox.GetTop();
+                    staffPosition.y += previousStaffPosition.y;
+                    staffPosition.y += previousStaffBelowAndMiddleHeight;
+
+                    //LOGE("above height: %f, previousStaffY: %f, previousStaffBelowAndMiddleHeight: %f, staffPosition.y: %f", -staffBoundingBox.GetTop(), previousStaffPosition.y, previousStaffBelowAndMiddleHeight, staffPosition.y);
+                }
+
+                previousStaffPosition = staffPosition;
+                previousStaffBelowAndMiddleHeight = staffBoundingBox.GetBottom();
+
+                staff->systemPositionData.push_back(staffPosition);
+
+                firstStaff = false;
+            }
+
+            if (!firstInst)
+            {
+                instrumentPosition.y = -instrumentBoundingBox.GetTop();
+                instrumentPosition.y += previousInstPosition.y;
+                instrumentPosition.y += previousInstBelowAndMiddleHeight;
+            }
+
+            previousInstPosition = instrumentPosition;
+            previousInstBelowAndMiddleHeight = instrumentBoundingBox.GetBottom();
+
+            instrumentBoundingBox.position += instrumentPosition;
+
+            instrument->systemPositionData.push_back(instrumentPosition);
+            if (boundingBoxNotSet)
+            {
+                bb = instrumentBoundingBox;
+                boundingBoxNotSet = false;
+            }
+            else
+                bb = BoundingBox::CombineBoundingBoxes(bb, instrumentBoundingBox);
+            firstInst = false;
+        }
+
+        systemBoundingBoxes.push_back(bb);
+    }
+
+    // remove all page breaks
+    for (auto instrument : instruments)
+    {
+        for (auto staff : instrument->staves)
+        {
+            for (auto measure : staff->measures)
+            {
+                measure->startNewPage = false;
+            }
+        }
+    }
+
+    // calculate system positions and page breaks
+    CreatePageBreak(0);
+    Page newPage;
+
+    Vec2<float> previousSystemPosition = { 0.0f, displayConstants.topMargin + systems[0]->layout.topSystemDistance };
+    float bottomLimit = displayConstants.pageHeight * (17.0f / 18.0f);
+    int previousSystemIndex = -1;
+    int systemIndex = 0;
+    bool startNewPage = true;
+    float systemPadding = 5.0f;
+    for (auto& system : systems)
+    {
+        if (previousSystemIndex >= 0 && !startNewPage)
+        {
+            float nextSystemPositionY = previousSystemPosition.y +
+                                        GetSystemBoundingBox(previousSystemIndex).AddPadding(systemPadding).GetBottom();
+            if (nextSystemPositionY + GetSystemBoundingBox(systemIndex).AddPadding(systemPadding).size.y >= bottomLimit)
+            {
+                float bottomOfLastSystem = systems[previousSystemIndex]->position.y + GetSystemBoundingBox(previousSystemIndex).GetBottom();
+                float dist = bottomLimit - bottomOfLastSystem;
+                if (newPage.systems.size() - 1 != 0)
+                {
+                    float extra = dist / (float) newPage.systems.size() - 1;
+                    LOGW("extra: %f", extra);
+                    for (int i = 0; i < newPage.systems.size(); i++)
+                    {
+                        newPage.systems[i]->position.y += extra * (float)i;
+                    }
+                }
+
+                // start a new page
+                startNewPage = true;
+                previousSystemPosition = { 0.0f, displayConstants.topMargin + systems[systemIndex]->layout.topSystemDistance };
+                CreatePageBreak(system->beginningMeasureIndex);
+                pages.push_back(newPage);
+                newPage = Page();
+            }
+        }
+
+        system->position.x = displayConstants.leftMargin + system->layout.systemLeftMargin;
+        system->position.y = previousSystemPosition.y;
+
+        if (previousSystemIndex >= 0 && !startNewPage)
+        {
+            system->position.y += GetSystemBoundingBox(previousSystemIndex).AddPadding(systemPadding).GetBottom();
+            system->position.y += -GetSystemBoundingBox(systemIndex).AddPadding(systemPadding).GetTop();
+        }
+
+        newPage.systems.push_back(system);
+        previousSystemPosition = system->position;
+        previousSystemIndex = systemIndex;
+        systemIndex++;
+        startNewPage = false;
+    }
+
+    pages.push_back(newPage);
+
+    // page numbers
+    Vec2<float> pageNumberDefaultPosition = { displayConstants.pageWidth / 2.0f, displayConstants.pageHeight * (17.0f / 18.0f) };
+    int i = 0;
+    for (auto& page : pages)
+    {
+        PageNumber newPageNumber(i + 1);
+
+        newPageNumber.CalculatePosition(displayConstants, pageNumberDefaultPosition);
+
+        page.pageNumber = newPageNumber;
+
+        i++;
+    }
 }
 
 void Song::AddTimeSpacePoint(TimeSpacePoint point)
@@ -1360,9 +1523,50 @@ float Song::GetSystemPositionY(int measureIndex) const // TODO: needs finnished
     return instYPosition * (measureIndex/4);
 }
 
-float Song::GetSystemHeight(int measureIndex) const
+float Song::GetSystemHeight(int systemIndex) const
 {
+    if (systemIndex >= systems.size())
+        throw OutOfRangeException();
+
+    std::shared_ptr<System> system = systems[systemIndex];
+
+    for (auto instrument : instruments)
+    {
+        for (auto staff : instrument->staves)
+        {
+            int start = system->beginningMeasureIndex;
+            int end = system->endingMeasureIndex;
+
+            staff->GetTotalHeight(displayConstants, start, end);
+        }
+    }
+
     return 150.0f;
+}
+
+BoundingBox Song::GetSystemBoundingBox(int systemIndex) const
+{
+    if (systemIndex >= systemBoundingBoxes.size())
+        throw OutOfRangeException();
+
+    return systemBoundingBoxes[systemIndex];
+}
+
+void Song::CreatePageBreak(int measureIndex) const
+{
+    for (auto instrument : instruments)
+    {
+        for (auto staff : instrument->staves)
+        {
+            staff->measures[measureIndex]->startNewPage = true;
+            staff->measures[measureIndex]->startNewSystem = true; // a new page always starts a new system
+        }
+    }
+}
+
+void Song::RemovePageBreak(int measureIndex) const
+{
+
 }
 
 int Song::GetSystemIndex(int measureIndex) const
@@ -1566,6 +1770,8 @@ void Song::UpdateBoundingBoxes(const std::vector<Vec2<float>>& pagePositions, co
                 ls = displayConstants.tabLineSpacing;
             }
 
+            staff->UpdateBoundingBoxes(displayConstants);
+
             int measureIndex = 0;
             for (auto measure : staff->measures) {
 
@@ -1620,16 +1826,61 @@ void Song::UpdateBoundingBoxes(const std::vector<Vec2<float>>& pagePositions, co
 
 void Song::RenderBoundingBoxes(RenderData& renderData, const std::vector<Vec2<float>>& pagePositions, const std::vector<Vec2<float>>& systemPositions)
 {
-    for (auto instrument : instruments) {
-        for (auto staff : instrument->staves) {
-            int measureIndex = 0;
-            for (auto measure : staff->measures) {
-
-                measure->RenderDebug(renderData);
-
-                measureIndex++;
-            }
+    for (auto instrument : instruments)
+    {
+        for (auto staff : instrument->staves)
+        {
+            staff->RenderDebug(renderData);
         }
+    }
+
+    int systemIndex = 0;
+    for (const auto& system : systems)
+    {
+        //bb.size.y = 40.0f;
+
+        int instrumentIndex = 0;
+        for (auto instrument : instruments)
+        {
+            int staffIndex = 0;
+            for (auto staff : instrument->staves)
+            {
+                int start = system->beginningMeasureIndex;
+                int end = system->endingMeasureIndex;
+
+                LOGW("system: %d | start: %d, end: %d", systemIndex, start, end);
+
+                BoundingBox bb = staff->GetTotalBoundingBox(displayConstants, start, end);
+                bb.position += systemPositions[systemIndex];
+                bb.position += instrument->systemPositionData[systemIndex];
+                bb.position += staff->systemPositionData[systemIndex];
+
+                bb.size.x = 1050.0f;
+
+                /*bb.size.y = staff->GetTotalHeight(displayConstants, start, end);
+                bb.position.y -= staff->GetAboveHeight(displayConstants, start, end);*/
+
+                bb.Render(renderData, (int)0xFF00FF00);
+
+                staffIndex++;
+            }
+
+            BoundingBox instrumentBoundingBox = instrument->GetTotalBoundingBox(displayConstants, system->beginningMeasureIndex, system->endingMeasureIndex);
+            //instrumentBoundingBox.position.y -= instrument->GetAboveHeight(displayConstants, start, end);
+            instrumentBoundingBox.position += systemPositions[systemIndex];
+            instrumentBoundingBox.position += instrument->systemPositionData[systemIndex];
+            instrumentBoundingBox.size.x = 1050.0f;
+            instrumentBoundingBox.Render(renderData, (int)0xFFFF0000);
+
+            instrumentIndex++;
+        }
+
+        BoundingBox systemBoundingBox = GetSystemBoundingBox(systemIndex);
+        systemBoundingBox.position += systemPositions[systemIndex];
+        systemBoundingBox.size.x = 1050.0f;
+        systemBoundingBox.Render(renderData, (int)0xFF0000FF);
+
+        systemIndex++;
     }
 }
 
@@ -1684,6 +1935,11 @@ void Song::ResolveCollisions()
                 for (auto& beamGroup : measure->beams)
                 {
                     ResolveCollisionsWith(beamGroup.boundingBox, pageIndex);
+                }
+
+                for (auto tuplet : measure->tuplets)
+                {
+                    ResolveCollisionsWith(tuplet->boundingBox, pageIndex);
                 }
 
                 for (Direction& direction : measure->directions) {
@@ -1779,6 +2035,11 @@ void Song::ResolveCollisionsWith(BoundingBox& box, int pageIndex)
                         {
                             ResolveCollisionWith(&lyric, box);
                         }
+                    }
+
+                    for (auto tuplet : measure->tuplets)
+                    {
+                        ResolveCollisionWith(tuplet, box);
                     }
 
                     for (Direction& direction : measure->directions)
@@ -1880,16 +2141,16 @@ std::vector<Vec2<float>> Song::GetSystemPositions() const
 
         if (DoesMeasureStartNewPage(measureIndex)) // if it is the first system on the page
         {
-            systemPosition.y = displayConstants.topMargin + system.layout.topSystemDistance;
+            systemPosition.y = displayConstants.topMargin + system->layout.topSystemDistance;
         }
         else
         {
             float lastInstrumentPositionY = GetInstrumentPositionY(measureIndex, lastInstrumentIndex);
 
-            systemPosition.y = previousSystemPositionY + lastInstrumentPositionY + system.layout.systemDistance + instruments[lastInstrumentIndex]->GetMiddleHeight(10.0f, 13.33f, measureIndex, measureIndex + 1);
+            systemPosition.y = previousSystemPositionY + lastInstrumentPositionY + system->layout.systemDistance + instruments[lastInstrumentIndex]->GetMiddleHeight(10.0f, 13.33f, measureIndex, measureIndex + 1);
         }
 
-        systemPosition.x = displayConstants.leftMargin + system.layout.systemLeftMargin;
+        systemPosition.x = displayConstants.leftMargin + system->layout.systemLeftMargin;
 
         systemPositions.push_back(systemPosition);
 

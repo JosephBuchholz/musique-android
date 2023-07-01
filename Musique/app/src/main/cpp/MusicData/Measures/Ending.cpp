@@ -41,6 +41,31 @@ void Ending::Render(RenderData& renderData, Vec2<float> measureStartPosition, Ve
     renderData.AddText(Text(endingNumbersText, textPosition.x + startPosition.x, textPosition.y + startPosition.y, textPaint));
 }
 
+BoundingBox Ending::GetBoundingBoxRelativeToParent() const
+{
+    BoundingBox bb;
+
+    bb.position = position;
+    bb.size.x = 10.0f; // TODO: need to get width??
+    bb.size.y = jogLength;
+
+    return bb;
+}
+
+void Ending::UpdateBoundingBox(Vec2<float> parentPosition)
+{
+    boundingBox = GetBoundingBoxRelativeToParent();
+    boundingBox.position += parentPosition;
+
+    boundingBox.AddPadding();
+
+    boundingBox.constraints.emplace_back(Constraint::ConstraintType::NoHorizontal);
+
+#if DEBUG_BOUNDING_BOXES
+    debugBoundingBox = boundingBox;
+#endif
+}
+
 void Ending::CalculatePositionAsPaged(const MusicDisplayConstants& displayConstants)
 {
     if (defaultPosition.y != INVALID_FLOAT_VALUE)

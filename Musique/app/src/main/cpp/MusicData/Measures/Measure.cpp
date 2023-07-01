@@ -3,22 +3,76 @@
 #include "../../RenderMeasurement.h"
 #include "../../Exceptions/Exceptions.h"
 
-float Measure::GetMiddleHeight(float staffLineCount, float lineSpacing)
+BoundingBox Measure::GetTotalBoundingBox(const MusicDisplayConstants& displayConstants, int staffLineCount) const
 {
-    return (lineSpacing * (staffLineCount - 1));
+    BoundingBox totalBoundingBox;
+
+    float lineSpacing = displayConstants.lineSpacing;
+    if (type == MeasureType::Tab)
+        lineSpacing = displayConstants.tabLineSpacing;
+
+    totalBoundingBox.size.y = float(staffLineCount - 1) * lineSpacing;
+    totalBoundingBox.size.x = measureWidth;
+
+    for (auto direction : directions)
+    {
+        totalBoundingBox = BoundingBox::CombineBoundingBoxes(totalBoundingBox, direction.GetBoundingBoxRelativeToMeasure());
+    }
+
+    for (auto note : notes)
+    {
+        totalBoundingBox = BoundingBox::CombineBoundingBoxes(totalBoundingBox, note->GetTotalBoundingBoxRelativeToMeasure(displayConstants));
+    }
+
+    for (auto noteChord : noteChords)
+    {
+        totalBoundingBox = BoundingBox::CombineBoundingBoxes(totalBoundingBox, noteChord->GetTotalBoundingBoxRelativeToMeasure(displayConstants));
+    }
+
+    for (const auto& beam : beams)
+    {
+        totalBoundingBox = BoundingBox::CombineBoundingBoxes(totalBoundingBox, beam.GetBoundingBoxRelativeToMeasure(displayConstants));
+    }
+
+    for (auto tuplet : tuplets)
+    {
+        totalBoundingBox = BoundingBox::CombineBoundingBoxes(totalBoundingBox, tuplet->GetBoundingBoxRelativeToParent());
+    }
+
+    for (const auto& chord : chords)
+    {
+        totalBoundingBox = BoundingBox::CombineBoundingBoxes(totalBoundingBox, chord.GetBoundingBoxRelativeToParent());
+    }
+
+    totalBoundingBox = BoundingBox::CombineBoundingBoxes(totalBoundingBox, measureNumber.GetBoundingBoxRelativeToMeasure(displayConstants));
+
+    return totalBoundingBox;
 }
 
-float Measure::GetAboveHeight(float staffLineCount, float lineSpacing)
+float Measure::GetMiddleHeight(int staffLineCount, float lineSpacing)
+{
+    return (lineSpacing * float(staffLineCount - 1));
+}
+
+float Measure::GetAboveHeight(const MusicDisplayConstants& displayConstants, int staffLineCount)
+{
+    BoundingBox bb = GetTotalBoundingBox(displayConstants, staffLineCount);
+    float height = -bb.GetTop();
+    return height;
+}
+
+float Measure::GetBelowHeight(int staffLineCount, float lineSpacing)
 {
     return 50.0f;
 }
 
-float Measure::GetBelowHeight(float staffLineCount, float lineSpacing)
+float Measure::GetTotalHeight(const MusicDisplayConstants& displayConstants, int staffLineCount)
 {
-    return 50.0f;
+    float height = GetTotalBoundingBox(displayConstants, staffLineCount).size.y;
+    return height;
 }
 
-void Measure::Render(RenderData& renderData, Vec2<float> measurePosition, float nextMeasurePositionX, const System& system, int staffLineCount, float staffLineSpacing, bool isTopMeasureLine, bool isLastMeasureInSystem, TablatureDisplayType tablatureDisplayType) const
+void Measure::Render(RenderData& renderData, Vec2<float> measurePosition, float nextMeasurePositionX, std::shared_ptr<System> system, int staffLineCount, float staffLineSpacing, bool isTopMeasureLine, bool isLastMeasureInSystem, TablatureDisplayType tablatureDisplayType) const
 {
     if (startsMultiMeasureRest)
     {
@@ -121,19 +175,19 @@ void Measure::RenderStaffLines(RenderData& renderData, Vec2<float> measurePositi
     }
 }
 
-void Measure::RenderMeasureBeginning(RenderData& renderData, Vec2<float> measurePosition, const System& system, int staffLineCount, float staffLineSpacing, bool isTopMeasureLine) const
+void Measure::RenderMeasureBeginning(RenderData& renderData, Vec2<float> measurePosition, std::shared_ptr<System> system, int staffLineCount, float staffLineSpacing, bool isTopMeasureLine) const
 {
-    auto measureDataItem = system.systemMeasureData.find(index);
+    auto measureDataItem = system->systemMeasureData.find(index);
 
-    if (measureDataItem != system.systemMeasureData.end())
+    if (measureDataItem != system->systemMeasureData.end())
     {
-        bool displayTimeSignature = showTimeSignature || (system.showBeginningTimeSignature && startNewSystem);
+        bool displayTimeSignature = showTimeSignature || (system->showBeginningTimeSignature && startNewSystem);
         timeSignature.Render(renderData, displayTimeSignature, measureDataItem->second.timeSignaturePositionX + measurePosition.x, measurePosition.y, staffLineSpacing, staffLineCount);
 
-        bool displayKeySignature = (showKeySignature || (system.showBeginningKeySignature && startNewSystem));
+        bool displayKeySignature = (showKeySignature || (system->showBeginningKeySignature && startNewSystem));
         keySignature.Render(renderData, displayKeySignature, measureDataItem->second.keySignaturePositionX + measurePosition.x, staffLineSpacing, staffLineCount, clef, 0.0f, measurePosition.y);
 
-        bool showSystemClef = (system.showBeginningClef && startNewSystem);
+        bool showSystemClef = (system->showBeginningClef && startNewSystem);
 
         float clefPositionX;
         if (clef.clefChanged)
@@ -180,22 +234,15 @@ void Measure::RenderBarlines(RenderData& renderData, float measurePositionX, flo
     //renderData.AddLine(std::make_shared<Line>(barlineLeftPositionX, barlinePositionYTop, barlineLeftPositionX, barlinePositionYBottom, Paint(0xFFFF00FF)));
 }
 
-float Measure::GetTotalHeight(float staffLineCount, float lineSpacing)
-{
-    return GetAboveHeight(staffLineCount, lineSpacing) +
-    GetMiddleHeight(staffLineCount, lineSpacing) +
-    GetBelowHeight(staffLineCount, lineSpacing);
-}
-
-float Measure::GetBeginningWidth(System& system) const
+float Measure::GetBeginningWidth(std::shared_ptr<System> system) const
 {
     float width = 0.0f;
 
     width += GetTimeSignaturePositionInMeasure(system, GetKeySignaturePositionInMeasure(system, GetClefPositionInMeasure(system)));
 
-    bool isBeginningMeasure = (system.beginningMeasureIndex == index);
+    bool isBeginningMeasure = (system->beginningMeasureIndex == index);
 
-    if (showTimeSignature || (system.showBeginningTimeSignature && isBeginningMeasure))
+    if (showTimeSignature || (system->showBeginningTimeSignature && isBeginningMeasure))
         width += MeausreTimeSignatureWidth();
 
     return width;
@@ -254,16 +301,16 @@ float Measure::GetNotePositionInMeasure(float width, int noteIndex) const
     return position;
 }
 
-float Measure::GetKeySignaturePositionInMeasure(const System& system, float clefPositionX) const
+float Measure::GetKeySignaturePositionInMeasure(std::shared_ptr<System> system, float clefPositionX) const
 {
 
     float position;
 
-    bool isBeginningMeasure = (system.beginningMeasureIndex == index);
+    bool isBeginningMeasure = (system->beginningMeasureIndex == index);
 
     float clefWidth;
 
-    if ((clef.showClef || (system.showBeginningClef && isBeginningMeasure)) && !clef.clefChanged) // showing the clef
+    if ((clef.showClef || (system->showBeginningClef && isBeginningMeasure)) && !clef.clefChanged) // showing the clef
         clefWidth = MeausreClefWidth();
     else // not showing the clef
         clefWidth = 0.0f;
@@ -273,14 +320,14 @@ float Measure::GetKeySignaturePositionInMeasure(const System& system, float clef
     return position;
 }
 
-float Measure::GetTimeSignaturePositionInMeasure(const System& system, float keySignaturePositionX) const
+float Measure::GetTimeSignaturePositionInMeasure(std::shared_ptr<System> system, float keySignaturePositionX) const
 {
     float position;
-    bool isBeginningMeasure = (system.beginningMeasureIndex == index);
+    bool isBeginningMeasure = (system->beginningMeasureIndex == index);
 
     float keySignatureWidth;
 
-    if (showKeySignature || (system.showBeginningKeySignature && isBeginningMeasure)) // showing the key signature
+    if (showKeySignature || (system->showBeginningKeySignature && isBeginningMeasure)) // showing the key signature
         keySignatureWidth = MeausreKeySignatureWidth();
     else // not showing the key signature
         keySignatureWidth = 0.0f;
@@ -290,7 +337,7 @@ float Measure::GetTimeSignaturePositionInMeasure(const System& system, float key
     return position;
 }
 
-float Measure::GetClefPositionInMeasure(const System& system) const
+float Measure::GetClefPositionInMeasure(std::shared_ptr<System> system) const
 {
     float position = 5.0f;
 
@@ -300,6 +347,11 @@ float Measure::GetClefPositionInMeasure(const System& system) const
 void Measure::RenderDebug(RenderData& renderData) const
 {
     boundingBox.Render(renderData, (int)0x66FF0000);
+
+//#if DEBUG_BOUNDING_BOXES
+//    debugBoundingBox.Render(renderData, (int)0xFF0000FF);
+//#endif
+
     measureNumber.boundingBox.Render(renderData, (int)0x66FF0000);
 
     clef.boundingBox.Render(renderData, (int)0x66FF0000);
@@ -317,6 +369,11 @@ void Measure::RenderDebug(RenderData& renderData) const
     for (const BeamGroup& beamGroup : beams)
     {
         beamGroup.RenderDebug(renderData);
+    }
+
+    for (auto tuplet : tuplets)
+    {
+        tuplet->RenderDebug(renderData);
     }
 
     for (const Direction& direction : directions)
@@ -399,7 +456,7 @@ int Measure::GetLetterNumber(const std::string& s) const
     return num;
 }
 
-void Measure::CalculateAsPaged(const MusicDisplayConstants& displayConstants, System& system, int staffLines)
+void Measure::CalculateAsPaged(const MusicDisplayConstants& displayConstants, std::shared_ptr<System> system, int staffLines)
 {
     measureWidth = defaultMeasureWidth;
 
@@ -408,15 +465,15 @@ void Measure::CalculateAsPaged(const MusicDisplayConstants& displayConstants, Sy
     else
         staffDistance = defStaffDistance;
 
-    if (system.systemMeasureData.find(index) == system.systemMeasureData.end()) // the key does not exist
+    if (system->systemMeasureData.find(index) == system->systemMeasureData.end()) // the key does not exist
     {
         // so insert new measure data
         System::SystemMeasureData newSystemMeasureData;
         std::pair<int, System::SystemMeasureData> newPair(index, newSystemMeasureData);
-        system.systemMeasureData.insert(newPair);
+        system->systemMeasureData.insert(newPair);
     }
 
-    auto measureDataItem = system.systemMeasureData.find(index);
+    auto measureDataItem = system->systemMeasureData.find(index);
 
     // TODO: this measure data won't be finished until all measures have called CalculateAsPaged, thus this code needs to be moved
     measureDataItem->second.clefPositionX = std::max(GetClefPositionInMeasure(system), measureDataItem->second.clefPositionX);
@@ -504,15 +561,15 @@ float Measure::MeausreTimeSignatureWidth() const
     return std::max(topNumWidth, bottomNumWidth) + 10.0f; // adding margins of 10.0f
 }
 
-float Measure::GetRepeatBarlinePositionX(System& system) const
+float Measure::GetRepeatBarlinePositionX(std::shared_ptr<System> system) const
 {
     float width = 0.0f;
 
     width += GetTimeSignaturePositionInMeasure(system, GetKeySignaturePositionInMeasure(system, GetClefPositionInMeasure(system)));
 
-    bool isBeginningMeasure = (system.beginningMeasureIndex == index);
+    bool isBeginningMeasure = (system->beginningMeasureIndex == index);
 
-    if (showTimeSignature || (system.showBeginningTimeSignature && isBeginningMeasure))
+    if (showTimeSignature || (system->showBeginningTimeSignature && isBeginningMeasure))
         width += MeausreTimeSignatureWidth();
 
     return width;
@@ -524,6 +581,11 @@ void Measure::UpdateBoundingBoxes(const MusicDisplayConstants& displayConstants,
     boundingBox.size.x = measureWidth;
     boundingBox.size.y = measureHeight;
     boundingBox.constraints.emplace_back(Constraint::ConstraintType::Static);
+
+/*#if DEBUG_BOUNDING_BOXES
+    debugBoundingBox = GetTotalBoundingBox(displayConstants, 5);
+    debugBoundingBox.position += measurePosition;
+#endif*/
 
     measureNumber.UpdateBoundingBox(measurePosition);
 
@@ -544,6 +606,11 @@ void Measure::UpdateBoundingBoxes(const MusicDisplayConstants& displayConstants,
         for (BeamGroup &beamGroup: beams)
         {
             beamGroup.UpdateBoundingBox(displayConstants, measurePosition);
+        }
+
+        for (auto tuplet : tuplets)
+        {
+            tuplet->UpdateBoundingBox(measurePosition);
         }
 
         for (Direction &direction: directions)

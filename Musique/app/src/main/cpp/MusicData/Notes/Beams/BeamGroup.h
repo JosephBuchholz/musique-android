@@ -20,6 +20,8 @@ public:
     void Render(RenderData& renderData, Vec2<float> measurePosition, Vec2<float> offset = { 0.0f, 0.0f }) const;
     void RenderDebug(RenderData& renderData) const;
 
+    BoundingBox GetBoundingBoxRelativeToMeasure(const MusicDisplayConstants& displayConstants) const;
+
     /**
      * Updates the position and size of this object's bounding box.
      *

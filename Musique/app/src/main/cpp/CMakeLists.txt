@@ -54,6 +54,7 @@ add_library( # Sets the name of the library.
         MusicData/Chords/Chord.cpp
         MusicData/Chords/ChordDiagram.cpp
 
+        MusicData/Page/Page.cpp
         MusicData/Page/Credit.cpp
         MusicData/Page/PageNumber.cpp
 

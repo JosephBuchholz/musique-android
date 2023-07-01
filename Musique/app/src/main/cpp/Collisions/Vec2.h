@@ -39,6 +39,16 @@ public:
         return { this->x / rhs.x, this->y / rhs.y };
     }
 
+    Vec2<T> operator*(float rhs) const
+    {
+        return { this->x * rhs, this->y * rhs };
+    }
+
+    Vec2<T> operator/(float rhs) const
+    {
+        return { this->x / rhs, this->y / rhs };
+    }
+
     bool operator==(const Vec2<T>& rhs) const
     {
         return (this->x == rhs.x) && (this->y == rhs.y);

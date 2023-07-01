@@ -42,8 +42,10 @@ void Chord::Render(RenderData& renderData, float measurePositionX, float measure
     renderData.AddSpannableText(std::make_shared<SpannableText>(chars, positionX + measurePositionX + offsetX, positionY + measurePositionY + offsetY, spans, paint));*/
 }
 
-void Chord::UpdateBoundingBox(const Vec2<float> &parentPosition)
+BoundingBox Chord::GetBoundingBoxRelativeToParent() const
 {
+    BoundingBox bb;
+
     Paint paint = Paint();
     if (fontStyle == FontStyle::Italic)
         paint.isItalic = true;
@@ -51,28 +53,29 @@ void Chord::UpdateBoundingBox(const Vec2<float> &parentPosition)
         paint.isBold = true;
     paint.textSize = fontSize.size;
 
-    BoundingBox bb = RenderMeasurement::GetTextBoundingBox(Text(chordName.string, position.x, position.y, paint));
+    BoundingBox textBoundingBox = RenderMeasurement::GetTextBoundingBox(Text(chordName.string, position.x, position.y, paint));
 
-    /*BoundingBox bb = BoundingBox();
-    bb.position.x = 0.0f;
-    bb.position.y = -paint.textSize * 2.0f;
-    bb.size.x = (paint.textSize * (float)chordName.string.size()) + (paint.textSize * 2.0f);
-    bb.size.y = paint.textSize * 2.0f;*/
-
-    boundingBox.position.x = bb.position.x + position.x + parentPosition.x;
-    boundingBox.position.y = bb.position.y + position.y + parentPosition.y;
-    boundingBox.position.x -= bb.size.x / 2.0f;
-    boundingBox.position.y += bb.size.y / 2.0f;
-    boundingBox.size.x = bb.size.x;
-    boundingBox.size.y = bb.size.y;
-
-    boundingBox.AddPadding();
+    bb.position.x = textBoundingBox.position.x + position.x;
+    bb.position.y = textBoundingBox.position.y + position.y;
+    bb.position.x -= textBoundingBox.size.x / 2.0f;
+    bb.position.y += textBoundingBox.size.y / 2.0f;
+    bb.size.x = textBoundingBox.size.x;
+    bb.size.y = textBoundingBox.size.y;
 
     if (chordDiagram)
     {
-        chordDiagram->UpdateBoundingBox({ position.x + parentPosition.x, position.y + parentPosition.y});
-        boundingBox = BoundingBox::CombineBoundingBoxes(boundingBox, chordDiagram->boundingBox);
+        bb = BoundingBox::CombineBoundingBoxes(bb, chordDiagram->GetBoundingBoxRelativeToParent());
     }
+
+    return bb;
+}
+
+void Chord::UpdateBoundingBox(const Vec2<float> &parentPosition)
+{
+    boundingBox = GetBoundingBoxRelativeToParent();
+    boundingBox.position += parentPosition;
+
+    boundingBox.AddPadding();
 
     boundingBox.constraints.emplace_back(Constraint::ConstraintType::NoHorizontal);
 

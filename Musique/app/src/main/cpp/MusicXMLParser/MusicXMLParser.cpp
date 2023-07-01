@@ -1416,6 +1416,8 @@ void MusicXMLParser::ParseMusicXML(const std::string& data, std::string& error, 
                     // measures
 
                     int measureIndex = 0;
+                    int systemIndex = 0;
+                    int previousSystemIndex = -1;
 
                     bool firstMeasure = true;
                     std::vector<bool> staffIsTabInfo;
@@ -1529,7 +1531,7 @@ void MusicXMLParser::ParseMusicXML(const std::string& data, std::string& error, 
 
                                 if (firstMeasure || startNewSystem)
                                 {
-                                    System system = System();
+                                    std::shared_ptr<System> system = std::make_shared<System>();
                                     System::SystemLayout systemLayout = displayConstants.systemLayout;
 
                                     XMLElement* systemLayoutElement = print->FirstChildElement("system-layout");
@@ -1548,17 +1550,25 @@ void MusicXMLParser::ParseMusicXML(const std::string& data, std::string& error, 
 
                                     //LOGE("systemLayout; i: %d, leftMargin: %f", song->systemLayouts.size(), systemLayout.systemLeftMargin);
 
-                                    system.layout = systemLayout;
+                                    system->layout = systemLayout;
 
                                     if (firstMeasure)
-                                        system.showBeginningTimeSignature = true;
+                                        system->showBeginningTimeSignature = true;
 
-                                    system.showBeginningClef = true;
-                                    system.showBeginningKeySignature = true;
+                                    system->showBeginningClef = true;
+                                    system->showBeginningKeySignature = true;
 
-                                    system.beginningMeasureIndex = measureIndex;
+                                    system->beginningMeasureIndex = measureIndex;
+
+                                    if (previousSystemIndex != -1 && previousSystemIndex < song->systems.size())
+                                    {
+                                        song->systems[previousSystemIndex]->endingMeasureIndex = measureIndex - 1;
+                                    }
 
                                     song->systems.push_back(system);
+
+                                    previousSystemIndex = systemIndex;
+                                    systemIndex++;
                                 }
 
                                 XMLElement* staffLayoutElement = print->FirstChildElement("staff-layout");
@@ -2029,6 +2039,9 @@ void MusicXMLParser::ParseMusicXML(const std::string& data, std::string& error, 
     }
 
     song->displayConstants = displayConstants;
+
+    // TODO: fix dangerous line of code
+    song->systems[song->systems.size() - 1]->endingMeasureIndex = song->instruments[0]->staves[0]->measures[song->instruments[0]->staves[0]->measures.size() - 1]->index;
 
     // update multi measure rests
     bool multiMeasureRest = false; // whether the measure is part of a multi measure rest

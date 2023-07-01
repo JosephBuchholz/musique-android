@@ -66,16 +66,26 @@ void ChordDiagram::Render(RenderData& renderData, Vec2<float> chordPosition, Vec
     LOGD("CHORD DIAGRAMS: strings: %d,  frets: %d, firstFret: %d, notesSize: %d", strings, frets, firstFret, notes.size());
 }
 
+BoundingBox ChordDiagram::GetBoundingBoxRelativeToParent() const
+{
+    float nutPositionY = position.y;
+    float positionX = position.x - (width / 2.0f);
+
+    BoundingBox bb;
+
+    bb.size.x = width;
+    bb.size.y = height;
+
+    bb.position.x = positionX;
+    bb.position.y = nutPositionY;
+
+    return bb;
+}
+
 void ChordDiagram::UpdateBoundingBox(const Vec2<float>& parentPosition)
 {
-    float nutPositionY = position.y + parentPosition.y;
-    float positionX = position.x + parentPosition.x - (width / 2.0f);
-
-    boundingBox.size.x = width;
-    boundingBox.size.y = height;
-
-    boundingBox.position.x = positionX;
-    boundingBox.position.y = nutPositionY;
+    boundingBox = GetBoundingBoxRelativeToParent();
+    boundingBox.position += parentPosition;
 
 #if DEBUG_BOUNDING_BOXES
     debugBoundingBox = boundingBox;

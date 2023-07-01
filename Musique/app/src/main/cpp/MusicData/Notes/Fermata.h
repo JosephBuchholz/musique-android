@@ -12,16 +12,8 @@
 */
 class Fermata : public VisibleElement
 {
-    friend class Note;
 
 public:
-
-    /**
-     * Updates the position and size of this object's bounding box.
-     *
-     * @param parentPositionCenter The center position of the parent.
-     */
-    void UpdateBoundingBox(const Vec2<float>& parentPositionCenter);
 
     void Render(RenderData& renderData, Vec2<float> parentPositionCenter, Vec2<float> offset = { 0.0f, 0.0f }) const;
 
@@ -34,7 +26,14 @@ public:
 
     SMuFLID GetSMuFLID() const;
 
-protected:
+    BoundingBox GetBoundingBoxRelativeToParent() const;
+
+    /**
+     * Updates the position and size of this object's bounding box.
+     *
+     * @param parentPositionCenter The center position of the parent.
+     */
+    void UpdateBoundingBox(const Vec2<float>& parentPositionCenter);
 
     void CalculatePositionAsPaged(const MusicDisplayConstants& displayConstants, Vec2<float> defPosition);
 

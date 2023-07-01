@@ -119,7 +119,7 @@ void App::DeleteSong()
         }
         song->instruments.clear();
         song->systems.clear();
-        song->pageNumbers.clear();
+        song->pages.clear();
         song = nullptr;
     }
 }
@@ -243,6 +243,8 @@ void App::OnUpdate(double dt)
                 auto totalStop = high_resolution_clock::now();
                 auto totalDuration = duration_cast<milliseconds>(totalStop - totalStart);
                 LOGI("Total time taken by collision resolver: %lld milliseconds | %f seconds", totalDuration.count(), totalDuration.count() / 1000.0f);
+
+                song->CalculateSystemPositionsAndPageBreaks();
 
                 songUpdated = true;
             }

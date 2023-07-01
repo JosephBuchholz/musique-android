@@ -48,6 +48,11 @@ public:
      */
     void RenderDebug(RenderData& renderData) const;
 
+    Vec2<float> GetPositionRelativeToMeasure() const;
+    Vec2<float> GetDimensions() const;
+
+    BoundingBox GetBoundingBoxRelativeToMeasure() const;
+
     void UpdateBoundingBox(const Vec2<float>& measurePosition);
 
 public:

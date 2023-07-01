@@ -27,6 +27,20 @@ void NoteStem::Render(RenderData& renderData, Vec2<float> notePosition, std::sha
     }
 }
 
+BoundingBox NoteStem::GetBoundingBoxRelativeToParent(const MusicDisplayConstants& displayConstants) const
+{
+    BoundingBox bb;
+
+    bb.position.x = stemPositionX + position.x;
+    bb.position.y = stemStartY + position.y;
+    bb.size.x = displayConstants.stemLineWidth;
+    bb.size.y = stemEndY - stemStartY;
+
+    bb.MakeDimensionsPositive(); // since the height may be negative
+
+    return bb;
+}
+
 void NoteStem::UpdateBoundingBox(const MusicDisplayConstants& displayConstants, Vec2<float> parentPosition)
 {
     boundingBox.position.x = stemPositionX + position.x + parentPosition.x;

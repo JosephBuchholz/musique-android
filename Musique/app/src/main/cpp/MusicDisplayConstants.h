@@ -5,6 +5,14 @@
 
 #define DEFAULT_STAFF_LINE_WIDTH 0.8333f
 
+#define DEFAULT_PAGE_WIDTH 1233.87f
+#define DEFAULT_PAGE_HEIGHT 1596.77f
+
+#define DEFAULT_LEFT_MARGIN 80.0f
+#define DEFAULT_RIGHT_MARGIN 80.0f
+#define DEFAULT_TOP_MARGIN 80.0f
+#define DEFAULT_BOTTOM_MARGIN 80.0f
+
 struct Scaling
 {
     float millimeters;
@@ -18,13 +26,13 @@ struct MusicDisplayConstants
     float lineSpacing = 10.0f;
     float tabLineSpacing = 13.33f;
 
-    float pageWidth = 1233.87f;
-    float pageHeight = 1596.77f;
+    float pageWidth = DEFAULT_PAGE_WIDTH;
+    float pageHeight = DEFAULT_PAGE_HEIGHT;
 
-    float leftMargin = 80.0f;
-    float rightMargin = 80.0f;
-    float topMargin = 80.0f;
-    float bottomMargin = 80.0f;
+    float leftMargin = DEFAULT_LEFT_MARGIN;
+    float rightMargin = DEFAULT_RIGHT_MARGIN;
+    float topMargin = DEFAULT_TOP_MARGIN;
+    float bottomMargin = DEFAULT_BOTTOM_MARGIN;
 
     System::SystemLayout systemLayout = System::SystemLayout();
 

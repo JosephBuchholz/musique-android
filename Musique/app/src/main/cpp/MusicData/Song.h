@@ -14,7 +14,7 @@
 #include "../Settings.h"
 #include "Page/Credit.h"
 #include "System.h"
-#include "Page/PageNumber.h"
+#include "Page/Page.h"
 #include "Measures/Ending.h"
 
 /**
@@ -82,12 +82,17 @@ public:
     float GetSystemPositionY(int measureIndex) const;
 
     /**
-     * Calculates the height of a system (not implemented yet)
+     * Calculates the height of a system
      *
-     * @param measureIndex the index of the measure
+     * @param systemIndex the index of the system
      * @return the height of the system
      */
-    float GetSystemHeight(int measureIndex) const;
+    float GetSystemHeight(int systemIndex) const;
+
+    BoundingBox GetSystemBoundingBox(int systemIndex) const;
+
+    void CreatePageBreak(int measureIndex) const;
+    void RemovePageBreak(int measureIndex) const;
 
     /**
      * Finds the index of the system that the given measure appears on.
@@ -211,6 +216,8 @@ public:
     std::shared_ptr<Measure> GetMeasureAtPoint(Vec2<float> point) const;
 
     void ResolveCollisions();
+
+    void CalculateSystemPositionsAndPageBreaks();
 private:
     struct TimeSpacePoint
     {
@@ -241,11 +248,11 @@ public:
     //std::vector<System::SystemLayout> systemLayouts;
 
     std::vector<std::shared_ptr<Instrument>> instruments;
-    std::vector<System> systems;
+    std::vector<std::shared_ptr<System>> systems;
 
     std::vector<Credit> credits;
 
-    std::vector<PageNumber> pageNumbers;
+    std::vector<Page> pages;
 
     // creators, like composers or arrangers
     struct Creator {
@@ -291,6 +298,8 @@ public:
     float totalBeatWidth = 0.0f;
 
     std::vector<std::shared_ptr<Ending>> endings;
+
+    std::vector<BoundingBox> systemBoundingBoxes;
 
 private:
     std::vector<float> m_MeasureWidths; // the widths of the measures

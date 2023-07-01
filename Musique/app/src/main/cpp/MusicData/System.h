@@ -3,6 +3,8 @@
 
 #include <unordered_map>
 
+#include "../Collisions/Vec2.h"
+
 /**
  * A class that holds data for a system on a page of sheet music
  */
@@ -30,6 +32,7 @@ public:
     //float keySignaturePositionX = 0.0f; // relative to the start of the start of the system/start of first measure
 
     int beginningMeasureIndex = 0; // the index of the first measure in this system
+    int endingMeasureIndex = 0; // the index of the last measure in this system
 
     struct SystemMeasureData
     {
@@ -45,6 +48,8 @@ public:
 
     // key: the measure index | value: the system wide data for the measure
     std::unordered_map<int, SystemMeasureData> systemMeasureData;
+
+    Vec2<float> position = { 0.0f, 0.0f }; // relative to the page
 };
 
 #endif // MUSIQUE_SYSTEM_H

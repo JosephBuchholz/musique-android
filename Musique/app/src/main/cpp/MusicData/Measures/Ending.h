@@ -13,6 +13,15 @@ public:
 
     void Render(RenderData& renderData, Vec2<float> measureStartPosition, Vec2<float> measureEndPosition, Vec2<float> offset = { 0.0f, 0.0f }) const;
 
+    BoundingBox GetBoundingBoxRelativeToParent() const;
+
+    /**
+     * Updates the position and size of this object's bounding box.
+     *
+     * @param parentPosition The position of the parent.
+     */
+    void UpdateBoundingBox(Vec2<float> parentPosition);
+
 protected:
 
     void CalculatePositionAsPaged(const MusicDisplayConstants& displayConstants);
@@ -32,9 +41,6 @@ public:
     bool isBroken = false; // whether the ending is broken across two (or more) different systems.
 
     // -- Positioning Attributes --
-
-    // relative to the measure position (the x value should always be 0.0f, so as to be centered on the measure)
-    Vec2<float> position = { 0.0f, 0.0f };
 
     // relative to the ending line
     Vec2<float> textPosition = { 0.0f, 0.0f };

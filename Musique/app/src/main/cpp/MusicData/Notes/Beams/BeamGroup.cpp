@@ -27,6 +27,18 @@ void BeamGroup::RenderDebug(RenderData& renderData) const
 #endif
 }
 
+BoundingBox BeamGroup::GetBoundingBoxRelativeToMeasure(const MusicDisplayConstants& displayConstants) const
+{
+    BoundingBox bb;
+
+    bb.position = beamStartPosition;
+    bb.size = beamEndPosition - beamStartPosition;
+    bb.MakeDimensionsPositive();
+    bb.AddPadding(displayConstants.beamLineWidth);
+
+    return bb;
+}
+
 void BeamGroup::UpdateBoundingBox(const MusicDisplayConstants& displayConstants, Vec2<float> parentPosition)
 {
     for (Beam& beam : beams)

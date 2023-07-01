@@ -19,6 +19,8 @@ public:
 
     void Render(RenderData& renderData, Vec2<float> notePosition, std::shared_ptr<TremoloSingle> tremoloSingle, bool isGraceNote, bool hasSlash, float noteHeadWidth, Vec2<float> offset = { 0.0f, 0.0f }) const;
 
+    BoundingBox GetBoundingBoxRelativeToParent(const MusicDisplayConstants& displayConstants) const;
+
     /**
      * Updates the position and size of this object's bounding box.
      *

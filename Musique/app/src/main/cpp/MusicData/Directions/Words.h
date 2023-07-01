@@ -37,6 +37,8 @@ public:
      */
     void UpdateBoundingBox(const Vec2<float> &parentPosition);
 
+    Vec2<float> GetDimensions() const;
+
     void Move(Vec2<float> positionOffset, Vec2<float> sizeOffset = { 0.0f, 0.0f }, float rotationOffset = 0.0f) override;
 
     void CalculatePositionAsPaged(const MusicDisplayConstants& displayConstants, float defaultX, float defaultY);
@@ -48,11 +50,6 @@ public:
     enum class EnclosureShape {
         None = 0, Rectangle, Square, Oval, Circle, Bracket, InvertedBracket, Triangle, Diamond, Pentagon, Hexagon, Heptagon, Octagon, Nonagon, Decagon
     } enclosureShape = EnclosureShape::None;
-
-    // -- Positioning Attributes --
-
-    float positionX = 0.0f; // relative to measure
-    float positionY = 0.0f; // relative to measure
 
 protected:
 

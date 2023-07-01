@@ -42,6 +42,29 @@ void MeasureNumber::Render(RenderData& renderData, Vec2<float> measurePosition, 
     renderData.AddText(Text(displayNumber, position.x + measurePosition.x + offset.x, position.y + measurePosition.y + offset.y, paint));
 }
 
+BoundingBox MeasureNumber::GetBoundingBoxRelativeToMeasure(const MusicDisplayConstants& displayConstants) const
+{
+    Paint paint;
+
+    TextualElement::ModifyPaint(paint);
+
+    BoundingBox bb = BoundingBox();
+    bb.position.x = 0.0f;
+    bb.position.y = -paint.textSize * 2.0f;
+    bb.size.x = paint.textSize * (float)displayNumber.size();
+    bb.size.y = paint.textSize * 2.0f;
+
+    BoundingBox finalBoundingBox;
+    finalBoundingBox.position.x = bb.position.x + position.x;
+    finalBoundingBox.position.y = bb.position.y + position.y;
+    finalBoundingBox.position.x -= bb.size.x / 2.0f;
+    finalBoundingBox.position.y += bb.size.y / 2.0f;
+    finalBoundingBox.size.x = bb.size.x;
+    finalBoundingBox.size.y = bb.size.y;
+
+    return finalBoundingBox;
+}
+
 void MeasureNumber::CalculatePositionAsPaged(const MusicDisplayConstants& displayConstants, Vec2<float> defaultPosition)
 {
     position = defaultPosition;

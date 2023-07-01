@@ -1,10 +1,5 @@
 #include "Tuplet.h"
 
-void Tuplet::UpdateBoundingBox(const Vec2<float> &parentPosition)
-{
-
-}
-
 void Tuplet::Render(RenderData& renderData, Vec2<float> measurePosition, Vec2<float> offset) const
 {
     // digit
@@ -58,7 +53,33 @@ SMuFLID Tuplet::GetSMuFLID() const
     }
 }
 
-void Tuplet::CalculatePositionAsPaged(const MusicDisplayConstants& displayConstants, Vec2<float> defPositionStart, Vec2<float> defPositionEnd)
+BoundingBox Tuplet::GetBoundingBoxRelativeToParent() const
+{
+    BoundingBox bb;
+
+    bb.position = positionStart;
+    bb.size = positionEnd - positionStart;
+
+    bb.MakeDimensionsPositive();
+
+    return bb;
+}
+
+void Tuplet::UpdateBoundingBox(Vec2<float> parentPosition)
+{
+    boundingBox = GetBoundingBoxRelativeToParent();
+    boundingBox.position += parentPosition;
+
+    boundingBox.AddPadding();
+
+    boundingBox.constraints.emplace_back(Constraint::ConstraintType::NoHorizontal);
+
+#if DEBUG_BOUNDING_BOXES
+    debugBoundingBox = boundingBox;
+#endif
+}
+
+void Tuplet::CalculatePositionAsPaged(const MusicDisplayConstants& displayConstants, float measureHeight, Vec2<float> defPositionStart, Vec2<float> defPositionEnd)
 {
     if (notes.empty())
         return;
@@ -66,23 +87,45 @@ void Tuplet::CalculatePositionAsPaged(const MusicDisplayConstants& displayConsta
     std::shared_ptr<Note> firstNote = notes[0];
     std::shared_ptr<Note> lastNote = notes[notes.size() - 1];
 
-    if (firstNote->noteStem->stemType == NoteStem::StemType::Up)
+    for (auto note : notes)
     {
-        placement = AboveBelowType::Above;
+        if (!note->isRest)
+        {
+            if (note->noteStem->stemType == NoteStem::StemType::Up)
+            {
+                placement = AboveBelowType::Above;
+            }
+            else
+            {
+                placement = AboveBelowType::Below;
+            }
+
+            break;
+        }
     }
-    else
-    {
-        placement = AboveBelowType::Below;
-    }
+
+    float margin = 14.0f;
 
     if (placement == AboveBelowType::Above)
     {
-        positionStart = { firstNote->position.x, firstNote->position.y - 50.0f };
-        positionEnd = { lastNote->position.x + lastNote->noteHead.GetNoteHeadWidth(displayConstants), lastNote->position.y - 50.0f };
+        positionStart = { firstNote->position.x, firstNote->position.y + firstNote->noteStem->stemEndY - 25.0f };
+        positionEnd = { lastNote->position.x + lastNote->noteHead.GetNoteHeadWidth(displayConstants), lastNote->position.y + lastNote->noteStem->stemEndY - 25.0f };
+
+        if (positionStart.y > 0.0f - margin) // below the top staff line
+            positionStart.y = -margin;
+
+        if (positionEnd.y > 0.0f - margin) // same
+            positionEnd.y = -margin;
     }
     else if (placement == AboveBelowType::Below)
     {
-        positionStart = { firstNote->position.x, firstNote->position.y + 50.0f };
-        positionEnd = { lastNote->position.x + lastNote->noteHead.GetNoteHeadWidth(displayConstants), lastNote->position.y + 50.0f };
+        positionStart = { firstNote->position.x, firstNote->position.y + firstNote->noteStem->stemEndY + 25.0f };
+        positionEnd = { lastNote->position.x + lastNote->noteHead.GetNoteHeadWidth(displayConstants), lastNote->position.y + lastNote->noteStem->stemEndY + 25.0f };
+
+        if (positionStart.y < measureHeight + margin) // above the bottom staff line
+            positionStart.y = measureHeight + margin;
+
+        if (positionEnd.y < measureHeight + margin) // same
+            positionEnd.y = measureHeight + margin;
     }
 }

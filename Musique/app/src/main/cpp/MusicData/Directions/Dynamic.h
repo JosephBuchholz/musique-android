@@ -41,6 +41,8 @@ public:
 
     SMuFLID GetDynamicSMuFLID() const;
 
+    Vec2<float> GetDimensions() const;
+
 protected:
     void CalculatePositionAsPaged(const MusicDisplayConstants& displayConstants, Vec2<float> defaultPos);
 

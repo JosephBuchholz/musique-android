@@ -25,6 +25,23 @@ public:
     void RenderDebug(RenderData& renderData) const;
 
     /**
+     * Get the bounding box containing just the notes.
+     *
+     * @param displayConstants Display constants.
+     * @return The bounding box.
+     */
+    BoundingBox GetBoundingBoxRelativeToMeasure(const MusicDisplayConstants& displayConstants) const;
+
+    /**
+     * Get the bounding box containing everything including the notes,
+     * fermatas, and anything else that this object contains.
+     *
+     * @param displayConstants Display constants.
+     * @return The bounding box.
+     */
+    BoundingBox GetTotalBoundingBoxRelativeToMeasure(const MusicDisplayConstants& displayConstants) const;
+
+    /**
      * Updates the position and size of this object's bounding box.
      *
      * @param displayConstants The display constants.

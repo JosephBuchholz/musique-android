@@ -22,6 +22,8 @@ public:
 
     void Render(RenderData& renderData, float measurePositionX, float measurePositionY, float offsetX = 0.0f, float offsetY = 0.0f) const;
 
+    BoundingBox GetBoundingBoxRelativeToParent() const;
+
     /**
      * Updates the position and size of this object's bounding box.
      *

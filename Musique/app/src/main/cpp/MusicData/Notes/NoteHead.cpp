@@ -106,6 +106,17 @@ float NoteHead::GetNoteHeadWidth(const MusicDisplayConstants& displayConstants) 
     return GetDimensions(displayConstants).x;
 }
 
+BoundingBox NoteHead::GetBoundingBoxRelativeToParent(const MusicDisplayConstants& displayConstants) const
+{
+    BoundingBox bb;
+
+    bb.size = GetDimensions(displayConstants);
+    bb.position.x = 0.0f;
+    bb.position.y = -(boundingBox.size.y / 2.0f);
+
+    return bb;
+}
+
 void NoteHead::UpdateBoundingBox(const MusicDisplayConstants& displayConstants, Vec2<float> parentPosition)
 {
     boundingBox.size = GetDimensions(displayConstants);

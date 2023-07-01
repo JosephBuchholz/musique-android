@@ -10,7 +10,8 @@
 
 #include "InstrumentBracket.h"
 
-class Instrument {
+class Instrument
+{
 
 public:
     // gets the max height of the stave's measures from start to end
@@ -18,6 +19,8 @@ public:
     float GetAboveHeight(float lineSpacing, float tabLineSpacing, int start, int end);
     float GetBelowHeight(float lineSpacing, float tabLineSpacing, int start, int end);
     float GetTotalHeight(float lineSpacing, float tabLineSpacing, int start, int end);
+
+    BoundingBox GetTotalBoundingBox(const MusicDisplayConstants& displayConstants, int startMeasureIndex, int endMeasureIndex) const;
 
     /**
      * Gets the number of measures
@@ -39,6 +42,9 @@ public:
     //std::vector<std::shared_ptr<Slur>> slurs; // slurs that are contained in this part (including cross system slurs and cross staff slurs)
 
     std::shared_ptr<InstrumentBracket> instrumentBracket;
+
+    //std::vector<BoundingBox> instrumentBoundingBoxes;
+    std::vector<Vec2<float>> systemPositionData;
 };
 
 #endif // MUSIQUE_INSTRUMENT_H

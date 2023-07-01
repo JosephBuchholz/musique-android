@@ -54,11 +54,6 @@ public:
 
     bool hasParentheses = false;
 
-    // -- Positioning Attributes --
-
-    float positionX = 0.0f; // relative to measure
-    float positionY = 0.0f; // relative to measure
-
 protected:
 
     bool noDefX = true;

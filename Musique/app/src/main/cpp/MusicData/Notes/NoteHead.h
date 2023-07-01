@@ -27,6 +27,8 @@ public:
 
     float GetCenterPositionX(const MusicDisplayConstants& displayConstants) const;
 
+    BoundingBox GetBoundingBoxRelativeToParent(const MusicDisplayConstants& displayConstants) const;
+
     /**
      * Updates the position and size of this object's bounding box.
      *

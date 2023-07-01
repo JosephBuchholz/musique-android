@@ -2,26 +2,6 @@
 
 #include "../../RenderMeasurement.h"
 
-void Fermata::UpdateBoundingBox(const Vec2<float>& parentPositionCenter)
-{
-    Paint paint;
-    VisibleElement::ModifyPaint(paint);
-    BoundingBox bb = RenderMeasurement::GetGlyphBoundingBox(SMuFLGlyph(GetSMuFLID(), 0.0f, 0.0f, paint));
-
-    boundingBox.position.x = position.x + bb.position.x + parentPositionCenter.x - (bb.size.x / 2.0f);
-    boundingBox.position.y = position.y + bb.position.y + parentPositionCenter.y;
-    boundingBox.size.x = bb.size.x;
-    boundingBox.size.y = bb.size.y;
-
-    boundingBox.AddPadding(3.0f);
-
-    boundingBox.constraints.emplace_back(Constraint::ConstraintType::NoHorizontal);
-
-#if DEBUG_BOUNDING_BOXES
-    debugBoundingBox = boundingBox;
-#endif
-}
-
 void Fermata::Render(RenderData& renderData, Vec2<float> parentPositionCenter, Vec2<float> offset) const
 {
     Paint paint;
@@ -73,6 +53,35 @@ SMuFLID Fermata::GetSMuFLID() const
     }
 
     return SMuFLID::ErrorGlyph;
+}
+
+BoundingBox Fermata::GetBoundingBoxRelativeToParent() const
+{
+    Paint paint;
+    VisibleElement::ModifyPaint(paint);
+    BoundingBox bb = RenderMeasurement::GetGlyphBoundingBox(SMuFLGlyph(GetSMuFLID(), 0.0f, 0.0f, paint));
+
+    BoundingBox fermatBoundingBox;
+
+    fermatBoundingBox.position.x = position.x + bb.position.x - (bb.size.x / 2.0f);
+    fermatBoundingBox.position.y = position.y + bb.position.y;
+    fermatBoundingBox.size.x = bb.size.x;
+    fermatBoundingBox.size.y = bb.size.y;
+
+    return fermatBoundingBox;
+}
+
+void Fermata::UpdateBoundingBox(const Vec2<float>& parentPositionCenter)
+{
+    boundingBox = GetBoundingBoxRelativeToParent();
+
+    boundingBox.AddPadding(3.0f);
+
+    boundingBox.constraints.emplace_back(Constraint::ConstraintType::NoHorizontal);
+
+#if DEBUG_BOUNDING_BOXES
+    debugBoundingBox = boundingBox;
+#endif
 }
 
 void Fermata::CalculatePositionAsPaged(const MusicDisplayConstants& displayConstants, Vec2<float> defPosition)

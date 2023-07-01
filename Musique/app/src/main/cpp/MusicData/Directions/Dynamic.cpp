@@ -100,6 +100,16 @@ SMuFLID Dynamic::GetDynamicSMuFLID(DynamicType type)
     }
 }
 
+Vec2<float> Dynamic::GetDimensions() const
+{
+    Paint paint;
+    TextualElement::ModifyPaint(paint);
+
+    BoundingBox bb = RenderMeasurement::GetGlyphBoundingBox(SMuFLGlyph(GetDynamicSMuFLID(), 0.0f, 0.0f, paint));
+
+    return bb.size;
+}
+
 void Dynamic::CalculatePositionAsPaged(const MusicDisplayConstants& displayConstants, Vec2<float> defaultPos)
 {
     position = defaultPos;
