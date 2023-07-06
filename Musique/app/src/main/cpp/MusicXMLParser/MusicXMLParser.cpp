@@ -246,7 +246,7 @@ Dynamic MusicXMLParser::ParseDynamicElement(XMLElement* element)
     return dynamic;
 }
 
-std::shared_ptr<DynamicWedge> MusicXMLParser::ParseDynamicWedgeElement(XMLElement* element, float currentTimeInMeasure)
+std::shared_ptr<DynamicWedge> MusicXMLParser::ParseDynamicWedgeElement(XMLElement* element, float currentTimeInMeasure, int measureIndex)
 {
     if (element)
     {
@@ -283,6 +283,7 @@ std::shared_ptr<DynamicWedge> MusicXMLParser::ParseDynamicWedgeElement(XMLElemen
                 dynamicWedge->defaultSpread = XMLHelper::GetFloatAttribute(element, "spread", dynamicWedge->defaultSpread);
 
             dynamicWedge->beatPositionStart = currentTimeInMeasure;
+            dynamicWedge->startMeasureIndex = measureIndex;
 
             currentDynamicWedges[number] = dynamicWedge;
 
@@ -307,6 +308,7 @@ std::shared_ptr<DynamicWedge> MusicXMLParser::ParseDynamicWedgeElement(XMLElemen
                 dynamicWedge->defaultSpread = XMLHelper::GetFloatAttribute(element, "spread", dynamicWedge->defaultSpread);
 
             dynamicWedge->beatPositionEnd = currentTimeInMeasure;
+            dynamicWedge->endMeasureIndex = measureIndex;
 
             currentDynamicWedges.erase(number);
         }
@@ -321,7 +323,7 @@ std::shared_ptr<DynamicWedge> MusicXMLParser::ParseDynamicWedgeElement(XMLElemen
     return nullptr; // meaning that either the function failed or that the wedge was already added
 }
 
-std::shared_ptr<BracketDirection> MusicXMLParser::ParseDashesDirectionElement(XMLElement* element, float currentTimeInMeasure)
+std::shared_ptr<BracketDirection> MusicXMLParser::ParseDashesDirectionElement(XMLElement* element, float currentTimeInMeasure, int measureIndex)
 {
     if (element)
     {
@@ -346,6 +348,7 @@ std::shared_ptr<BracketDirection> MusicXMLParser::ParseDashesDirectionElement(XM
             MusicXMLHelper::FlipYInVec2(dashes->relativePositionStart);
 
             dashes->beatPositionStart = currentTimeInMeasure;
+            dashes->startMeasureIndex = measureIndex;
 
             dashes->lineType = LineType::Dashed;
             dashes->isDashes = true;
@@ -368,6 +371,7 @@ std::shared_ptr<BracketDirection> MusicXMLParser::ParseDashesDirectionElement(XM
             MusicXMLHelper::FlipYInVec2(dashes->relativePositionEnd);
 
             dashes->beatPositionEnd = currentTimeInMeasure;
+            dashes->endMeasureIndex = measureIndex;
 
             currentDashes.erase(number);
         }
@@ -382,7 +386,7 @@ std::shared_ptr<BracketDirection> MusicXMLParser::ParseDashesDirectionElement(XM
     return nullptr; // meaning that either the function failed or that the object was already added
 }
 
-std::shared_ptr<BracketDirection> MusicXMLParser::ParseBracketDirectionElement(XMLElement* element, float currentTimeInMeasure)
+std::shared_ptr<BracketDirection> MusicXMLParser::ParseBracketDirectionElement(XMLElement* element, float currentTimeInMeasure, int measureIndex)
 {
     if (element)
     {
@@ -407,6 +411,7 @@ std::shared_ptr<BracketDirection> MusicXMLParser::ParseBracketDirectionElement(X
             MusicXMLHelper::FlipYInVec2(brackets->relativePositionStart);
 
             brackets->beatPositionStart = currentTimeInMeasure;
+            brackets->startMeasureIndex = measureIndex;
 
             std::string lineEndString = XMLHelper::GetStringAttribute(element, "line-end", "none", true);
             brackets->lineEndTypeStart = MusicXMLHelper::GetLineEndTypeFromString(lineEndString);
@@ -431,6 +436,7 @@ std::shared_ptr<BracketDirection> MusicXMLParser::ParseBracketDirectionElement(X
             MusicXMLHelper::FlipYInVec2(brackets->relativePositionEnd);
 
             brackets->beatPositionEnd = currentTimeInMeasure;
+            brackets->endMeasureIndex = measureIndex;
 
             std::string lineEndString = XMLHelper::GetStringAttribute(element, "line-end", "none", true);
             brackets->lineEndTypeStop = MusicXMLHelper::GetLineEndTypeFromString(lineEndString);
@@ -448,6 +454,94 @@ std::shared_ptr<BracketDirection> MusicXMLParser::ParseBracketDirectionElement(X
     }
 
     return nullptr; // meaning that either the function failed or that the object was already added
+}
+
+std::shared_ptr<DurationDirection> MusicXMLParser::ParseDurationDirection(XMLElement* directionElement, bool& isNewDirection, float currentTimeInMeasure, int measureIndex)
+{
+    std::shared_ptr<DurationDirection> durationDirection = nullptr;
+
+    if (directionElement)
+    {
+        bool isWordsElement = false;
+        XMLElement* wordsElement = nullptr;
+
+        // loop through all elements
+        XMLNode* previousElement = directionElement->FirstChildElement(); // first element
+        while (true)
+        {
+            if (previousElement)
+            {
+                XMLElement* element = previousElement->ToElement();
+                const char* value = element->Value();
+
+                if (strcmp(value, "direction-type") == 0) // direction-type
+                {
+                    XMLElement* directionTypeElement = element;
+
+                    XMLElement* wordsEle = directionTypeElement->FirstChildElement("words");
+                    if (wordsEle)
+                    {
+                        isWordsElement = true;
+                        wordsElement = wordsEle;
+                    }
+
+                    XMLElement* dynamicWedgeElement = directionTypeElement->FirstChildElement("wedge");
+                    if (dynamicWedgeElement)
+                    {
+                        durationDirection = ParseDynamicWedgeElement(dynamicWedgeElement, currentTimeInMeasure, measureIndex);
+                    }
+
+                    // note: dashes and brackets are the same class (the BracketDirection class)
+
+                    // dashes
+                    XMLElement* dashesDirectionElement = directionTypeElement->FirstChildElement("dashes");
+                    if (dashesDirectionElement)
+                    {
+                        std::shared_ptr<BracketDirection> bracketDirection = ParseDashesDirectionElement(dashesDirectionElement, currentTimeInMeasure, measureIndex);
+
+                        if (wordsElement && isWordsElement)
+                        {
+                            bracketDirection->hasText = true;
+                            bracketDirection->textElement.text = wordsElement->GetText();
+                        }
+
+                        durationDirection = bracketDirection;
+                    }
+
+                    // bracket
+                    XMLElement* bracketDirectionElement = directionTypeElement->FirstChildElement("bracket");
+                    if (bracketDirectionElement)
+                    {
+                        std::shared_ptr<BracketDirection> bracketDirection = ParseBracketDirectionElement(bracketDirectionElement, currentTimeInMeasure, measureIndex);
+
+                        if (wordsElement && isWordsElement)
+                        {
+                            bracketDirection->hasText = true;
+                            bracketDirection->textElement.text = wordsElement->GetText();
+                        }
+
+                        durationDirection = bracketDirection;
+                    }
+                }
+            }
+            else
+            {
+                break;
+            }
+            previousElement = previousElement->NextSiblingElement();
+        }
+    }
+
+    if (durationDirection == nullptr)
+    {
+        isNewDirection = false;
+    }
+    else
+    {
+        isNewDirection = true;
+    }
+
+    return durationDirection;
 }
 
 Direction MusicXMLParser::ParseDirection(XMLElement* directionElement, bool& isNewDirection, float currentTimeInMeasure)
@@ -498,18 +592,18 @@ Direction MusicXMLParser::ParseDirection(XMLElement* directionElement, bool& isN
                     }
 
                     // dynamic wedge
-                    XMLElement* dynamicWedgeElement = directionTypeElement->FirstChildElement("wedge");
+                    /*XMLElement* dynamicWedgeElement = directionTypeElement->FirstChildElement("wedge");
                     if (dynamicWedgeElement)
                     {
                         direction.dynamicWedge = ParseDynamicWedgeElement(dynamicWedgeElement, currentTimeInMeasure);
                         if (direction.dynamicWedge == nullptr)
                             isNewDirection = false;
-                    }
+                    }*/
 
                     // note: dashes and brackets are the same class (the BracketDirection class)
 
                     // dashes
-                    XMLElement* dashesDirectionElement = directionTypeElement->FirstChildElement("dashes");
+                    /*XMLElement* dashesDirectionElement = directionTypeElement->FirstChildElement("dashes");
                     if (dashesDirectionElement)
                     {
                         direction.bracketDirection = ParseDashesDirectionElement(dashesDirectionElement, currentTimeInMeasure);
@@ -524,7 +618,7 @@ Direction MusicXMLParser::ParseDirection(XMLElement* directionElement, bool& isN
                         direction.bracketDirection = ParseBracketDirectionElement(bracketDirectionElement, currentTimeInMeasure);
                         if (direction.bracketDirection == nullptr)
                             isNewDirection = false;
-                    }
+                    }*/
 
                     // segno
                     XMLElement* segnoElement = directionTypeElement->FirstChildElement("segno");
@@ -1399,6 +1493,7 @@ void MusicXMLParser::ParseMusicXML(const std::string& data, std::string& error, 
 
 
             // parts
+            bool isFirstPart = true;
             XMLNode* previous = root->FirstChildElement("part");
             while (true) // looping through all parts
             {
@@ -1529,7 +1624,7 @@ void MusicXMLParser::ParseMusicXML(const std::string& data, std::string& error, 
 
                                 for (auto m : currentMeasures) { m->startNewSystem = startNewSystem; m->startNewPage = startNewPage; }
 
-                                if (firstMeasure || startNewSystem)
+                                if ((firstMeasure || startNewSystem) && isFirstPart)
                                 {
                                     std::shared_ptr<System> system = std::make_shared<System>();
                                     System::SystemLayout systemLayout = displayConstants.systemLayout;
@@ -1927,13 +2022,26 @@ void MusicXMLParser::ParseMusicXML(const std::string& data, std::string& error, 
                                     }
                                     else if (strcmp(value, "direction") == 0) // direction
                                     {
-                                        // direction
-                                        bool isNewDirection;
-                                        Direction direction = ParseDirection(element, isNewDirection, currentTimeInMeasure);
-                                        if (isNewDirection)
+                                        // duration direction
+                                        bool isNewDurationDirection;
+                                        std::shared_ptr<DurationDirection> durationDirection = ParseDurationDirection(element, isNewDurationDirection, currentTimeInMeasure, measureIndex);
+                                        if (isNewDurationDirection && durationDirection)
                                         {
-                                            direction.beatPosition = currentTimeInMeasure;
-                                            currentMeasures[0]->directions.push_back(direction);
+                                            /*durationDirection->beatPositionStart = currentTimeInMeasure;
+                                            durationDirection->startMeasureIndex = measureIndex;*/
+                                            currentInst->staves[0]->durationDirections.push_back(durationDirection);
+                                        }
+
+                                        if (!isNewDurationDirection)
+                                        {
+                                            // direction
+                                            bool isNewDirection;
+                                            Direction direction = ParseDirection(element, isNewDirection, currentTimeInMeasure);
+                                            if (isNewDirection)
+                                            {
+                                                direction.beatPosition = currentTimeInMeasure;
+                                                currentMeasures[0]->directions.push_back(direction);
+                                            }
                                         }
 
                                         // sound
@@ -2022,6 +2130,7 @@ void MusicXMLParser::ParseMusicXML(const std::string& data, std::string& error, 
                         previousMeasureElement = previousMeasureElement->NextSiblingElement("measure");
                     }
 
+                    isFirstPart = false;
                 }
                 else
                 {
@@ -2085,6 +2194,7 @@ void MusicXMLParser::ParseMusicXML(const std::string& data, std::string& error, 
 
     currentDynamicWedges.clear();
     currentBrackets.clear();
+    currentDashes.clear();
 
     ParseError::PrintErrors();
 }

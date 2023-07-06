@@ -44,10 +44,11 @@ private:
     static Words ParseWords(XMLElement* element);
     static std::shared_ptr<MetronomeMark> ParseMetronomeMark(XMLElement* element);
     static Dynamic ParseDynamicElement(XMLElement* element);
-    static std::shared_ptr<DynamicWedge> ParseDynamicWedgeElement(XMLElement* element, float currentTimeInMeasure);
-    static std::shared_ptr<BracketDirection> ParseDashesDirectionElement(XMLElement* element, float currentTimeInMeasure);
-    static std::shared_ptr<BracketDirection> ParseBracketDirectionElement(XMLElement* element, float currentTimeInMeasure);
+    static std::shared_ptr<DynamicWedge> ParseDynamicWedgeElement(XMLElement* element, float currentTimeInMeasure, int measureIndex);
+    static std::shared_ptr<BracketDirection> ParseDashesDirectionElement(XMLElement* element, float currentTimeInMeasure, int measureIndex);
+    static std::shared_ptr<BracketDirection> ParseBracketDirectionElement(XMLElement* element, float currentTimeInMeasure, int measureIndex);
     static Direction ParseDirection(XMLElement* directionElement, bool& isNewDirection, float currentTimeInMeasure);
+    static std::shared_ptr<DurationDirection> ParseDurationDirection(XMLElement* directionElement, bool& isNewDirection, float currentTimeInMeasure, int measureIndex);
     static void ParseWorkElement(XMLElement* workElement, std::string& workTitle, int& workNumber);
     static void ParseEncodingElement(XMLElement* encodingElement, std::shared_ptr<Song> song);
     static void ParseIdentificationElement(XMLElement* idElement, std::shared_ptr<Song> song);

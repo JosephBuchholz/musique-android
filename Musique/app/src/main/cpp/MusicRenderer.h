@@ -18,6 +18,7 @@ public:
     MusicRenderer();
 
     void RenderMusicToPage(std::shared_ptr<Song> song, int page, RenderData& pageRenderData, float pageX, float pageY);
+    void RenderDebugToPage(std::shared_ptr<Song> song, int page, RenderData& pageRenderData, float pageX, float pageY);
 
     void Render(std::shared_ptr<Song> song, Settings settings);
     void CalculateRenderForPagedLayout(std::shared_ptr<Song> song, Settings settings);
@@ -28,6 +29,7 @@ public:
 private:
 
     Vec2<float> RenderSystem(RenderData& renderData, std::shared_ptr<Song> song, unsigned int startMeasure, unsigned int endMeasure, int systemIndex, Vec2<float> systemPosition, Vec2<float> pagePosition, bool drawFullInstNames);
+    Vec2<float> RenderDebugSystem(RenderData& renderData, std::shared_ptr<Song> song, unsigned int startMeasure, unsigned int endMeasure, int systemIndex, Vec2<float> systemPosition, Vec2<float> pagePosition, bool drawFullInstNames);
 
     void RenderLineOfMeasures(RenderData& renderData, unsigned int startMeasure, unsigned int endMeasure, std::shared_ptr<System> system, std::shared_ptr<Staff> staff, float systemPositionX, float staffPositionY, float lineSpacing, bool isTopMeasureLine);
 
@@ -58,6 +60,8 @@ public:
 
     std::vector<Vec2<float>> pagePositions;
     std::vector<Vec2<float>> systemPositions;
+
+    float pageGap = 80.0f;
 
     bool updateRenderData = true; // weather the sheet music needs to be updated(rendered) again
 };

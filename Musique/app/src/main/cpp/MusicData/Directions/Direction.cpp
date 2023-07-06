@@ -28,15 +28,15 @@ void Direction::Render(RenderData& renderData, Vec2<float> measurePosition, Vec2
         }
     }
 
-    if (dynamicWedge != nullptr)
+    /*if (dynamicWedge != nullptr)
     {
         dynamicWedge->Render(renderData, measurePosition + offset);
-    }
+    }*/
 
-    if (bracketDirection != nullptr)
+    /*if (bracketDirection != nullptr)
     {
         bracketDirection->Render(renderData, measurePosition + offset);
-    }
+    }*/
 
     if (marker != nullptr)
     {
@@ -59,16 +59,6 @@ void Direction::RenderDebug(RenderData& renderData) const
     for (auto& dynamic : dynamics)
     {
         dynamic.RenderDebug(renderData);
-    }
-
-    if (dynamicWedge != nullptr)
-    {
-        dynamicWedge->RenderDebug(renderData);
-    }
-
-    if (bracketDirection != nullptr)
-    {
-        bracketDirection->RenderDebug(renderData);
     }
 
     if (metronomeMark != nullptr)
@@ -199,16 +189,6 @@ void Direction::UpdateBoundingBox(const Vec2<float>& measurePosition)
     if (metronomeMark != nullptr)
     {
         metronomeMark->UpdateBoundingBox(measurePosition);
-    }
-
-    if (dynamicWedge != nullptr)
-    {
-        dynamicWedge->UpdateBoundingBox(measurePosition);
-    }
-
-    if (bracketDirection != nullptr)
-    {
-        bracketDirection->UpdateBoundingBox(measurePosition);
     }
 
     if (marker != nullptr)

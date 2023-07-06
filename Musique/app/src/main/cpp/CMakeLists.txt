@@ -41,10 +41,12 @@ add_library( # Sets the name of the library.
         MusicData/BaseElements/TextualElement.cpp
         MusicData/BaseElements/VisibleElement.cpp
         MusicData/BaseElements/NumberElement.cpp
+        MusicData/BaseElements/TextElement.cpp
 
         MusicData/Directions/Words.cpp
         MusicData/Directions/BracketDirection.cpp
         MusicData/Directions/Direction.cpp
+        MusicData/Directions/DurationDirection.cpp
         MusicData/Directions/Dynamic.cpp
         MusicData/Directions/DynamicWedge.cpp
         MusicData/Directions/MetronomeMark.cpp

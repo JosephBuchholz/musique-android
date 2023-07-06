@@ -62,19 +62,21 @@ public:
 
     std::vector<std::shared_ptr<Measure>> measures;
 
+    std::vector<std::shared_ptr<DurationDirection>> durationDirections;
+
     int lines = 5;
 
     float maxDistance = 0.0f; // the distance from the top line to the bottom line of the previous staff
 
     unsigned int capo = 0; // 0 means no capo
 
+    std::vector<Vec2<float>> systemPositionData;
+
     // -- Tab Only --
 
     std::vector<StaffTuning> tunings;
 
     TablatureDisplayType tablatureDisplayType = TablatureDisplayType::Full;
-
-    std::vector<Vec2<float>> systemPositionData;
 };
 
 #endif // MUSIQUE_STAFF_H

@@ -7,17 +7,27 @@
 
 #include "../BaseElements/VisibleElement.h"
 #include "../BaseElements/LineElement.h"
+#include "../BaseElements/TextElement.h"
 #include "../../Collisions/Vec2.h"
 #include "../../MusicDisplayConstants.h"
 #include "../../RenderData/RenderData.h"
+#include "DurationDirection.h"
+
+class BracketDirectionSegment : public DurationDirectionSegment
+{
+public:
+    void Render(RenderData& renderData, float staffPositionY, float startMeasurePositionX, float endMeasurePositionX, Paint paint) const;
+
+    void UpdateBoundingBox(float staffPositionY, float startMeasurePositionX, float endMeasurePositionX) override;
+};
 
 /**
  * This class represents a bracket for part of a direction marking.
  *
  * Note: MusicXML dashes and brackets are represented as this one class.
  */
-class BracketDirection : public VisibleElement, public LineElement {
-    friend class Song;
+class BracketDirection : public DurationDirection, public LineElement
+{
     friend class MusicXMLParser;
 
 public:
@@ -27,24 +37,26 @@ public:
         None = 0, Up, Down, Both, Arrow, NoEnd
     };
 
-    BracketDirection() {}
+    void Render(RenderData& renderData, float staffPositionY, float startMeasurePositionX, float endMeasurePositionX, int startMeasureIndex, int endMeasureIndex) const override;
+    void RenderDebug(RenderData& renderData, float staffPositionY, float startMeasurePositionX, float endMeasurePositionX, int startMeasureIndex, int endMeasureIndex) const override;
 
-    /**
-     * Updates the position and size of this object's bounding box.
-     *
-     * @param parentPosition The position of the parent.
-     */
-    void UpdateBoundingBox(const Vec2<float> &parentPosition);
+    void AddNewSegment(DurationDirectionSegment segment) override;
 
-    void Render(RenderData& renderData, Vec2<float> measurePosition, Vec2<float> offset = { 0.0f, 0.0f }) const;
+    int GetSegmentCount() const override { return segments.size(); }
+    std::shared_ptr<DurationDirectionSegment> GetSegment(int index) override { return segments[index]; }
 
-protected:
+    void Move(Vec2<float> positionOffset, Vec2<float> sizeOffset = { 0.0f, 0.0f }, float rotationOffset = 0.0f) override;
 
-    void CalculatePositionAsPaged(const MusicDisplayConstants& displayConstants, Vec2<float> defPositionStart, Vec2<float> defPositionEnd);
+    BoundingBox GetTotalBoundingBox(const MusicDisplayConstants& displayConstants, int startMeasureIndex, int endMeasureIndex, float startMeasurePositionX, float endMeasurePositionX) const override;
+    BoundingBox GetTotalBoundingBox(const MusicDisplayConstants& displayConstants, int segmentIndex, float staffPositionY, float startMeasurePositionX, float endMeasurePositionX) const;
+
+    void UpdateBoundingBox(float staffPositionY, float startMeasurePositionX, float endMeasurePositionX, int startMeasureIndex, int endMeasureIndex) override;
+
+    void CalculateAsPaged(const MusicDisplayConstants& displayConstants) override;
 
 private:
 
-    static void RenderLineEnd(RenderData& renderData, Vec2<float> position, LineEndType lineEndType, float endLength, const Paint& paint = Paint(), Vec2<float> offset = { 0.0f, 0.0f });
+    static void RenderLineEnd(RenderData& renderData, Vec2<float> position, LineEndType lineEndType, float endLength, const Paint& paint = Paint());
 
 public:
 
@@ -55,22 +67,13 @@ public:
     float endLengthStart = 0.0f;
     float endLengthStop = 0.0f;
 
-    // whether this element is a MusicXML dashes element or  bracket element
+    // whether this element is a MusicXML dashes element or bracket element
     bool isDashes = false;
 
-    // starting beat position
-    float beatPositionStart = 0.0f; // the position in the measure in beats(quarter notes)
-    float beatPositionInSongStart = 0.0f; // the position in the song(not counting repeats) in beats(quarter notes)
+    bool hasText = false;
+    TextElement textElement;
 
-    // ending beat position
-    float beatPositionEnd = 0.0f;
-    float beatPositionInSongEnd = 0.0f;
-
-    // -- Positioning Attributes --
-
-    // relative to measure
-    Vec2<float> positionStart = { 0.0f, 0.0f };
-    Vec2<float> positionEnd = { 0.0f, 0.0f };
+    std::vector<std::shared_ptr<BracketDirectionSegment>> segments;
 
 protected:
 

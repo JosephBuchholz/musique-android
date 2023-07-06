@@ -481,7 +481,7 @@ void Song::OnUpdate()
                     endMeasurePoint.measureIndex = measureIndex;
 
                     //AddTimeSpacePoint(beginMeasurePoint);
-                    //AddTimeSpacePoint(endMeasurePoint);
+                    AddTimeSpacePoint(endMeasurePoint);
 
                     for (std::shared_ptr<Note> note : measure->notes) {
 
@@ -501,7 +501,7 @@ void Song::OnUpdate()
                                 added = true;
                                 break;
                             }
-                            else if (note->beatPositionInSong == point.beatPositionInSong) // note is not needed to make a new point
+                            else if (note->beatPositionInSong == point.beatPositionInSong && note->measureIndex == point.measureIndex) // note is not needed to make a new point
                             {
                                 added = true;
                                 break;
@@ -530,6 +530,66 @@ void Song::OnUpdate()
         {
             for (auto staff : instrument->staves)
             {
+                float defY = -30.0f;
+                for (auto direction : staff->durationDirections)
+                {
+                    if (GetSystemIndex(direction->startMeasureIndex) != GetSystemIndex(direction->endMeasureIndex))
+                    {
+                        direction->isBroken = true;
+                    }
+
+                    if (!direction->isBroken) // only one segment
+                    {
+                        LOGE("Direction is not broken");
+                        DurationDirectionSegment segment;
+                        segment.startMeasureIndex = direction->startMeasureIndex;
+                        segment.endMeasureIndex = direction->endMeasureIndex;
+
+                        segment.positionStart = { GetPositionXInMeasure(direction->beatPositionInSongStart, segment.startMeasureIndex), defY };
+                        segment.positionEnd = { GetPositionXInMeasure(direction->beatPositionInSongEnd, segment.endMeasureIndex), defY };
+
+                        direction->AddNewSegment(segment);
+                    }
+                    else // multiple segments
+                    {
+                        LOGE("Direction is broken");
+                        bool first = true;
+                        int startSegmentMeasureIndex = direction->startMeasureIndex;
+                        float startSegmentBeatPositionInSong = direction->beatPositionInSongStart;
+                        for (int i = direction->startMeasureIndex; i <= direction->endMeasureIndex; i++)
+                        {
+                            if (DoesMeasureStartNewSystem(i) && !first)
+                            {
+                                DurationDirectionSegment segment;
+                                segment.startMeasureIndex = startSegmentMeasureIndex;
+                                segment.endMeasureIndex = i - 1;
+
+                                segment.positionStart = { GetPositionXInMeasure(startSegmentBeatPositionInSong, segment.startMeasureIndex), defY };
+                                segment.positionEnd = { GetPositionXInMeasure(staff->GetMeasureBeatPosition(segment.endMeasureIndex + 1), segment.endMeasureIndex), defY };
+
+                                direction->AddNewSegment(segment);
+
+                                startSegmentMeasureIndex = i;
+                                startSegmentBeatPositionInSong = staff->GetMeasureBeatPosition(i);
+                            }
+
+                            first = false;
+                        }
+
+                        // add last segment
+                        DurationDirectionSegment segment;
+                        segment.startMeasureIndex = startSegmentMeasureIndex;
+                        segment.endMeasureIndex = direction->endMeasureIndex;
+
+                        segment.positionStart = { GetPositionXInMeasure(startSegmentBeatPositionInSong, segment.startMeasureIndex), defY };
+                        segment.positionEnd = { GetPositionXInMeasure(direction->beatPositionInSongEnd, segment.endMeasureIndex), defY };
+
+                        direction->AddNewSegment(segment);
+                    }
+
+                    direction->CalculateAsPaged(displayConstants);
+                }
+
                 int measureIndex = 0;
                 for (auto measure : staff->measures)
                 {
@@ -557,30 +617,6 @@ void Song::OnUpdate()
                         for (auto& dynamic : direction.dynamics)
                         {
                             dynamic.CalculatePositionAsPaged(displayConstants, { defaultX, defaultY });
-                        }
-
-                        if (direction.dynamicWedge != nullptr)
-                        {
-                            float defaultStartX = GetPositionXInMeasure(direction.dynamicWedge->beatPositionInSongStart, measureIndex);
-                            float defaultStartY = -30.0f;
-
-                            float defaultEndX = GetPositionXInMeasure(direction.dynamicWedge->beatPositionInSongEnd, measureIndex);
-                            float defaultEndY = -30.0f;
-
-                            float defaultSpread = 15.0f;
-
-                            direction.dynamicWedge->CalculatePositionAsPaged(displayConstants, { defaultStartX, defaultStartY }, { defaultEndX, defaultEndY }, defaultSpread);
-                        }
-
-                        if (direction.bracketDirection != nullptr)
-                        {
-                            float defaultStartX = GetPositionXInMeasure(direction.bracketDirection->beatPositionInSongStart, measureIndex);
-                            float defaultStartY = -30.0f;
-
-                            float defaultEndX = GetPositionXInMeasure(direction.bracketDirection->beatPositionInSongEnd, measureIndex);
-                            float defaultEndY = -30.0f;
-
-                            direction.bracketDirection->CalculatePositionAsPaged(displayConstants, { defaultStartX, defaultStartY }, { defaultEndX, defaultEndY });
                         }
 
                         if (direction.marker != nullptr)
@@ -1239,6 +1275,13 @@ void Song::CalculateNoteBeatPositionsInSong()
 {
     for (auto instrument : instruments) {
         for (auto staff : instrument->staves) {
+
+            for (auto direction : staff->durationDirections)
+            {
+                direction->beatPositionInSongStart = direction->beatPositionStart + staff->GetMeasureBeatPosition(direction->startMeasureIndex);
+                direction->beatPositionInSongEnd = direction->beatPositionEnd + staff->GetMeasureBeatPosition(direction->endMeasureIndex);
+            }
+
             int measureIndex = 0;
             for (auto measure : staff->measures) {
                 float measureBeatPosition = staff->GetMeasureBeatPosition(measureIndex);
@@ -1340,7 +1383,7 @@ float Song::GetSongWidth() const
 
 float Song::GetPositionXInMeasure(float beatPositionInSong, int currentMeasureIndex) const
 {
-    float position = 0.0f;
+    float position = -1.0f;
 
     if (settings.musicLayout == Settings::MusicLayout::Paged)
     {
@@ -1772,6 +1815,34 @@ void Song::UpdateBoundingBoxes(const std::vector<Vec2<float>>& pagePositions, co
 
             staff->UpdateBoundingBoxes(displayConstants);
 
+            for (auto direction : staff->durationDirections)
+            {
+                for (int i = 0; i < direction->GetSegmentCount(); i++)
+                {
+                    std::shared_ptr<DurationDirectionSegment> segment = direction->GetSegment(i);
+
+                    int pageIndex = GetPageIndex(segment->startMeasureIndex);
+                    int systemIndex = GetSystemIndex(segment->startMeasureIndex);
+                    Vec2<float> pagePosition = pagePositions[pageIndex];
+                    Vec2<float> systemPosition = systemPositions[systemIndex];
+
+                    float startMeasurePositionX = GetMeasurePositionX(segment->startMeasureIndex) + systemPosition.x + pagePosition.x;
+                    float endMeasurePositionX = GetMeasurePositionX(segment->endMeasureIndex) + systemPosition.x + pagePosition.x;
+
+                    // staff y position
+                    float staffPositionY = 0.0f;
+                    if (staffIndex == 0) {
+                        staffPositionY = 0.0f;
+                    } else if (staffIndex >= 1) {
+                        staffPositionY += staff->measures[segment->startMeasureIndex]->staffDistance + instrument->staves[staffIndex - 1]->GetMiddleHeight(ls);
+                    }
+
+                    float instPositionY = GetInstrumentPositionY(segment->startMeasureIndex, instrumentIndex) + systemPosition.y + pagePosition.y;
+
+                    segment->UpdateBoundingBox(staffPositionY + instPositionY, startMeasurePositionX, endMeasurePositionX);
+                }
+            }
+
             int measureIndex = 0;
             for (auto measure : staff->measures) {
 
@@ -1872,6 +1943,8 @@ void Song::RenderBoundingBoxes(RenderData& renderData, const std::vector<Vec2<fl
             instrumentBoundingBox.size.x = 1050.0f;
             instrumentBoundingBox.Render(renderData, (int)0xFFFF0000);
 
+            LOGI("instrument bounding box position: %s", instrumentBoundingBox.position.GetPrintableString().c_str());
+
             instrumentIndex++;
         }
 
@@ -1879,6 +1952,8 @@ void Song::RenderBoundingBoxes(RenderData& renderData, const std::vector<Vec2<fl
         systemBoundingBox.position += systemPositions[systemIndex];
         systemBoundingBox.size.x = 1050.0f;
         systemBoundingBox.Render(renderData, (int)0xFF0000FF);
+
+        LOGV("system bounding box position: %s", systemBoundingBox.position.GetPrintableString().c_str());
 
         systemIndex++;
     }
@@ -1888,6 +1963,19 @@ void Song::ResolveCollisions()
 {
     for (auto instrument : instruments) {
         for (auto staff : instrument->staves) {
+
+            for (auto direction : staff->durationDirections)
+            {
+                for (int i = 0; i < direction->GetSegmentCount(); i++)
+                {
+                    std::shared_ptr<DurationDirectionSegment> segment = direction->GetSegment(i);
+                    BoundingBox oldBoundingBox = segment->boundingBox;
+                    ResolveCollisionsWith(segment->boundingBox, GetPageIndex(segment->startMeasureIndex));
+                    segment->Move(segment->boundingBox.position - oldBoundingBox.position);
+                }
+
+                direction->Move({ 0.0f, 0.0f }); // TODO: this is just an easy fix for bracket directions (needs to be removed)
+            }
 
             int measureIndex = 0;
             int pageIndex = -1;
@@ -2013,6 +2101,16 @@ void Song::ResolveCollisionsWith(BoundingBox& box, int pageIndex)
         for (auto staff : instrument->staves) {
             int measureIndex = 0;
             int currentPageIndex = -1;
+
+            for (auto direction : staff->durationDirections)
+            {
+                for (int i = 0; i < direction->GetSegmentCount(); i++)
+                {
+                    ResolveCollisionWith(direction->GetSegment(i), box);
+                }
+
+                direction->Move({ 0.0f, 0.0f }); // TODO: this is just an easy fix for bracket directions (needs to be removed)
+            }
 
             for (auto measure : staff->measures) {
 

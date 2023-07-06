@@ -48,6 +48,16 @@ BoundingBox Staff::GetTotalBoundingBox(const MusicDisplayConstants& displayConst
     BoundingBox bb;
     bool boundingBoxNotSet = true;
 
+    for (auto direction : durationDirections)
+    {
+        BoundingBox directionBoundingBox = direction->GetTotalBoundingBox(displayConstants, startMeasureIndex, endMeasureIndex, 0.0f, 0.0f);
+
+        if (boundingBoxNotSet)
+            bb = directionBoundingBox, boundingBoxNotSet = false;
+        else
+            bb = BoundingBox::CombineBoundingBoxes(bb, directionBoundingBox);
+    }
+
     for (int i = startMeasureIndex; i <= endMeasureIndex; i++)
     {
         if (i >= measures.size())

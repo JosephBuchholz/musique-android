@@ -152,6 +152,13 @@ public:
     std::vector<SMuFLGlyph> SMuFLGlyphs;
     std::vector<std::shared_ptr<SpannableText>> SpannableTexts;
 
+    // the bounds of the area to render in
+    float left = 0.0f;
+    float right = 1.0f;
+    float top = 0.0f;
+    float bottom = 1.0f;
+
+    // colors
     Color defaultColor = Color(0xFF000000);
     Color highlightedColor = Color(0xff1188ee);
     Color playedColor = Color(0xff1188ee);

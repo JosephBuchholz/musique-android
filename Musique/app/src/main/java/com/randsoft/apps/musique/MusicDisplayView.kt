@@ -344,7 +344,10 @@ class MusicDisplayView(context: Context, attrs: AttributeSet? = null): View(cont
      */
     private fun drawTexts(canvas: Canvas, texts: Array<Text>, offsetX: Float = 0.0f, offsetY: Float = 0.0f)
     {
+        Log.v(TAG, "drawing texts")
         for (text in texts) {
+
+            //Log.v(TAG, "text: ${text.text}")
 
             val paint = Paint().apply {
                 color = text.paint.color
@@ -402,6 +405,8 @@ class MusicDisplayView(context: Context, attrs: AttributeSet? = null): View(cont
             drawText(canvas, text, paint, offsetX, offsetY) // draw
             canvas.restore(); // reset rotation
         }
+
+        Log.v(TAG, "done drawing texts")
     }
 
     /**
@@ -414,7 +419,11 @@ class MusicDisplayView(context: Context, attrs: AttributeSet? = null): View(cont
      */
     private fun drawGlyphs(canvas: Canvas, glyphs: Array<SMuFLGlyph>, offsetX: Float = 0.0f, offsetY: Float = 0.0f)
     {
+        Log.v(TAG, "drawing glyphs")
+
         for (glyph in glyphs) { // SMuFL glyphs
+
+            Log.v(TAG, "glyph: ${glyph.codePoint}")
 
             // create paint
             val paint = Paint().apply {
@@ -470,6 +479,8 @@ class MusicDisplayView(context: Context, attrs: AttributeSet? = null): View(cont
             canvas.drawText(Character.toChars(glyph.codePoint), 0, 1, x + offsetX, y + offsetY, paint) // draw
             canvas.restore(); // reset rotation
         }
+
+        Log.v(TAG, "done drawing glyphs")
     }
 
     /**
@@ -728,53 +739,40 @@ class MusicDisplayView(context: Context, attrs: AttributeSet? = null): View(cont
         if (renderData != null) {
             Log.v(TAG, "START RENDER ${renderData?.lines?.size}")
             val density = resources.displayMetrics.density
-            val sizeX = 5000 * scale // in tenths
-            val sizeY = 5000 * scale // in tenths
+            val sizeX = (renderData?.right!! - renderData?.left!!) * scale // in tenths
+            val sizeY = (renderData?.bottom!! - renderData?.top!!) * scale // in tenths
+
+            Log.v(TAG, "Calcualated sizes ${sizeX.toInt()}, ${sizeY.toInt()},  ${sizeX}, ${sizeY}")
 
             // create the bitmap
             mainBitmap = Bitmap.createBitmap(sizeX.toInt(), sizeY.toInt(), Bitmap.Config.ARGB_8888)
 
+            Log.v(TAG, "Created bitmap")
+
             // "connect/link" the canvas to the bitmap so that the canvas draws on the bitmap
             val mainCanvas = Canvas(mainBitmap!!)
-            //mainCanvas.drawPaint(backgroundPaint)
+
+            Log.v(TAG, "linked")
 
             drawLines(mainCanvas, renderData?.lines!!)
+            Log.v(TAG, "calling drawTexts")
             drawTexts(mainCanvas, renderData?.texts!!)
+            Log.v(TAG, "called drawTexts")
             drawGlyphs(mainCanvas, renderData?.glyphs!!)
-            drawBitmaps(mainCanvas, renderData?.bitmaps!!)
+            Log.v(TAG, "called drawGlyphs")
+            //drawBitmaps(mainCanvas, renderData?.bitmaps!!)
             drawCubicCurves(mainCanvas, renderData?.cubicCurves!!)
+            Log.v(TAG, "called drawCubicCurves")
             drawSpannableTexts(mainCanvas, renderData?.spannableTexts!!)
 
-            // debugging/testing
-            /*val string: String = Char(0xECA5) + " = 120";
-            val text1: String = Char(0xECAB).toString();
-            val text2: String = " = 120";
-
-            val paint = Paint().apply {
-                color = 0xFF000000.toInt()
-                textSize = 30.0f // 2.0f // 30.0 text size =about= 22.0 normal size
-                typeface = musicTypeface
-                isAntiAlias = true
-            }
-
-            var stringBuilder: SpannableStringBuilder = SpannableStringBuilder(string)
-            stringBuilder.setSpan(ForegroundColorSpan(Color.rgb(255, 0, 0)), 0, 1, Spannable.SPAN_INCLUSIVE_INCLUSIVE);
-            stringBuilder.setSpan(ForegroundColorSpan(Color.rgb(0, 0, 255)), 2, 7, Spannable.SPAN_INCLUSIVE_INCLUSIVE);
-
-            mainCanvas.drawText(stringBuilder.toString(), 40.0f, 30.0f, paint)
-
-            var x = 40.0f;
-            var y = 60.0f;
-            paint.typeface = musicTypeface
-            mainCanvas.drawText(text1, x, y, paint)
-            x += paint.measureText(text1, 0, text1.length)
-            paint.typeface = typefaceBold
-            mainCanvas.drawText(text2, x, y, paint)*/
+            Log.v(TAG, "drew objects")
         }
         else
         {
             Log.e(TAG, "RENDER DATA IS NULL")
         }
+
+        Log.v(TAG, "finnished")
     }
 
     fun renderDataIsDifferent(previousRenderData: RenderData, newRenderData: RenderData): Boolean

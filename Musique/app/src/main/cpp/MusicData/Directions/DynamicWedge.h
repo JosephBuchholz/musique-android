@@ -10,43 +10,48 @@
 #include "../../Collisions/Vec2.h"
 #include "../../MusicDisplayConstants.h"
 #include "../../RenderData/RenderData.h"
+#include "DurationDirection.h"
+
+class DynamicWedgeSegment : public DurationDirectionSegment
+{
+public:
+    void UpdateBoundingBox(float staffPositionY, float startMeasurePositionX, float endMeasurePositionX) override;
+
+public:
+
+    bool rightSideIsOpen = false;
+    bool leftSideIsOpen = false;
+};
 
 /**
  * This class represents a cresc. or dim. wedge/hairpin marking.
  */
-class DynamicWedge : public VisibleElement, public LineElement {
-    friend class Song;
+class DynamicWedge : public DurationDirection, public LineElement
+{
     friend class MusicXMLParser;
 
 public:
 
-    /**
-     * Updates the position and size of this object's bounding box.
-     *
-     * @param parentPosition The position of the parent.
-     */
-    void UpdateBoundingBox(const Vec2<float> &parentPosition);
+    void Render(RenderData& renderData, float staffPositionY, float startMeasurePositionX, float endMeasurePositionX, int startMeasureIndex, int endMeasureIndex) const override;
+    void RenderDebug(RenderData& renderData, float staffPositionY, float startMeasurePositionX, float endMeasurePositionX, int startMeasureIndex, int endMeasureIndex) const override;
 
-    /**
-     * Renders this class.
-     *
-     * @param[out] renderData The RenderData object to render to.
-     * @param[in] measurePosition The position of the parent measure.
-     * @param[in] offset An offset.
-     */
-    void Render(RenderData& renderData, Vec2<float> measurePosition, Vec2<float> offset = { 0.0f, 0.0f }) const;
+    void RenderSegment(RenderData& renderData, std::shared_ptr<DynamicWedgeSegment>, float staffPositionY, float startMeasurePositionX, float endMeasurePositionX, Paint paint) const;
 
-protected:
+    void AddNewSegment(DurationDirectionSegment segment) override;
 
-    /**
-     * Calculates the positioning attributes of this class when the display mode is Paged.
-     *
-     * @param displayConstants The constants for rendering.
-     * @param defPositionStart The default coordinates of the starting position of the dynamic wedge (the left side).
-     * @param defPositionEnd The default coordinates of the ending position of the dynamic wedge (the right side).
-     * @param defSpread The default for how much the wedge should spread.
-     */
-    void CalculatePositionAsPaged(const MusicDisplayConstants& displayConstants, Vec2<float> defPositionStart, Vec2<float> defPositionEnd, float defSpread);
+    int GetSegmentCount() const override { return segments.size(); }
+    std::shared_ptr<DurationDirectionSegment> GetSegment(int index) override { return segments[index]; }
+
+    BoundingBox GetTotalBoundingBox(const MusicDisplayConstants& displayConstants, int startMeasureIndex, int endMeasureIndex, float startMeasurePositionX, float endMeasurePositionX) const override;
+    BoundingBox GetTotalBoundingBox(const MusicDisplayConstants& displayConstants, int segmentIndex, float staffPositionY, float startMeasurePositionX, float endMeasurePositionX) const;
+
+    void UpdateBoundingBox(float staffPositionY, float startMeasurePositionX, float endMeasurePositionX, int startMeasureIndex, int endMeasureIndex) override;
+
+    void CalculateAsPaged(const MusicDisplayConstants& displayConstants) override;
+
+private:
+
+    void RenderWedge(RenderData& renderData, Vec2<float> startPosition, Vec2<float> endPosition, bool rightSideIsOpen, bool leftSideIsOpen) const;
 
 public:
 
@@ -55,22 +60,10 @@ public:
         None = 0, Crescendo, Diminuendo
     } type = WedgeType::None;
 
-    // starting beat position
-    float beatPositionStart = 0.0f; // the position in the measure in beats(quarter notes)
-    float beatPositionInSongStart = 0.0f; // the position in the song(not counting repeats) in beats(quarter notes)
-
-    // ending beat position
-    float beatPositionEnd = 0.0f;
-    float beatPositionInSongEnd = 0.0f;
-
-    // -- Positioning Attributes --
-
-    // relative to measure
-    Vec2<float> positionStart = { 0.0f, 0.0f };
-    Vec2<float> positionEnd = { 0.0f, 0.0f };
-
     // the height of the wedge
     float spread = 0.0f;
+
+    std::vector<std::shared_ptr<DynamicWedgeSegment>> segments;
 
 protected:
 

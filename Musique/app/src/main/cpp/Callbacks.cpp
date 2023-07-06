@@ -445,6 +445,14 @@ jobject ConvertRenderDataToObject(JNIEnv* env, const RenderData& renderData)
     // set cubic curves array field in renderDataObject
     env->SetObjectField(renderDataObject, fieldIdCubicCurves, cubicCurvesArray);
 
+
+    // RENDER AREA BOUNDS
+
+    JNIHelper::SetFloatField(env, renderDataObject, "left", renderData.left);
+    JNIHelper::SetFloatField(env, renderDataObject, "right", renderData.right);
+    JNIHelper::SetFloatField(env, renderDataObject, "top", renderData.top);
+    JNIHelper::SetFloatField(env, renderDataObject, "bottom", renderData.bottom);
+
     return renderDataObject;
 }
 

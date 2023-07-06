@@ -78,6 +78,11 @@ void MusicRenderer::Render(std::shared_ptr<Song> song, Settings settings)
             if (!layoutCalculated)
                 CalculateRenderForPagedLayout(song, settings);
 
+            m_RenderData.left = 0.0f;
+            m_RenderData.right = (song->displayConstants.pageWidth + pageGap) * (float)song->pages.size() + 10.0f;
+            m_RenderData.top = 0.0f;
+            m_RenderData.bottom = song->displayConstants.pageHeight + 10.0f;
+
             RenderWithRenderData();
 
             /*int currentSystemIndex = song->GetSystemIndex(currentMeasure);
@@ -125,13 +130,16 @@ void MusicRenderer::CalculateRenderForPagedLayout(std::shared_ptr<Song> song, Se
         if (pageIndex != 0)
         {
             if (settings.pagesOrientation == Orientation::Vertical)
-                pageY += song->displayConstants.pageHeight + 80.0f;
+                pageY += song->displayConstants.pageHeight + pageGap;
             else if (settings.pagesOrientation == Orientation::Horizontal)
-                pageX += song->displayConstants.pageWidth + 80.0f;
+                pageX += song->displayConstants.pageWidth + pageGap;
         }
 
         // ---- RENDER ----
         RenderMusicToPage(song, pageIndex, m_RenderData, pageX, pageY);
+#if SHOW_BOUNDING_BOXES
+        RenderDebugToPage(song, pageIndex, m_RenderData, pageX, pageY);
+#endif
 
         pagePositions.emplace_back(pageX, pageY);
         pageIndex++;
@@ -153,7 +161,8 @@ void MusicRenderer::CalculateRenderForPagedLayout(std::shared_ptr<Song> song, Se
     layoutCalculated = true;
 }
 
-void MusicRenderer::RenderMusicToPage(std::shared_ptr<Song> song, int page, RenderData& pageRenderData, float pageX, float pageY) {
+void MusicRenderer::RenderMusicToPage(std::shared_ptr<Song> song, int page, RenderData& pageRenderData, float pageX, float pageY)
+{
 
     // --- MAIN RENDERING ---
 
@@ -267,15 +276,83 @@ void MusicRenderer::RenderMusicToPage(std::shared_ptr<Song> song, int page, Rend
     }
 }
 
+void MusicRenderer::RenderDebugToPage(std::shared_ptr<Song> song, int page, RenderData& pageRenderData, float pageX, float pageY)
+{
+    if (updateRenderData)
+    {
+        int measureCount = song->GetMeasureCount();
+
+        int startingMeasureIndex = song->GetFirstMeasureOnPage(page);
+
+        int startMeasure = startingMeasureIndex;
+        int endMeasure = startingMeasureIndex-1;
+
+        int systemIndex = song->GetSystemIndex(startingMeasureIndex);
+
+        bool drawFullInstNames = true;
+
+        Vec2<float> systemPosition = { pageX + song->displayConstants.leftMargin + song->systems[systemIndex]->layout.systemLeftMargin,
+                                       pageY + song->displayConstants.topMargin + song->systems[systemIndex]->layout.topSystemDistance};
+
+        systemPosition.x = pageX + song->systems[systemIndex]->position.x;
+        systemPosition.y = pageY + song->systems[systemIndex]->position.y;
+
+        for (int i = startingMeasureIndex; i <= measureCount; i++)
+        {
+            bool startNewSystem;
+
+            if (i == startingMeasureIndex) // first time
+            {
+                startNewSystem = false;
+            }
+            else if (i < measureCount) // any other valid measure
+            {
+                startNewSystem = song->DoesMeasureStartNewSystem(i);
+            }
+            else
+            {
+                startNewSystem = true;
+            }
+
+            if ((startNewSystem || i == measureCount) && i != 0 && systemIndex < song->systems.size()) // render system
+            {
+                startMeasure = endMeasure+1;
+                endMeasure = i-1;
+
+                systemPosition = RenderDebugSystem(pageRenderData, song, startMeasure, endMeasure, systemIndex, systemPosition, { pageX, pageY }, drawFullInstNames);
+
+                drawFullInstNames = false;
+
+                startMeasure = i;
+                systemIndex++;
+
+                if (systemIndex < song->systems.size())
+                {
+                    systemPosition.x = pageX + song->systems[systemIndex]->position.x;
+                    systemPosition.y = pageY + song->systems[systemIndex]->position.y;
+                }
+            } // system loop (sort of)
+
+            if (song->GetPageIndex(i) > page) // don't render the next page
+            {
+                break;
+            }
+
+            if (systemIndex >= systemPositions.size())
+                systemPositions.push_back(systemPosition);
+        }
+    }
+}
+
 Vec2<float> MusicRenderer::RenderSystem(RenderData& renderData, std::shared_ptr<Song> song, unsigned int startMeasure, unsigned int endMeasure, int systemIndex, Vec2<float> systemPosition, Vec2<float> pagePosition, bool drawFullInstNames)
 {
     std::shared_ptr<Instrument> prevInstrument = nullptr;
     int instrumentIndex = 0;
     float instYPosition = systemPosition.y;
-    for (auto instrument: song->instruments) {
-
-        if (song->songData.instrumentInfos[instrumentIndex].visible) {
-
+    for (auto instrument: song->instruments)
+    {
+        if (song->songData.instrumentInfos[instrumentIndex].visible)
+        {
             /*if (instrumentIndex != 0 && !instrument->staves.empty())
             {
                 if (prevInstrument != nullptr)
@@ -301,7 +378,8 @@ Vec2<float> MusicRenderer::RenderSystem(RenderData& renderData, std::shared_ptr<
             }
 
             int staffIndex = 0;
-            for (auto staff : instrument->staves) {
+            for (auto staff : instrument->staves)
+            {
                 float ls = song->displayConstants.lineSpacing;
                 if (staff->type == Staff::StaffType::Tab) {
                     ls = song->displayConstants.tabLineSpacing;
@@ -321,6 +399,23 @@ Vec2<float> MusicRenderer::RenderSystem(RenderData& renderData, std::shared_ptr<
                 staffYPosition = staff->systemPositionData[systemIndex].y;
                 //staffYPosition = instYPosition;
                 LOGW("Staff y position: %f", staff->systemPositionData[systemIndex].y);
+
+                for (auto direction : staff->durationDirections)
+                {
+                    if (direction->startMeasureIndex >= startMeasure && direction->endMeasureIndex <= endMeasure ||     // completely inside
+                        direction->startMeasureIndex <= startMeasure && direction->endMeasureIndex >= endMeasure ||     // completely outside
+                        direction->startMeasureIndex <= startMeasure && direction->endMeasureIndex >= startMeasure ||   // partly left
+                        direction->startMeasureIndex <= endMeasure && direction->endMeasureIndex >= endMeasure)         // partly right
+                    {
+                        int startMeasureIndex = std::max(direction->startMeasureIndex, startMeasure);
+                        int endMeasureIndex = std::min(direction->endMeasureIndex, endMeasure);
+
+                        float startMeasurePositionX = song->GetMeasurePositionX(startMeasureIndex) + systemPosition.x;
+                        float endMeasurePositionX = song->GetMeasurePositionX(endMeasureIndex) + systemPosition.x;
+
+                        direction->Render(renderData, staffYPosition + instYPosition, startMeasurePositionX, endMeasurePositionX, startMeasureIndex, endMeasureIndex);
+                    }
+                }
 
                 RenderLineOfMeasures(renderData, startMeasure, endMeasure, song->systems[systemIndex], staff, systemPosition.x, staffYPosition + instYPosition, ls, instrumentIndex == 0 && staffIndex == 0);
 
@@ -356,6 +451,68 @@ Vec2<float> MusicRenderer::RenderSystem(RenderData& renderData, std::shared_ptr<
     /*if (prevInstrument != nullptr)
         systemPosition.y = instYPosition + song->systems[systemIndex + 1]->layout.systemDistance + lastInstrumentMiddleHeight;
     systemPosition.x = pagePosition.x + song->displayConstants.leftMargin + song->systems[systemIndex + 1]->layout.systemLeftMargin;*/
+
+    return systemPosition;
+}
+
+Vec2<float> MusicRenderer::RenderDebugSystem(RenderData& renderData, std::shared_ptr<Song> song, unsigned int startMeasure, unsigned int endMeasure, int systemIndex, Vec2<float> systemPosition, Vec2<float> pagePosition, bool drawFullInstNames)
+{
+    std::shared_ptr<Instrument> prevInstrument = nullptr;
+    int instrumentIndex = 0;
+    float instYPosition = systemPosition.y;
+    for (auto instrument: song->instruments)
+    {
+        if (song->songData.instrumentInfos[instrumentIndex].visible)
+        {
+            instYPosition = systemPosition.y + instrument->systemPositionData[systemIndex].y;
+
+            if (song->instruments.size() > 1)
+            {
+                float textPositionY = instYPosition + (instrument->GetMiddleHeight(song->displayConstants.lineSpacing, song->displayConstants.tabLineSpacing, 0, 1) / 2.0f);
+                if (drawFullInstNames)
+                {
+                    renderData.AddText(Text(instrument->name.string, systemPosition.x - 20.0f, textPositionY, InstNameTextPaint));
+                }
+                else
+                {
+                    renderData.AddText(Text(instrument->nameAbbreviation.string, systemPosition.x - 20.0f, textPositionY, InstNameTextPaint));
+                }
+            }
+
+            int staffIndex = 0;
+            for (auto staff : instrument->staves)
+            {
+                // staff y position
+                float staffYPosition = 0.0f;
+                staffYPosition = staff->systemPositionData[systemIndex].y;
+
+                for (auto direction : staff->durationDirections)
+                {
+                    if (direction->startMeasureIndex >= startMeasure && direction->endMeasureIndex <= endMeasure ||     // completely inside
+                        direction->startMeasureIndex <= startMeasure && direction->endMeasureIndex >= endMeasure ||     // completely outside
+                        direction->startMeasureIndex <= startMeasure && direction->endMeasureIndex >= startMeasure ||   // partly left
+                        direction->startMeasureIndex <= endMeasure && direction->endMeasureIndex >= endMeasure)         // partly right
+                    {
+                        int startMeasureIndex = std::max(direction->startMeasureIndex, startMeasure);
+                        int endMeasureIndex = std::min(direction->endMeasureIndex, endMeasure);
+
+                        float startMeasurePositionX = song->GetMeasurePositionX(startMeasureIndex) + systemPosition.x;
+                        float endMeasurePositionX = song->GetMeasurePositionX(endMeasureIndex) + systemPosition.x;
+
+                        direction->RenderDebug(renderData, staffYPosition + instYPosition, startMeasurePositionX, endMeasurePositionX, startMeasureIndex, endMeasureIndex);
+                    }
+                }
+
+                //RenderDebugLineOfMeasures(renderData, startMeasure, endMeasure, song->systems[systemIndex], staff, systemPosition.x, staffYPosition + instYPosition, ls, instrumentIndex == 0 && staffIndex == 0);
+
+                staffIndex++;
+            } // staves loop
+
+            prevInstrument = instrument;
+        } // instrument is visible
+
+        instrumentIndex++;
+    } // instruments loop
 
     return systemPosition;
 }

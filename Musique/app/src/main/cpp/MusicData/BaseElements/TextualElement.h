@@ -27,6 +27,10 @@ public:
 
     Justify justify = Justify::Left;
 
+    enum class TextAlign {
+        None = 0, Left, Center, Right
+    } align = TextAlign::Center;
+
     unsigned int linesThrough = 0;
     unsigned int overline = 0;
     unsigned int underline = 0;
