@@ -64,6 +64,11 @@ public:
     void Render(RenderData& renderData, Vec2<float> measurePosition, float nextMeasurePositionX, std::shared_ptr<System> system, int staffLineCount, float staffLineSpacing, bool isTopMeasureLine, bool isLastMeasureInSystem, TablatureDisplayType tablatureDisplayType) const;
 
     /**
+     * Same as the 'Render' function except for debug rendering.
+     */
+    void RenderDebug(RenderData& renderData, Vec2<float> measurePosition, float nextMeasurePositionX, std::shared_ptr<System> system, int staffLineCount, float staffLineSpacing, bool isTopMeasureLine, bool isLastMeasureInSystem, TablatureDisplayType tablatureDisplayType) const;
+
+    /**
      * Renders any debug info.
      *
      * @param renderData The RenderData object to render to.

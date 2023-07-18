@@ -2,9 +2,9 @@
 
 #include "../../../RenderMeasurement.h"
 
-void Bowing::Render(RenderData& renderData, float notePositionX, float notePositionY, float offsetX, float offsetY) const
+void Bowing::Render(RenderData& renderData, Vec2<float> notePosition) const
 {
-    renderData.AddGlyph(SMuFLGlyph(GetSMuFLID(), position.x + notePositionX + offsetX, position.y + notePositionY + offsetY, Paint(color.color)));
+    renderData.AddGlyph(SMuFLGlyph(GetSMuFLID(), position.x + notePosition.x, position.y + notePosition.y, Paint(color.color)));
 }
 
 Vec2<float> Bowing::GetDimensions() const
@@ -23,7 +23,7 @@ SMuFLID Bowing::GetSMuFLID() const
     }
 }
 
-void Bowing::CalculatePositionAsPaged(const MusicDisplayConstants& displayConstants, float topStaffLineDistNote, bool isTab)
+void Bowing::CalculatePositionAsPaged(const MusicDisplayConstants& displayConstants, float topStaffLineDistNote, bool isTab, std::shared_ptr<NoteStem> noteStem, float topNotePositionY, float bottomNotePositionY)
 {
     if (isTab)
     {

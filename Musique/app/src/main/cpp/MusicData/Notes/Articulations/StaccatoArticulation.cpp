@@ -2,9 +2,19 @@
 
 #include "../../../RenderMeasurement.h"
 
-void StaccatoArticulation::Render(RenderData& renderData, float notePositionX, float notePositionY, float offsetX, float offsetY) const
+void StaccatoArticulation::Render(RenderData& renderData, Vec2<float> notePosition) const
 {
-    renderData.AddGlyph(SMuFLGlyph(GetSMuFLID(), position.x + notePositionX + offsetY, position.y + notePositionY + offsetX, Paint(color.color)));
+    renderData.AddGlyph(SMuFLGlyph(GetSMuFLID(), position.x + notePosition.x, position.y + notePosition.y, Paint(color.color)));
+}
+
+BoundingBox StaccatoArticulation::GetBoundingBox() const
+{
+    BoundingBox bb;
+
+    bb = RenderMeasurement::GetGlyphBoundingBox(SMuFLGlyph(GetSMuFLID(), 0.0f, 0.0f, Paint(color.color)));
+    bb.position += position;
+
+    return bb;
 }
 
 SMuFLID StaccatoArticulation::GetSMuFLID() const
@@ -45,8 +55,10 @@ Vec2<float> StaccatoArticulation::GetDimensions() const
     return { RenderMeasurement::MeasureGlyph(glyphID), 0.0f };
 }
 
-void StaccatoArticulation::CalculatePositionAsPaged(const MusicDisplayConstants& displayConstants, float topStaffLineDistNote, bool isTab)
+void StaccatoArticulation::CalculatePositionAsPaged(const MusicDisplayConstants& displayConstants, float topStaffLineDistNote, bool isTab, std::shared_ptr<NoteStem> noteStem, float topNotePositionY, float bottomNotePositionY)
 {
+    position = { 0.0f, 0.0f };
+
     if (isTab)
     {
         position.y -= topStaffLineDistNote;
@@ -54,12 +66,23 @@ void StaccatoArticulation::CalculatePositionAsPaged(const MusicDisplayConstants&
     }
     else // is standard
     {
+        if (noteStem->stemType == NoteStem::StemType::Up)
+        {
+            placement = AboveBelowType::Below;
+        }
+        else if (noteStem->stemType == NoteStem::StemType::Down)
+        {
+            placement = AboveBelowType::Above;
+        }
+
         if (placement == AboveBelowType::Above)
         {
+            position.y = topNotePositionY;
             position.y -= 10.0f;
         }
         else if (placement == AboveBelowType::Below)
         {
+            position.y = bottomNotePositionY;
             position.y += 10.0f;
         }
     }

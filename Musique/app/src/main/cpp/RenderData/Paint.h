@@ -42,6 +42,8 @@ struct Paint {
         dashLength = paint.dashLength;
         dashSpaceLength = paint.dashSpaceLength;
         dotRadius = paint.dotRadius;
+
+        varyThickness = paint.varyThickness;
     }
 
     enum class Cap {
@@ -79,6 +81,8 @@ struct Paint {
 
     bool isDottedLine = false;
     bool isDashedLine = false;
+
+    bool varyThickness = false;
 
     // for dashed lines
     float dashLength = 10.0f;

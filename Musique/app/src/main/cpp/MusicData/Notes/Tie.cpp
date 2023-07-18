@@ -59,6 +59,7 @@ void NoteTie::RenderCurve(RenderData& renderData, Vec2<float> startPosition, Vec
     curve.y4 = endPosition.y;
 
     curve.paint = paint;
+    curve.paint.varyThickness = true;
 
     renderData.AddCubicCurve(curve);
 }

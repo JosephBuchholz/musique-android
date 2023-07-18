@@ -59,6 +59,63 @@ void NoteChord::Render(RenderData& renderData, TablatureDisplayType tabDisplayTy
     }
 }
 
+void NoteChord::RenderDebug(RenderData& renderData, TablatureDisplayType tabDisplayType, float rootNotePositionYRelativeToMeasure, float topNotePositionYRelativeToMeasure, int lines, Vec2<float> measurePosition, float nextMeasurePositionX, float ls) const
+{
+    if (notes.empty())
+        throw IsEmptyException();
+
+    std::shared_ptr<Note> rootNote = notes[0];
+    std::shared_ptr<Note> topNote = notes[notes.size() - 1];
+
+    if (rootNote == nullptr || topNote == nullptr)
+        throw IsNullException();
+
+    Vec2<float> position = { rootNote->position.x + measurePosition.x, rootNote->position.y + measurePosition.y };
+
+    for (auto note : notes)
+    {
+        note->RenderDebug(renderData, tabDisplayType, 0.0f, lines, measurePosition, nextMeasurePositionX, ls);
+    }
+
+    // rhythm notation
+    /*if (tabDisplayType == TablatureDisplayType::Full)
+    {
+        noteStem->Render(renderData, position, rootNote->tremoloSingle, rootNote->isGraceNote, rootNote->hasSlash, rootNote->noteHead.GetNoteHeadWidth(renderData.displayConstants));
+
+        if (noteFlag)
+            noteFlag->Render(renderData, {position.x + noteStem->stemPositionX, position.y + noteStem->stemEndY});
+    }
+
+    Paint ledgerLinePaint;
+    ledgerLinePaint.strokeWidth = renderData.displayConstants.legerLineWidth;
+    ledgerLinePaint.strokeCap = Paint::Cap::Butt;
+
+    // ledger lines
+    float ledgerLineMargin = renderData.displayConstants.ledgerLineMargin * rootNote->sizeFactor;
+    float noteHeadWidth = rootNote->noteHead.GetNoteHeadWidth(renderData.displayConstants);
+    if (rootNotePositionYRelativeToMeasure >= (float)lines) // ledger lines below staff
+    {
+        int ledgerLineCount = (int)rootNotePositionYRelativeToMeasure - lines + 1;
+        float y = measurePosition.y + ((float)lines * ls);
+        for (int i = 0; i < ledgerLineCount; i++)
+        {
+            renderData.AddLine(std::make_shared<Line>(position.x - ledgerLineMargin, y, position.x + noteHeadWidth + ledgerLineMargin, y, ledgerLinePaint));
+            y += 1.0f * ls;
+        }
+    }
+
+    if (topNotePositionYRelativeToMeasure < 0.0f) // ledger lines above parentStaff
+    {
+        int ledgerLineCount = abs((int)topNotePositionYRelativeToMeasure);
+        float y = measurePosition.y - (1.0f * ls);
+        for (int i = 0; i < ledgerLineCount; i++)
+        {
+            renderData.AddLine(std::make_shared<Line>(position.x - ledgerLineMargin, y, position.x + noteHeadWidth + ledgerLineMargin, y, ledgerLinePaint));
+            y -= 1.0f * ls;
+        }
+    }*/
+}
+
 void NoteChord::RenderDebug(RenderData& renderData) const
 {
     /*for (auto note : notes)
@@ -262,4 +319,10 @@ void NoteChord::CalculatePositionAsPaged(const MusicDisplayConstants& displayCon
     }
 
     rootNote->noteStem = noteStem;
+
+    for (auto articulation : rootNote->articulations)
+    {
+        if (articulation != nullptr)
+            articulation->CalculatePositionAsPaged(displayConstants, rootNote->position.y, rootNote->type == NoteType::Tab, noteStem, topNote->position.y - rootNote->position.y, 0.0f);
+    }
 }

@@ -2,9 +2,9 @@
 
 #include "../../../RenderMeasurement.h"
 
-void GuitarTechnique::Render(RenderData& renderData, float notePositionX, float notePositionY, float offsetX, float offsetY) const
+void GuitarTechnique::Render(RenderData& renderData, Vec2<float> notePosition) const
 {
-    renderData.AddGlyph(SMuFLGlyph(GetSMuFLID(), position.x + notePositionX + offsetY, position.y + notePositionY + offsetX, Paint(color.color)));
+    renderData.AddGlyph(SMuFLGlyph(GetSMuFLID(), position.x + notePosition.x, position.y + notePosition.y, Paint(color.color)));
 }
 
 Vec2<float> GuitarTechnique::GetDimensions() const
@@ -31,7 +31,7 @@ SMuFLID GuitarTechnique::GetSMuFLID() const
     }
 }
 
-void GuitarTechnique::CalculatePositionAsPaged(const MusicDisplayConstants& displayConstants, float topStaffLineDistNote, bool isTab)
+void GuitarTechnique::CalculatePositionAsPaged(const MusicDisplayConstants& displayConstants, float topStaffLineDistNote, bool isTab, std::shared_ptr<NoteStem> noteStem, float topNotePositionY, float bottomNotePositionY)
 {
     if (isTab)
     {

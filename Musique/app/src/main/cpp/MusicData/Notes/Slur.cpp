@@ -42,6 +42,7 @@ void Slur::Render(RenderData& renderData, Vec2<float> measureStartPosition, Vec2
     curve.y4 = endCurvePosition.y;
 
     curve.paint = paint;
+    curve.paint.varyThickness = true;
 
     renderData.AddCubicCurve(curve);
 }

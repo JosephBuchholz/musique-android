@@ -45,6 +45,7 @@ BoundingBox Measure::GetTotalBoundingBox(const MusicDisplayConstants& displayCon
     }
 
     totalBoundingBox = BoundingBox::CombineBoundingBoxes(totalBoundingBox, measureNumber.GetBoundingBoxRelativeToMeasure(displayConstants));
+    //totalBoundingBox = BoundingBox::CombineBoundingBoxes(totalBoundingBox, clef.GetBoundingBoxRelativeToMeasure(displayConstants));
 
     return totalBoundingBox;
 }
@@ -159,6 +160,97 @@ void Measure::Render(RenderData& renderData, Vec2<float> measurePosition, float 
             if (slur)
                 slur->Render(renderData, startMeasurePosition, endMeasurePosition);
         }
+    }
+}
+
+void Measure::RenderDebug(RenderData& renderData, Vec2<float> measurePosition, float nextMeasurePositionX, std::shared_ptr<System> system, int staffLineCount, float staffLineSpacing, bool isTopMeasureLine, bool isLastMeasureInSystem, TablatureDisplayType tablatureDisplayType) const
+{
+    /*if (startsMultiMeasureRest)
+    {
+        multiMeasureRestSymbol->Render(renderData, measurePosition);
+    }
+
+    RenderStaffLines(renderData, measurePosition, staffLineCount, staffLineSpacing);
+
+    RenderBarlines(renderData, measurePosition.x, measurePosition.y, measureWidth, staffLineCount, staffLineSpacing, isTopMeasureLine);
+
+    RenderMeasureBeginning(renderData, measurePosition, system, staffLineCount, staffLineSpacing, isTopMeasureLine);
+
+    // render directions
+    if (!isMeasureRepeat)
+    {
+        for (const Direction& direction : directions)
+        {
+            direction.Render(renderData, measurePosition);
+        }
+    }
+
+
+    if (isMeasureRepeat && measureRepeat != nullptr)
+    {
+        measureRepeat->Render(renderData, measurePosition);
+    }*/
+
+    if (!startsMultiMeasureRest && !isMeasureRepeat)
+    {
+        int noteIndex = 0;
+        for (auto note : notes)
+        {
+            if (!note->isChord)
+                note->RenderDebug(renderData, tablatureDisplayType, CalculateNoteYPositionRelativeToMeasure(noteIndex), staffLineCount, measurePosition, nextMeasurePositionX, staffLineSpacing);
+            noteIndex++;
+        }
+
+        noteIndex = 0;
+        for (auto noteChord : noteChords)
+        {
+            if (noteChord->notes.empty())
+                throw IsEmptyException();
+            float rootNotePositionYRelativeToMeasure = CalculateNoteYPositionRelativeToMeasure(noteChord->notes[0]);
+            float topNotePositionYRelativeToMeasure = CalculateNoteYPositionRelativeToMeasure(noteChord->notes[noteChord->notes.size()-1]);
+            noteChord->RenderDebug(renderData, tablatureDisplayType, rootNotePositionYRelativeToMeasure, topNotePositionYRelativeToMeasure, staffLineCount, measurePosition, nextMeasurePositionX, staffLineSpacing);
+        }
+
+        // rendering note beams
+        /*if (tablatureDisplayType == TablatureDisplayType::Full || type == Measure::MeasureType::Standard)
+        {
+            for (const BeamGroup &beamGroup : beams)
+            {
+                beamGroup.Render(renderData, measurePosition);
+            }
+        }
+
+        // render all chords in this measure
+        for (const Chord& chord : chords)
+        {
+            chord.Render(renderData, measurePosition.x, measurePosition.y);
+        }
+
+        for (auto tuplet : tuplets)
+        {
+            tuplet->Render(renderData, measurePosition);
+        }
+
+        for (auto arpeggio : arpeggios)
+        {
+            float notePositionX = measurePosition.x;
+            if (arpeggio)
+                arpeggio->Render(renderData, notePositionX, measurePosition.y);
+        }
+
+        for (auto slur : slurs)
+        {
+            Vec2<float> startMeasurePosition = measurePosition;
+            Vec2<float> endMeasurePosition = measurePosition;
+
+            if (slur->startMeasureIndex != slur->endMeasureIndex)
+            {
+                endMeasurePosition.x = nextMeasurePositionX;
+            }
+
+            if (slur)
+                slur->Render(renderData, startMeasurePosition, endMeasurePosition);
+        }*/
     }
 }
 

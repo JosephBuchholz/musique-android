@@ -1,12 +1,22 @@
 #include "Slide.h"
 
-void Slide::Render(RenderData& renderData, float notePositionX, float notePositionY, float offsetX, float offsetY) const
+void Slide::Render(RenderData& renderData, Vec2<float> notePosition) const
 {
     Paint slidePaint = Paint(color.color);
     slidePaint.strokeWidth = 1.25f;
     slidePaint.strokeCap = Paint::Cap::Butt;
 
-    renderData.AddLine(std::make_shared<Line>(position.x + lineStartPosition.x + notePositionX + offsetX, position.y + lineStartPosition.y + notePositionY + offsetY, position.x + lineEndPosition.x + notePositionX + offsetX, position.y + lineEndPosition.y + notePositionY + offsetY, slidePaint));
+    renderData.AddLine(std::make_shared<Line>(position.x + lineStartPosition.x + notePosition.x, position.y + lineStartPosition.y + notePosition.y, position.x + lineEndPosition.x + notePosition.x, position.y + lineEndPosition.y + notePosition.y, slidePaint));
+}
+
+BoundingBox Slide::GetBoundingBox() const
+{
+    BoundingBox bb;
+
+    bb.size = GetDimensions();
+    bb.position += position;
+
+    return bb;
 }
 
 Vec2<float> Slide::GetDimensions() const
@@ -14,7 +24,7 @@ Vec2<float> Slide::GetDimensions() const
     return { std::abs(lineEndPosition.x - lineStartPosition.x), std::abs(lineEndPosition.y - lineStartPosition.y) };
 }
 
-void Slide::CalculatePositionAsPaged(const MusicDisplayConstants& displayConstants, float topStaffLineDistNote, bool isTab)
+void Slide::CalculatePositionAsPaged(const MusicDisplayConstants& displayConstants, float topStaffLineDistNote, bool isTab, std::shared_ptr<NoteStem> noteStem, float topNotePositionY, float bottomNotePositionY)
 {
     position = { 0.0f, 0.0f };
 

@@ -720,16 +720,19 @@ class MusicDisplayView(context: Context, attrs: AttributeSet? = null): View(cont
 
             canvas.drawPath(path, paint)
 
-            var i = 0;
-            while (i < 4) {
-                point1 = PointF(point1.x, point1.y - 0.6f * scale)
-                point2 = PointF(point2.x, point2.y - 0.6f * scale)
-                path.reset()
-                path.moveTo(start.x, start.y)
-                path.cubicTo(point1.x, point1.y, point2.x, point2.y, end.x, end.y)
+            if (curve.paint.varyThickness)
+            {
+                var i = 0;
+                while (i < 4) {
+                    point1 = PointF(point1.x, point1.y - 0.6f * scale)
+                    point2 = PointF(point2.x, point2.y - 0.6f * scale)
+                    path.reset()
+                    path.moveTo(start.x, start.y)
+                    path.cubicTo(point1.x, point1.y, point2.x, point2.y, end.x, end.y)
 
-                canvas.drawPath(path, paint)
-                i++
+                    canvas.drawPath(path, paint)
+                    i++
+                }
             }
         }
     }

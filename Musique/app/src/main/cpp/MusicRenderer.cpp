@@ -482,6 +482,11 @@ Vec2<float> MusicRenderer::RenderDebugSystem(RenderData& renderData, std::shared
             int staffIndex = 0;
             for (auto staff : instrument->staves)
             {
+                float ls = song->displayConstants.lineSpacing;
+                if (staff->type == Staff::StaffType::Tab) {
+                    ls = song->displayConstants.tabLineSpacing;
+                }
+
                 // staff y position
                 float staffYPosition = 0.0f;
                 staffYPosition = staff->systemPositionData[systemIndex].y;
@@ -503,7 +508,7 @@ Vec2<float> MusicRenderer::RenderDebugSystem(RenderData& renderData, std::shared
                     }
                 }
 
-                //RenderDebugLineOfMeasures(renderData, startMeasure, endMeasure, song->systems[systemIndex], staff, systemPosition.x, staffYPosition + instYPosition, ls, instrumentIndex == 0 && staffIndex == 0);
+                RenderDebugLineOfMeasures(renderData, startMeasure, endMeasure, song->systems[systemIndex], staff, systemPosition.x, staffYPosition + instYPosition, ls, instrumentIndex == 0 && staffIndex == 0);
 
                 staffIndex++;
             } // staves loop
@@ -583,6 +588,71 @@ void MusicRenderer::RenderLineOfMeasures(RenderData& renderData, unsigned int st
             }
 
             measure->Render(renderData, { measurePositionX, staffPositionY }, nextMeasurePositionX, system, staff->lines, lineSpacing, isTopMeasureLine, isLastMeasureInSystem, staff->tablatureDisplayType);
+
+            currentMeasureRenderedCount++;
+        }
+
+        measurePositionX = nextMeasurePositionX;
+        measureNumber++;
+        measureIndex++;
+    } // measures loop
+}
+
+void MusicRenderer::RenderDebugLineOfMeasures(RenderData& renderData, unsigned int startMeasure, unsigned int endMeasure, std::shared_ptr<System> system, std::shared_ptr<Staff> staff, float systemPositionX, float staffPositionY, float lineSpacing, bool isTopMeasureLine)
+{
+    bool multiMeasureRest = false; // whether the measure is part of a multi measure rest
+    unsigned int numberOfMeasuresInMultiMeasureRest = 0; // number of measures left in multi measure rest
+    unsigned int measureThatStartedMultiMeasureRest = 0; // the index of the measure that started the multi measure rest
+
+    int measureIndex = (int)startMeasure;
+    int measureNumber = (int)startMeasure;
+    float measurePositionX = systemPositionX;
+    float nextMeasurePositionX = 0.0f;
+    int measureRenderCount = 15; // the number of measures that need to be rendered
+    int currentMeasureRenderedCount = 0; // the number of measures that have been rendered
+    bool isLastMeasureInSystem = false;
+    for (int m = (int)startMeasure; m <= endMeasure; m++)
+    {
+        std::shared_ptr<Measure> measure = staff->measures[m];
+
+        nextMeasurePositionX = measurePositionX + measure->measureWidth;
+
+        if (m == endMeasure)
+            isLastMeasureInSystem = true;
+
+        //if (m == currentMeasure)
+        //{
+        //    playLinePosition = song->GetPositionXInMeasure(playLineBeatPosition, currentMeasure) + measurePositionX;
+        //}
+
+        if (multiMeasureRest)
+        {
+            if (measureIndex - measureThatStartedMultiMeasureRest < numberOfMeasuresInMultiMeasureRest) // this measure is part of the multi measure rest
+            {
+                // do nothing
+            }
+            else // this measure is not part of the multi measure rest (so it has ended)
+            {
+                multiMeasureRest = false;
+                numberOfMeasuresInMultiMeasureRest = 0;
+                measureThatStartedMultiMeasureRest = 0;
+            }
+        }
+
+        int currentMeasure = 0; // TODO: remove
+
+        if (!(currentMeasureRenderedCount >= measureRenderCount) &&
+            measureNumber >= currentMeasure - (measureRenderCount / 2) &&
+            !multiMeasureRest) // render measure in a radius of measureRenderCount/2
+        {
+            if (measure->startsMultiMeasureRest)
+            {
+                multiMeasureRest = true;
+                numberOfMeasuresInMultiMeasureRest = measure->multiMeasureRestSymbol->numberOfMeasures;
+                measureThatStartedMultiMeasureRest = measureIndex;
+            }
+
+            measure->RenderDebug(renderData, { measurePositionX, staffPositionY }, nextMeasurePositionX, system, staff->lines, lineSpacing, isTopMeasureLine, isLastMeasureInSystem, staff->tablatureDisplayType);
 
             currentMeasureRenderedCount++;
         }

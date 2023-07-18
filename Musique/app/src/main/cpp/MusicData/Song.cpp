@@ -2,6 +2,7 @@
 #include "SongData.h"
 #include "../Debuging/AndroidDebug.h"
 #include "../Utils/Converters.h"
+#include "../Utils/Math.h"
 
 #include <algorithm>
 
@@ -1158,6 +1159,15 @@ void Song::CalculateSystemPositionsAndPageBreaks()
             else
                 bb = BoundingBox::CombineBoundingBoxes(bb, instrumentBoundingBox);
             firstInst = false;
+        }
+
+        for (auto ending : endings)
+        {
+            if (DoBoundsCollide(ending->startMeasureIndex, ending->endMeasureIndex, system->beginningMeasureIndex, system->endingMeasureIndex))
+            {
+                BoundingBox endingBoundingBox = ending->GetBoundingBoxRelativeToParent();
+                bb = BoundingBox::CombineBoundingBoxes(bb, endingBoundingBox);
+            }
         }
 
         systemBoundingBoxes.push_back(bb);

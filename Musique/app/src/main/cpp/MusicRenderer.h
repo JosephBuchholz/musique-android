@@ -32,6 +32,7 @@ private:
     Vec2<float> RenderDebugSystem(RenderData& renderData, std::shared_ptr<Song> song, unsigned int startMeasure, unsigned int endMeasure, int systemIndex, Vec2<float> systemPosition, Vec2<float> pagePosition, bool drawFullInstNames);
 
     void RenderLineOfMeasures(RenderData& renderData, unsigned int startMeasure, unsigned int endMeasure, std::shared_ptr<System> system, std::shared_ptr<Staff> staff, float systemPositionX, float staffPositionY, float lineSpacing, bool isTopMeasureLine);
+    void RenderDebugLineOfMeasures(RenderData& renderData, unsigned int startMeasure, unsigned int endMeasure, std::shared_ptr<System> system, std::shared_ptr<Staff> staff, float systemPositionX, float staffPositionY, float lineSpacing, bool isTopMeasureLine);
 
     void RenderCredits(RenderData& renderData, std::shared_ptr<Song> song, const MusicDisplayConstants& displayConstants, const std::vector<Credit>& credits, float pageX, float pageY);
 

@@ -145,6 +145,7 @@ jobject ConvertPaintToObject(JNIEnv* env, const Paint& paint)
     jfieldID paintFieldIdVerticalEnds = env->GetFieldID(paintClass, "verticalEnds", "Z");
     jfieldID paintFieldIdIsDashedLine = env->GetFieldID(paintClass, "isDashedLine", "Z");
     jfieldID paintFieldIdIsDottedLine = env->GetFieldID(paintClass, "isDottedLine", "Z");
+    jfieldID paintFieldIdVaryThickness = env->GetFieldID(paintClass, "varyThickness", "Z");
     jfieldID paintFieldIdDashLength = env->GetFieldID(paintClass, "dashLength", "F");
     jfieldID paintFieldIdDashSpaceLength = env->GetFieldID(paintClass, "dashSpaceLength", "F");
     jfieldID paintFieldIdDotRadius = env->GetFieldID(paintClass, "dotRadius", "F");
@@ -177,6 +178,7 @@ jobject ConvertPaintToObject(JNIEnv* env, const Paint& paint)
 
     env->SetBooleanField(paintObject, paintFieldIdIsDashedLine, paint.isDashedLine);
     env->SetBooleanField(paintObject, paintFieldIdIsDottedLine, paint.isDottedLine);
+    env->SetBooleanField(paintObject, paintFieldIdVaryThickness, paint.varyThickness);
     env->SetFloatField(paintObject, paintFieldIdDashLength, paint.dashLength);
     env->SetFloatField(paintObject, paintFieldIdDashSpaceLength, paint.dashSpaceLength);
     env->SetFloatField(paintObject, paintFieldIdDotRadius, paint.dotRadius);

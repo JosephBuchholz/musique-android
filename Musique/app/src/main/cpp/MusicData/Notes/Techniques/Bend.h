@@ -7,6 +7,9 @@
 
 #include "Technique.h"
 
+#include "../../BaseElements/TextElement.h"
+
+// TODO: allow a bend with both a release and pre-bend
 /**
  * This class represents the bend technique.
  */
@@ -14,16 +17,40 @@ class Bend : public Technique
 {
 public:
 
-    void Render(RenderData& renderData, float notePositionX, float notePositionY, float offsetX = 0.0f, float offsetY = 0.0f) const override;
+    void Render(RenderData& renderData, Vec2<float> notePosition) const override;
+
+    BoundingBox GetBoundingBox() const override { return BoundingBox(); }
 
     Vec2<float> GetDimensions() const override;
 
     SMuFLID GetSMuFLID() const;
 
-protected:
+    void CalculatePositionAsPaged(const MusicDisplayConstants& displayConstants, float topStaffLineDistNote, bool isTab, std::shared_ptr<NoteStem> noteStem, float topNotePositionY, float bottomNotePositionY) override;
 
-    virtual void CalculatePositionAsPaged(const MusicDisplayConstants& displayConstants, float topStaffLineDistNote, bool isTab) override;
+public:
 
+    enum class BendType
+    {
+        None = 0, Normal, PreBend, Release
+    } bendType = BendType::Normal;
+
+    enum class DisplayType
+    {
+        None = 0, Curved, Angled
+    } displayType = DisplayType::Curved;
+
+    float alterSemitones = 0.0f;
+
+    float firstBeat = 0.25f; // percentage of the duration taken by the starting of the bend
+    float lastBeat = 0.75f; // percentage of the duration taken by the ending of the bend
+
+    TextElement text; // the text displayed for the bend (ex: "1/2" or "full") (only for curved bends)
+
+    bool withBar = false; // whether the bend is done with a whammy bar
+
+    Vec2<float> arrowPosition = { 0.0f, 0.0f };
+    Vec2<float> arrowReleasePosition = { 0.0f, 0.0f };
+    Vec2<float> tailPosition = { 0.0f, 0.0f };
 };
 
 #endif //MUSIQUE_BEND_H

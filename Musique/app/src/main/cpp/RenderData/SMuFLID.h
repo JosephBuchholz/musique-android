@@ -628,6 +628,24 @@ enum class SMuFLID : uint16_t
     beamAccelRit15 = 0xEB02,
     beamAccelRitFinal = 0xEB03,
 
+    // Arrows and arrowheads
+    arrowBlackUp = 0xEB60,
+    arrowBlackUpRight = 0xEB61,
+    arrowBlackRight = 0xEB62,
+    arrowBlackDownRight = 0xEB63,
+    arrowBlackDown = 0xEB64,
+    arrowBlackDownLeft = 0xEB65,
+    arrowBlackLeft = 0xEB66,
+    arrowBlackUpLeft = 0xEB67,
+    arrowWhiteUp = 0xEB68,
+
+    arrowOpenUp = 0xEB70,
+    arrowheadBlackUp = 0xEB78,
+    arrowheadWhiteUp = 0xEB80,
+    arrowheadOpenUp = 0xEB88,
+
+    arrowheadOpenUpLeft = 0xEB8F,
+
     metNoteDoubleWhole = 0xECA0,
     metNoteDoubleWholeSquare = 0xECA1,
     metNoteWhole = 0xECA2,

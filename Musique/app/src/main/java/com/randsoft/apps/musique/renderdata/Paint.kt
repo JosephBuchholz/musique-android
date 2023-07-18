@@ -29,6 +29,8 @@ data class Paint(
     var isDottedLine: Boolean = false
     var isDashedLine: Boolean = false
 
+    var varyThickness: Boolean = false
+
     // for dashed lines
     var dashLength: Float = 10.0f
 

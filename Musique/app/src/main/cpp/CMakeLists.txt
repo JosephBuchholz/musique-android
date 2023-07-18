@@ -91,6 +91,7 @@ add_library( # Sets the name of the library.
         MusicData/Notes/Beams/BeamGroup.cpp
 
         MusicData/Notes/Articulations/Accent.cpp
+        MusicData/Notes/Articulations/Articulation.cpp
         MusicData/Notes/Articulations/BreathMark.cpp
         MusicData/Notes/Articulations/Caesura.cpp
         MusicData/Notes/Articulations/Slide.cpp
@@ -100,6 +101,7 @@ add_library( # Sets the name of the library.
         MusicData/Notes/Techniques/Bowing.cpp
         MusicData/Notes/Techniques/GuitarTechnique.cpp
         MusicData/Notes/Techniques/Bend.cpp
+        MusicData/Notes/Techniques/Technique.cpp
 
         MusicData/Notes/Ornaments/Ornaments.cpp
         MusicData/Notes/Ornaments/Mordent.cpp

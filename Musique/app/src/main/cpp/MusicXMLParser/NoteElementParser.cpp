@@ -777,7 +777,43 @@ void NoteElementParser::ParseGuitarTechnique(XMLElement* element, std::shared_pt
 
 void NoteElementParser::ParseBendElement(XMLElement* element, std::shared_ptr<Bend> newTechnique)
 {
+    if (newTechnique == nullptr)
+        throw IsNullException();
 
+    std::string shapeAttribute = XMLHelper::GetStringAttribute(element, "shape", "");
+
+    if (shapeAttribute == "angled")
+        newTechnique->displayType = Bend::DisplayType::Angled;
+    else if (shapeAttribute == "curved")
+        newTechnique->displayType = Bend::DisplayType::Curved;
+
+    newTechnique->firstBeat = XMLHelper::GetFloatAttribute(element, "first-beat", newTechnique->firstBeat * 100.0f) / 100.0f;
+    newTechnique->lastBeat = XMLHelper::GetFloatAttribute(element, "last-beat", newTechnique->lastBeat * 100.0f) / 100.0f;
+
+    XMLElement* bendAlter = element->FirstChildElement("bend-alter");
+    if (bendAlter)
+    {
+        newTechnique->alterSemitones = ToFloat(bendAlter->GetText());
+    }
+
+    // bend type
+    XMLElement* preBendElement = element->FirstChildElement("pre-bend");
+    if (preBendElement)
+    {
+        newTechnique->bendType = Bend::BendType::PreBend;
+    }
+    else
+    {
+        XMLElement* releaseElement = element->FirstChildElement("release");
+        if (releaseElement)
+        {
+            newTechnique->bendType = Bend::BendType::Release;
+        }
+        else
+        {
+            newTechnique->bendType = Bend::BendType::Normal;
+        }
+    }
 }
 
 NoteHead NoteElementParser::ParseNoteHeadElement(XMLElement* element)

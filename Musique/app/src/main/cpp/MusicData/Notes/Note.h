@@ -56,6 +56,11 @@ public:
     void Render(RenderData& renderData, TablatureDisplayType tabDisplayType, float notePositionRelativeToMeasure, int lines, Vec2<float> measurePosition, float nextMeasurePositionX, float ls) const;
 
     /**
+     * Same as the 'Render' function except for debug rendering.
+     */
+    void RenderDebug(RenderData& renderData, TablatureDisplayType tabDisplayType, float notePositionRelativeToMeasure, int lines, Vec2<float> measurePosition, float nextMeasurePositionX, float ls) const;
+
+    /**
      * Renders any debug info.
      *
      * @param renderData The RenderData object to render to.

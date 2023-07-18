@@ -6,30 +6,32 @@
 #define MUSIQUE_ARTICULATION_H
 
 #include "../../BaseElements/VisibleElement.h"
+#include "../NoteStem.h"
 
 /**
  * The base class for musical articulations (such as staccato or tenuto).
  */
 class Articulation : public VisibleElement
 {
-    friend class Note;
 
 public:
 
     /**
-     * Renders this class
+     * Renders this class.
      *
-     * @param[out] renderData The RenderData object to render to
-     * @param[in] notePositionX The x position of the parent note
-     * @param[in] notePositionY The y position of the parent note
-     * @param[in] offsetX offset in x direction
-     * @param[in] offsetY offset in y direction
+     * @param[out] renderData The RenderData object to render to.
+     * @param[in] notePosition The position of the parent note.
      */
-    virtual void Render(RenderData& renderData, float notePositionX, float notePositionY, float offsetX = 0.0f, float offsetY = 0.0f) const = 0;
+    virtual void Render(RenderData& renderData, Vec2<float> notePosition) const = 0;
+
+    /**
+     * Same as the 'Render' function except for debug rendering.
+     */
+    virtual void RenderDebug(RenderData& renderData, Vec2<float> notePosition) const;
+
+    virtual BoundingBox GetBoundingBox() const = 0;
 
     virtual Vec2<float> GetDimensions() const = 0;
-
-protected:
 
     /**
      * Calculates positioning variables when in paged mode.
@@ -38,7 +40,7 @@ protected:
      * @param topStaffLineDistNote
      * @param isTab Whether the parent note is a tablature note.
      */
-    virtual void CalculatePositionAsPaged(const MusicDisplayConstants& displayConstants, float topStaffLineDistNote, bool isTab) = 0;
+    virtual void CalculatePositionAsPaged(const MusicDisplayConstants& displayConstants, float topStaffLineDistNote, bool isTab, std::shared_ptr<NoteStem> noteStem, float topNotePositionY, float bottomNotePositionY) = 0;
 
 public:
     // Whether it this articulation is above or below the note.
@@ -46,7 +48,6 @@ public:
 
     // x is relative to the left-hand side of the note (the current position in the measure).
     // y is relative to the top line of the staff.
-    Vec2<float> position = { 0.0f, 0.0f };
 
 protected:
 

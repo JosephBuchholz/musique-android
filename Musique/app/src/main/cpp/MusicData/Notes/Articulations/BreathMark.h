@@ -14,15 +14,15 @@ class BreathMark : public Articulation
 {
 public:
 
-    void Render(RenderData& renderData, float notePositionX, float notePositionY, float offsetX = 0.0f, float offsetY = 0.0f) const override;
+    void Render(RenderData& renderData, Vec2<float> notePosition) const override;
+
+    BoundingBox GetBoundingBox() const override;
 
     Vec2<float> GetDimensions() const override;
 
     SMuFLID GetSMuFLID() const;
 
-protected:
-
-    virtual void CalculatePositionAsPaged(const MusicDisplayConstants& displayConstants, float topStaffLineDistNote, bool isTab) override;
+    void CalculatePositionAsPaged(const MusicDisplayConstants& displayConstants, float topStaffLineDistNote, bool isTab, std::shared_ptr<NoteStem> noteStem, float topNotePositionY, float bottomNotePositionY) override;
 };
 
 #endif //MUSIQUE_BREATHMARK_H

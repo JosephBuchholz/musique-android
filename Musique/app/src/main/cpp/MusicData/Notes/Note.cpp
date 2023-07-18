@@ -83,14 +83,14 @@ void Note::Render(RenderData& renderData, TablatureDisplayType tabDisplayType, f
     for (auto articulation : articulations)
     {
         if (articulation != nullptr)
-            articulation->Render(renderData, noteRenderPosition.x + noteHead.GetCenterPositionX(renderData.displayConstants), noteRenderPosition.y);
+            articulation->Render(renderData, { noteRenderPosition.x + noteHead.GetCenterPositionX(renderData.displayConstants), noteRenderPosition.y });
     }
 
     // render techniques
     for (auto technique : techniques)
     {
         if (technique != nullptr)
-            technique->Render(renderData, noteRenderPosition.x + noteHead.GetCenterPositionX(renderData.displayConstants), noteRenderPosition.y);
+            technique->Render(renderData, { noteRenderPosition.x + noteHead.GetCenterPositionX(renderData.displayConstants), noteRenderPosition.y });
     }
 
     // render ornament
@@ -173,6 +173,18 @@ void Note::Render(RenderData& renderData, TablatureDisplayType tabDisplayType, f
     for (const auto& lyric: lyrics) {
         lyric.Render(renderData, position.x + measurePosition.x, measurePosition.y);
     } // lyrics loop
+}
+
+void Note::RenderDebug(RenderData& renderData, TablatureDisplayType tabDisplayType, float notePositionRelativeToMeasure, int lines, Vec2<float> measurePosition, float nextMeasurePositionX, float ls) const
+{
+    Vec2<float> noteRenderPosition = position + measurePosition;
+
+    // render articulations
+    for (auto articulation : articulations)
+    {
+        if (articulation != nullptr)
+            articulation->RenderDebug(renderData, { noteRenderPosition.x + noteHead.GetCenterPositionX(renderData.displayConstants), noteRenderPosition.y });
+    }
 }
 
 void Note::RenderDebug(RenderData& renderData) const
@@ -441,13 +453,13 @@ void Note::CalculatePositionAsPaged(const MusicDisplayConstants& displayConstant
     for (auto articulation : articulations)
     {
         if (articulation != nullptr)
-            articulation->CalculatePositionAsPaged(displayConstants, position.y, type == NoteType::Tab);
+            articulation->CalculatePositionAsPaged(displayConstants, position.y, type == NoteType::Tab, noteStem, 0.0f, 0.0f);
     }
 
     for (auto technique : techniques)
     {
         if (technique != nullptr)
-            technique->CalculatePositionAsPaged(displayConstants, position.y, type == NoteType::Tab);
+            technique->CalculatePositionAsPaged(displayConstants, position.y, type == NoteType::Tab, noteStem, 0.0f, 0.0f);
     }
 
     for (auto ornament : ornaments)
@@ -514,6 +526,16 @@ BoundingBox Note::GetTotalBoundingBoxRelativeToMeasure(const MusicDisplayConstan
                                            noteStem->GetBoundingBoxRelativeToParent(displayConstants));
 
     bb.position += position;
+
+    for (auto articulation : articulations)
+    {
+        if (articulation != nullptr)
+        {
+            BoundingBox articulationBoundingBox = articulation->GetBoundingBox();
+            articulationBoundingBox.position += position;
+            bb = BoundingBox::CombineBoundingBoxes(bb, articulationBoundingBox);
+        }
+    }
 
     if (fermata)
     {
