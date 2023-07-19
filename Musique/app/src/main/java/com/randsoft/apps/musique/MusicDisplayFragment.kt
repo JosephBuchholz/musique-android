@@ -38,6 +38,7 @@ class MusicDisplayFragment : Fragment(), PrintHandler.Callbacks, SettingsDialogF
     private lateinit var titleTextView: TextView
 
     private lateinit var playButton: ImageButton
+    private lateinit var metronomeButton: ImageButton
     private lateinit var restartButton: ImageButton
     private lateinit var printButton: ImageButton
     private lateinit var instrumentControlButton: ImageButton
@@ -54,11 +55,13 @@ class MusicDisplayFragment : Fragment(), PrintHandler.Callbacks, SettingsDialogF
 
     private var songData: SongData? = null
 
-    var playing = false; // needs to be in a ViewModel
+    var playing = false // needs to be in a ViewModel
+    var metronomeIsOn = false
 
     interface Callbacks {
         fun onStartRendering()
         fun onPlayButtonToggled(state: Boolean)
+        fun onMetronomeButtonToggled(state: Boolean)
         fun onResetButtonPressed()
         fun onPlayProgressChanged(progress: Float)
         fun onCalculateNumPages(): Int
@@ -122,6 +125,12 @@ class MusicDisplayFragment : Fragment(), PrintHandler.Callbacks, SettingsDialogF
             } else {
                 playButton.setImageDrawable(resources.getDrawable(R.drawable.play_icon))
             }
+        }
+
+        metronomeButton = view.findViewById(R.id.metronome_button)
+        metronomeButton.setOnClickListener {
+            metronomeIsOn = !metronomeIsOn;
+            callbacks?.onMetronomeButtonToggled(metronomeIsOn)
         }
 
         restartButton = view.findViewById(R.id.restart_button)

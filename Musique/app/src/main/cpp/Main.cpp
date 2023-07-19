@@ -170,6 +170,14 @@ extern "C" {
     }
 
     JNIEXPORT void JNICALL
+    Java_com_randsoft_apps_musique_MainActivity_onMetronomeButtonToggledNative(JNIEnv* env, jobject instance,
+                                                                          jboolean state) {
+        if (app != nullptr) {
+            app->OnMetronomeToggled(state);
+        }
+    }
+
+    JNIEXPORT void JNICALL
     Java_com_randsoft_apps_musique_MainActivity_onResetButtonPressedNative(JNIEnv* env, jobject instance) {
         if (app != nullptr) {
             app->OnResetButtonPressed();

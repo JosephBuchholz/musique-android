@@ -10,6 +10,7 @@ class Note;
 #include <vector>
 #include "../Duration.h"
 #include "../Pitch.h"
+#include "../Transpose.h"
 #include "TABSlur.h"
 #include "NoteStem.h"
 #include "Beams/NoteBeamData.h"
@@ -28,6 +29,8 @@ class Note;
 #include "GlissandoSlide.h"
 #include "TremoloSingle.h"
 #include "NoteFlag.h"
+
+#include "../../Player.h"
 
 /**
  * Class that represents a note, whether it is TAB or not.
@@ -69,9 +72,6 @@ public:
 
     static bool IsNoteIsHigher(Note* note1, Note* note2);
 
-    void OnPlay();
-    void OnStop();
-
     float GetMinWidth();
 
     void CalculateDurationTypeFromString(const std::string& s);
@@ -103,8 +103,19 @@ public:
      */
     void UpdateBoundingBox(const MusicDisplayConstants& displayConstants, Vec2<float> parentPosition);
 
-protected:
     void CalculatePositionAsPaged(const MusicDisplayConstants& displayConstants, int staffLines);
+
+    /* ----- Sound Related Functions ----- */
+
+    void InitSound();
+
+    void OnPlay(std::shared_ptr<Player> player, Transpose transpose, int channel);
+    void OnStop(std::shared_ptr<Player> player, Transpose transpose, int channel);
+    void OnUpdate();
+
+private:
+    void PlayPitch(std::shared_ptr<Player> player, Transpose transpose, int channel);
+    void StopPitch(std::shared_ptr<Player> player, Transpose transpose, int channel);
 
 private:
     void RenderRest(RenderData& renderData, float measurePositionX, int lines, float ls, float offsetX, float offsetY) const;
@@ -167,6 +178,11 @@ public:
     int fret = 0;
 
     //std::vector<TABSlur> tabSlurs; // hammer ons and pull offs
+
+    /* ----- Sound Related ----- */
+
+    float soundBeatPosition = 0.0f; // the beat position of the actual sounding of the note (in the measure)
+    float soundDuration = 0.0f; // the sounding duration of the note
 
 protected:
 

@@ -30,6 +30,8 @@ class Slur;
 #include "../Notes/NoteChord.h"
 #include "MultiMeasureRestSymbol.h"
 
+#include "../../Player.h"
+
 #include <vector>
 
 /**
@@ -99,8 +101,13 @@ public:
 
     void UpdateBoundingBoxes(const MusicDisplayConstants& displayConstants, const Vec2<float>& measurePosition, float measureHeight);
 
-protected:
     void CalculateAsPaged(const MusicDisplayConstants& displayConstants, std::shared_ptr<System> system, int staffLines);
+
+public:
+
+    /* ----- Sound Related Functions ----- */
+
+    void OnUpdate(std::shared_ptr<Player> player, int channel, float playLineBeatPosition, float previousPlayLineBeatPosition, float measureBeatPosition, float& currentTempo);
 
 private:
     float MeausreClefWidth() const;

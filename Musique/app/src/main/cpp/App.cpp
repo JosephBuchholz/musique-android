@@ -13,6 +13,7 @@ using namespace std::chrono;
 App::App()
 {
     musicRenderer = std::make_shared<MusicRenderer>();
+    musicPlayer = std::make_shared<MusicPlayer>();
 }
 
 App::~App()
@@ -20,9 +21,9 @@ App::~App()
     isUpdating = false;
     LOGI("App Deconstructer");
     ViewModelData viewModelData = ViewModelData();
-    viewModelData.playing = playing;
-    viewModelData.playLineBeatPosition = playLineBeatPosition;
-    viewModelData.currentMeasure = currentMeasure;
+    viewModelData.playing = musicPlayer->playing;
+    viewModelData.playLineBeatPosition = musicPlayer->playLineBeatPosition;
+    viewModelData.currentMeasure = musicPlayer->currentMeasure;
     UpdateViewModelData(viewModelData);
     DeleteSong();
     LOGI("App Done Deconstructing");
@@ -31,12 +32,12 @@ App::~App()
 void App::LoadSongFromString(const std::string& string)
 {
     isUpdating = false;
-    playing = false;
+    musicPlayer->playing = false;
     musicRenderer->layoutCalculated = false;
     startRendering = false;
     songUpdated = false;
-    playLineBeatPosition = 0.0f;
-    currentMeasure = 0;
+    musicPlayer->playLineBeatPosition = 0.0f;
+    musicPlayer->currentMeasure = 0;
 
     LOGI("Loading song from string");
     if (song != nullptr)
@@ -126,7 +127,7 @@ void App::DeleteSong()
 
 void App::OnMidiStart()
 {
-    midi.ChangeInstrument((int)Midi::MidiInstrumentType::AcousticGrandPiano, 0);
+    musicPlayer->player->ChangeInstrument((int)Player::InstrumentSound::AcousticGrandPiano, 0);
 }
 
 void App::OnUpdate(double dt)
@@ -134,77 +135,13 @@ void App::OnUpdate(double dt)
     double dts = dt / 1000.0; // delta time in seconds
     double dtm = dts / 60.0; // delta time in minutes
 
-    if (isUpdating) {
-
-        if (playing) {
-            playLineBeatPosition += float(currentTempo * dtm);
-        }
-
-        float playLinePosInMeasure = 0.0f;
-        if (playing) {
-            for (auto instrument : song->instruments) {
-                for (auto staff : instrument->staves) {
-                    int measureIndex = 0;
-                    for (auto measure : staff->measures) {
-                        float measureBeatPosition = staff->GetMeasureNextBeatPosition(measureIndex,
-                                                                                      playLineBeatPosition);
-
-                        if (playLineBeatPosition > measureBeatPosition &&
-                            playLineBeatPosition <=
-                            measure->duration.duration + measureBeatPosition) {
-
-                            if (currentMeasure != measureIndex) {
-                                currentMeasure = measureIndex;
-                                currentMeasureBeatPosition = measureBeatPosition;
-                            }
-
-                            for (std::shared_ptr<Note> note : measure->notes) {
-                                // POTENTIAL PROBLEM: if the play line skips over the note (like if it lags) then the note won't be played could become a potential problem if the song is really fast
-                                if (playLineBeatPosition >=
-                                    note->beatPosition + measureBeatPosition &&
-                                    playLineBeatPosition <=
-                                    note->duration.duration + note->beatPosition +
-                                    measureBeatPosition) {
-                                    if (!note->isPlaying) {
-                                        note->OnPlay();
-                                        midi.ChangeInstrument(instrument->midiInstrument.program,
-                                                              instrument->midiInstrument.channel);
-                                        midi.PlayNote(note, measure,
-                                                      instrument->midiInstrument.channel);
-                                        musicRenderer->updateRenderData = true;
-                                    }
-                                } else if (note->isPlaying) {
-                                    note->OnStop();
-                                    midi.ChangeInstrument(instrument->midiInstrument.program,
-                                                          instrument->midiInstrument.channel);
-                                    midi.StopNote(note, measure,
-                                                  instrument->midiInstrument.channel);
-                                    musicRenderer->updateRenderData = true;
-                                }
-                            }
-
-                            for (SoundEvent &event : measure->soundEvents) {
-                                // NEEDS TO BE FIXED:        \/
-                                if (playLineBeatPosition >=
-                                    event.beatPosition + measureBeatPosition &&
-                                    playLineBeatPosition <=
-                                    1.0f/*this*/ + event.beatPosition + measureBeatPosition) {
-                                    if (event.tempo != -1.0f) {
-                                        currentTempo = event.tempo;
-                                        //LOGI("Tempo Changed: %f, events: %i", currentTempo, measure->soundEvents.size());
-                                    }
-                                }
-                            }
-                        }
-
-                        measureIndex++;
-                    }
-                }
-            }
-        }
+    if (isUpdating)
+    {
+        musicPlayer->OnUpdate(dt, song);
 
         // --- RENDERING ---
-        if (startRendering) {
+        if (startRendering)
+        {
             if (song != nullptr && !songUpdated)
             {
                 song->OnUpdate();
@@ -250,6 +187,31 @@ void App::OnUpdate(double dt)
             }
 
             musicRenderer->Render(song, settings);
+
+            FrameData frameData = FrameData();
+
+            int currentSystemIndex = song->GetSystemIndex(musicPlayer->currentMeasure);
+            int currentPageIndex = song->GetPageIndex(musicPlayer->currentMeasure);
+            playLinePosition = musicRenderer->systemPositions[currentSystemIndex].x + song->GetMeasurePositionX(musicPlayer->currentMeasure);
+            playLineY = musicRenderer->systemPositions[currentSystemIndex].y;
+
+            if (playLineHeight == 0.0f) {
+                playLineHeight = song->GetSystemHeight(musicPlayer->currentMeasure); //instpos * 80
+            }
+
+            frameData.playLinePosition = playLinePosition;
+            frameData.playLinePositionY = playLineY;
+            frameData.playLineHeight = playLineHeight;
+            frameData.playProgress = musicPlayer->playLineBeatPosition / song->totalBeatWidth;
+            frameData.isPlaying = musicPlayer->playing;
+
+            /*frameData.playLinePosition = 10.0f;
+            frameData.playLinePositionY = 10.0f;
+            frameData.playLineHeight = 500.0f;
+            frameData.playProgress = 10.0f;
+            frameData.isPlaying = true;*/
+
+            UpdateFrameData(frameData);
         }
 
     } // if (isUpdating)
@@ -258,14 +220,14 @@ void App::OnUpdate(double dt)
 
 void App::SetViewModelData(ViewModelData viewModelData)
 {
-    playing = viewModelData.playing;
-    playLineBeatPosition = viewModelData.playLineBeatPosition;
-    currentMeasure = viewModelData.currentMeasure;
+    musicPlayer->playing = viewModelData.playing;
+    musicPlayer->playLineBeatPosition = viewModelData.playLineBeatPosition;
+    musicPlayer->currentMeasure = viewModelData.currentMeasure;
 }
 
 void App::OnPlayProgressChanged(float progress)
 {
-    playLineBeatPosition = song->totalBeatWidth * progress;
+    musicPlayer->playLineBeatPosition = song->totalBeatWidth * progress;
 }
 
 bool App::OnUpdatePrintLayout()
@@ -323,7 +285,7 @@ void App::OnInputEvent(const InputEvent& event)
             {
                 LOGD("A measure was selected! %d", selectedMeasure->index);
 
-                playLineBeatPosition = selectedMeasure->beatPosition;
+                musicPlayer->playLineBeatPosition = selectedMeasure->beatPosition;
             }
 
             LOGD("Received a tap event at: %s", event.position.GetPrintableString().c_str());

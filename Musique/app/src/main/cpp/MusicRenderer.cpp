@@ -84,24 +84,6 @@ void MusicRenderer::Render(std::shared_ptr<Song> song, Settings settings)
             m_RenderData.bottom = song->displayConstants.pageHeight + 10.0f;
 
             RenderWithRenderData();
-
-            /*int currentSystemIndex = song->GetSystemIndex(currentMeasure);
-            int currentPageIndex = song->GetPageIndex(currentMeasure);
-            playLinePosition = systemPositions[currentSystemIndex].x + song->GetMeasurePositionX(currentMeasure);
-            playLineY = systemPositions[currentSystemIndex].y;
-
-            FrameData frameData = FrameData();
-            if (playLineHeight == 0.0f) {
-                playLineHeight = song->GetSystemHeight(currentMeasure); //instpos * 80
-            }
-
-            frameData.playLinePosition = playLinePosition;
-            frameData.playLinePositionY = playLineY;
-            frameData.playLineHeight = playLineHeight;
-            frameData.playProgress = playLineBeatPosition / song->totalBeatWidth;
-            frameData.isPlaying = playing;
-
-            UpdateFrameData(frameData);*/
             break;
         }
         default: {

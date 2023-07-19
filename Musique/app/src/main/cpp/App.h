@@ -7,13 +7,13 @@
 
 #include "MusicData/Song.h"
 #include "ViewModelData.h"
-#include "Midi.h"
 #include "Callbacks.h"
 #include "Settings.h"
 #include "Collisions/Vec2.h"
 #include "Events/InputEvent.h"
 
 #include "MusicRenderer.h"
+#include "MusicPlayer.h"
 
 /**
  * This class acts like an interface between Kotlin and C++.
@@ -28,8 +28,8 @@ public:
     void StartRendering() { startRendering = true; }
     void StopRendering() { startRendering = false; }
     void OnUpdate(double dt);
-    void OnPlayButtonToggled(bool state) { playing = state; }
-    void OnResetButtonPressed() { playLineBeatPosition = 0.0f; }
+    void OnPlayButtonToggled(bool state) { musicPlayer->playing = state; }
+    void OnResetButtonPressed() { musicPlayer->playLineBeatPosition = 0.0f; }
     void OnPlayProgressChanged(float progress);
     void UpdateInstrumentInfo(const InstrumentInfo& info, unsigned int index);
     void SetViewModelData(ViewModelData viewModelData);
@@ -38,6 +38,8 @@ public:
     bool OnUpdatePrintLayout();
     void UpdateSettings(const Settings& s) { settings = s; OnLayoutChanged(); }
     void OnLayoutChanged();
+
+    void OnMetronomeToggled(bool state) { musicPlayer->metronomeIsOn = state; }
 
     void OnInputEvent(const InputEvent& event);
 
@@ -49,11 +51,9 @@ private:
 private:
 
     std::shared_ptr<MusicRenderer> musicRenderer;
+    std::shared_ptr<MusicPlayer> musicPlayer;
 
     bool isUpdating = false;
-
-    Midi midi;
-
 
     int jcount = 0;
     int icount = 0;
@@ -62,17 +62,9 @@ private:
     int frames = 0;
 
     float playLinePosition = 0.0f;
-    float playLineBeatPosition = 0.0f; // 1 unit = 1 beat (usually one quarter note)
     float playLineHeight = 0.0f;
     float playLineY = 0.0f;
 
-
-    float currentMeasureBeatPosition = 0.0f;
-    int currentMeasure = 0;
-
-    bool playing = false;
-
-    float currentTempo = 120.0f; // beats per minute
 
     std::shared_ptr<Song> song;
     bool songUpdated = false;

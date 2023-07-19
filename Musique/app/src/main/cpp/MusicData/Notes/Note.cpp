@@ -1,5 +1,7 @@
 #include "Note.h"
 
+#define NOTE_DEFAULT_MUTED_NOTE_SOUND PlayableUnpitchedNote::NoteSound::SnareDrum2
+
 void Note::Render(RenderData& renderData, TablatureDisplayType tabDisplayType, float notePositionRelativeToMeasure, int lines, Vec2<float> measurePosition, float nextMeasurePositionX, float ls) const
 {
     Vec2<float> noteRenderPosition = position + measurePosition;
@@ -265,14 +267,88 @@ bool Note::IsNoteIsHigher(Note* note1, Note* note2)
     }
 }
 
-void Note::OnPlay()
+void Note::InitSound()
 {
-    isPlaying = true;
+    soundBeatPosition = beatPosition;
+    soundDuration = duration.duration - 0.05f;
 }
 
-void Note::OnStop()
+void Note::OnPlay(std::shared_ptr<Player> player, Transpose transpose, int channel)
+{
+    isPlaying = true;
+
+    if (noteHead.type == NoteHead::NoteHeadType::X)
+    {
+        PlayableUnpitchedNote note;
+        note.sound = NOTE_DEFAULT_MUTED_NOTE_SOUND;
+        player->PlayUnpitchedNote(note);
+    }
+    else if (!isRest)
+    {
+        if (tie)
+        {
+            if (tie->notes.second.get() != this) // is the first note in tie
+            {
+                PlayPitch(player, transpose, channel);
+            }
+        }
+        else
+        {
+            PlayPitch(player, transpose, channel);
+        }
+    }
+}
+
+void Note::OnStop(std::shared_ptr<Player> player, Transpose transpose, int channel)
 {
     isPlaying = false;
+
+    if (noteHead.type == NoteHead::NoteHeadType::X)
+    {
+        PlayableUnpitchedNote note;
+        note.sound = NOTE_DEFAULT_MUTED_NOTE_SOUND;
+        player->StopUnpitchedNote(note);
+    }
+    else if (!isRest)
+    {
+        if (tie)
+        {
+            if (tie->notes.first.get() != this) // is the second note in tie
+            {
+                StopPitch(player, transpose, channel);
+            }
+        }
+        else
+        {
+            StopPitch(player, transpose, channel);
+        }
+    }
+}
+
+void Note::PlayPitch(std::shared_ptr<Player> player, Transpose transpose, int channel)
+{
+    PlayableNote note;
+    note.pitch = pitch;
+    note.pitch.octave += transpose.octaveChange;
+    for (auto articulation : articulations) // TODO: temp
+    {
+        if (articulation)
+            note.velocity += 16;
+    }
+    player->PlayNote(note, channel);
+}
+
+void Note::StopPitch(std::shared_ptr<Player> player, Transpose transpose, int channel)
+{
+    PlayableNote note;
+    note.pitch = pitch;
+    note.pitch.octave += transpose.octaveChange;
+    player->StopNote(note, channel);
+}
+
+void Note::OnUpdate()
+{
+
 }
 
 float Note::GetMinWidth()

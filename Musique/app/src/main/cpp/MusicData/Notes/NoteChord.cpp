@@ -326,3 +326,35 @@ void NoteChord::CalculatePositionAsPaged(const MusicDisplayConstants& displayCon
             articulation->CalculatePositionAsPaged(displayConstants, rootNote->position.y, rootNote->type == NoteType::Tab, noteStem, topNote->position.y - rootNote->position.y, 0.0f);
     }
 }
+
+void NoteChord::InitSound()
+{
+    for (auto note : notes)
+    {
+        note->InitSound();
+    }
+}
+
+void NoteChord::OnPlay(std::shared_ptr<Player> player, Transpose transpose, int channel)
+{
+    for (auto note : notes)
+    {
+        note->OnPlay(player, transpose, channel);
+    }
+}
+
+void NoteChord::OnStop(std::shared_ptr<Player> player, Transpose transpose, int channel)
+{
+    for (auto note : notes)
+    {
+        note->OnStop(player, transpose, channel);
+    }
+}
+
+void NoteChord::OnUpdate()
+{
+    for (auto note : notes)
+    {
+        note->OnUpdate();
+    }
+}

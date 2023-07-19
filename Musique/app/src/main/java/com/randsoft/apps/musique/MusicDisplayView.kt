@@ -423,7 +423,7 @@ class MusicDisplayView(context: Context, attrs: AttributeSet? = null): View(cont
 
         for (glyph in glyphs) { // SMuFL glyphs
 
-            Log.v(TAG, "glyph: ${glyph.codePoint}")
+            //Log.v(TAG, "glyph: ${glyph.codePoint}")
 
             // create paint
             val paint = Paint().apply {
@@ -855,6 +855,7 @@ class MusicDisplayView(context: Context, attrs: AttributeSet? = null): View(cont
 
         // draw frame data (includes: play line)
         if (frameData != null) {
+
             val paint = Paint().apply {
                 color = 0xff0044dd.toInt()
                 strokeWidth = 1.25f * scale * mainScale

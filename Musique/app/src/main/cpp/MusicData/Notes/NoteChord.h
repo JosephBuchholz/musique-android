@@ -12,12 +12,14 @@ class NoteFlag;
 #include "../Measures/Measure.h"
 #include "Note.h"
 
+#include "../../Player.h"
+#include "../Transpose.h"
+
 /**
  * This class represents a note chord (notes played at the same time (includes intervals))
  */
 class NoteChord : public VisibleElement
 {
-    friend class Song;
 
 public:
 
@@ -55,8 +57,15 @@ public:
      */
     void UpdateBoundingBox(const MusicDisplayConstants& displayConstants, Vec2<float> parentPosition);
 
-protected:
     void CalculatePositionAsPaged(const MusicDisplayConstants& displayConstants, int staffLines, std::shared_ptr<Measure> measure, bool isMuseScore4);
+
+    /* ----- Sound Related Functions ----- */
+
+    void InitSound();
+
+    void OnPlay(std::shared_ptr<Player> player, Transpose transpose, int channel);
+    void OnStop(std::shared_ptr<Player> player, Transpose transpose, int channel);
+    void OnUpdate();
 
 public:
 

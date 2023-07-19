@@ -716,3 +716,75 @@ void Measure::UpdateBoundingBoxes(const MusicDisplayConstants& displayConstants,
         }
     }
 }
+
+void Measure::OnUpdate(std::shared_ptr<Player> player, int channel, float playLineBeatPosition, float previousPlayLineBeatPosition, float measureBeatPosition, float& currentTempo)
+{
+    if (playLineBeatPosition >= measureBeatPosition && playLineBeatPosition <= duration.duration + measureBeatPosition)
+    {
+        for (auto noteChord : noteChords)
+        {
+            std::shared_ptr<Note> rootNote = noteChord->notes[0];
+            if (playLineBeatPosition >= rootNote->soundBeatPosition + measureBeatPosition &&
+                previousPlayLineBeatPosition <= rootNote->soundBeatPosition + measureBeatPosition)
+            {
+                if (!rootNote->isPlaying)
+                {
+                    noteChord->OnPlay(player, transpose, channel);
+                }
+            }
+            else if (rootNote->isPlaying &&
+                     !(playLineBeatPosition <= rootNote->soundBeatPosition + rootNote->soundDuration + measureBeatPosition)) // note is playing but/and the play line has passed the end of the note
+            { // so stop the note
+                noteChord->OnStop(player, transpose, channel);
+            }
+        }
+
+        for (auto note : notes)
+        {
+            if (playLineBeatPosition >= note->soundBeatPosition + measureBeatPosition &&
+                previousPlayLineBeatPosition <= note->soundBeatPosition + measureBeatPosition)
+            {
+                if (!note->isPlaying)
+                {
+                    note->OnPlay(player, transpose, channel);
+                }
+            }
+            else if (note->isPlaying &&
+                     !(playLineBeatPosition <= note->soundBeatPosition + note->soundDuration + measureBeatPosition)) // note is playing but/and the play line has passed the end of the note
+            { // so stop the note
+                note->OnStop(player, transpose, channel);
+            }
+        }
+
+        for (SoundEvent &event : soundEvents)
+        {
+            // NEEDS TO BE FIXED:        \/
+            if (playLineBeatPosition >= event.beatPosition + measureBeatPosition &&
+                playLineBeatPosition <= 1.0f/*this*/ + event.beatPosition + measureBeatPosition)
+            {
+                if (event.tempo != -1.0f)
+                {
+                    currentTempo = event.tempo;
+                }
+            }
+        }
+    }
+    else
+    {
+        for (auto noteChord : noteChords)
+        {
+            if (noteChord->notes[0]->isPlaying)
+            {
+                noteChord->OnStop(player, transpose, channel);
+            }
+        }
+
+        for (auto note : notes)
+        {
+            if (note->isPlaying)
+            {
+                note->OnStop(player, transpose, channel);
+            }
+        }
+    }
+}

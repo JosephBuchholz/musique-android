@@ -43,7 +43,8 @@ void Song::OnUpdate()
     LOGD("updating song data");
 
     songData.instrumentInfos.clear();
-    for (auto instrument : instruments) {
+    for (auto instrument: instruments)
+    {
         InstrumentInfo instInfo = InstrumentInfo();
         instInfo.name = instrument->name.string;
         instInfo.volume = 100;
@@ -112,12 +113,12 @@ void Song::OnUpdate()
     }*/
 
     // beam calculations
-    for (auto instrument : instruments)
+    for (auto instrument: instruments)
     {
-        for (auto staff : instrument->staves)
+        for (auto staff: instrument->staves)
         {
             int measureIndex = 0;
-            for (auto measure : staff->measures)
+            for (auto measure: staff->measures)
             {
                 int noteIndex = 0;
                 const int maxBeamLevel = 4; // TODO: probably should be fixed
@@ -126,9 +127,9 @@ void Song::OnUpdate()
 
                 bool beamGroupIsDone = false;
 
-                for (auto note : measure->notes)
+                for (auto note: measure->notes)
                 {
-                    for (const NoteBeamData& noteBeamData : note->beamData)
+                    for (const NoteBeamData &noteBeamData: note->beamData)
                     {
                         if (noteBeamData.beamType == NoteBeamData::BeamType::Begin)
                         {
@@ -148,8 +149,7 @@ void Song::OnUpdate()
                             beam.beamType = Beam::BeamType::Normal;
 
                             beams[noteBeamData.beamLevel - 1] = beam;
-                        }
-                        else if (noteBeamData.beamType == NoteBeamData::BeamType::End)
+                        } else if (noteBeamData.beamType == NoteBeamData::BeamType::End)
                         {
                             beams[noteBeamData.beamLevel - 1].notes.push_back(note);
                             if (noteBeamData.beamLevel == 1)
@@ -159,14 +159,12 @@ void Song::OnUpdate()
 
                             if (noteBeamData.beamLevel == 1) // the end of this beam group
                                 beamGroupIsDone = true;
-                        }
-                        else if (noteBeamData.beamType == NoteBeamData::BeamType::Continue)
+                        } else if (noteBeamData.beamType == NoteBeamData::BeamType::Continue)
                         {
                             beams[noteBeamData.beamLevel - 1].notes.push_back(note);
                             if (noteBeamData.beamLevel == 1)
                                 beamGroup.notes.push_back(note);
-                        }
-                        else if (noteBeamData.beamType == NoteBeamData::BeamType::ForwardHook)
+                        } else if (noteBeamData.beamType == NoteBeamData::BeamType::ForwardHook)
                         {
                             Beam beam = Beam();
                             beam.beamLevel = noteBeamData.beamLevel;
@@ -174,8 +172,7 @@ void Song::OnUpdate()
                             beam.beamType = Beam::BeamType::ForwardHook;
 
                             beamGroup.beams.push_back(beam);
-                        }
-                        else if (noteBeamData.beamType == NoteBeamData::BeamType::BackwardHook)
+                        } else if (noteBeamData.beamType == NoteBeamData::BeamType::BackwardHook)
                         {
                             Beam beam = Beam();
                             beam.beamLevel = noteBeamData.beamLevel;
@@ -183,8 +180,7 @@ void Song::OnUpdate()
                             beam.beamType = Beam::BeamType::BackwardHook;
 
                             beamGroup.beams.push_back(beam);
-                        }
-                        else
+                        } else
                         {
                             LOGW("Beam type is not supported yet.");
                         }
@@ -205,11 +201,14 @@ void Song::OnUpdate()
     }
 
     // beat positions
-    for (auto instrument : instruments) {
-        for (auto staff : instrument->staves) {
+    for (auto instrument: instruments)
+    {
+        for (auto staff: instrument->staves)
+        {
             totalBeatWidth = staff->GetTotalBeatWidth();
             int measureIndex = 0;
-            for (auto measure : staff->measures) {
+            for (auto measure: staff->measures)
+            {
                 measure->beatPosition = staff->GetMeasureBeatPosition(measureIndex);
                 /*int minWidth = measure->CalculateMinWidth();
 
@@ -227,6 +226,31 @@ void Song::OnUpdate()
     }
 
     CalculateNoteBeatPositionsInSong();
+
+    {
+        int instrumentIndex = 0;
+        for (auto instrument : instruments)
+        {
+            instrument->midiInstrument.channel = instrumentIndex;
+            for (auto staff : instrument->staves)
+            {
+                for (auto measure : staff->measures)
+                {
+                    for (auto note : measure->notes)
+                    {
+                        note->InitSound();
+                    }
+
+                    for (auto noteChord : measure->noteChords)
+                    {
+                        noteChord->InitSound();
+                    }
+                }
+            }
+
+            instrumentIndex++;
+        }
+    }
 
     if (settings.musicLayout == Settings::MusicLayout::Paged)
     {

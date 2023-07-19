@@ -229,6 +229,10 @@ class MainActivity : AppCompatActivity(), MusicDisplayFragment.Callbacks,
         onPlayButtonToggledNative(state)
     }
 
+    override fun onMetronomeButtonToggled(state: Boolean) {
+        onMetronomeButtonToggledNative(state)
+    }
+
     override fun onResetButtonPressed() {
         onResetButtonPressedNative()
     }
@@ -267,6 +271,7 @@ class MainActivity : AppCompatActivity(), MusicDisplayFragment.Callbacks,
     private external fun loadSongFromString(string: String)
 
     private external fun onPlayButtonToggledNative(state: Boolean)
+    private external fun onMetronomeButtonToggledNative(state: Boolean)
     private external fun onResetButtonPressedNative()
     private external fun onPlayProgressChangedNative(progress: Float)
     private external fun onUpdatePrintLayoutNative(attributes: PrintAttributes): Boolean
