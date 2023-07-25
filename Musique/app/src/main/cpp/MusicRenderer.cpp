@@ -448,7 +448,7 @@ Vec2<float> MusicRenderer::RenderDebugSystem(RenderData& renderData, std::shared
         {
             instYPosition = systemPosition.y + instrument->systemPositionData[systemIndex].y;
 
-            if (song->instruments.size() > 1)
+            /*if (song->instruments.size() > 1)
             {
                 float textPositionY = instYPosition + (instrument->GetMiddleHeight(song->displayConstants.lineSpacing, song->displayConstants.tabLineSpacing, 0, 1) / 2.0f);
                 if (drawFullInstNames)
@@ -459,7 +459,7 @@ Vec2<float> MusicRenderer::RenderDebugSystem(RenderData& renderData, std::shared
                 {
                     renderData.AddText(Text(instrument->nameAbbreviation.string, systemPosition.x - 20.0f, textPositionY, InstNameTextPaint));
                 }
-            }
+            }*/
 
             int staffIndex = 0;
             for (auto staff : instrument->staves)

@@ -103,11 +103,22 @@ public:
 
     void CalculateAsPaged(const MusicDisplayConstants& displayConstants, std::shared_ptr<System> system, int staffLines);
 
+    bool IsRepeatBackward() const;
+    bool IsRepeatForward() const;
+
+    int GetRepeatCount() const;
+
+    bool IsOnBeatEighthNote(std::shared_ptr<Note> note) const;
+    bool IsOffBeatEighthNote(std::shared_ptr<Note> note) const;
+
+    bool IsOnBeatSixteenthNote(std::shared_ptr<Note> note) const;
+    bool IsOffBeatSixteenthNote(std::shared_ptr<Note> note) const;
+
 public:
 
     /* ----- Sound Related Functions ----- */
 
-    void OnUpdate(std::shared_ptr<Player> player, int channel, float playLineBeatPosition, float previousPlayLineBeatPosition, float measureBeatPosition, float& currentTempo);
+    void OnUpdate(std::shared_ptr<Player> player, bool isCurrentMeasure, int channel, float playLineBeatPosition, float previousPlayLineBeatPosition, float measureBeatPosition, float& currentTempo, SwingTempo& swingTempo, float& currentVelocity);
 
 private:
     float MeausreClefWidth() const;
@@ -151,8 +162,9 @@ public:
     std::vector<std::shared_ptr<Note>> notes; // the notes contained in this measure
     std::vector<std::shared_ptr<NoteChord>> noteChords; // the note chords contained in this measure
 
+    std::vector<std::shared_ptr<SoundEvent>> soundEvents; // the sound events contained in this measure
+
     std::vector<Direction> directions; // the directions contained in this measure
-    std::vector<SoundEvent> soundEvents; // the sound events contained in this measure
     std::vector<Chord> chords; // the chords contained in this measure
     std::vector<Barline> barlines; // the barlines contained in this measure
     std::vector<BeamGroup> beams; // the beams (beam groups) contained in this measure

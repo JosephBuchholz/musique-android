@@ -7,9 +7,9 @@ MidiPlayer::MidiInstrumentType MidiPlayer::ToMidiInstrumentType(int value)
 
 int MidiPlayer::GetMidiNotePitch(const Pitch& pitch)
 {
-    int midiPitch = 12;
+    int midiPitch = 12; /*adds 1 one octave since in midi C4 = 60 but (4 * 12 = 48)*/
 
-    midiPitch += pitch.octave * 12;
+    midiPitch += (pitch.octave) * 12;
     int num = 0;
     if (pitch.step == "C") {
         num = 0;
@@ -29,14 +29,12 @@ int MidiPlayer::GetMidiNotePitch(const Pitch& pitch)
     midiPitch += num;
     midiPitch += pitch.alter;
 
-    //LOGD("ptich: step: %s, alter: %f, octave: %d, freq: %f, midiPitch: %d", pitch.step.c_str(), pitch.alter, pitch.octave, pitch.freq, midiPitch);
-
     return midiPitch;
 }
 
 void MidiPlayer::PlayNote(const PlayableNote& note, int channel)
 {
-    LOGW("playing pitch: step: %s, alter: %f, octave: %d, freq: %f, channel: %d", note.pitch.step.c_str(), note.pitch.alter, note.pitch.octave, note.pitch.freq, channel);
+    //LOGW("playing pitch: step: %s, alter: %f, octave: %d, freq: %f, channel: %d", note.pitch.step.c_str(), note.pitch.alter, note.pitch.octave, note.pitch.freq, channel);
     //LOGW("playing note: %d, %d, %d, %d", 0x90 | channel, GetMidiNotePitch(note.pitch), 64, channel);
     char event[3];
     event[0] = (char) (0x90 | channel); // message | channel
@@ -54,7 +52,7 @@ void MidiPlayer::PlayNote(const PlayableNote& note, int channel)
 
 void MidiPlayer::StopNote(const PlayableNote& note, int channel)
 {
-    LOGE("stopping pitch: step: %s, alter: %f, octave: %d, freq: %f, channel: %d", note.pitch.step.c_str(), note.pitch.alter, note.pitch.octave, note.pitch.freq, channel);
+    //LOGE("stopping pitch: step: %s, alter: %f, octave: %d, freq: %f, channel: %d", note.pitch.step.c_str(), note.pitch.alter, note.pitch.octave, note.pitch.freq, channel);
     //LOGE("stopping note: %d, %d, %d, %d", 0x80 | channel, GetMidiNotePitch(pitch), 64, channel);
     char event[3];
     event[0] = (char) (0x80 | channel); // message | channel

@@ -717,56 +717,137 @@ void Measure::UpdateBoundingBoxes(const MusicDisplayConstants& displayConstants,
     }
 }
 
-void Measure::OnUpdate(std::shared_ptr<Player> player, int channel, float playLineBeatPosition, float previousPlayLineBeatPosition, float measureBeatPosition, float& currentTempo)
+void Measure::OnUpdate(std::shared_ptr<Player> player, bool isCurrentMeasure, int channel, float playLineBeatPosition, float previousPlayLineBeatPosition, float measureBeatPosition, float& currentTempo, SwingTempo& swingTempo, float& currentVelocity)
 {
-    if (playLineBeatPosition >= measureBeatPosition && playLineBeatPosition <= duration.duration + measureBeatPosition)
+    if (isCurrentMeasure && playLineBeatPosition >= measureBeatPosition && playLineBeatPosition <= duration.duration + measureBeatPosition)
     {
+        for (auto event : soundEvents)
+        {
+            if (playLineBeatPosition >= event->beatPosition + measureBeatPosition &&
+                previousPlayLineBeatPosition <= event->beatPosition + measureBeatPosition)
+            {
+                event->ModifyTempo(currentTempo);
+                event->ModifyVelocity(currentVelocity);
+                event->ModifySwingTempo(swingTempo);
+                //event->ModifyPizzicato();
+
+                LOGD("Got sound event: velocity: %f, tempo: %f", currentVelocity, currentTempo);
+            }
+        }
+
         for (auto noteChord : noteChords)
         {
             std::shared_ptr<Note> rootNote = noteChord->notes[0];
-            if (playLineBeatPosition >= rootNote->soundBeatPosition + measureBeatPosition &&
-                previousPlayLineBeatPosition <= rootNote->soundBeatPosition + measureBeatPosition)
+
+            float noteBeatPosition = rootNote->soundBeatPosition;
+            float noteDuration = rootNote->duration.duration;
+
+            if (swingTempo.swingType != SwingTempo::SwingType::Straight)
+            {
+                float first = swingTempo.first;
+                float second = swingTempo.second;
+
+                if (swingTempo.swingType == SwingTempo::SwingType::Eighth)
+                {
+                    float frac = (1.0f / (first + second));
+
+                    if (IsOnBeatEighthNote(rootNote))
+                    {
+                        noteDuration = frac * first;
+                    }
+                    else if (IsOffBeatEighthNote(rootNote))
+                    {
+                        noteDuration = frac * second;
+                        noteBeatPosition += (frac * first) - 0.5f;
+                    }
+                }
+                else if (swingTempo.swingType == SwingTempo::SwingType::Sixteenth)
+                {
+                    float frac = (0.5f / (first + second));
+
+                    if (IsOnBeatSixteenthNote(rootNote))
+                    {
+                        noteDuration = frac * first;
+                    }
+                    else if (IsOffBeatSixteenthNote(rootNote))
+                    {
+                        noteDuration = frac * second;
+                        noteBeatPosition += (frac * first) - 0.25f;
+                    }
+                }
+            }
+
+            if (playLineBeatPosition >= noteBeatPosition + measureBeatPosition &&
+                previousPlayLineBeatPosition <= noteBeatPosition + measureBeatPosition)
             {
                 if (!rootNote->isPlaying)
                 {
-                    noteChord->OnPlay(player, transpose, channel);
+                    noteChord->OnPlay(player, transpose, channel, currentVelocity);
                 }
             }
             else if (rootNote->isPlaying &&
-                     !(playLineBeatPosition <= rootNote->soundBeatPosition + rootNote->soundDuration + measureBeatPosition)) // note is playing but/and the play line has passed the end of the note
+                     !(playLineBeatPosition <= noteBeatPosition + noteDuration + measureBeatPosition)) // note is playing but/and the play line has passed the end of the note
             { // so stop the note
-                noteChord->OnStop(player, transpose, channel);
+                noteChord->OnStop(player, transpose, channel, currentVelocity);
             }
         }
 
+        int noteIndex = 0;
         for (auto note : notes)
         {
-            if (playLineBeatPosition >= note->soundBeatPosition + measureBeatPosition &&
-                previousPlayLineBeatPosition <= note->soundBeatPosition + measureBeatPosition)
+            float noteBeatPosition = note->soundBeatPosition;
+            float noteDuration = note->duration.duration;
+
+            if (swingTempo.swingType != SwingTempo::SwingType::Straight)
+            {
+                float first = swingTempo.first;
+                float second = swingTempo.second;
+
+                if (swingTempo.swingType == SwingTempo::SwingType::Eighth)
+                {
+                    float frac = (1.0f / (first + second));
+
+                    if (IsOnBeatEighthNote(note))
+                    {
+                        noteDuration = frac * first;
+                    }
+                    else if (IsOffBeatEighthNote(note))
+                    {
+                        noteDuration = frac * second;
+                        noteBeatPosition += (frac * first) - 0.5f;
+                    }
+                }
+                else if (swingTempo.swingType == SwingTempo::SwingType::Sixteenth)
+                {
+                    float frac = (0.5f / (first + second));
+
+                    if (IsOnBeatSixteenthNote(note))
+                    {
+                        noteDuration = frac * first;
+                    }
+                    else if (IsOffBeatSixteenthNote(note))
+                    {
+                        noteDuration = frac * second;
+                        noteBeatPosition += (frac * first) - 0.25f;
+                    }
+                }
+            }
+
+            if (playLineBeatPosition >= noteBeatPosition + measureBeatPosition &&
+                previousPlayLineBeatPosition <= noteBeatPosition + measureBeatPosition)
             {
                 if (!note->isPlaying)
                 {
-                    note->OnPlay(player, transpose, channel);
+                    note->OnPlay(player, transpose, channel, currentVelocity);
                 }
             }
             else if (note->isPlaying &&
-                     !(playLineBeatPosition <= note->soundBeatPosition + note->soundDuration + measureBeatPosition)) // note is playing but/and the play line has passed the end of the note
+                     !(playLineBeatPosition <= noteBeatPosition + noteDuration + measureBeatPosition)) // note is playing but/and the play line has passed the end of the note
             { // so stop the note
-                note->OnStop(player, transpose, channel);
+                note->OnStop(player, transpose, channel, currentVelocity);
             }
-        }
 
-        for (SoundEvent &event : soundEvents)
-        {
-            // NEEDS TO BE FIXED:        \/
-            if (playLineBeatPosition >= event.beatPosition + measureBeatPosition &&
-                playLineBeatPosition <= 1.0f/*this*/ + event.beatPosition + measureBeatPosition)
-            {
-                if (event.tempo != -1.0f)
-                {
-                    currentTempo = event.tempo;
-                }
-            }
+            noteIndex++;
         }
     }
     else
@@ -775,7 +856,7 @@ void Measure::OnUpdate(std::shared_ptr<Player> player, int channel, float playLi
         {
             if (noteChord->notes[0]->isPlaying)
             {
-                noteChord->OnStop(player, transpose, channel);
+                noteChord->OnStop(player, transpose, channel, currentVelocity);
             }
         }
 
@@ -783,8 +864,118 @@ void Measure::OnUpdate(std::shared_ptr<Player> player, int channel, float playLi
         {
             if (note->isPlaying)
             {
-                note->OnStop(player, transpose, channel);
+                note->OnStop(player, transpose, channel, currentVelocity);
             }
         }
     }
+}
+
+bool Measure::IsRepeatBackward() const
+{
+    for (const auto& barline : barlines)
+    {
+        if (barline.isRepeatBarLine)
+        {
+            if (barline.facing == Barline::Direction::Backward)
+            {
+                return true;
+            }
+        }
+    }
+
+    return false;
+}
+
+bool Measure::IsRepeatForward() const
+{
+    for (const auto& barline : barlines)
+    {
+        if (barline.isRepeatBarLine)
+        {
+            if (barline.facing == Barline::Direction::Forward)
+            {
+                return true;
+            }
+        }
+    }
+
+    return false;
+}
+
+int Measure::GetRepeatCount() const
+{
+    for (const auto& barline : barlines)
+    {
+        if (barline.isRepeatBarLine)
+        {
+            if (barline.facing == Barline::Direction::Backward)
+            {
+                return barline.repeatCount;
+            }
+        }
+    }
+
+    return 1;
+}
+
+bool Measure::IsOnBeatEighthNote(std::shared_ptr<Note> note) const
+{
+    if (note->durationType == NoteValue::Eighth && note->duration.duration == 0.5f)
+    {
+        float beat = 1.0f;
+        for (int i = 0; i < timeSignature.notes; i++)
+        {
+            if (note->beatPosition == beat * (float)i)
+                return true;
+        }
+    }
+
+    return false;
+}
+
+bool Measure::IsOffBeatEighthNote(std::shared_ptr<Note> note) const
+{
+    if (note->durationType == NoteValue::Eighth && note->duration.duration == 0.5f)
+    {
+        float beat = 1.0f;
+        float offBeatOffset = 0.5f;
+        for (int i = 0; i < timeSignature.notes; i++)
+        {
+            if (note->beatPosition == (beat * (float)i) + offBeatOffset)
+                return true;
+        }
+    }
+
+    return false;
+}
+
+bool Measure::IsOnBeatSixteenthNote(std::shared_ptr<Note> note) const
+{
+    if (note->durationType == NoteValue::Sixteenth && note->duration.duration == 0.25f)
+    {
+        float beat = 0.5f;
+        for (int i = 0; i < (timeSignature.notes * 2); i++)
+        {
+            if (note->beatPosition == beat * (float)i)
+                return true;
+        }
+    }
+
+    return false;
+}
+
+bool Measure::IsOffBeatSixteenthNote(std::shared_ptr<Note> note) const
+{
+    if (note->durationType == NoteValue::Sixteenth && note->duration.duration == 0.25f)
+    {
+        float beat = 0.5f;
+        float offBeatOffset = 0.25f;
+        for (int i = 0; i < (timeSignature.notes * 2); i++)
+        {
+            if (note->beatPosition == (beat * (float)i) + offBeatOffset)
+                return true;
+        }
+    }
+
+    return false;
 }

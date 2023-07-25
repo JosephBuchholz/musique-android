@@ -63,8 +63,8 @@ public:
 
     void InitSound();
 
-    void OnPlay(std::shared_ptr<Player> player, Transpose transpose, int channel);
-    void OnStop(std::shared_ptr<Player> player, Transpose transpose, int channel);
+    void OnPlay(std::shared_ptr<Player> player, Transpose transpose, int channel, float velocity);
+    void OnStop(std::shared_ptr<Player> player, Transpose transpose, int channel, float velocity);
     void OnUpdate();
 
 public:

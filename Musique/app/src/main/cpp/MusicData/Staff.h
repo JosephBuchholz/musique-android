@@ -52,6 +52,10 @@ public:
 
     void CalculateAsPaged(const MusicDisplayConstants& displayConstants);
 
+    /* ----- Sound Related Functions ----- */
+
+    std::pair<int, float> GetMeasureFromSoundBeatPosition(float beatPosition);
+
 public:
 
     enum class StaffType {
@@ -77,6 +81,10 @@ public:
     std::vector<StaffTuning> tunings;
 
     TablatureDisplayType tablatureDisplayType = TablatureDisplayType::Full;
+
+
+
+    float currentVelocity = 64.0f;
 };
 
 #endif // MUSIQUE_STAFF_H

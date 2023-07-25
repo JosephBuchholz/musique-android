@@ -10,6 +10,7 @@
 #include "../String.h"
 #include "../../MusicDisplayConstants.h"
 #include "../../Collisions/Vec2.h"
+#include "../SoundEvent.h"
 
 /**
  * This class represents a textual music direction (such as rit. or cresc.).
@@ -43,6 +44,7 @@ public:
 
     void CalculatePositionAsPaged(const MusicDisplayConstants& displayConstants, float defaultX, float defaultY);
 
+    std::shared_ptr<SoundEvent> GetSoundEvent() const;
 
 public:
     String text;

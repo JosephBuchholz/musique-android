@@ -1684,8 +1684,21 @@ void MusicXMLParser::ParseMusicXML(const std::string& data, std::string& error, 
                             {
                                 // divisions
                                 XMLElement* divisions = attributes->FirstChildElement("divisions");
-                                if (divisions) {
+                                if (divisions)
+                                {
                                     for (auto m : currentMeasures) { m->divisions = ToInt(divisions->GetText()); } // setting divisions for all current measures
+                                }
+                                else
+                                {
+                                    if (!previousMeasures.empty() && previousMeasures.size() == currentMeasures.size())
+                                    {
+                                        int i = 0;
+                                        for (auto m : currentMeasures)
+                                        {
+                                            m->divisions = previousMeasures[i]->divisions;
+                                            i++;
+                                        }
+                                    }
                                 }
 
                                 // key signature
@@ -1708,6 +1721,18 @@ void MusicXMLParser::ParseMusicXML(const std::string& data, std::string& error, 
 
                                     for (auto m : currentMeasures) { m->keySignature = keySignature; m->showKeySignature = true; }
                                 }
+                                else
+                                {
+                                    if (!previousMeasures.empty() && previousMeasures.size() == currentMeasures.size())
+                                    {
+                                        int i = 0;
+                                        for (auto m : currentMeasures)
+                                        {
+                                            m->keySignature = previousMeasures[i]->keySignature;
+                                            i++;
+                                        }
+                                    }
+                                }
 
                                 // time signature
                                 XMLElement* timeSignatureElement = attributes->FirstChildElement("time");
@@ -1729,6 +1754,19 @@ void MusicXMLParser::ParseMusicXML(const std::string& data, std::string& error, 
                                         timeSignature.noteType = ToInt(beatType->GetText());
 
                                     for (auto m : currentMeasures) { m->timeSignature = timeSignature; m->showTimeSignature = true; m->CalculateDuration(); }
+                                }
+                                else
+                                {
+                                    if (!previousMeasures.empty() && previousMeasures.size() == currentMeasures.size())
+                                    {
+                                        int i = 0;
+                                        for (auto m : currentMeasures)
+                                        {
+                                            m->timeSignature = previousMeasures[i]->timeSignature;
+                                            m->CalculateDuration();
+                                            i++;
+                                        }
+                                    }
                                 }
 
                                 // clef
@@ -1821,6 +1859,18 @@ void MusicXMLParser::ParseMusicXML(const std::string& data, std::string& error, 
                                     }
 
                                     for (auto m : currentMeasures) { m->transpose = transpose; }
+                                }
+                                else
+                                {
+                                    if (!previousMeasures.empty() && previousMeasures.size() == currentMeasures.size())
+                                    {
+                                        int i = 0;
+                                        for (auto m : currentMeasures)
+                                        {
+                                            m->transpose = previousMeasures[i]->transpose;
+                                            i++;
+                                        }
+                                    }
                                 }
 
                                 // staff details
@@ -2048,17 +2098,32 @@ void MusicXMLParser::ParseMusicXML(const std::string& data, std::string& error, 
                                         XMLElement* soundElement = element->FirstChildElement("sound");
                                         if (soundElement)
                                         {
-                                            SoundEvent event = SoundEvent();
-
-                                            event.dynamics = XMLHelper::GetFloatAttribute(soundElement, "dynamics", -1.0f);
-                                            event.tempo = XMLHelper::GetFloatAttribute(soundElement, "tempo", -1.0f);
-                                            event.pan = XMLHelper::GetNumberAttribute(soundElement, "pan", event.pan);
+                                            float dynamics = XMLHelper::GetFloatAttribute(soundElement, "dynamics", -1.0f);
+                                            float tempo = XMLHelper::GetFloatAttribute(soundElement, "tempo", -1.0f);
+                                            int pan = XMLHelper::GetNumberAttribute(soundElement, "pan", 0);
 
                                             // getting beat position of sound event
-                                            event.beatPosition = currentTimeInMeasure;
+                                            float eventBeatPosition = currentTimeInMeasure;
 
-                                            currentMeasures[0]->soundEvents.push_back(event);
-                                            for (auto m : currentMeasures) { m->soundEvents.push_back(event); }
+                                            if (dynamics != -1.0f)
+                                            {
+                                                std::shared_ptr<DynamicsSoundEvent> dynamicsSoundEvent = std::make_shared<DynamicsSoundEvent>();
+
+                                                dynamicsSoundEvent->beatPosition = eventBeatPosition;
+                                                dynamicsSoundEvent->SetDynamics(dynamics / 100.0f);
+
+                                                for (auto m : currentMeasures) { m->soundEvents.push_back(dynamicsSoundEvent); }
+                                            }
+
+                                            if (tempo != -1.0f)
+                                            {
+                                                std::shared_ptr<TempoSoundEvent> event = std::make_shared<TempoSoundEvent>();
+
+                                                event->beatPosition = eventBeatPosition;
+                                                event->tempo = tempo;
+
+                                                for (auto m : currentMeasures) { m->soundEvents.push_back(event); }
+                                            }
                                         }
                                     }
                                     else if (strcmp(value, "barline") == 0) // barline

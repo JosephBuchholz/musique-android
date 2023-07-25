@@ -109,13 +109,13 @@ public:
 
     void InitSound();
 
-    void OnPlay(std::shared_ptr<Player> player, Transpose transpose, int channel);
-    void OnStop(std::shared_ptr<Player> player, Transpose transpose, int channel);
+    void OnPlay(std::shared_ptr<Player> player, Transpose transpose, int channel, float velocity);
+    void OnStop(std::shared_ptr<Player> player, Transpose transpose, int channel, float velocity);
     void OnUpdate();
 
 private:
-    void PlayPitch(std::shared_ptr<Player> player, Transpose transpose, int channel);
-    void StopPitch(std::shared_ptr<Player> player, Transpose transpose, int channel);
+    void PlayPitch(std::shared_ptr<Player> player, Transpose transpose, int channel, float velocity);
+    void StopPitch(std::shared_ptr<Player> player, Transpose transpose, int channel, float velocity);
 
 private:
     void RenderRest(RenderData& renderData, float measurePositionX, int lines, float ls, float offsetX, float offsetY) const;

@@ -196,3 +196,30 @@ void Direction::UpdateBoundingBox(const Vec2<float>& measurePosition)
         marker->UpdateBoundingBox(measurePosition);
     }
 }
+
+std::shared_ptr<SoundEvent> Direction::GetSoundEvent() const
+{
+    std::shared_ptr<SoundEvent> soundEvent = nullptr;
+
+    for (auto& wordsObject : words)
+    {
+        soundEvent = wordsObject.GetSoundEvent();
+        if (soundEvent)
+        {
+            soundEvent->beatPosition = beatPosition;
+            return soundEvent;
+        }
+    }
+
+    for (auto& dynamic : dynamics)
+    {
+        /*soundEvent = dynamic.GetSoundEvent();
+        if (soundEvent)
+        {
+            soundEvent->beatPosition = beatPosition;
+            return soundEvent;
+        }*/
+    }
+
+    return soundEvent;
+}

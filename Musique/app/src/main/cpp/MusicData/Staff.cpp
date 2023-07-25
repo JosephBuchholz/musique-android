@@ -167,3 +167,52 @@ void Staff::UpdateBoundingBoxes(const MusicDisplayConstants& displayConstants)
     //boundingBox.size.x = 100.0f;
     //boundingBox.size.y = GetTotalHeight(displayConstants);
 }
+
+std::pair<int, float> Staff::GetMeasureFromSoundBeatPosition(float beatPosition)
+{
+    std::unordered_map<int, int> repeatCounts;
+
+    int measureIndex = 0;
+    float measureBeatPosition = 0.0f;
+
+    for (int mi = 0; mi < measures.size(); mi++)
+    {
+        if (beatPosition >= measureBeatPosition && beatPosition <= measureBeatPosition + measures[mi]->duration.duration)
+        {
+            return std::make_pair(mi, measureBeatPosition);
+        }
+
+        measureBeatPosition += measures[mi]->duration.duration;
+
+        if (measures[mi]->IsRepeatBackward())
+        {
+            if (repeatCounts.find(mi) != repeatCounts.end()) // found
+            {
+                repeatCounts[mi]++;
+            }
+            else
+            {
+                repeatCounts[mi] = 1;
+            }
+
+            if (repeatCounts[mi] < measures[mi]->GetRepeatCount())
+            {
+                bool repeatIsAtBeginning = true;
+                for (int mj = mi; mj > 0; mj--)
+                {
+                    if (measures[mj]->IsRepeatForward())
+                    {
+                        mi = mj - 1;
+                        repeatIsAtBeginning = false;
+                        break;
+                    }
+                }
+
+                if (repeatIsAtBeginning)
+                    mi = -1;
+            }
+        }
+    }
+
+    return std::make_pair(0, 0.0f);
+}

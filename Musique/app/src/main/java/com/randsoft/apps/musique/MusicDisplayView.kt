@@ -858,7 +858,7 @@ class MusicDisplayView(context: Context, attrs: AttributeSet? = null): View(cont
 
             val paint = Paint().apply {
                 color = 0xff0044dd.toInt()
-                strokeWidth = 1.25f * scale * mainScale
+                strokeWidth = 2.0f * scale * mainScale
                 isAntiAlias = true
                 strokeCap = Paint.Cap.SQUARE
             }

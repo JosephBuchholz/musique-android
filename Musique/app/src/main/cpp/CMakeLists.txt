@@ -39,6 +39,7 @@ add_library( # Sets the name of the library.
         MusicData/Pitch.cpp
         MusicData/ComplexLine.cpp
         MusicData/InstrumentBracket.cpp
+        MusicData/SoundEvent.cpp
 
         MusicData/BaseElements/LineElement.cpp
         MusicData/BaseElements/TextualElement.cpp

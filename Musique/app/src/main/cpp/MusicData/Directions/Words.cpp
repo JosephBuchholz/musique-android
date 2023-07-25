@@ -89,3 +89,23 @@ void Words::CalculatePositionAsPaged(const MusicDisplayConstants& displayConstan
     position.x = defaultX;
     //positionY = defaultY;
 }
+
+std::shared_ptr<SoundEvent> Words::GetSoundEvent() const
+{
+    if (text.string == "Swing" || text.string == "Straight" ||
+        text.string == "Swing 16ths")
+    {
+        std::shared_ptr<SwingSoundEvent> soundEvent = std::make_shared<SwingSoundEvent>();
+
+        if (text.string == "Swing")
+            soundEvent->swing.swingType = SwingTempo::SwingType::Eighth;
+        else if (text.string == "Swing 16ths")
+            soundEvent->swing.swingType = SwingTempo::SwingType::Sixteenth;
+        else if (text.string == "Straight")
+            soundEvent->swing.swingType = SwingTempo::SwingType::Straight;
+
+        return soundEvent;
+    }
+
+    return nullptr;
+}

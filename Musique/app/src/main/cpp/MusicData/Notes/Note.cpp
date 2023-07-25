@@ -273,7 +273,7 @@ void Note::InitSound()
     soundDuration = duration.duration - 0.05f;
 }
 
-void Note::OnPlay(std::shared_ptr<Player> player, Transpose transpose, int channel)
+void Note::OnPlay(std::shared_ptr<Player> player, Transpose transpose, int channel, float velocity)
 {
     isPlaying = true;
 
@@ -289,17 +289,17 @@ void Note::OnPlay(std::shared_ptr<Player> player, Transpose transpose, int chann
         {
             if (tie->notes.second.get() != this) // is the first note in tie
             {
-                PlayPitch(player, transpose, channel);
+                PlayPitch(player, transpose, channel, velocity);
             }
         }
         else
         {
-            PlayPitch(player, transpose, channel);
+            PlayPitch(player, transpose, channel, velocity);
         }
     }
 }
 
-void Note::OnStop(std::shared_ptr<Player> player, Transpose transpose, int channel)
+void Note::OnStop(std::shared_ptr<Player> player, Transpose transpose, int channel, float velocity)
 {
     isPlaying = false;
 
@@ -315,21 +315,22 @@ void Note::OnStop(std::shared_ptr<Player> player, Transpose transpose, int chann
         {
             if (tie->notes.first.get() != this) // is the second note in tie
             {
-                StopPitch(player, transpose, channel);
+                StopPitch(player, transpose, channel, velocity);
             }
         }
         else
         {
-            StopPitch(player, transpose, channel);
+            StopPitch(player, transpose, channel, velocity);
         }
     }
 }
 
-void Note::PlayPitch(std::shared_ptr<Player> player, Transpose transpose, int channel)
+void Note::PlayPitch(std::shared_ptr<Player> player, Transpose transpose, int channel, float velocity)
 {
     PlayableNote note;
     note.pitch = pitch;
     note.pitch.octave += transpose.octaveChange;
+    note.velocity = velocity;
     for (auto articulation : articulations) // TODO: temp
     {
         if (articulation)
@@ -338,11 +339,12 @@ void Note::PlayPitch(std::shared_ptr<Player> player, Transpose transpose, int ch
     player->PlayNote(note, channel);
 }
 
-void Note::StopPitch(std::shared_ptr<Player> player, Transpose transpose, int channel)
+void Note::StopPitch(std::shared_ptr<Player> player, Transpose transpose, int channel, float velocity)
 {
     PlayableNote note;
     note.pitch = pitch;
     note.pitch.octave += transpose.octaveChange;
+    note.velocity = velocity;
     player->StopNote(note, channel);
 }
 

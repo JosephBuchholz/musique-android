@@ -7,7 +7,7 @@ struct Transpose
 {
     int diatonic = 0;
     int chromatic = 0;
-    int octaveChange = -1;
+    int octaveChange = 0;
 };
 
 #endif // MUSIQUE_TRANSPOSE_H

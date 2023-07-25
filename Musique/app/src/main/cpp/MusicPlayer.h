@@ -21,6 +21,8 @@ public:
 
     void OnUpdate(double dt, std::shared_ptr<Song> song);
 
+    void Reset();
+
 public:
 
     bool playing = false;
@@ -33,6 +35,7 @@ public:
     int currentMeasure = 0;
 
     float currentTempo = 120.0f; // beats per minute
+    SwingTempo swingTempo;
 
     std::shared_ptr<Player> player;
     std::shared_ptr<Metronome> metronome;

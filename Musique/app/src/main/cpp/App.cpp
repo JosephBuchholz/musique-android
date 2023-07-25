@@ -32,12 +32,10 @@ App::~App()
 void App::LoadSongFromString(const std::string& string)
 {
     isUpdating = false;
-    musicPlayer->playing = false;
     musicRenderer->layoutCalculated = false;
     startRendering = false;
     songUpdated = false;
-    musicPlayer->playLineBeatPosition = 0.0f;
-    musicPlayer->currentMeasure = 0;
+    musicPlayer->Reset();
 
     LOGI("Loading song from string");
     if (song != nullptr)
@@ -195,9 +193,7 @@ void App::OnUpdate(double dt)
             playLinePosition = musicRenderer->systemPositions[currentSystemIndex].x + song->GetMeasurePositionX(musicPlayer->currentMeasure);
             playLineY = musicRenderer->systemPositions[currentSystemIndex].y;
 
-            if (playLineHeight == 0.0f) {
-                playLineHeight = song->GetSystemHeight(musicPlayer->currentMeasure); //instpos * 80
-            }
+            playLineHeight = song->GetSystemHeight(currentSystemIndex);
 
             frameData.playLinePosition = playLinePosition;
             frameData.playLinePositionY = playLineY;

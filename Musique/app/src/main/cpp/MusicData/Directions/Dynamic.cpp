@@ -120,3 +120,69 @@ void Dynamic::CalculatePositionAsPaged(const MusicDisplayConstants& displayConst
     if (relativePosition.y != INVALID_FLOAT_VALUE)
         position.y += relativePosition.y;
 }
+
+#define DYNAMIC_DEFAULT_VELOCITY_HIGH_P 6.0f
+#define DYNAMIC_DEFAULT_VELOCITY_PPPP 8.0f
+#define DYNAMIC_DEFAULT_VELOCITY_PPP 20.0f
+#define DYNAMIC_DEFAULT_VELOCITY_PP 31.0f
+#define DYNAMIC_DEFAULT_VELOCITY_P 42.0f
+#define DYNAMIC_DEFAULT_VELOCITY_MP 53.0f
+#define DYNAMIC_DEFAULT_VELOCITY_MF 64.0f
+#define DYNAMIC_DEFAULT_VELOCITY_F 80.0f
+#define DYNAMIC_DEFAULT_VELOCITY_FF 96.0f
+#define DYNAMIC_DEFAULT_VELOCITY_FFF 112.0f
+#define DYNAMIC_DEFAULT_VELOCITY_FFFF 127.0f
+#define DYNAMIC_DEFAULT_VELOCITY_HIGH_F 127.0f
+
+std::shared_ptr<SoundEvent> Dynamic::GetSoundEvent() const
+{
+    std::shared_ptr<DynamicsSoundEvent> soundEvent = std::make_shared<DynamicsSoundEvent>();
+
+    float velocity;
+    switch (type)
+    {
+        case DynamicType::Piano: velocity = DYNAMIC_DEFAULT_VELOCITY_P;
+        case DynamicType::Pianissimo: velocity = DYNAMIC_DEFAULT_VELOCITY_PP;
+        case DynamicType::OtherPiano:
+        {
+            switch (dynamicIntensity)
+            {
+                case 2: velocity = DYNAMIC_DEFAULT_VELOCITY_PP;
+                case 3: velocity = DYNAMIC_DEFAULT_VELOCITY_PPP;
+                case 4: velocity = DYNAMIC_DEFAULT_VELOCITY_PPPP;
+                default: velocity = DYNAMIC_DEFAULT_VELOCITY_HIGH_P;
+            }
+        }
+        case DynamicType::Forte: velocity = DYNAMIC_DEFAULT_VELOCITY_F;
+        case DynamicType::Fortissimo: velocity = DYNAMIC_DEFAULT_VELOCITY_FF;
+        case DynamicType::OtherForte:
+        {
+            switch (dynamicIntensity)
+            {
+                case 2: velocity = DYNAMIC_DEFAULT_VELOCITY_FF;
+                case 3: velocity = DYNAMIC_DEFAULT_VELOCITY_FFF;
+                case 4: velocity = DYNAMIC_DEFAULT_VELOCITY_FFFF;
+                default: velocity = DYNAMIC_DEFAULT_VELOCITY_HIGH_F;
+            }
+        }
+        case DynamicType::MezzoPiano: velocity = DYNAMIC_DEFAULT_VELOCITY_MP;
+        case DynamicType::MezzoForte: velocity = DYNAMIC_DEFAULT_VELOCITY_MF;
+        case DynamicType::SF: velocity = DYNAMIC_DEFAULT_VELOCITY_F;
+        case DynamicType::SFP: velocity = DYNAMIC_DEFAULT_VELOCITY_F;
+        case DynamicType::SFPP: velocity = DYNAMIC_DEFAULT_VELOCITY_F;
+        case DynamicType::FP: velocity = DYNAMIC_DEFAULT_VELOCITY_F;
+        case DynamicType::RF: velocity = DYNAMIC_DEFAULT_VELOCITY_F;
+        case DynamicType::RFZ: velocity = DYNAMIC_DEFAULT_VELOCITY_F;
+        case DynamicType::SFZ: velocity = DYNAMIC_DEFAULT_VELOCITY_F;
+        case DynamicType::SFFZ: velocity = DYNAMIC_DEFAULT_VELOCITY_FF;
+        case DynamicType::FZ: velocity = DYNAMIC_DEFAULT_VELOCITY_F;
+        case DynamicType::N: velocity = DYNAMIC_DEFAULT_VELOCITY_F;
+        case DynamicType::PF: velocity = DYNAMIC_DEFAULT_VELOCITY_P;
+        case DynamicType::SFZP: velocity = DYNAMIC_DEFAULT_VELOCITY_F;
+        default: velocity = DYNAMIC_DEFAULT_VELOCITY_MF;
+    }
+
+    soundEvent->SetVelocity(velocity);
+
+    return soundEvent;
+}

@@ -129,8 +129,8 @@ public:
 public:
 
     // from the top left hand corner
-    Vec2<float> position;
-    Vec2<float> size;
+    Vec2<float> position = { 0.0f, 0.0f };
+    Vec2<float> size = { 0.0f, 0.0f };
 
     std::vector<Constraint> constraints;
 };

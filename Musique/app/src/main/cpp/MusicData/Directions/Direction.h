@@ -16,6 +16,8 @@
 #include "BracketDirection.h"
 #include "Marker.h"
 
+#include "../SoundEvent.h"
+
 #include "../Types.h"
 
 #include <vector>
@@ -54,6 +56,8 @@ public:
     BoundingBox GetBoundingBoxRelativeToMeasure() const;
 
     void UpdateBoundingBox(const Vec2<float>& measurePosition);
+
+    std::shared_ptr<SoundEvent> GetSoundEvent() const;
 
 public:
 

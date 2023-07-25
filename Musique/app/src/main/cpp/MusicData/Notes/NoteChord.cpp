@@ -335,19 +335,19 @@ void NoteChord::InitSound()
     }
 }
 
-void NoteChord::OnPlay(std::shared_ptr<Player> player, Transpose transpose, int channel)
+void NoteChord::OnPlay(std::shared_ptr<Player> player, Transpose transpose, int channel, float velocity)
 {
     for (auto note : notes)
     {
-        note->OnPlay(player, transpose, channel);
+        note->OnPlay(player, transpose, channel, velocity);
     }
 }
 
-void NoteChord::OnStop(std::shared_ptr<Player> player, Transpose transpose, int channel)
+void NoteChord::OnStop(std::shared_ptr<Player> player, Transpose transpose, int channel, float velocity)
 {
     for (auto note : notes)
     {
-        note->OnStop(player, transpose, channel);
+        note->OnStop(player, transpose, channel, velocity);
     }
 }
 

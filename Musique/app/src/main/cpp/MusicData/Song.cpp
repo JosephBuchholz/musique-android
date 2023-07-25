@@ -648,6 +648,13 @@ void Song::OnUpdate()
                         {
                             direction.marker->CalculatePositionAsPaged(displayConstants, { 0.0f, -20.0f });
                         }
+
+                        std::shared_ptr<SoundEvent> soundEvent = direction.GetSoundEvent();
+
+                        if (soundEvent)
+                        {
+                            measure->soundEvents.push_back(soundEvent);
+                        }
                     }
 
                     for (auto& chord : measure->chords)
@@ -1193,7 +1200,6 @@ void Song::CalculateSystemPositionsAndPageBreaks()
                 bb = BoundingBox::CombineBoundingBoxes(bb, endingBoundingBox);
             }
         }
-
         systemBoundingBoxes.push_back(bb);
     }
 
@@ -1607,18 +1613,18 @@ float Song::GetSystemHeight(int systemIndex) const
 
     std::shared_ptr<System> system = systems[systemIndex];
 
-    for (auto instrument : instruments)
-    {
-        for (auto staff : instrument->staves)
-        {
-            int start = system->beginningMeasureIndex;
-            int end = system->endingMeasureIndex;
+    std::shared_ptr<Instrument> bottomInstrument = instruments[instruments.size() - 1];
+    float height = bottomInstrument->systemPositionData[systemIndex].y;
 
-            staff->GetTotalHeight(displayConstants, start, end);
-        }
-    }
+    float instHeight = bottomInstrument->staves[bottomInstrument->staves.size() - 1]->systemPositionData[systemIndex].y;
+    float lineSpacing = displayConstants.lineSpacing;
+    if (bottomInstrument->staves[bottomInstrument->staves.size() - 1]->type == Staff::StaffType::Tab)
+        lineSpacing = displayConstants.tabLineSpacing;
+    instHeight += bottomInstrument->staves[bottomInstrument->staves.size() - 1]->GetMiddleHeight(lineSpacing);
 
-    return 150.0f;
+    height += instHeight;
+
+    return height;
 }
 
 BoundingBox Song::GetSystemBoundingBox(int systemIndex) const
@@ -2267,7 +2273,7 @@ std::vector<Vec2<float>> Song::GetSystemPositions() const
 
         if (measureIndex >= GetMeasureCount())
         {
-            LOGW("measureIndex: %d, count: %d", measureIndex, GetMeasureCount());
+            LOGI("measureIndex: %d, count: %d", measureIndex, GetMeasureCount());
             break;
         }
 

@@ -13,11 +13,13 @@
 #include "../Types.h"
 
 #include "../../RenderData/RenderData.h"
+#include "../SoundEvent.h"
 
 /**
  * This class represents a dynamic direction (such as mf or p).
  */
-class Dynamic : public TextualElement {
+class Dynamic : public TextualElement
+{
     friend class Song;
     friend class MusicXMLParser;
 
@@ -42,6 +44,8 @@ public:
     SMuFLID GetDynamicSMuFLID() const;
 
     Vec2<float> GetDimensions() const;
+
+    std::shared_ptr<SoundEvent> GetSoundEvent() const;
 
 protected:
     void CalculatePositionAsPaged(const MusicDisplayConstants& displayConstants, Vec2<float> defaultPos);
