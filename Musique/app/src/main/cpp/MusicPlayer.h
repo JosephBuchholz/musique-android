@@ -19,13 +19,29 @@ public:
 
     MusicPlayer();
 
+    void OnStart();
+
+    void OnPlay();
+    void OnStop();
+
+    bool IsPlaying() const { return playing; }
+
     void OnUpdate(double dt, std::shared_ptr<Song> song);
 
     void Reset();
 
-public:
+    void TravelToVisualBeatPosition(float beatPosition, std::shared_ptr<Song> song);
+    void TravelToSoundBeatPosition(float beatPosition);
 
-    bool playing = false;
+    void OnMetronomeToggled(bool state) { metronomeIsOn = state; }
+
+    float GetPlayLineBeatPosition() const { return playLineBeatPosition; }
+    void SetPlayLineBeatPosition(float beatPosition) { playLineBeatPosition = beatPosition; }
+
+    int GetCurrentMeasure() const { return currentMeasure; }
+    void SetCurrentMeasure(int measure) { currentMeasure = measure; }
+
+private:
 
     bool metronomeIsOn = false;
 
@@ -39,6 +55,8 @@ public:
 
     std::shared_ptr<Player> player;
     std::shared_ptr<Metronome> metronome;
+
+    bool playing = false;
 };
 
 #endif //MUSIQUE_MUSICPLAYER_H

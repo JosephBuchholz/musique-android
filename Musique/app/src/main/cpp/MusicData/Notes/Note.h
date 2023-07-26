@@ -107,7 +107,7 @@ public:
 
     /* ----- Sound Related Functions ----- */
 
-    void InitSound();
+    void InitSound(std::shared_ptr<Note> previousNote);
 
     void OnPlay(std::shared_ptr<Player> player, Transpose transpose, int channel, float velocity);
     void OnStop(std::shared_ptr<Player> player, Transpose transpose, int channel, float velocity);

@@ -97,12 +97,69 @@ void MidiPlayer::ChangeInstrument(int instrument, int channel)
     }
 }
 
-void MidiPlayer::SetVolume(int volume) // from 0 to 100
+#define MIDI_CONTROLLER_MSG 0xB0
+
+#define MIDI_CONTROLLER_MSG_MOD_WHEEL 1
+#define MIDI_CONTROLLER_MSG_VOLUME 7
+#define MIDI_CONTROLLER_MSG_PAN 10
+#define MIDI_CONTROLLER_MSG_EXP 11
+#define MIDI_CONTROLLER_MSG_SUSTAIN 64
+#define MIDI_CONTROLLER_MSG_CONTROLLERS_OFF 121
+#define MIDI_CONTROLLER_MSG_NOTES_OFF 123
+
+#define MIDI_NUM_CHANNELS 16
+
+void MidiPlayer::StopAllNotes()
 {
-    SetMidiVolume(volume);
+    for (int channel = 0; channel < MIDI_NUM_CHANNELS; channel++)
+    {
+        char event[3];
+        event[0] = (char) (MIDI_CONTROLLER_MSG | channel);
+        event[1] = (char) MIDI_CONTROLLER_MSG_NOTES_OFF;
+        event[2] = (char) 0;
+        WriteMidi(event, 3);
+    }
 }
 
-void MidiPlayer::SetReverb(int reverb)
+void MidiPlayer::SetVolume(float volume)
 {
-    SetMidiReverb(reverb);
+    SetMidiVolume((int)volume);
+}
+
+void MidiPlayer::SetReverb(float reverb)
+{
+    SetMidiReverb((int)reverb);
+}
+
+void MidiPlayer::SetPanoramic(float pan, int channel)
+{
+    int newPan = int((pan + 1.0f) * (127.0f / 2.0f)); // scale the pan value to 0 - 127 for midi
+
+    char event[3];
+    event[0] = (char) (MIDI_CONTROLLER_MSG | channel);
+    event[1] = (char) MIDI_CONTROLLER_MSG_PAN;
+    event[2] = (char) newPan;
+    WriteMidi(event, 3);
+}
+
+void MidiPlayer::SetVibrato(float vibrato, int channel)
+{
+    char event[3];
+    event[0] = (char) (MIDI_CONTROLLER_MSG | channel);
+    event[1] = (char) MIDI_CONTROLLER_MSG_MOD_WHEEL;
+    event[2] = (char) vibrato;
+    WriteMidi(event, 3);
+}
+
+void MidiPlayer::SetSustain(bool isOn, int channel)
+{
+    char event[3];
+    event[0] = (char) (MIDI_CONTROLLER_MSG | channel);
+    event[1] = (char) MIDI_CONTROLLER_MSG_SUSTAIN;
+    if (isOn)
+        event[2] = (char) 64;
+    else
+        event[2] = (char) 0;
+
+    WriteMidi(event, 3);
 }

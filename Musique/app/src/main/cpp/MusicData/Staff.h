@@ -3,6 +3,8 @@
 
 #include "Measures/Measure.h"
 #include "BaseElements/VisibleElement.h"
+#include "Endings/Ending.h"
+#include "Endings/EndingGroup.h"
 
 #include <vector>
 
@@ -54,7 +56,8 @@ public:
 
     /* ----- Sound Related Functions ----- */
 
-    std::pair<int, float> GetMeasureFromSoundBeatPosition(float beatPosition);
+    std::pair<int, float> GetMeasureFromSoundBeatPosition(float beatPosition, std::vector<std::shared_ptr<EndingGroup>> endingGroups);
+    float GetSoundBeatPositionFromVisualBeatPosition(float beatPosition, std::vector<std::shared_ptr<EndingGroup>> endingGroups);
 
 public:
 

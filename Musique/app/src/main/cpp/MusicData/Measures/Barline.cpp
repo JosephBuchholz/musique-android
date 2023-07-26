@@ -1,6 +1,6 @@
 #include "Barline.h"
 
-void Barline::Render(RenderData& renderData, Vec2<float> measurePosition, float height, float lineSpacing, int lineCount, bool isTopStaff, Vec2<float> offset) const
+void Barline::Render(RenderData& renderData, Vec2<float> measurePosition, float height, float lineSpacing, int lineCount, bool isTopStaff, bool isPartOfEnding, Vec2<float> offset) const
 {
     float positionY = 0.0f;
 
@@ -127,7 +127,7 @@ void Barline::Render(RenderData& renderData, Vec2<float> measurePosition, float 
         default: break; // do nothing
     }
 
-    if (repeatNumberDirection && isTopStaff)
+    if (repeatNumberDirection && isTopStaff && !isPartOfEnding)
     {
         repeatNumberDirection->Render(renderData, measurePosition);
     }

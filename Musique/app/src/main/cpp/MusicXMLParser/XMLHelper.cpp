@@ -212,3 +212,31 @@ Vec2<float> XMLHelper::GetFloatVec2Attribute(XMLElement* element, const char* s1
 
     return value;
 }
+
+// ---- Lists ----
+
+std::vector<int> XMLHelper::ParseIntList(const std::string& stringList)
+{
+    std::vector<int> list;
+
+    std::string num;
+    for (char c : stringList)
+    {
+        if (c != ',' && c != ' ')
+        {
+            num += c;
+        }
+        else if (!num.empty())
+        {
+            list.push_back(ToInt(num));
+            num = "";
+        }
+    }
+
+    if (!num.empty())
+    {
+        list.push_back(ToInt(num));
+    }
+
+    return list;
+}

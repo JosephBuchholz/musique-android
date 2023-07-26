@@ -8,6 +8,24 @@ MusicPlayer::MusicPlayer()
     metronome = std::make_shared<Metronome>();
 }
 
+void MusicPlayer::OnStart()
+{
+    player->ChangeInstrument((int)Player::InstrumentSound::AcousticGrandPiano, 0);
+}
+
+void MusicPlayer::OnPlay()
+{
+    LOGI("MusicPlayer: OnPlay");
+    playing = true;
+}
+
+void MusicPlayer::OnStop()
+{
+    LOGI("MusicPlayer: OnStop");
+    playing = false;
+    player->StopAllNotes();
+}
+
 void MusicPlayer::OnUpdate(double dt, std::shared_ptr<Song> song)
 {
     double dts = dt / 1000.0; // delta time in seconds
@@ -32,12 +50,12 @@ void MusicPlayer::OnUpdate(double dt, std::shared_ptr<Song> song)
                 if (instrumentIndex != 0 || staffIndex != 0)
                     isFirstInstrumentAndStaff = false;
 
-                std::pair<int, float> measureData = staff->GetMeasureFromSoundBeatPosition(playLineBeatPosition);
+                std::pair<int, float> measureData = staff->GetMeasureFromSoundBeatPosition(playLineBeatPosition, song->endingGroups);
                 if (currentMeasure != measureData.first)
                 {
                     currentMeasure = measureData.first;
                     currentMeasureBeatPosition = measureData.second;
-                    LOGE("currentMeasure: %d, currentMBP: %f, duration: %f, playLineBeat: %f, measureBeatPosition: %f", currentMeasure, currentMeasureBeatPosition, staff->measures[measureData.first]->duration.duration, playLineBeatPosition);
+                    LOGD("currentMeasure: %d, currentMBP: %f, duration: %f, playLineBeat: %f, measureBeatPosition: %f", currentMeasure, currentMeasureBeatPosition, staff->measures[measureData.first]->duration.duration, playLineBeatPosition);
                 }
 
                 int measureIndex = 0;
@@ -88,4 +106,41 @@ void MusicPlayer::Reset()
     currentMeasureBeatPosition = 0.0f;
     currentTempo = 120.0f;
     swingTempo = SwingTempo();
+}
+
+void MusicPlayer::TravelToVisualBeatPosition(float beatPosition, std::shared_ptr<Song> song)
+{
+    std::shared_ptr<Instrument> instrument = song->instruments[0];
+    if (instrument)
+    {
+        std::shared_ptr<Staff> staff = instrument->staves[0];
+        if (staff)
+        {
+            playLineBeatPosition = staff->GetSoundBeatPositionFromVisualBeatPosition(beatPosition, song->endingGroups);
+        }
+    }
+
+    for (auto instrument : song->instruments)
+    {
+        for (auto staff : instrument->staves)
+        {
+            for (auto measure : staff->measures)
+            {
+                for (auto soundEvent : measure->soundEvents)
+                {
+                    if (soundEvent->beatPosition + measure->beatPosition <= beatPosition)
+                    {
+                        soundEvent->ModifyTempo(currentTempo);
+                        soundEvent->ModifySwingTempo(swingTempo);
+                        soundEvent->ModifyVelocity(staff->currentVelocity);
+                    }
+                }
+            }
+        }
+    }
+}
+
+void MusicPlayer::TravelToSoundBeatPosition(float beatPosition)
+{
+    playLineBeatPosition = beatPosition;
 }

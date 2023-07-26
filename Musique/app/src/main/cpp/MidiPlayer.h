@@ -56,9 +56,13 @@ public:
 
     void ChangeInstrument(int instrument, int channel = 0) override;
 
-    void SetVolume(int volume); // from 0 to 100
+    void StopAllNotes() override;
 
-    void SetReverb(int reverb);
+    void SetVolume(float volume) override;
+    void SetReverb(float reverb) override;
+    void SetPanoramic(float pan, int channel) override;
+    void SetVibrato(float vibrato, int channel) override;
+    void SetSustain(bool isOn, int channel) override;
 
 private:
     std::array<int, 16> currentMidiInstruments;

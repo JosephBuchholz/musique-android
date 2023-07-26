@@ -15,7 +15,7 @@
 #include "Page/Credit.h"
 #include "System.h"
 #include "Page/Page.h"
-#include "Measures/Ending.h"
+#include "Endings/EndingGroup.h"
 
 /**
  * Represents and holds all the musical data for a song/piece.
@@ -213,7 +213,7 @@ public:
      * @return A pointer to the Measure that collides with that point,
      * returns nullptr if the point doesn't collide with any Measures.
      */
-    std::shared_ptr<Measure> GetMeasureAtPoint(Vec2<float> point) const;
+    std::shared_ptr<Measure> GetMeasureAtPoint(Vec2<float> point, const std::vector<Vec2<float>>& systemPositions) const;
 
     void ResolveCollisions();
 
@@ -297,7 +297,7 @@ public:
 
     float totalBeatWidth = 0.0f;
 
-    std::vector<std::shared_ptr<Ending>> endings;
+    std::vector<std::shared_ptr<EndingGroup>> endingGroups;
 
     std::vector<BoundingBox> systemBoundingBoxes;
 

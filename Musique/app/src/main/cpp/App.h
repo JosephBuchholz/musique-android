@@ -28,8 +28,8 @@ public:
     void StartRendering() { startRendering = true; }
     void StopRendering() { startRendering = false; }
     void OnUpdate(double dt);
-    void OnPlayButtonToggled(bool state) { musicPlayer->playing = state; }
-    void OnResetButtonPressed() { musicPlayer->playLineBeatPosition = 0.0f; }
+    void OnPlayButtonToggled(bool state) { if (state) { musicPlayer->OnPlay(); } else { musicPlayer->OnStop(); } }
+    void OnResetButtonPressed() { musicPlayer->Reset(); }
     void OnPlayProgressChanged(float progress);
     void UpdateInstrumentInfo(const InstrumentInfo& info, unsigned int index);
     void SetViewModelData(ViewModelData viewModelData);
@@ -39,7 +39,7 @@ public:
     void UpdateSettings(const Settings& s) { settings = s; OnLayoutChanged(); }
     void OnLayoutChanged();
 
-    void OnMetronomeToggled(bool state) { musicPlayer->metronomeIsOn = state; }
+    void OnMetronomeToggled(bool state) { musicPlayer->OnMetronomeToggled(state); }
 
     void OnInputEvent(const InputEvent& event);
 

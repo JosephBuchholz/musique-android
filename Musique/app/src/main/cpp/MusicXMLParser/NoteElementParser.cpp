@@ -200,6 +200,12 @@ void NoteElementParser::ParseNoteElement(XMLElement* noteElement, float& current
             currentTimeInMeasure += currentNote->duration.duration;
         }
     }
+    else if (currentNote->isGraceNote)
+    {
+        currentNote->beatPosition = currentTimeInMeasure;
+        currentNote->duration.duration = 0.0f;
+    }
+
     /*else
     {
         error = "note has no duration";

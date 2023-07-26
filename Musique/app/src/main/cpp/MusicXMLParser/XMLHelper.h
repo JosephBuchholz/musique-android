@@ -73,6 +73,16 @@ public:
 
     static Vec2<float> GetFloatVec2Attribute(XMLElement* element, const char* s1, const char* s2, Vec2<float> defaultValue = { 0.0f, 0.0f }, bool required = false);
 
+    // ---- Lists ----
+
+    /**
+     * Parses a comma separated list of integers into a vector of integers.
+     *
+     * @param list The string with a comma separated list of integers.
+     * @return A vector of the integers.
+     */
+    static std::vector<int> ParseIntList(const std::string& stringList);
+
 protected:
     static void AddError(std::string title, std::string desc, ErrorLevel errorLevel = ErrorLevel::Error) { m_Errors.emplace_back(title, desc, "XMLHelper", errorLevel); }
     static void AddErrorIf(bool condition, std::string title, std::string desc, ErrorLevel errorLevel = ErrorLevel::Error) { if (condition) m_Errors.emplace_back(title, desc, "XMLHelper", errorLevel); }

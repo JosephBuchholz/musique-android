@@ -236,14 +236,18 @@ void Song::OnUpdate()
             {
                 for (auto measure : staff->measures)
                 {
+                    std::shared_ptr<Note> previousNote = nullptr;
                     for (auto note : measure->notes)
                     {
-                        note->InitSound();
+                        note->InitSound(previousNote);
+                        previousNote = note;
                     }
 
+                    previousNote = nullptr;
                     for (auto noteChord : measure->noteChords)
                     {
-                        noteChord->InitSound();
+                        noteChord->InitSound(previousNote);
+                        previousNote = noteChord->notes[0];
                     }
                 }
             }
@@ -264,10 +268,60 @@ void Song::OnUpdate()
             credit.CalculatePositionAsPaged();
         }
 
-        for (auto ending : endings)
+        for (auto endingGroup : endingGroups)
         {
-            if (ending)
-                ending->CalculatePositionAsPaged(displayConstants);
+            for (auto ending : endingGroup->endings)
+            {
+                if (GetSystemIndex(ending->startMeasureIndex) != GetSystemIndex(ending->endMeasureIndex))
+                {
+                    ending->isBroken = true;
+                }
+
+                if (!ending->isBroken) // only one segment
+                {
+                    std::shared_ptr<EndingSegment> segment = std::make_shared<EndingSegment>();
+                    segment->startMeasureIndex = ending->startMeasureIndex;
+                    segment->endMeasureIndex = ending->endMeasureIndex;
+
+                    segment->isStart = true;
+                    segment->isEnd = true;
+
+                    ending->segments.push_back(segment);
+                }
+                else // multiple segments
+                {
+                    bool first = true;
+                    int startSegmentMeasureIndex = ending->startMeasureIndex;
+                    for (int i = ending->startMeasureIndex; i <= ending->endMeasureIndex; i++)
+                    {
+                        if (DoesMeasureStartNewSystem(i) && !first)
+                        {
+                            std::shared_ptr<EndingSegment> segment = std::make_shared<EndingSegment>();
+                            segment->startMeasureIndex = startSegmentMeasureIndex;
+                            segment->endMeasureIndex = i - 1;
+
+                            ending->segments.push_back(segment);
+
+                            startSegmentMeasureIndex = i;
+                        }
+
+                        first = false;
+                    }
+
+                    // add last segment
+                    std::shared_ptr<EndingSegment> segment = std::make_shared<EndingSegment>();
+                    segment->startMeasureIndex = startSegmentMeasureIndex;
+                    segment->endMeasureIndex = ending->endMeasureIndex;
+
+                    ending->segments.push_back(segment);
+
+                    ending->segments[0]->isStart = true;
+                    ending->segments[ending->segments.size() - 1]->isEnd = true;
+                }
+
+                if (ending)
+                    ending->CalculatePositionAsPaged(displayConstants);
+            }
         }
 
         // calculate positions for notes and measures
@@ -1115,6 +1169,19 @@ void Song::OnUpdate()
         pageNumbers.push_back(newPageNumber);
     }*/
 
+    for (auto endingGroup : endingGroups)
+    {
+        LOGW("endingGroup: ");
+        for (auto ending : endingGroup->endings)
+        {
+            LOGE("ending: SMI: %d, EMI: %d, text: %s, size: %d, isLast: %d", ending->startMeasureIndex, ending->endMeasureIndex, ending->endingNumbersText.c_str(), ending->endingNumbers.size(), ending->isLastEndingInGroup);
+            for (int number : ending->endingNumbers)
+            {
+                LOGW("number: %d", number);
+            }
+        }
+    }
+
     LOGD("done updating song data");
 }
 
@@ -1192,14 +1259,18 @@ void Song::CalculateSystemPositionsAndPageBreaks()
             firstInst = false;
         }
 
-        for (auto ending : endings)
+        for (auto endingGroup : endingGroups)
         {
-            if (DoBoundsCollide(ending->startMeasureIndex, ending->endMeasureIndex, system->beginningMeasureIndex, system->endingMeasureIndex))
+            for (auto ending : endingGroup->endings)
             {
-                BoundingBox endingBoundingBox = ending->GetBoundingBoxRelativeToParent();
-                bb = BoundingBox::CombineBoundingBoxes(bb, endingBoundingBox);
+                if (DoBoundsCollide(ending->startMeasureIndex, ending->endMeasureIndex, system->beginningMeasureIndex, system->endingMeasureIndex))
+                {
+                    BoundingBox endingBoundingBox = ending->GetBoundingBoxRelativeToParent();
+                    bb = BoundingBox::CombineBoundingBoxes(bb, endingBoundingBox);
+                }
             }
         }
+
         systemBoundingBoxes.push_back(bb);
     }
 
@@ -1959,8 +2030,6 @@ void Song::RenderBoundingBoxes(RenderData& renderData, const std::vector<Vec2<fl
                 int start = system->beginningMeasureIndex;
                 int end = system->endingMeasureIndex;
 
-                LOGW("system: %d | start: %d, end: %d", systemIndex, start, end);
-
                 BoundingBox bb = staff->GetTotalBoundingBox(displayConstants, start, end);
                 bb.position += systemPositions[systemIndex];
                 bb.position += instrument->systemPositionData[systemIndex];
@@ -1983,8 +2052,6 @@ void Song::RenderBoundingBoxes(RenderData& renderData, const std::vector<Vec2<fl
             instrumentBoundingBox.size.x = 1050.0f;
             instrumentBoundingBox.Render(renderData, (int)0xFFFF0000);
 
-            LOGI("instrument bounding box position: %s", instrumentBoundingBox.position.GetPrintableString().c_str());
-
             instrumentIndex++;
         }
 
@@ -1993,9 +2060,48 @@ void Song::RenderBoundingBoxes(RenderData& renderData, const std::vector<Vec2<fl
         systemBoundingBox.size.x = 1050.0f;
         systemBoundingBox.Render(renderData, (int)0xFF0000FF);
 
-        LOGV("system bounding box position: %s", systemBoundingBox.position.GetPrintableString().c_str());
-
         systemIndex++;
+    }
+
+    {
+        int systemIndex = 0;
+        for (const auto& system : systems)
+        {
+            int instrumentIndex = 0;
+            for (auto instrument : instruments)
+            {
+                int staffIndex = 0;
+                for (auto staff : instrument->staves)
+                {
+                    int start = system->beginningMeasureIndex;
+                    int end = system->endingMeasureIndex;
+
+                    BoundingBox bb = staff->GetTotalBoundingBox(displayConstants, start, end);
+                    bb.position += systemPositions[systemIndex];
+                    bb.position += instrument->systemPositionData[systemIndex];
+                    bb.position += staff->systemPositionData[systemIndex];
+
+                    bb.position.x = systemPositions[systemIndex].x;
+                    bb.size.x = 1050.0f;
+
+                    for (int m = start; m <= end; m++)
+                    {
+                        BoundingBox boundingBox = bb;
+
+                        boundingBox.position.x += GetMeasurePositionX(m);
+                        boundingBox.size.x = staff->measures[m]->boundingBox.size.x;
+
+                        boundingBox.Render(renderData, 0xFFFF00FF);
+                    }
+
+                    staffIndex++;
+                }
+
+                instrumentIndex++;
+            }
+
+            systemIndex++;
+        }
     }
 }
 
@@ -2299,9 +2405,52 @@ std::vector<Vec2<float>> Song::GetSystemPositions() const
     return systemPositions;
 }
 
-std::shared_ptr<Measure> Song::GetMeasureAtPoint(Vec2<float> point) const
+std::shared_ptr<Measure> Song::GetMeasureAtPoint(Vec2<float> point, const std::vector<Vec2<float>>& systemPositions) const
 {
-    for (auto instrument : instruments)
+    int systemIndex = 0;
+    for (const auto& system : systems)
+    {
+        int instrumentIndex = 0;
+        for (auto instrument : instruments)
+        {
+            int staffIndex = 0;
+            for (auto staff : instrument->staves)
+            {
+                int start = system->beginningMeasureIndex;
+                int end = system->endingMeasureIndex;
+
+                BoundingBox bb = staff->GetTotalBoundingBox(displayConstants, start, end);
+                bb.position += systemPositions[systemIndex];
+                bb.position += instrument->systemPositionData[systemIndex];
+                bb.position += staff->systemPositionData[systemIndex];
+
+                bb.position.x = systemPositions[systemIndex].x;
+                bb.size.x = 1050.0f;
+
+                if (bb.DoesOverlapWithPoint(point))
+                {
+                    for (int m = start; m <= end; m++)
+                    {
+                        BoundingBox boundingBox = bb;
+
+                        boundingBox.position.x += GetMeasurePositionX(m);
+                        boundingBox.size.x = staff->measures[m]->boundingBox.size.x;
+
+                        if (boundingBox.DoesOverlapWithPoint(point))
+                            return staff->measures[m];
+                    }
+                }
+
+                staffIndex++;
+            }
+
+            instrumentIndex++;
+        }
+
+        systemIndex++;
+    }
+
+    /*for (auto instrument : instruments)
     {
         for (auto staff: instrument->staves)
         {
@@ -2312,7 +2461,7 @@ std::shared_ptr<Measure> Song::GetMeasureAtPoint(Vec2<float> point) const
                     return measure;
             }
         }
-    }
+    }*/
 
     return nullptr;
 }

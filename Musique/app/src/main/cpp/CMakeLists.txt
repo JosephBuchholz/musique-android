@@ -71,7 +71,7 @@ add_library( # Sets the name of the library.
         MusicData/Measures/MeasureNumber.cpp
         MusicData/Measures/TimeSignature.cpp
         MusicData/Measures/Arpeggio.cpp
-        MusicData/Measures/Ending.cpp
+        MusicData/Endings/Ending.cpp
         MusicData/Measures/MeasureRepeat.cpp
         MusicData/Measures/Barline.cpp
         MusicData/Measures/MultiMeasureRestSymbol.cpp

@@ -128,6 +128,22 @@ public:
     virtual void StopUnpitchedNote(const PlayableUnpitchedNote& note) = 0;
 
     virtual void ChangeInstrument(int instrument, int channel = 0) = 0;
+
+    virtual void StopAllNotes() = 0;
+
+    virtual void SetVolume(float volume) = 0;
+    virtual void SetReverb(float reverb) = 0;
+
+    /**
+     * Sets the pan on the specified channel, -1.0 is fully left, 0.0 is the center, and 1.0 is fully right.
+     *
+     * @param pan The pan value (from -1.0 to 1.0).
+     * @param channel The channel to apply the pan to.
+     */
+    virtual void SetPanoramic(float pan, int channel) = 0;
+
+    virtual void SetVibrato(float vibrato, int channel) = 0;
+    virtual void SetSustain(bool isOn, int channel) = 0;
 };
 
 #endif //MUSIQUE_PLAYER_H

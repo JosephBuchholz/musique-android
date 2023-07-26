@@ -168,15 +168,72 @@ void Staff::UpdateBoundingBoxes(const MusicDisplayConstants& displayConstants)
     //boundingBox.size.y = GetTotalHeight(displayConstants);
 }
 
-std::pair<int, float> Staff::GetMeasureFromSoundBeatPosition(float beatPosition)
+std::pair<int, float> Staff::GetMeasureFromSoundBeatPosition(float beatPosition, std::vector<std::shared_ptr<EndingGroup>> endingGroups)
 {
     std::unordered_map<int, int> repeatCounts;
 
     int measureIndex = 0;
     float measureBeatPosition = 0.0f;
 
+    std::unordered_map<int, int> endingCounts;
+
+    for (int i = 0; i < endingGroups.size(); i++)
+        endingCounts[i] = 1;
+
     for (int mi = 0; mi < measures.size(); mi++)
     {
+        std::shared_ptr<Ending> ending = nullptr;
+        std::shared_ptr<EndingGroup> endingGroup = nullptr;
+        int endingGroupIndex = 0;
+        for (auto eg : endingGroups)
+        {
+            for (auto e : eg->endings)
+            {
+                if (e->startMeasureIndex == mi)
+                {
+                    ending = e;
+                    endingGroup = eg;
+                    break;
+                }
+            }
+
+            if (ending)
+                break;
+
+            endingGroupIndex++;
+        }
+
+        if (ending && endingGroup) // measure is at an ending
+        {
+            bool foundCorrectEnding = false;
+            for (auto e : endingGroup->endings)
+            {
+                for (int number : e->endingNumbers)
+                {
+                    if (endingCounts.find(endingGroupIndex) != endingCounts.end()) // found
+                    {
+                        if (endingCounts[endingGroupIndex] == number) // found ending
+                        {
+                            foundCorrectEnding = true;
+                            endingCounts[endingGroupIndex]++;
+                            mi = e->startMeasureIndex;
+                            break;
+                        }
+                    }
+                    else
+                    {
+                        LOGE("Staff.cpp: not found");
+                    }
+                }
+
+                if (foundCorrectEnding)
+                    break;
+            }
+
+            if (!foundCorrectEnding)
+                LOGE("was note able to find correct ending for playback");
+        } // end of ending code
+
         if (beatPosition >= measureBeatPosition && beatPosition <= measureBeatPosition + measures[mi]->duration.duration)
         {
             return std::make_pair(mi, measureBeatPosition);
@@ -215,4 +272,61 @@ std::pair<int, float> Staff::GetMeasureFromSoundBeatPosition(float beatPosition)
     }
 
     return std::make_pair(0, 0.0f);
+}
+
+float Staff::GetSoundBeatPositionFromVisualBeatPosition(float beatPosition, std::vector<std::shared_ptr<EndingGroup>> endingGroups)
+{
+    float soundBeatPosition = 0.0f;
+
+    for (auto measure : measures)
+    {
+        if (beatPosition >= measure->beatPosition && beatPosition < measure->beatPosition + measure->duration.duration)
+        {
+            std::unordered_map<int, int> repeatCounts;
+            float measureBeatPosition = 0.0f;
+
+            for (int mi = 0; mi < measures.size(); mi++)
+            {
+                if (mi == measure->index)
+                {
+                    soundBeatPosition = measureBeatPosition;
+                    soundBeatPosition += beatPosition - measure->beatPosition;
+                    return soundBeatPosition;
+                }
+
+                measureBeatPosition += measures[mi]->duration.duration;
+
+                if (measures[mi]->IsRepeatBackward())
+                {
+                    if (repeatCounts.find(mi) != repeatCounts.end()) // found
+                    {
+                        repeatCounts[mi]++;
+                    }
+                    else
+                    {
+                        repeatCounts[mi] = 1;
+                    }
+
+                    if (repeatCounts[mi] < measures[mi]->GetRepeatCount())
+                    {
+                        bool repeatIsAtBeginning = true;
+                        for (int mj = mi; mj > 0; mj--)
+                        {
+                            if (measures[mj]->IsRepeatForward())
+                            {
+                                mi = mj - 1;
+                                repeatIsAtBeginning = false;
+                                break;
+                            }
+                        }
+
+                        if (repeatIsAtBeginning)
+                            mi = -1;
+                    }
+                }
+            }
+        }
+    }
+
+    return soundBeatPosition;
 }

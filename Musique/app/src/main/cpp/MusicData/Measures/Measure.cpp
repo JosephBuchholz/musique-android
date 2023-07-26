@@ -73,7 +73,7 @@ float Measure::GetTotalHeight(const MusicDisplayConstants& displayConstants, int
     return height;
 }
 
-void Measure::Render(RenderData& renderData, Vec2<float> measurePosition, float nextMeasurePositionX, std::shared_ptr<System> system, int staffLineCount, float staffLineSpacing, bool isTopMeasureLine, bool isLastMeasureInSystem, TablatureDisplayType tablatureDisplayType) const
+void Measure::Render(RenderData& renderData, Vec2<float> measurePosition, float nextMeasurePositionX, std::shared_ptr<System> system, int staffLineCount, float staffLineSpacing, bool isTopMeasureLine, bool isLastMeasureInSystem, TablatureDisplayType tablatureDisplayType, bool isPartOfEnding) const
 {
     if (startsMultiMeasureRest)
     {
@@ -82,7 +82,7 @@ void Measure::Render(RenderData& renderData, Vec2<float> measurePosition, float 
 
     RenderStaffLines(renderData, measurePosition, staffLineCount, staffLineSpacing);
 
-    RenderBarlines(renderData, measurePosition.x, measurePosition.y, measureWidth, staffLineCount, staffLineSpacing, isTopMeasureLine);
+    RenderBarlines(renderData, measurePosition.x, measurePosition.y, measureWidth, staffLineCount, staffLineSpacing, isTopMeasureLine, isPartOfEnding);
 
     RenderMeasureBeginning(renderData, measurePosition, system, staffLineCount, staffLineSpacing, isTopMeasureLine);
 
@@ -300,7 +300,7 @@ void Measure::RenderMeasureBeginning(RenderData& renderData, Vec2<float> measure
     }
 }
 
-void Measure::RenderBarlines(RenderData& renderData, float measurePositionX, float measurePositionY, float measureWidth, int lineCount, float lineSpacing, bool isTopStaff) const
+void Measure::RenderBarlines(RenderData& renderData, float measurePositionX, float measurePositionY, float measureWidth, int lineCount, float lineSpacing, bool isTopStaff, bool isPartOfEnding) const
 {
     float measureHeight = (lineSpacing * float(lineCount - 1));
     float barlineLeftPositionX = measurePositionX;
@@ -315,7 +315,7 @@ void Measure::RenderBarlines(RenderData& renderData, float measurePositionX, flo
         if (barline.location == Barline::Location::Right)
             renderedRightBarline = true;
 
-        barline.Render(renderData, { measurePositionX, measurePositionY }, measureHeight, lineSpacing, lineCount, isTopStaff);
+        barline.Render(renderData, { measurePositionX, measurePositionY }, measureHeight, lineSpacing, lineCount, isTopStaff, isPartOfEnding);
     }
 
     if (!renderedRightBarline)

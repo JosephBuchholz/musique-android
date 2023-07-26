@@ -63,7 +63,7 @@ public:
     float GetTimeSignaturePositionInMeasure(std::shared_ptr<System> system, float keySignaturePositionX) const;
     float GetClefPositionInMeasure(std::shared_ptr<System> system) const;
 
-    void Render(RenderData& renderData, Vec2<float> measurePosition, float nextMeasurePositionX, std::shared_ptr<System> system, int staffLineCount, float staffLineSpacing, bool isTopMeasureLine, bool isLastMeasureInSystem, TablatureDisplayType tablatureDisplayType) const;
+    void Render(RenderData& renderData, Vec2<float> measurePosition, float nextMeasurePositionX, std::shared_ptr<System> system, int staffLineCount, float staffLineSpacing, bool isTopMeasureLine, bool isLastMeasureInSystem, TablatureDisplayType tablatureDisplayType, bool isPartOfEnding) const;
 
     /**
      * Same as the 'Render' function except for debug rendering.
@@ -125,7 +125,7 @@ private:
     float MeausreKeySignatureWidth() const;
     float MeausreTimeSignatureWidth() const;
 
-    void RenderBarlines(RenderData& renderData, float measurePositionX, float measurePositionY, float measureWidth, int lineCount, float lineSpacing, bool isTopStaff) const;
+    void RenderBarlines(RenderData& renderData, float measurePositionX, float measurePositionY, float measureWidth, int lineCount, float lineSpacing, bool isTopStaff, bool isPartOfEnding) const;
     void RenderMeasureBeginning(RenderData& renderData, Vec2<float> measurePosition, std::shared_ptr<System> system, int staffLineCount, float staffLineSpacing, bool isTopMeasureLine) const;
     void RenderStaffLines(RenderData& renderData, Vec2<float> measurePosition, int staffLineCount, float staffLineSpacing) const;
 

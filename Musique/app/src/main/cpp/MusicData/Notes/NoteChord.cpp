@@ -327,11 +327,11 @@ void NoteChord::CalculatePositionAsPaged(const MusicDisplayConstants& displayCon
     }
 }
 
-void NoteChord::InitSound()
+void NoteChord::InitSound(std::shared_ptr<Note> previousNote)
 {
     for (auto note : notes)
     {
-        note->InitSound();
+        note->InitSound(previousNote);
     }
 }
 

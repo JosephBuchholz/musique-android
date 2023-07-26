@@ -16,6 +16,7 @@ static float currentArpeggiosBeatPosition = 0.0f;
 static int currentArpeggiosMeasureIndex = 0;
 
 static std::unordered_map<std::string, std::shared_ptr<Ending>> currentEndings;
+static std::shared_ptr<EndingGroup> currentEndingGroup;
 
 static std::unordered_map<int, std::shared_ptr<Slur>> currentSlurs;
 
@@ -1261,6 +1262,7 @@ void MusicXMLParser::ParseEndingElement(XMLElement* element, std::shared_ptr<Son
         throw IsNullException();
 
     std::string typeString = XMLHelper::GetStringAttribute(element, "type", "", true);
+    std::string endingNumbersString = XMLHelper::GetStringAttribute(element, "number", "", true);
 
     if (typeString == "start")
     {
@@ -1275,7 +1277,6 @@ void MusicXMLParser::ParseEndingElement(XMLElement* element, std::shared_ptr<Son
 
         newEnding->jogLength = XMLHelper::GetFloatAttribute(element, "end-length", newEnding->jogLength);
 
-        std::string endingNumbersString = XMLHelper::GetStringAttribute(element, "number", "", true);
         std::string endingNumbersDisplayText = XMLHelper::GetStringValue(element, "");
 
         if (endingNumbersDisplayText.empty())
@@ -1283,27 +1284,63 @@ void MusicXMLParser::ParseEndingElement(XMLElement* element, std::shared_ptr<Son
         else
             newEnding->endingNumbersText = endingNumbersDisplayText;
 
+        newEnding->endingNumbers = XMLHelper::ParseIntList(endingNumbersString);
+
         if (!currentMeasures.empty())
         {
             newEnding->startMeasureIndex = currentMeasures[0]->index;
-            newEnding->endMeasureIndex = currentMeasures[0]->index + 1;
+            newEnding->endMeasureIndex = currentMeasures[0]->index;
         }
         else
         {
             newEnding->startMeasureIndex = 0;
-            newEnding->endMeasureIndex = 1;
+            newEnding->endMeasureIndex = 0;
         }
 
         if (song)
         {
-            song->endings.push_back(newEnding);
+            if (currentEndingGroup == nullptr)
+            {
+                currentEndingGroup = std::make_shared<EndingGroup>();
+                song->endingGroups.push_back(currentEndingGroup);
+            }
+            else
+            {
+                bool createNewEndingGroup = false;
+                for (auto ending : currentEndingGroup->endings)
+                {
+                    for (int number1 : ending->endingNumbers)
+                    {
+                        for (int number2 : newEnding->endingNumbers)
+                        {
+                            if (number1 == number2)
+                            {
+                                createNewEndingGroup = true;
+                            }
+                        }
+                    }
+                }
+
+                if (createNewEndingGroup)
+                {
+                    if (!currentEndingGroup->endings.empty())
+                    {
+                        currentEndingGroup->endings[currentEndingGroup->endings.size() - 1]->isLastEndingInGroup = true;
+                    }
+
+                    currentEndingGroup = std::make_shared<EndingGroup>();
+                    song->endingGroups.push_back(currentEndingGroup);
+                }
+            }
+
+            currentEndingGroup->endings.push_back(newEnding);
         }
 
         currentEndings[endingNumbersString] = newEnding;
     }
     else if (typeString == "stop")
     {
-        std::shared_ptr<Ending> ending = currentEndings[typeString];
+        std::shared_ptr<Ending> ending = currentEndings[endingNumbersString];
 
         if (ending)
         {
@@ -1317,7 +1354,7 @@ void MusicXMLParser::ParseEndingElement(XMLElement* element, std::shared_ptr<Son
     }
     else if (typeString == "discontinue")
     {
-        std::shared_ptr<Ending> ending = currentEndings[typeString];
+        std::shared_ptr<Ending> ending = currentEndings[endingNumbersString];
 
         if (ending)
         {
@@ -2251,6 +2288,14 @@ void MusicXMLParser::ParseMusicXML(const std::string& data, std::string& error, 
 
                 measureIndex++;
             }
+        }
+    }
+
+    if (currentEndingGroup)
+    {
+        if (!currentEndingGroup->endings.empty())
+        {
+            currentEndingGroup->endings[currentEndingGroup->endings.size() - 1]->isLastEndingInGroup = true;
         }
     }
 

@@ -4,14 +4,29 @@
 #include "../BaseElements/TextualElement.h"
 #include "../BaseElements/LineElement.h"
 
+class EndingSegment
+{
+public:
+
+    unsigned int startMeasureIndex = 0; // the measure that this object starts in
+    unsigned int endMeasureIndex = 0; // the measure that this object ends in
+
+    Vec2<float> positionStart = { 0.0f, 0.0f };
+    Vec2<float> positionEnd = { 0.0f, 0.0f };
+
+    bool isStart = false;
+    bool isEnd = false;
+};
+
 class Ending : public TextualElement, public LineElement
 {
-    friend class Song;
     friend class MusicXMLParser;
 
 public:
 
-    void Render(RenderData& renderData, Vec2<float> measureStartPosition, Vec2<float> measureEndPosition, Vec2<float> offset = { 0.0f, 0.0f }) const;
+    void Render(RenderData& renderData, Vec2<float> measureStartPosition, Vec2<float> measureEndPosition, int startIndex, int endIndex) const;
+
+    void RenderSegment(RenderData& renderData, std::shared_ptr<EndingSegment> segment, Vec2<float> measureStartPosition, Vec2<float> measureEndPosition, Paint paint) const;
 
     BoundingBox GetBoundingBoxRelativeToParent() const;
 
@@ -21,8 +36,6 @@ public:
      * @param parentPosition The position of the parent.
      */
     void UpdateBoundingBox(Vec2<float> parentPosition);
-
-protected:
 
     void CalculatePositionAsPaged(const MusicDisplayConstants& displayConstants);
 
@@ -39,6 +52,10 @@ public:
     int endMeasureIndex; // the measure index at which this ending ends
 
     bool isBroken = false; // whether the ending is broken across two (or more) different systems.
+
+    bool isLastEndingInGroup = false;
+
+    std::vector<std::shared_ptr<EndingSegment>> segments;
 
     // -- Positioning Attributes --
 

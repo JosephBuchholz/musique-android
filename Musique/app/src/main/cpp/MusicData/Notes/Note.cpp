@@ -267,10 +267,26 @@ bool Note::IsNoteIsHigher(Note* note1, Note* note2)
     }
 }
 
-void Note::InitSound()
+#define NOTE_DEFAULT_GRACE_DURATION 0.0625f
+
+void Note::InitSound(std::shared_ptr<Note> previousNote)
 {
     soundBeatPosition = beatPosition;
     soundDuration = duration.duration - 0.05f;
+
+    if (isGraceNote)
+    {
+        soundBeatPosition = beatPosition;
+        soundDuration = NOTE_DEFAULT_GRACE_DURATION;
+    }
+
+    if (previousNote)
+    {
+        if (previousNote->isGraceNote)
+        {
+            soundBeatPosition = previousNote->soundBeatPosition + previousNote->soundDuration;
+        }
+    }
 }
 
 void Note::OnPlay(std::shared_ptr<Player> player, Transpose transpose, int channel, float velocity)

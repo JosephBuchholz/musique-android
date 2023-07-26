@@ -17,7 +17,7 @@ class Barline : public VisibleElement, public LineElement
 {
 public:
 
-    void Render(RenderData& renderData, Vec2<float> measurePosition, float height, float lineSpacing, int lineCount, bool isTopStaff, Vec2<float> offset = { 0.0f, 0.0f }) const;
+    void Render(RenderData& renderData, Vec2<float> measurePosition, float height, float lineSpacing, int lineCount, bool isTopStaff, bool isPartOfEnding, Vec2<float> offset = { 0.0f, 0.0f }) const;
 
     void CalculateAsPaged(const MusicDisplayConstants& displayConstants, float measureWidth, float repeatBarlineOffset);
 

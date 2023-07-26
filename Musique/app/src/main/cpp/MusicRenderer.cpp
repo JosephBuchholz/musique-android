@@ -6,6 +6,7 @@
 #include "Callbacks.h"
 
 #include "MusicData/ComplexLine.h"
+#include "Utils/Math.h"
 
 MusicRenderer::MusicRenderer()
 {
@@ -234,27 +235,6 @@ void MusicRenderer::RenderMusicToPage(std::shared_ptr<Song> song, int page, Rend
             if (systemIndex >= systemPositions.size())
                 systemPositions.push_back(systemPosition);
         }
-
-        for (auto ending : song->endings)
-        {
-            if (song->GetPageIndex(ending->startMeasureIndex) == page)
-            {
-                Vec2<float> systemPosition = { 0.0f, 0.0f };
-                int systemIndex = song->GetSystemIndex(ending->startMeasureIndex);
-                if (systemIndex < systemPositions.size())
-                {
-                    systemPosition.x = systemPositions[systemIndex].x;
-                    systemPosition.y = systemPositions[systemIndex].y;
-                }
-
-                Vec2<float> measureStartPosition = { systemPosition.x + song->GetMeasurePositionX(ending->startMeasureIndex), systemPosition.y };
-                Vec2<float> measureEndPosition = { systemPosition.x + song->GetMeasurePositionX(ending->endMeasureIndex - 1) + song->GetMeasureWidth(ending->endMeasureIndex - 1), systemPosition.y };
-                //Vec2<float> pagePosition = { pageX, pageY };
-
-                if (ending)
-                    ending->Render(pageRenderData, measureStartPosition, measureEndPosition);
-            }
-        }
     }
 }
 
@@ -344,7 +324,6 @@ Vec2<float> MusicRenderer::RenderSystem(RenderData& renderData, std::shared_ptr<
             }*/
 
             instYPosition = systemPosition.y + instrument->systemPositionData[systemIndex].y;
-            LOGW("Instrument y position: %f", instrument->systemPositionData[systemIndex].y);
 
             if (song->instruments.size() > 1)
             {
@@ -380,7 +359,6 @@ Vec2<float> MusicRenderer::RenderSystem(RenderData& renderData, std::shared_ptr<
 
                 staffYPosition = staff->systemPositionData[systemIndex].y;
                 //staffYPosition = instYPosition;
-                LOGW("Staff y position: %f", staff->systemPositionData[systemIndex].y);
 
                 for (auto direction : staff->durationDirections)
                 {
@@ -399,7 +377,7 @@ Vec2<float> MusicRenderer::RenderSystem(RenderData& renderData, std::shared_ptr<
                     }
                 }
 
-                RenderLineOfMeasures(renderData, startMeasure, endMeasure, song->systems[systemIndex], staff, systemPosition.x, staffYPosition + instYPosition, ls, instrumentIndex == 0 && staffIndex == 0);
+                RenderLineOfMeasures(renderData, startMeasure, endMeasure, song->systems[systemIndex], staff, systemPosition.x, staffYPosition + instYPosition, ls, instrumentIndex == 0 && staffIndex == 0, song->endingGroups);
 
                 staffIndex++;
             } // staves loop
@@ -433,6 +411,30 @@ Vec2<float> MusicRenderer::RenderSystem(RenderData& renderData, std::shared_ptr<
     /*if (prevInstrument != nullptr)
         systemPosition.y = instYPosition + song->systems[systemIndex + 1]->layout.systemDistance + lastInstrumentMiddleHeight;
     systemPosition.x = pagePosition.x + song->displayConstants.leftMargin + song->systems[systemIndex + 1]->layout.systemLeftMargin;*/
+
+    for (auto endingGroup : song->endingGroups)
+    {
+        for (auto ending : endingGroup->endings)
+        {
+            if (DoBoundsCollide(ending->startMeasureIndex, ending->endMeasureIndex, (int)startMeasure, (int)endMeasure))
+            {
+                int startMeasureIndex = std::max(ending->startMeasureIndex, (int)startMeasure);
+                int endMeasureIndex = std::min(ending->endMeasureIndex, (int)endMeasure);
+
+                float startMeasurePositionX = song->GetMeasurePositionX(startMeasureIndex) + systemPosition.x;
+                float endMeasurePositionX = song->GetMeasurePositionX(endMeasureIndex) + systemPosition.x;
+
+                float endMeasureWidth = song->GetMeasureWidth(endMeasureIndex);
+                Vec2<float> measureStartPosition = { startMeasurePositionX, systemPosition.y };
+                Vec2<float> measureEndPosition = { endMeasurePositionX + endMeasureWidth, systemPosition.y };
+
+                //LOGE("startMI: %d, endMI: %d, SposX: %f, EposX: %f, mWidth: %f", startMeasureIndex, endMeasureIndex, startMeasurePositionX, endMeasurePositionX, endMeasureWidth);
+
+                if (ending)
+                    ending->Render(renderData, measureStartPosition, measureEndPosition, startMeasureIndex, endMeasureIndex);
+            }
+        }
+    }
 
     return systemPosition;
 }
@@ -513,7 +515,7 @@ void MusicRenderer::RenderWithRenderData()
     }
 }
 
-void MusicRenderer::RenderLineOfMeasures(RenderData& renderData, unsigned int startMeasure, unsigned int endMeasure, std::shared_ptr<System> system, std::shared_ptr<Staff> staff, float systemPositionX, float staffPositionY, float lineSpacing, bool isTopMeasureLine)
+void MusicRenderer::RenderLineOfMeasures(RenderData& renderData, unsigned int startMeasure, unsigned int endMeasure, std::shared_ptr<System> system, std::shared_ptr<Staff> staff, float systemPositionX, float staffPositionY, float lineSpacing, bool isTopMeasureLine, std::vector<std::shared_ptr<EndingGroup>> endingGroups)
 {
     bool multiMeasureRest = false; // whether the measure is part of a multi measure rest
     unsigned int numberOfMeasuresInMultiMeasureRest = 0; // number of measures left in multi measure rest
@@ -569,7 +571,17 @@ void MusicRenderer::RenderLineOfMeasures(RenderData& renderData, unsigned int st
                 measureThatStartedMultiMeasureRest = measureIndex;
             }
 
-            measure->Render(renderData, { measurePositionX, staffPositionY }, nextMeasurePositionX, system, staff->lines, lineSpacing, isTopMeasureLine, isLastMeasureInSystem, staff->tablatureDisplayType);
+            bool isPartOfEnding = false;
+            for (auto endingGroup : endingGroups)
+            {
+                for (auto ending : endingGroup->endings)
+                {
+                    if (ending->startMeasureIndex <= measureIndex && ending->endMeasureIndex >= measureIndex)
+                        isPartOfEnding = true;
+                }
+            }
+
+            measure->Render(renderData, { measurePositionX, staffPositionY }, nextMeasurePositionX, system, staff->lines, lineSpacing, isTopMeasureLine, isLastMeasureInSystem, staff->tablatureDisplayType, isPartOfEnding);
 
             currentMeasureRenderedCount++;
         }

@@ -21,9 +21,9 @@ App::~App()
     isUpdating = false;
     LOGI("App Deconstructer");
     ViewModelData viewModelData = ViewModelData();
-    viewModelData.playing = musicPlayer->playing;
-    viewModelData.playLineBeatPosition = musicPlayer->playLineBeatPosition;
-    viewModelData.currentMeasure = musicPlayer->currentMeasure;
+    viewModelData.playing = musicPlayer->IsPlaying();
+    viewModelData.playLineBeatPosition = musicPlayer->GetPlayLineBeatPosition();
+    viewModelData.currentMeasure = musicPlayer->GetCurrentMeasure();
     UpdateViewModelData(viewModelData);
     DeleteSong();
     LOGI("App Done Deconstructing");
@@ -125,7 +125,7 @@ void App::DeleteSong()
 
 void App::OnMidiStart()
 {
-    musicPlayer->player->ChangeInstrument((int)Player::InstrumentSound::AcousticGrandPiano, 0);
+    musicPlayer->OnStart();
 }
 
 void App::OnUpdate(double dt)
@@ -188,9 +188,9 @@ void App::OnUpdate(double dt)
 
             FrameData frameData = FrameData();
 
-            int currentSystemIndex = song->GetSystemIndex(musicPlayer->currentMeasure);
-            int currentPageIndex = song->GetPageIndex(musicPlayer->currentMeasure);
-            playLinePosition = musicRenderer->systemPositions[currentSystemIndex].x + song->GetMeasurePositionX(musicPlayer->currentMeasure);
+            int currentSystemIndex = song->GetSystemIndex(musicPlayer->GetCurrentMeasure());
+            int currentPageIndex = song->GetPageIndex(musicPlayer->GetCurrentMeasure());
+            playLinePosition = musicRenderer->systemPositions[currentSystemIndex].x + song->GetMeasurePositionX(musicPlayer->GetCurrentMeasure());
             playLineY = musicRenderer->systemPositions[currentSystemIndex].y;
 
             playLineHeight = song->GetSystemHeight(currentSystemIndex);
@@ -198,8 +198,8 @@ void App::OnUpdate(double dt)
             frameData.playLinePosition = playLinePosition;
             frameData.playLinePositionY = playLineY;
             frameData.playLineHeight = playLineHeight;
-            frameData.playProgress = musicPlayer->playLineBeatPosition / song->totalBeatWidth;
-            frameData.isPlaying = musicPlayer->playing;
+            frameData.playProgress = musicPlayer->GetPlayLineBeatPosition() / song->totalBeatWidth;
+            frameData.isPlaying = musicPlayer->IsPlaying();
 
             /*frameData.playLinePosition = 10.0f;
             frameData.playLinePositionY = 10.0f;
@@ -216,14 +216,17 @@ void App::OnUpdate(double dt)
 
 void App::SetViewModelData(ViewModelData viewModelData)
 {
-    musicPlayer->playing = viewModelData.playing;
-    musicPlayer->playLineBeatPosition = viewModelData.playLineBeatPosition;
-    musicPlayer->currentMeasure = viewModelData.currentMeasure;
+    if (viewModelData.playing)
+        musicPlayer->OnPlay();
+    else
+        musicPlayer->OnStop();
+    musicPlayer->SetPlayLineBeatPosition(viewModelData.playLineBeatPosition);
+    musicPlayer->SetCurrentMeasure(viewModelData.currentMeasure);
 }
 
 void App::OnPlayProgressChanged(float progress)
 {
-    musicPlayer->playLineBeatPosition = song->totalBeatWidth * progress;
+    musicPlayer->SetPlayLineBeatPosition(song->totalBeatWidth * progress);\
 }
 
 bool App::OnUpdatePrintLayout()
@@ -275,13 +278,13 @@ void App::OnInputEvent(const InputEvent& event)
     {
         case InputEvent::InputEventType::Tap:
         {
-            std::shared_ptr<Measure> selectedMeasure = song->GetMeasureAtPoint(event.position);
+            std::shared_ptr<Measure> selectedMeasure = song->GetMeasureAtPoint(event.position, musicRenderer->systemPositions);
 
             if (selectedMeasure != nullptr)
             {
                 LOGD("A measure was selected! %d", selectedMeasure->index);
 
-                musicPlayer->playLineBeatPosition = selectedMeasure->beatPosition;
+                musicPlayer->TravelToVisualBeatPosition(selectedMeasure->beatPosition, song);
             }
 
             LOGD("Received a tap event at: %s", event.position.GetPrintableString().c_str());
