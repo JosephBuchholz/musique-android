@@ -160,3 +160,25 @@ void Bend::CalculatePositionAsPaged(const MusicDisplayConstants& displayConstant
         }*/
     }
 }
+
+void Bend::OnPlay(std::shared_ptr<Player> player, int channel)
+{
+
+}
+
+void Bend::OnStop(std::shared_ptr<Player> player, int channel)
+{
+    player->PitchBendNote(PlayableNote(), 0.0f, channel);
+}
+
+void Bend::OnUpdate(std::shared_ptr<Player> player, float beatPositionRelativeToNote, float noteDuration, int channel)
+{
+    float semitonesAtEnd = alterSemitones;
+    float percentage = beatPositionRelativeToNote / (noteDuration * firstBeat);
+    float alterSemi = percentage * semitonesAtEnd;
+
+    if (alterSemi > semitonesAtEnd)
+        alterSemi = semitonesAtEnd;
+
+    player->PitchBendNote(PlayableNote(), alterSemi, channel);
+}

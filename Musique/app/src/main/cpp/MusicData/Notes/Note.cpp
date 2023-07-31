@@ -1,6 +1,7 @@
 #include "Note.h"
 
 #define NOTE_DEFAULT_MUTED_NOTE_SOUND PlayableUnpitchedNote::NoteSound::SnareDrum2
+#define NOTE_DEFAULT_GRACE_DURATION 0.0625f
 
 void Note::Render(RenderData& renderData, TablatureDisplayType tabDisplayType, float notePositionRelativeToMeasure, int lines, Vec2<float> measurePosition, float nextMeasurePositionX, float ls) const
 {
@@ -267,8 +268,6 @@ bool Note::IsNoteIsHigher(Note* note1, Note* note2)
     }
 }
 
-#define NOTE_DEFAULT_GRACE_DURATION 0.0625f
-
 void Note::InitSound(std::shared_ptr<Note> previousNote)
 {
     soundBeatPosition = beatPosition;
@@ -287,11 +286,21 @@ void Note::InitSound(std::shared_ptr<Note> previousNote)
             soundBeatPosition = previousNote->soundBeatPosition + previousNote->soundDuration;
         }
     }
+
+    for (auto articulation : articulations)
+    {
+        articulation->ModifySoundDuration(soundDuration);
+    }
 }
 
 void Note::OnPlay(std::shared_ptr<Player> player, Transpose transpose, int channel, float velocity)
 {
     isPlaying = true;
+
+    for (auto articulation : articulations)
+    {
+        articulation->ModifyVelocity(velocity);
+    }
 
     if (noteHead.type == NoteHead::NoteHeadType::X)
     {
@@ -347,11 +356,6 @@ void Note::PlayPitch(std::shared_ptr<Player> player, Transpose transpose, int ch
     note.pitch = pitch;
     note.pitch.octave += transpose.octaveChange;
     note.velocity = velocity;
-    for (auto articulation : articulations) // TODO: temp
-    {
-        if (articulation)
-            note.velocity += 16;
-    }
     player->PlayNote(note, channel);
 }
 
@@ -362,11 +366,84 @@ void Note::StopPitch(std::shared_ptr<Player> player, Transpose transpose, int ch
     note.pitch.octave += transpose.octaveChange;
     note.velocity = velocity;
     player->StopNote(note, channel);
+
+    for (auto glissSlide : glissSlides)
+    {
+        if (glissSlide)
+        {
+            if (glissSlide->notes.first.get() == this)
+            {
+                int notes = std::abs(glissSlide->notes.second->pitch.GetPitchValue() - pitch.GetPitchValue());
+
+                bool isSlideUp = true;
+                if (glissSlide->notes.second->pitch < pitch)
+                    isSlideUp = false;
+
+                PlayableNote previousNote;
+                previousNote.pitch = pitch;
+                if (isSlideUp)
+                    previousNote.pitch.SetPitchValue(previousNote.pitch.GetPitchValue() + (notes - 1));
+                else
+                    previousNote.pitch.SetPitchValue(previousNote.pitch.GetPitchValue() - (notes - 1));
+                previousNote.pitch.octave += transpose.octaveChange;
+                previousNote.velocity = velocity;
+                player->StopNote(previousNote, channel);
+            }
+        }
+    }
 }
 
-void Note::OnUpdate()
+void Note::OnUpdate(std::shared_ptr<Player> player, Transpose transpose, int channel, float velocity, float beatPositionRelativeToNote, float previousBeatPositionRelativeToNote)
 {
+    for (auto technique : techniques)
+    {
+        technique->OnUpdate(player, beatPositionRelativeToNote, soundDuration, channel);
+    }
 
+    for (auto glissSlide : glissSlides)
+    {
+        if (glissSlide)
+        {
+            if (glissSlide->notes.first.get() == this)
+            {
+                int notes = std::abs(glissSlide->notes.second->pitch.GetPitchValue() - pitch.GetPitchValue());
+
+                bool isSlideUp = true;
+                if (glissSlide->notes.second->pitch < pitch)
+                    isSlideUp = false;
+
+                float timeInterval = soundDuration / notes;
+
+                for (int i = 1; i < notes; i++)
+                {
+                    if (beatPositionRelativeToNote >= timeInterval * i && previousBeatPositionRelativeToNote <= timeInterval * i)
+                    {
+                        PlayableNote previousNote;
+                        previousNote.pitch = pitch;
+                        if (isSlideUp)
+                            previousNote.pitch.SetPitchValue(previousNote.pitch.GetPitchValue() + (i - 1));
+                        else
+                            previousNote.pitch.SetPitchValue(previousNote.pitch.GetPitchValue() - (i - 1));
+                        previousNote.pitch.octave += transpose.octaveChange;
+                        previousNote.velocity = velocity;
+                        player->StopNote(previousNote, channel);
+
+                        PlayableNote note;
+                        note.pitch = pitch;
+                        if (isSlideUp)
+                            note.pitch.SetPitchValue(note.pitch.GetPitchValue() + i);
+                        else
+                            note.pitch.SetPitchValue(note.pitch.GetPitchValue() - i);
+                        note.pitch.octave += transpose.octaveChange;
+                        note.velocity = velocity;
+                        player->PlayNote(note, channel);
+
+                        //LOGW("previousNote.pitch: %s ||| note.pitch: %s ||| this->pitch: %s", previousNote.pitch.GetPrintableString().c_str(), note.pitch.GetPrintableString().c_str(), pitch.GetPrintableString().c_str());
+                    }
+                }
+            }
+        }
+    }
 }
 
 float Note::GetMinWidth()

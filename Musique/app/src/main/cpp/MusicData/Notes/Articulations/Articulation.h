@@ -42,6 +42,11 @@ public:
      */
     virtual void CalculatePositionAsPaged(const MusicDisplayConstants& displayConstants, float topStaffLineDistNote, bool isTab, std::shared_ptr<NoteStem> noteStem, float topNotePositionY, float bottomNotePositionY) = 0;
 
+    // ----- Sound Related Functions -----
+
+    virtual void ModifySoundDuration(float& soundDuration) {}
+    virtual void ModifyVelocity(float& velocity) {}
+
 public:
     // Whether it this articulation is above or below the note.
     AboveBelowType placement = AboveBelowType::Above;

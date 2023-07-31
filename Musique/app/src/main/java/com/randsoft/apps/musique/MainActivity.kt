@@ -77,7 +77,7 @@ class MainActivity : AppCompatActivity(), MusicDisplayFragment.Callbacks,
         // initializing view model
         viewModel = ViewModelProvider(this).get(MainActivityViewModel::class.java)
         if (viewModel.songIsOpen)
-            onSongOpened(viewModel.songString)
+            onSongOpened(0/*viewModel.songId*/, viewModel.songString)
 
         // initializing native view model
         nativeViewModel = ViewModelProvider(this).get(NativeViewModel::class.java)
@@ -177,11 +177,11 @@ class MainActivity : AppCompatActivity(), MusicDisplayFragment.Callbacks,
         }*/
     }
 
-    override fun onSongOpened(string: String) {
+    override fun onSongOpened(songId: Int, string: String) {
 
         if (supportFragmentManager.findFragmentByTag(TAG_MUSIC_DISPLAY_FRAGMENT) == null)
         {
-            musicDisplayFragment = MusicDisplayFragment.newInstance()
+            musicDisplayFragment = MusicDisplayFragment.newInstance(songId)
             supportFragmentManager
                 .beginTransaction()
                 .replace(R.id.fragment_container, musicDisplayFragment!!, TAG_MUSIC_DISPLAY_FRAGMENT)

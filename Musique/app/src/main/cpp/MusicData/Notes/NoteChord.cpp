@@ -351,10 +351,10 @@ void NoteChord::OnStop(std::shared_ptr<Player> player, Transpose transpose, int 
     }
 }
 
-void NoteChord::OnUpdate()
+void NoteChord::OnUpdate(std::shared_ptr<Player> player, Transpose transpose, int channel, float velocity, float beatPositionRelativeToNote, float previousBeatPositionRelativeToNote)
 {
     for (auto note : notes)
     {
-        note->OnUpdate();
+        note->OnUpdate(player, transpose, channel, velocity, beatPositionRelativeToNote, previousBeatPositionRelativeToNote);
     }
 }

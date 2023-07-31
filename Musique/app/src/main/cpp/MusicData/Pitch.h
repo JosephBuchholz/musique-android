@@ -15,11 +15,17 @@ struct Pitch
     static float GetPitchPositionY(const Pitch& pitch, const Clef& clef);
 
     static std::string GetStepValueFromNoteNumber(int noteNumber);
+    static int GetNoteNumberFromStepValue(std::string stepValue);
 
     int GetPitchValue() const;
+    void SetPitchValue(int value);
 
     static int GetLetterNumber(const std::string& s);
 
+    // for debug
+    std::string GetPrintableString() const { return "Pitch: step: " + step + ", octave: " + ToString(octave) + ", alter: " + ToString(alter) + ", value: " + ToString(GetPitchValue()); }
+
+public:
     std::string step = "C";
     int octave = 4;
     float alter = 0.0f;

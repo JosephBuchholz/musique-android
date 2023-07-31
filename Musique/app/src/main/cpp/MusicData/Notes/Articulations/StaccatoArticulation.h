@@ -24,6 +24,9 @@ public:
 
     void CalculatePositionAsPaged(const MusicDisplayConstants& displayConstants, float topStaffLineDistNote, bool isTab, std::shared_ptr<NoteStem> noteStem, float topNotePositionY, float bottomNotePositionY) override;
 
+    void ModifySoundDuration(float& soundDuration) override;
+    void ModifyVelocity(float& velocity) override;
+
 public:
 
     enum class Type {

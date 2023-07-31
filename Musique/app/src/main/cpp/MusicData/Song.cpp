@@ -40,6 +40,7 @@ void Song::OnLayoutChanged(Settings::MusicLayout layout)
 
 void Song::OnUpdate()
 {
+    // TODO: this is some pretty terrible looking code, needs fixed
     LOGD("updating song data");
 
     songData.instrumentInfos.clear();

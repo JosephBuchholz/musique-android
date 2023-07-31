@@ -48,9 +48,40 @@ std::string Pitch::GetStepValueFromNoteNumber(int noteNumber)
     return "";
 }
 
+int Pitch::GetNoteNumberFromStepValue(std::string stepValue)
+{
+    int num = 0;
+    if (stepValue == "C") {
+        num = 0;
+    } else if (stepValue == "D") {
+        num = 2;
+    } else if (stepValue == "E") {
+        num = 4;
+    } else if (stepValue == "F") {
+        num = 5;
+    } else if (stepValue == "G") {
+        num = 7;
+    } else if (stepValue == "A") {
+        num = 9;
+    } else if (stepValue == "B") {
+        num = 11;
+    }
+
+    return num;
+}
+
 int Pitch::GetPitchValue() const
 {
-    return GetLetterNumber(step) + (octave * 12) + alter;
+    return GetNoteNumberFromStepValue(step) + (octave * 12) + alter;
+}
+
+void Pitch::SetPitchValue(int value)
+{
+    octave = value / 12;
+    value -= octave * 12;
+    step = GetStepValueFromNoteNumber(value);
+    int stepNoteNumber = GetNoteNumberFromStepValue(step);
+    alter = value - stepNoteNumber;
 }
 
 int Pitch::GetLetterNumber(const std::string& s)

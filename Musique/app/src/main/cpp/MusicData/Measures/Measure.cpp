@@ -740,7 +740,7 @@ void Measure::OnUpdate(std::shared_ptr<Player> player, bool isCurrentMeasure, in
             std::shared_ptr<Note> rootNote = noteChord->notes[0];
 
             float noteBeatPosition = rootNote->soundBeatPosition;
-            float noteDuration = rootNote->duration.duration;
+            float noteDuration = rootNote->soundDuration;
 
             if (swingTempo.swingType != SwingTempo::SwingType::Straight)
             {
@@ -790,13 +790,17 @@ void Measure::OnUpdate(std::shared_ptr<Player> player, bool isCurrentMeasure, in
             { // so stop the note
                 noteChord->OnStop(player, transpose, channel, currentVelocity);
             }
+            else if (rootNote->isPlaying)
+            {
+                noteChord->OnUpdate(player, transpose, channel, currentVelocity, playLineBeatPosition - (noteBeatPosition + measureBeatPosition), previousPlayLineBeatPosition - (noteBeatPosition + measureBeatPosition));
+            }
         }
 
         int noteIndex = 0;
         for (auto note : notes)
         {
             float noteBeatPosition = note->soundBeatPosition;
-            float noteDuration = note->duration.duration;
+            float noteDuration = note->soundDuration;
 
             if (swingTempo.swingType != SwingTempo::SwingType::Straight)
             {
@@ -845,6 +849,10 @@ void Measure::OnUpdate(std::shared_ptr<Player> player, bool isCurrentMeasure, in
                      !(playLineBeatPosition <= noteBeatPosition + noteDuration + measureBeatPosition)) // note is playing but/and the play line has passed the end of the note
             { // so stop the note
                 note->OnStop(player, transpose, channel, currentVelocity);
+            }
+            else if (note->isPlaying)
+            {
+                note->OnUpdate(player, transpose, channel, currentVelocity, playLineBeatPosition - (noteBeatPosition + measureBeatPosition), previousPlayLineBeatPosition - (noteBeatPosition + measureBeatPosition));
             }
 
             noteIndex++;

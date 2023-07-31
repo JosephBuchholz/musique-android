@@ -27,6 +27,10 @@ public:
 
     void CalculatePositionAsPaged(const MusicDisplayConstants& displayConstants, float topStaffLineDistNote, bool isTab, std::shared_ptr<NoteStem> noteStem, float topNotePositionY, float bottomNotePositionY) override;
 
+    void OnPlay(std::shared_ptr<Player> player, int channel) override;
+    void OnStop(std::shared_ptr<Player> player, int channel) override;
+    void OnUpdate(std::shared_ptr<Player> player, float beatPositionRelativeToNote, float noteDuration, int channel) override;
+
 public:
 
     enum class BendType

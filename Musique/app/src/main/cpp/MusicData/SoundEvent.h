@@ -5,6 +5,8 @@
 #ifndef MUSIQUE_SOUNDEVENT_H
 #define MUSIQUE_SOUNDEVENT_H
 
+#include <vector>
+
 class SwingTempo
 {
 public:
@@ -28,10 +30,35 @@ public:
     float beatPosition = 0.0f; // the position in the measure in beats(quarter notes)
     float beatPositionInSong = 0.0f; // the position in the song(not counting repeats) in beats(quarter notes)
 
+    /**
+     * Modifies tempo if event needs to.
+     *
+     * @param tempo The value to modify.
+     */
     virtual void ModifyTempo(float& tempo) {}
+
+    /**
+     * Modifies the velocity if event needs to.
+     *
+     * @param velocity The value to modify.
+     */
     virtual void ModifyVelocity(float& velocity) {}
+
+    /**
+     * Modifies the swing tempo if event needs to.
+     *
+     * @param swing The value to modify.
+     */
     virtual void ModifySwingTempo(SwingTempo& swing) {}
+
+    /**
+     * Modifies pizzicato state if event needs to.
+     *
+     * @param pizzicato The value to modify.
+     */
     virtual void ModifyPizzicato(bool& pizzicato) {}
+
+    std::vector<int> timeOnly; // These values indicate what times this event should happen for multiple repeats. If empty, then this event happens on all repeats.
 };
 
 class TempoSoundEvent : public SoundEvent
@@ -71,5 +98,18 @@ public:
 
     bool pizzicato = false;
 };
+
+/*class JumpSoundEvent : public SoundEvent
+{
+public:
+    bool daCapo = false; // jump to the beginning
+    bool dalSegno = false; // jump to segno
+
+    // coda
+    // fine
+    // segno
+
+    bool toCoda = false; // jump to coda
+};*/
 
 #endif // MUSIQUE_SOUNDEVENT_H

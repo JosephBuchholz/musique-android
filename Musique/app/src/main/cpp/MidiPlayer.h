@@ -54,6 +54,8 @@ public:
     void PlayUnpitchedNote(const PlayableUnpitchedNote& note) override;
     void StopUnpitchedNote(const PlayableUnpitchedNote& note) override;
 
+    void PitchBendNote(const PlayableNote& note, float alterSemitones, int channel) override;
+
     void ChangeInstrument(int instrument, int channel = 0) override;
 
     void StopAllNotes() override;

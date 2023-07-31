@@ -89,3 +89,27 @@ void StaccatoArticulation::CalculatePositionAsPaged(const MusicDisplayConstants&
 
     position.x -= GetDimensions().x / 2.0f;
 }
+
+void StaccatoArticulation::ModifySoundDuration(float& soundDuration)
+{
+    switch (type)
+    {
+        case Type::Staccato: soundDuration /= 2.0f; break;
+        case Type::Staccatissimo: soundDuration /= 3.0f; break;
+        case Type::Spiccato: soundDuration /= 4.0f; break;
+
+        case Type::Tenuto:
+        case Type::DetachedLegato:
+        default: break;
+    }
+}
+
+void StaccatoArticulation::ModifyVelocity(float& velocity)
+{
+    switch (type)
+    {
+        case Type::Tenuto: velocity += 10.0f; break;
+        case Type::DetachedLegato: velocity += 10.0f; break;
+        default: break;
+    }
+}

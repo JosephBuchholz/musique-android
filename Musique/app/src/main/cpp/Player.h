@@ -127,6 +127,8 @@ public:
     virtual void PlayUnpitchedNote(const PlayableUnpitchedNote& note) = 0;
     virtual void StopUnpitchedNote(const PlayableUnpitchedNote& note) = 0;
 
+    virtual void PitchBendNote(const PlayableNote& note, float alterSemitones, int channel = 0) = 0;
+
     virtual void ChangeInstrument(int instrument, int channel = 0) = 0;
 
     virtual void StopAllNotes() = 0;

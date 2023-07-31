@@ -31,7 +31,7 @@ private const val ARG_READ_PERMISSION_GRANTED = "ReadPermissionGrated"
 class SongListFragment() : Fragment(), WebRepository.Callbacks {
 
     interface Callbacks {
-        fun onSongOpened(string: String)
+        fun onSongOpened(songId: Int, string: String)
     }
 
     private var readPermissionGranted: Boolean = false
@@ -51,7 +51,7 @@ class SongListFragment() : Fragment(), WebRepository.Callbacks {
     private val openDocument = registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         if (readPermissionGranted) {
             if (uri != null) {
-                callbacks?.onSongOpened(fileHandler.getStringFromFile(uri))
+                callbacks?.onSongOpened(0, fileHandler.getStringFromFile(uri))
             }
         }
     }
@@ -222,7 +222,7 @@ class SongListFragment() : Fragment(), WebRepository.Callbacks {
                 this@SongListFragment,
                 Observer { string ->
                     onStopLoading()
-                    callbacks?.onSongOpened(string)
+                    callbacks?.onSongOpened(songItem.id, string)
                 })
         }
     }

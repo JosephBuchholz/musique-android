@@ -121,3 +121,14 @@ void Accent::CalculatePositionAsPaged(const MusicDisplayConstants& displayConsta
 
     position.x -= GetDimensions().x / 2.0f;
 }
+
+void Accent::ModifyVelocity(float& velocity)
+{
+    switch (type)
+    {
+        case Type::Accent: velocity += 20.0f; break;
+        case Type::StrongAccent: velocity += 30.0f; break;
+        case Type::SoftAccent: velocity -= 10.0f; break;
+        default: break;
+    }
+}

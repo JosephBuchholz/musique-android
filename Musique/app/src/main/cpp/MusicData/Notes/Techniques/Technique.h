@@ -8,6 +8,7 @@
 #include "../../BaseElements/VisibleElement.h"
 #include "../../Types.h"
 #include "../NoteStem.h"
+#include "../../../Player.h"
 
 /**
  * The base class for musical techniques (such as bowing directions, fingerings, or harmonics).
@@ -42,6 +43,10 @@ public:
      * @param isTab Whether the parent note is a tablature note.
      */
     virtual void CalculatePositionAsPaged(const MusicDisplayConstants& displayConstants, float topStaffLineDistNote, bool isTab, std::shared_ptr<NoteStem> noteStem, float topNotePositionY, float bottomNotePositionY) = 0;
+
+    virtual void OnPlay(std::shared_ptr<Player> player, int channel) {}
+    virtual void OnStop(std::shared_ptr<Player> player, int channel) {}
+    virtual void OnUpdate(std::shared_ptr<Player> player, float beatPositionRelativeToNote, float noteDuration, int channel) {}
 
 public:
     // Whether it this technique is above or below the note.

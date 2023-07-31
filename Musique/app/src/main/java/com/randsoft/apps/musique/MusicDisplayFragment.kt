@@ -10,16 +10,22 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.print.PrintAttributes
+import android.text.method.LinkMovementMethod
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.ImageButton
+import android.widget.ImageView
+import android.widget.RelativeLayout
 import android.widget.SeekBar
 import android.widget.TextView
+import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.core.text.HtmlCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.LiveData
+import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.randsoft.apps.musique.event.InputEvent
@@ -31,18 +37,24 @@ import com.randsoft.apps.musique.songdata.SongData
 
 private const val TAG = "MusicDisplayFragment"
 
-class MusicDisplayFragment : Fragment(), PrintHandler.Callbacks, SettingsDialogFragment.Callbacks, MusicDisplayView.Callbacks {
+private const val ARG_SONG_ID = "SongId"
+
+class MusicDisplayFragment : Fragment(), PrintHandler.Callbacks, SettingsDialogFragment.Callbacks, MusicDisplayView.Callbacks, WebRepository.Callbacks {
 
     private var musicDisplayView: MusicDisplayView? = null
 
     private lateinit var titleTextView: TextView
 
-    private lateinit var playButton: ImageButton
-    private lateinit var metronomeButton: ImageButton
-    private lateinit var restartButton: ImageButton
-    private lateinit var printButton: ImageButton
-    private lateinit var instrumentControlButton: ImageButton
-    private lateinit var settingsButton: ImageButton
+    private lateinit var playButton: ImageView
+    private lateinit var metronomeButton: ImageView
+    private lateinit var restartButton: ImageView
+    private lateinit var printButton: ImageView
+    private lateinit var instrumentControlButton: RelativeLayout
+    private lateinit var settingsButton: ImageView
+
+    private lateinit var sideMenuButton: RelativeLayout
+    private lateinit var sideMenu: ConstraintLayout
+    private lateinit var sideMenuSongDescTextView: TextView
 
     private lateinit var zoomSeekBar: SeekBar
     private lateinit var playSeekBar: SeekBar
@@ -57,6 +69,10 @@ class MusicDisplayFragment : Fragment(), PrintHandler.Callbacks, SettingsDialogF
 
     var playing = false // needs to be in a ViewModel
     var metronomeIsOn = false
+
+    private lateinit var webRepository: WebRepository
+
+    private var songId: Int = 0
 
     interface Callbacks {
         fun onStartRendering()
@@ -86,6 +102,12 @@ class MusicDisplayFragment : Fragment(), PrintHandler.Callbacks, SettingsDialogF
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        songId = requireArguments().getInt(ARG_SONG_ID)
+
+        webRepository = WebRepository()
+        webRepository.setCallbacks(this)
+
         printHandler = PrintHandler(requireContext())
         printHandler.setCallbacks(this)
     }
@@ -116,7 +138,7 @@ class MusicDisplayFragment : Fragment(), PrintHandler.Callbacks, SettingsDialogF
         musicDisplayView = view.findViewById(R.id.music_display_view)
         musicDisplayView?.setCallbacks(this)
 
-        playButton = view.findViewById(R.id.play_button)
+        playButton = view.findViewById(R.id.play_button_icon)
         playButton.setOnClickListener {
             playing = !playing;
             callbacks?.onPlayButtonToggled(playing)
@@ -127,13 +149,13 @@ class MusicDisplayFragment : Fragment(), PrintHandler.Callbacks, SettingsDialogF
             }
         }
 
-        metronomeButton = view.findViewById(R.id.metronome_button)
+        metronomeButton = view.findViewById(R.id.metronome_button_icon)
         metronomeButton.setOnClickListener {
             metronomeIsOn = !metronomeIsOn;
             callbacks?.onMetronomeButtonToggled(metronomeIsOn)
         }
 
-        restartButton = view.findViewById(R.id.restart_button)
+        restartButton = view.findViewById(R.id.restart_button_icon)
         restartButton.setOnClickListener {
             if (playing) {
                 playing = false;
@@ -143,7 +165,7 @@ class MusicDisplayFragment : Fragment(), PrintHandler.Callbacks, SettingsDialogF
             callbacks?.onResetButtonPressed()
         }
 
-        printButton = view.findViewById(R.id.print_button)
+        printButton = view.findViewById(R.id.print_button_icon)
         printButton.setOnClickListener {
             if (playing) { // stop the play back
                 playing = false;
@@ -161,7 +183,7 @@ class MusicDisplayFragment : Fragment(), PrintHandler.Callbacks, SettingsDialogF
                 instrumentControlRecyclerView.visibility = View.GONE
         }
 
-        settingsButton = view.findViewById(R.id.settings_button)
+        settingsButton = view.findViewById(R.id.settings_button_icon)
         settingsButton.setOnClickListener {
             settingsDialogFragment.show(parentFragmentManager, "SettingsDialog")
         }
@@ -201,6 +223,28 @@ class MusicDisplayFragment : Fragment(), PrintHandler.Callbacks, SettingsDialogF
                 callbacks?.onPlayProgressChanged(fProgress)
             }
         })
+
+        // top control bar
+
+        sideMenu = view.findViewById(R.id.side_menu)
+        sideMenuSongDescTextView = view.findViewById(R.id.song_description_text_view)
+        sideMenuSongDescTextView.movementMethod = LinkMovementMethod.getInstance();
+
+        val responseLiveData: LiveData<String> = webRepository.getDescriptionFile(songId)
+        responseLiveData.observe(
+            viewLifecycleOwner,
+            Observer { descString ->
+                sideMenuSongDescTextView.text = HtmlCompat.fromHtml(descString, 0)
+            })
+
+        sideMenuButton = view.findViewById(R.id.side_menu_button)
+        sideMenuButton.setOnClickListener {
+            Log.d(TAG, "button clicked")
+            if (sideMenu.visibility == View.GONE)
+                sideMenu.visibility = View.VISIBLE
+            else
+                sideMenu.visibility = View.GONE
+        }
 
         titleTextView = view.findViewById(R.id.titleTextView)
 
@@ -366,9 +410,19 @@ class MusicDisplayFragment : Fragment(), PrintHandler.Callbacks, SettingsDialogF
         callbacks?.onInputEvent(inputEvent)
     }
 
+    override fun onWebRequestFailed() {
+        Log.e(TAG, "Web request failed")
+    }
+
     companion object {
-        fun newInstance(): MusicDisplayFragment  {
-            return MusicDisplayFragment()
+        fun newInstance(songId: Int): MusicDisplayFragment  {
+            val args = Bundle().apply {
+                putInt(ARG_SONG_ID, songId)
+            }
+
+            return MusicDisplayFragment().apply {
+                arguments = args
+            }
         }
     }
 }

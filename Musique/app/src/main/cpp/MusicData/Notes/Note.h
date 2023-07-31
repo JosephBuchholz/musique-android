@@ -111,7 +111,7 @@ public:
 
     void OnPlay(std::shared_ptr<Player> player, Transpose transpose, int channel, float velocity);
     void OnStop(std::shared_ptr<Player> player, Transpose transpose, int channel, float velocity);
-    void OnUpdate();
+    void OnUpdate(std::shared_ptr<Player> player, Transpose transpose, int channel, float velocity, float beatPositionRelativeToNote, float previousBeatPositionRelativeToNote);
 
 private:
     void PlayPitch(std::shared_ptr<Player> player, Transpose transpose, int channel, float velocity);

@@ -86,6 +86,24 @@ void MidiPlayer::StopUnpitchedNote(const PlayableUnpitchedNote& note)
     WriteMidi(event, 3);
 }
 
+#define MIDI_PITCH_BEND_MSG 0xE0
+
+void MidiPlayer::PitchBendNote(const PlayableNote& note, float alterSemitones, int channel)
+{
+    float semitone = 4096.0f;
+    float base = 8192.0f;
+    int pitch = int(base + (alterSemitones * semitone));
+
+    char lsb = (char)(pitch & 0x7F); // 1111111
+    char msb = (char)((pitch & 0x3F80)>>7); // 11111110000000
+
+    char event[3];
+    event[0] = (char) (MIDI_PITCH_BEND_MSG | channel); // message | channel
+    event[1] = lsb;
+    event[2] = msb;
+    WriteMidi(event, 3);
+}
+
 void MidiPlayer::ChangeInstrument(int instrument, int channel)
 {
     if (currentMidiInstruments[channel] != instrument) {
