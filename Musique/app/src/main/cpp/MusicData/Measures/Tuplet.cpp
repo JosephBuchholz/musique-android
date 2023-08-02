@@ -91,7 +91,7 @@ void Tuplet::CalculatePositionAsPaged(const MusicDisplayConstants& displayConsta
     {
         if (!note->isRest)
         {
-            if (note->noteStem->stemType == NoteStem::StemType::Up)
+            if (note->noteStem.stemType == NoteStem::StemType::Up)
             {
                 placement = AboveBelowType::Above;
             }
@@ -108,8 +108,8 @@ void Tuplet::CalculatePositionAsPaged(const MusicDisplayConstants& displayConsta
 
     if (placement == AboveBelowType::Above)
     {
-        positionStart = { firstNote->position.x, firstNote->position.y + firstNote->noteStem->stemEndY - 25.0f };
-        positionEnd = { lastNote->position.x + lastNote->noteHead.GetNoteHeadWidth(displayConstants), lastNote->position.y + lastNote->noteStem->stemEndY - 25.0f };
+        positionStart = { firstNote->position.x, firstNote->position.y + firstNote->noteStem.stemEndY - 25.0f };
+        positionEnd = { lastNote->position.x + lastNote->noteHead.GetNoteHeadWidth(displayConstants), lastNote->position.y + lastNote->noteStem.stemEndY - 25.0f };
 
         if (positionStart.y > 0.0f - margin) // below the top staff line
             positionStart.y = -margin;
@@ -119,8 +119,8 @@ void Tuplet::CalculatePositionAsPaged(const MusicDisplayConstants& displayConsta
     }
     else if (placement == AboveBelowType::Below)
     {
-        positionStart = { firstNote->position.x, firstNote->position.y + firstNote->noteStem->stemEndY + 25.0f };
-        positionEnd = { lastNote->position.x + lastNote->noteHead.GetNoteHeadWidth(displayConstants), lastNote->position.y + lastNote->noteStem->stemEndY + 25.0f };
+        positionStart = { firstNote->position.x, firstNote->position.y + firstNote->noteStem.stemEndY + 25.0f };
+        positionEnd = { lastNote->position.x + lastNote->noteHead.GetNoteHeadWidth(displayConstants), lastNote->position.y + lastNote->noteStem.stemEndY + 25.0f };
 
         if (positionStart.y < measureHeight + margin) // above the bottom staff line
             positionStart.y = measureHeight + margin;

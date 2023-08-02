@@ -11,6 +11,7 @@ class NoteFlag;
 #include "../BaseElements/VisibleElement.h"
 #include "../Measures/Measure.h"
 #include "Note.h"
+#include "NoteFlag.h"
 
 #include "../../Player.h"
 #include "../Transpose.h"
@@ -71,8 +72,8 @@ public:
 
     std::vector<std::shared_ptr<Note>> notes; // all the notes in the chord (the first one is the root/controlling note)
 
-    std::shared_ptr<NoteStem> noteStem;
-    std::shared_ptr<NoteFlag> noteFlag;
+    NoteStem noteStem = NoteStem();
+    NoteFlag noteFlag = NoteFlag();
 
     int measureIndex = 0;
 };

@@ -51,7 +51,7 @@ SMuFLID Accent::GetSMuFLID() const
     return glyphID;
 }
 
-void Accent::CalculatePositionAsPaged(const MusicDisplayConstants& displayConstants, float topStaffLineDistNote, bool isTab, std::shared_ptr<NoteStem> noteStem, float topNotePositionY, float bottomNotePositionY)
+void Accent::CalculatePositionAsPaged(const MusicDisplayConstants& displayConstants, float topStaffLineDistNote, bool isTab, const NoteStem& noteStem, float topNotePositionY, float bottomNotePositionY)
 {
     position = { 0.0f, 0.0f };
 
@@ -67,11 +67,11 @@ void Accent::CalculatePositionAsPaged(const MusicDisplayConstants& displayConsta
         position.y = topNotePositionY;
         position.y -= 10.0f;
 
-        if (noteStem->stemType == NoteStem::StemType::Up)
+        if (noteStem.stemType == NoteStem::StemType::Up)
         {
-            if (position.y > noteStem->stemEndY)
+            if (position.y > noteStem.stemEndY)
             {
-                position.y = noteStem->stemEndY;
+                position.y = noteStem.stemEndY;
                 position.y -= 10.0f;
             }
         }

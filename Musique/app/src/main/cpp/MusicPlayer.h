@@ -41,6 +41,8 @@ public:
     int GetCurrentMeasure() const { return currentMeasure; }
     void SetCurrentMeasure(int measure) { currentMeasure = measure; }
 
+    void SetVolume(float volume);
+
 private:
 
     bool metronomeIsOn = false;

@@ -258,6 +258,10 @@ class MainActivity : AppCompatActivity(), MusicDisplayFragment.Callbacks,
         onSettingsChangedNative(settings)
     }
 
+    override fun onVolumeChange(volume: Float) {
+        onVolumeChangedNative(volume)
+    }
+
     override fun onInputEvent(inputEvent: InputEvent) {
         onInputEventNative(inputEvent)
     }
@@ -278,6 +282,7 @@ class MainActivity : AppCompatActivity(), MusicDisplayFragment.Callbacks,
     private external fun onCalculateNumPagesNative(): Int
     private external fun updateInstrumentInfoNative(instrumentInfo: InstrumentInfo, index: Int)
     private external fun onSettingsChangedNative(settings: SettingsDialogFragment.Settings)
+    private external fun onVolumeChangedNative(volume: Float)
 
     private external fun onInputEventNative(inputEvent: InputEvent)
 

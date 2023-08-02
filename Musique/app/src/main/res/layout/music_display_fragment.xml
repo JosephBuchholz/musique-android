@@ -53,10 +53,11 @@
         android:layout_width="wrap_content"
         android:layout_height="0dp"
         android:visibility="gone"
-        tools:visibility="visible"
         app:layout_constraintBottom_toTopOf="@+id/control_bar"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/top_control_bar" />
+        app:layout_constraintTop_toBottomOf="@+id/top_control_bar"
+        app:layout_constraintVertical_bias="0.0"
+        tools:visibility="visible" />
 
     <com.randsoft.apps.musique.MusicDisplayView
         android:id="@+id/music_display_view"
@@ -71,10 +72,120 @@
 
     </com.randsoft.apps.musique.MusicDisplayView>
 
+    <SeekBar
+        android:id="@+id/volume_control_seek_bar"
+        android:layout_width="0dp"
+        android:layout_height="25dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:visibility="gone"
+        tools:visibility="visible"
+        app:layout_constraintBottom_toTopOf="@+id/secondary_control_bar"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"/>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/secondary_control_bar"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:background="@color/white2"
+        android:visibility="visible"
+        app:layout_constraintBottom_toTopOf="@+id/control_bar"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent">
+
+        <RelativeLayout
+            android:id="@+id/instrument_control_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
+
+            <ImageView
+                android:id="@+id/instrument_control_button_icon"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:src="@drawable/treble_clef" />
+
+        </RelativeLayout>
+
+        <RelativeLayout
+            android:id="@+id/print_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toEndOf="@+id/instrument_control_button"
+            app:layout_constraintTop_toTopOf="parent">
+
+            <ImageView
+                android:id="@+id/print_button_icon"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:src="@drawable/printer_icon" />
+
+        </RelativeLayout>
+
+        <RelativeLayout
+            android:id="@+id/volume_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toEndOf="@+id/print_button"
+            app:layout_constraintTop_toTopOf="parent">
+
+            <ImageView
+                android:id="@+id/volume_button_icon"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:src="@drawable/volume_full_icon" />
+
+        </RelativeLayout>
+
+        <RelativeLayout
+            android:id="@+id/metronome_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toEndOf="@+id/volume_button"
+            app:layout_constraintTop_toTopOf="parent">
+
+            <ImageView
+                android:id="@+id/metronome_button_icon"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:src="@drawable/metronome_icon" />
+
+        </RelativeLayout>
+
+        <RelativeLayout
+            android:id="@+id/settings_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toEndOf="@+id/metronome_button"
+            app:layout_constraintTop_toTopOf="parent">
+
+            <ImageView
+                android:id="@+id/settings_button_icon"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:src="@drawable/settings_icon" />
+
+        </RelativeLayout>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/control_bar"
         android:layout_width="match_parent"
         android:layout_height="50dp"
+        android:background="@color/white2"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent">
@@ -92,7 +203,7 @@
                 android:id="@+id/play_button_icon"
                 android:layout_width="30dp"
                 android:layout_height="30dp"
-                android:src="@drawable/play_icon"/>
+                android:src="@drawable/play_icon" />
 
         </RelativeLayout>
 
@@ -109,106 +220,31 @@
                 android:id="@+id/restart_button_icon"
                 android:layout_width="30dp"
                 android:layout_height="30dp"
-                android:src="@drawable/restart_icon"/>
-
-        </RelativeLayout>
-
-
-        <RelativeLayout
-            android:id="@+id/instrument_control_button"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintStart_toEndOf="@+id/restart_button"
-            app:layout_constraintTop_toTopOf="parent">
-
-            <ImageView
-                android:id="@+id/instrument_control_button_icon"
-                android:layout_width="30dp"
-                android:layout_height="30dp"
-                android:src="@drawable/treble_clef"/>
-
-        </RelativeLayout>
-
-        <RelativeLayout
-            android:id="@+id/print_button"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintStart_toEndOf="@+id/instrument_control_button"
-            app:layout_constraintTop_toTopOf="parent">
-
-            <ImageView
-                android:id="@+id/print_button_icon"
-                android:layout_width="30dp"
-                android:layout_height="30dp"
-                android:src="@drawable/printer_icon"/>
-
-        </RelativeLayout>
-
-        <RelativeLayout
-            android:id="@+id/settings_button"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintStart_toEndOf="@+id/print_button"
-            app:layout_constraintTop_toTopOf="parent">
-
-            <ImageView
-                android:id="@+id/settings_button_icon"
-                android:layout_width="30dp"
-                android:layout_height="30dp"
-                android:src="@drawable/settings_icon"/>
-
-        </RelativeLayout>
-
-        <RelativeLayout
-            android:id="@+id/metronome_button"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintStart_toEndOf="@+id/settings_button"
-            app:layout_constraintTop_toTopOf="parent">
-
-            <ImageView
-                android:id="@+id/metronome_button_icon"
-                android:layout_width="30dp"
-                android:layout_height="30dp"
-                android:src="@drawable/metronome_icon"/>
+                android:src="@drawable/restart_icon" />
 
         </RelativeLayout>
 
         <SeekBar
-            android:id="@+id/zoom_seek_bar"
+            android:id="@+id/play_seek_bar"
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
+            android:layout_height="35dp"
             android:layout_marginStart="16dp"
             android:layout_marginEnd="16dp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toEndOf="@+id/metronome_button"
+            app:layout_constraintStart_toEndOf="@+id/restart_button"
             app:layout_constraintTop_toTopOf="parent" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
-
-    <SeekBar
-        android:id="@+id/play_seek_bar"
-        android:layout_width="match_parent"
-        android:layout_height="35dp"
-        app:layout_constraintBottom_toBottomOf="@+id/music_display_view"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/instrument_control_recycler_view"
         android:layout_width="match_parent"
         android:layout_height="100dp"
-        app:layout_constraintBottom_toTopOf="@+id/play_seek_bar"
+        android:visibility="gone"
+        app:layout_constraintBottom_toTopOf="@+id/secondary_control_bar"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="1.0"
         app:layout_constraintStart_toStartOf="parent">
 
     </androidx.recyclerview.widget.RecyclerView>

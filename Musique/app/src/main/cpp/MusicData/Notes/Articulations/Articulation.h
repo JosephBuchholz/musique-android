@@ -40,7 +40,7 @@ public:
      * @param topStaffLineDistNote
      * @param isTab Whether the parent note is a tablature note.
      */
-    virtual void CalculatePositionAsPaged(const MusicDisplayConstants& displayConstants, float topStaffLineDistNote, bool isTab, std::shared_ptr<NoteStem> noteStem, float topNotePositionY, float bottomNotePositionY) = 0;
+    virtual void CalculatePositionAsPaged(const MusicDisplayConstants& displayConstants, float topStaffLineDistNote, bool isTab, const NoteStem& noteStem, float topNotePositionY, float bottomNotePositionY) = 0;
 
     // ----- Sound Related Functions -----
 

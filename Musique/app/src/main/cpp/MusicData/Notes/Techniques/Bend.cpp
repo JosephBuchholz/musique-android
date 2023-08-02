@@ -93,7 +93,7 @@ SMuFLID Bend::GetSMuFLID() const
     return SMuFLID::arrowheadBlackUp;
 }
 
-void Bend::CalculatePositionAsPaged(const MusicDisplayConstants& displayConstants, float topStaffLineDistNote, bool isTab, std::shared_ptr<NoteStem> noteStem, float topNotePositionY, float bottomNotePositionY)
+void Bend::CalculatePositionAsPaged(const MusicDisplayConstants& displayConstants, float topStaffLineDistNote, bool isTab, const NoteStem& noteStem, float topNotePositionY, float bottomNotePositionY)
 {
     text.fontSize.size = 8.0f;
     text.position = { 0.0f, -20.0f }; // relative to the arrow position

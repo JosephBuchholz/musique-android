@@ -38,8 +38,9 @@ public:
     bool OnUpdatePrintLayout();
     void UpdateSettings(const Settings& s) { settings = s; OnLayoutChanged(); }
     void OnLayoutChanged();
+    void OnVolumeChanged(float volume) { if (musicPlayer) musicPlayer->SetVolume(volume); }
 
-    void OnMetronomeToggled(bool state) { musicPlayer->OnMetronomeToggled(state); }
+    void OnMetronomeToggled(bool state) { if (musicPlayer) musicPlayer->OnMetronomeToggled(state); }
 
     void OnInputEvent(const InputEvent& event);
 

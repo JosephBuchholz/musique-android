@@ -31,7 +31,7 @@ SMuFLID GuitarTechnique::GetSMuFLID() const
     }
 }
 
-void GuitarTechnique::CalculatePositionAsPaged(const MusicDisplayConstants& displayConstants, float topStaffLineDistNote, bool isTab, std::shared_ptr<NoteStem> noteStem, float topNotePositionY, float bottomNotePositionY)
+void GuitarTechnique::CalculatePositionAsPaged(const MusicDisplayConstants& displayConstants, float topStaffLineDistNote, bool isTab, const NoteStem& noteStem, float topNotePositionY, float bottomNotePositionY)
 {
     if (isTab)
     {

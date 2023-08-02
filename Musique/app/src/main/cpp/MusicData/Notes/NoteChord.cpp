@@ -23,10 +23,9 @@ void NoteChord::Render(RenderData& renderData, TablatureDisplayType tabDisplayTy
     // rhythm notation
     if (tabDisplayType == TablatureDisplayType::Full)
     {
-        noteStem->Render(renderData, position, rootNote->tremoloSingle, rootNote->isGraceNote, rootNote->hasSlash, rootNote->noteHead.GetNoteHeadWidth(renderData.displayConstants));
+        noteStem.Render(renderData, position, rootNote->tremoloSingle, rootNote->isGraceNote, rootNote->hasSlash, rootNote->noteHead.GetNoteHeadWidth(renderData.displayConstants));
 
-        if (noteFlag)
-            noteFlag->Render(renderData, {position.x + noteStem->stemPositionX, position.y + noteStem->stemEndY});
+        noteFlag.Render(renderData, {position.x + noteStem.stemPositionX, position.y + noteStem.stemEndY});
     }
 
     Paint ledgerLinePaint;
@@ -192,25 +191,27 @@ void NoteChord::CalculatePositionAsPaged(const MusicDisplayConstants& displayCon
     if (rootNote == nullptr || topNote == nullptr)
         throw IsNullException();
 
-    noteStem = std::make_shared<NoteStem>();
-    noteStem->stemType = rootNote->noteStem->stemType;
+    noteStem.stemType = rootNote->noteStem.stemType;
 
     // update note flag
     if ((rootNote->durationType == NoteValue::Eighth || rootNote->durationType == NoteValue::Sixteenth || rootNote->durationType == NoteValue::ThirtySecond) && rootNote->beamData.empty())
     {
-        noteFlag = std::make_shared<NoteFlag>();
         float defaultSize = 1.0f;
         if (rootNote->noteSize == NoteSize::Grace)
             defaultSize = displayConstants.graceNoteSize;
         else if (rootNote->noteSize == NoteSize::Cue)
             defaultSize = displayConstants.cueNoteSize;
-        noteFlag->noteDuration = rootNote->durationType;
-        if (noteStem->stemType == NoteStem::StemType::Up) {
-            noteFlag->type = NoteFlag::Type::Up;
-        } else if (noteStem->stemType == NoteStem::StemType::Down) {
-            noteFlag->type = NoteFlag::Type::Down;
+        noteFlag.noteDuration = rootNote->durationType;
+        if (noteStem.stemType == NoteStem::StemType::Up) {
+            noteFlag.type = NoteFlag::Type::Up;
+        } else if (noteStem.stemType == NoteStem::StemType::Down) {
+            noteFlag.type = NoteFlag::Type::Down;
         }
-        noteFlag->CalculateAsPaged(displayConstants, defaultSize);
+        noteFlag.CalculateAsPaged(displayConstants, defaultSize);
+    }
+    else
+    {
+        noteFlag.type = NoteFlag::Type::None;
     }
 
     for (auto note : notes)
@@ -241,17 +242,17 @@ void NoteChord::CalculatePositionAsPaged(const MusicDisplayConstants& displayCon
 
         float topNotePositionY = topNote->position.y - rootNote->position.y;
 
-        noteStem->stemPositionX = rootNote->noteHead.GetCenterPositionX(displayConstants);
+        noteStem.stemPositionX = rootNote->noteHead.GetCenterPositionX(displayConstants);
 
-        if (noteStem->stemType == NoteStem::StemType::Up)
+        if (noteStem.stemType == NoteStem::StemType::Up)
         {
-            noteStem->stemStartY = topNotePositionY - (displayConstants.tabLineSpacing * 0.75f);
-            noteStem->stemEndY = noteStem->stemStartY - stemLength;
+            noteStem.stemStartY = topNotePositionY - (displayConstants.tabLineSpacing * 0.75f);
+            noteStem.stemEndY = noteStem.stemStartY - stemLength;
         }
-        else if (noteStem->stemType == NoteStem::StemType::Down)
+        else if (noteStem.stemType == NoteStem::StemType::Down)
         {
-            noteStem->stemStartY = displayConstants.tabLineSpacing * 0.75f;
-            noteStem->stemEndY = noteStem->stemStartY + stemLength;
+            noteStem.stemStartY = displayConstants.tabLineSpacing * 0.75f;
+            noteStem.stemEndY = noteStem.stemStartY + stemLength;
         }
     }
     else // is standard
@@ -295,26 +296,26 @@ void NoteChord::CalculatePositionAsPaged(const MusicDisplayConstants& displayCon
         float stemStokeWidth = 0.8333f * rootNote->sizeFactor;
 
         float stemLength = 30.0f * rootNote->sizeFactor;
-        if (noteStem->stemType == NoteStem::StemType::Up) {
+        if (noteStem.stemType == NoteStem::StemType::Up) {
             if (isDoubleNoteStack)
             {
-                noteStem->stemPositionX = rightNotesPositionX - stemStokeWidth / 2.0f;
+                noteStem.stemPositionX = rightNotesPositionX - stemStokeWidth / 2.0f;
             }
             else
-                noteStem->stemPositionX = notePositionX + noteWidth - stemStokeWidth / 2.0f;
+                noteStem.stemPositionX = notePositionX + noteWidth - stemStokeWidth / 2.0f;
 
-            noteStem->stemStartY = notePositionY;
-            noteStem->stemEndY = notePositionY + topNotePositionY - stemLength;
-        } else if (noteStem->stemType == NoteStem::StemType::Down) {
+            noteStem.stemStartY = notePositionY;
+            noteStem.stemEndY = notePositionY + topNotePositionY - stemLength;
+        } else if (noteStem.stemType == NoteStem::StemType::Down) {
             if (isDoubleNoteStack)
             {
-                noteStem->stemPositionX = rightNotesPositionX - stemStokeWidth / 2.0f;
+                noteStem.stemPositionX = rightNotesPositionX - stemStokeWidth / 2.0f;
             }
             else
-                noteStem->stemPositionX = notePositionX + stemStokeWidth / 2.0f;
+                noteStem.stemPositionX = notePositionX + stemStokeWidth / 2.0f;
 
-            noteStem->stemStartY = notePositionY + topNotePositionY;
-            noteStem->stemEndY = notePositionY + stemLength;
+            noteStem.stemStartY = notePositionY + topNotePositionY;
+            noteStem.stemEndY = notePositionY + stemLength;
         }
     }
 

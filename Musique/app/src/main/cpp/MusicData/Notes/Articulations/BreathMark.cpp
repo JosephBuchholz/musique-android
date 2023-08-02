@@ -28,7 +28,7 @@ SMuFLID BreathMark::GetSMuFLID() const
     return SMuFLID::breathMarkComma;
 }
 
-void BreathMark::CalculatePositionAsPaged(const MusicDisplayConstants& displayConstants, float topStaffLineDistNote, bool isTab, std::shared_ptr<NoteStem> noteStem, float topNotePositionY, float bottomNotePositionY)
+void BreathMark::CalculatePositionAsPaged(const MusicDisplayConstants& displayConstants, float topStaffLineDistNote, bool isTab, const NoteStem& noteStem, float topNotePositionY, float bottomNotePositionY)
 {
     position = { 0.0f, 0.0f };
 

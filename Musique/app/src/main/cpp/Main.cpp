@@ -268,4 +268,11 @@ extern "C" {
             app->OnInputEvent(newInputEvent);
         }
     }
+
+    JNIEXPORT void JNICALL
+    Java_com_randsoft_apps_musique_MainActivity_onVolumeChangedNative(JNIEnv* env, jobject instance, jfloat volume) {
+        if (app != nullptr) {
+            app->OnVolumeChanged(volume);
+        }
+    }
 }

@@ -22,7 +22,7 @@ public:
 
     SMuFLID GetSMuFLID() const;
 
-    void CalculatePositionAsPaged(const MusicDisplayConstants& displayConstants, float topStaffLineDistNote, bool isTab, std::shared_ptr<NoteStem> noteStem, float topNotePositionY, float bottomNotePositionY) override;
+    void CalculatePositionAsPaged(const MusicDisplayConstants& displayConstants, float topStaffLineDistNote, bool isTab, const NoteStem& noteStem, float topNotePositionY, float bottomNotePositionY) override;
 
     void ModifySoundDuration(float& soundDuration) override;
     void ModifyVelocity(float& velocity) override;

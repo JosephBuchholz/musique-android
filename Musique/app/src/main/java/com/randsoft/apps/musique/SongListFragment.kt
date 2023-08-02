@@ -180,7 +180,8 @@ class SongListFragment() : Fragment(), WebRepository.Callbacks {
 
             var artistsString = ""
             for ((index, artist) in songItem.artists.withIndex()) {
-                artistsString += artist
+
+                artistsString += artist.name
 
                 if (index != songItem.artists.size - 1) // add a comma if it is not the last one in the list
                     artistsString += ", "

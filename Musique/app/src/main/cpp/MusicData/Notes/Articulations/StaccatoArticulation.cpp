@@ -55,7 +55,7 @@ Vec2<float> StaccatoArticulation::GetDimensions() const
     return { RenderMeasurement::MeasureGlyph(glyphID), 0.0f };
 }
 
-void StaccatoArticulation::CalculatePositionAsPaged(const MusicDisplayConstants& displayConstants, float topStaffLineDistNote, bool isTab, std::shared_ptr<NoteStem> noteStem, float topNotePositionY, float bottomNotePositionY)
+void StaccatoArticulation::CalculatePositionAsPaged(const MusicDisplayConstants& displayConstants, float topStaffLineDistNote, bool isTab, const NoteStem& noteStem, float topNotePositionY, float bottomNotePositionY)
 {
     position = { 0.0f, 0.0f };
 
@@ -66,11 +66,11 @@ void StaccatoArticulation::CalculatePositionAsPaged(const MusicDisplayConstants&
     }
     else // is standard
     {
-        if (noteStem->stemType == NoteStem::StemType::Up)
+        if (noteStem.stemType == NoteStem::StemType::Up)
         {
             placement = AboveBelowType::Below;
         }
-        else if (noteStem->stemType == NoteStem::StemType::Down)
+        else if (noteStem.stemType == NoteStem::StemType::Down)
         {
             placement = AboveBelowType::Above;
         }

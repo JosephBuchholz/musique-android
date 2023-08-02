@@ -287,8 +287,7 @@ void NoteElementParser::ParseNoteElement(XMLElement* noteElement, float& current
     XMLElement* stemElement = noteElement->FirstChildElement("stem");
     if (stemElement)
     {
-        currentNote->noteStem = std::make_shared<NoteStem>();
-        currentNote->noteStem->stemType = currentNote->noteStem->CalculateStemTypeFromString(stemElement->GetText());
+        currentNote->noteStem.stemType = currentNote->noteStem.CalculateStemTypeFromString(stemElement->GetText());
     }
 
     // notehead

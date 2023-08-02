@@ -141,8 +141,8 @@ public:
     std::vector<AugmentationDot> dots;
 
     NoteHead noteHead = NoteHead();
-    std::shared_ptr<NoteStem> noteStem;
-    std::shared_ptr<NoteFlag> noteFlag;
+    NoteStem noteStem = NoteStem();
+    NoteFlag noteFlag = NoteFlag();
 
     std::vector<NoteBeamData> beamData;
 

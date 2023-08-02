@@ -6,6 +6,7 @@ import android.graphics.BitmapFactory
 import android.graphics.PointF
 import android.graphics.RectF
 import android.graphics.pdf.PdfDocument
+import android.opengl.Visibility
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -51,12 +52,16 @@ class MusicDisplayFragment : Fragment(), PrintHandler.Callbacks, SettingsDialogF
     private lateinit var printButton: ImageView
     private lateinit var instrumentControlButton: RelativeLayout
     private lateinit var settingsButton: ImageView
+    private lateinit var volumeButton: ImageView
+
+    private lateinit var secondaryControlBar: ConstraintLayout
+
+    private lateinit var volumeControlSeekBar: SeekBar
 
     private lateinit var sideMenuButton: RelativeLayout
     private lateinit var sideMenu: ConstraintLayout
     private lateinit var sideMenuSongDescTextView: TextView
 
-    private lateinit var zoomSeekBar: SeekBar
     private lateinit var playSeekBar: SeekBar
 
     private lateinit var instrumentControlRecyclerView: RecyclerView
@@ -69,6 +74,7 @@ class MusicDisplayFragment : Fragment(), PrintHandler.Callbacks, SettingsDialogF
 
     var playing = false // needs to be in a ViewModel
     var metronomeIsOn = false
+    var volumeButtonIsOn = false
 
     private lateinit var webRepository: WebRepository
 
@@ -84,6 +90,7 @@ class MusicDisplayFragment : Fragment(), PrintHandler.Callbacks, SettingsDialogF
         fun onUpdatePrintLayout(attributes: PrintAttributes): Boolean
         fun updateInstrumentInfo(info: InstrumentInfo, index: Int)
         fun onSettingsChanged(settings: SettingsDialogFragment.Settings)
+        fun onVolumeChange(volume: Float)
 
         fun onInputEvent(inputEvent: InputEvent)
     }
@@ -138,15 +145,11 @@ class MusicDisplayFragment : Fragment(), PrintHandler.Callbacks, SettingsDialogF
         musicDisplayView = view.findViewById(R.id.music_display_view)
         musicDisplayView?.setCallbacks(this)
 
+        secondaryControlBar = view.findViewById(R.id.secondary_control_bar)
+
         playButton = view.findViewById(R.id.play_button_icon)
         playButton.setOnClickListener {
-            playing = !playing;
-            callbacks?.onPlayButtonToggled(playing)
-            if (playing) {
-                playButton.setImageDrawable(resources.getDrawable(R.drawable.pause_icon))
-            } else {
-                playButton.setImageDrawable(resources.getDrawable(R.drawable.play_icon))
-            }
+            onPlayButtonClicked()
         }
 
         metronomeButton = view.findViewById(R.id.metronome_button_icon)
@@ -188,29 +191,38 @@ class MusicDisplayFragment : Fragment(), PrintHandler.Callbacks, SettingsDialogF
             settingsDialogFragment.show(parentFragmentManager, "SettingsDialog")
         }
 
-        zoomSeekBar = view.findViewById(R.id.zoom_seek_bar)
-        zoomSeekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
-            override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
-                var fProgress: Float = progress.toFloat() / 100.0f
-                if (musicDisplayView != null) {
-                    musicDisplayView?.scale = 0.2f + (fProgress * 10.0f)
-                    musicDisplayView?.bitmapSizeScale = musicDisplayView!!.scale
-                    musicDisplayView?.invalidate()
-                }
+        volumeControlSeekBar = view.findViewById(R.id.volume_control_seek_bar)
+        volumeControlSeekBar.progress = 100;
+        volumeControlSeekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(seekBar: SeekBar, progress: Int, fromUser: Boolean) {
+                val progressFloat: Float = progress.toFloat() / 100.0f
+                callbacks?.onVolumeChange(progressFloat)
+                setVolumeButtonLevel(progressFloat)
             }
 
-            override fun onStartTrackingTouch(p0: SeekBar?) {
+            override fun onStartTrackingTouch(seekBar: SeekBar) {
 
             }
 
-            override fun onStopTrackingTouch(p0: SeekBar?) {
-
+            override fun onStopTrackingTouch(seekBar: SeekBar) {
+                val progressFloat: Float = seekBar.progress.toFloat() / 100.0f
+                callbacks?.onVolumeChange(progressFloat)
+                setVolumeButtonLevel(progressFloat)
             }
         })
 
+        volumeButton = view.findViewById(R.id.volume_button_icon)
+        volumeButton.setOnClickListener {
+            volumeButtonIsOn = !volumeButtonIsOn
+            if (volumeButtonIsOn)
+                volumeControlSeekBar.visibility = View.VISIBLE
+            else
+                volumeControlSeekBar.visibility = View.GONE
+        }
+
         playSeekBar = view.findViewById(R.id.play_seek_bar)
         playSeekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
-            override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
+            override fun onProgressChanged(seekBar: SeekBar, progress: Int, fromUser: Boolean) {
 
             }
 
@@ -228,7 +240,7 @@ class MusicDisplayFragment : Fragment(), PrintHandler.Callbacks, SettingsDialogF
 
         sideMenu = view.findViewById(R.id.side_menu)
         sideMenuSongDescTextView = view.findViewById(R.id.song_description_text_view)
-        sideMenuSongDescTextView.movementMethod = LinkMovementMethod.getInstance();
+        sideMenuSongDescTextView.movementMethod = LinkMovementMethod.getInstance() // allows links to be click in the text view
 
         val responseLiveData: LiveData<String> = webRepository.getDescriptionFile(songId)
         responseLiveData.observe(
@@ -255,6 +267,36 @@ class MusicDisplayFragment : Fragment(), PrintHandler.Callbacks, SettingsDialogF
         //bitmap = BitmapFactory.decodeResource(resources, R.drawable.quarter_note)
 
         return view
+    }
+
+    private fun onPlayButtonClicked()
+    {
+        playing = !playing;
+
+        if (playing) {
+            playButton.setImageDrawable(resources.getDrawable(R.drawable.pause_icon))
+        }
+        else {
+            playButton.setImageDrawable(resources.getDrawable(R.drawable.play_icon))
+        }
+
+        callbacks?.onPlayButtonToggled(playing)
+    }
+
+    fun setVolumeButtonLevel(volume: Float)
+    {
+        if (volume > 0.70f) {
+            volumeButton.setImageDrawable(resources.getDrawable(R.drawable.volume_full_icon))
+        }
+        else if (volume > 0.40f) {
+            volumeButton.setImageDrawable(resources.getDrawable(R.drawable.volume_mid_icon))
+        }
+        else if (volume > 0.0f) {
+            volumeButton.setImageDrawable(resources.getDrawable(R.drawable.volume_low_icon))
+        }
+        else {
+            volumeButton.setImageDrawable(resources.getDrawable(R.drawable.volume_mute_icon))
+        }
     }
 
     override fun onSettingsChanged(settings: SettingsDialogFragment.Settings) {

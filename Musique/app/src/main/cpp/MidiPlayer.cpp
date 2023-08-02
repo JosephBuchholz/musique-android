@@ -141,7 +141,7 @@ void MidiPlayer::StopAllNotes()
 
 void MidiPlayer::SetVolume(float volume)
 {
-    SetMidiVolume((int)volume);
+    SetMidiVolume((int)(volume * 100.0f));
 }
 
 void MidiPlayer::SetReverb(float reverb)

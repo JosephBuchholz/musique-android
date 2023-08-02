@@ -144,3 +144,9 @@ void MusicPlayer::TravelToSoundBeatPosition(float beatPosition)
 {
     playLineBeatPosition = beatPosition;
 }
+
+void MusicPlayer::SetVolume(float volume)
+{
+    if (player)
+        player->SetVolume(volume);
+}

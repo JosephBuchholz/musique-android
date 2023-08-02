@@ -23,10 +23,10 @@ void Note::Render(RenderData& renderData, TablatureDisplayType tabDisplayType, f
         {
             if (!isChord)
             {
-                noteStem->Render(renderData, noteRenderPosition, tremoloSingle, isGraceNote, hasSlash, noteHead.GetNoteHeadWidth(renderData.displayConstants));
+                noteStem.Render(renderData, noteRenderPosition, tremoloSingle, isGraceNote, hasSlash, noteHead.GetNoteHeadWidth(renderData.displayConstants));
             }
-            if (noteFlag)
-                noteFlag->Render(renderData, { noteRenderPosition.x + noteStem->stemPositionX, noteRenderPosition.y + noteStem->stemEndY });
+
+            noteFlag.Render(renderData, { noteRenderPosition.x + noteStem.stemPositionX, noteRenderPosition.y + noteStem.stemEndY });
 
             // aug dot
             RenderAugmentationDots(renderData, noteRenderPosition.x, noteRenderPosition.y);
@@ -74,10 +74,10 @@ void Note::Render(RenderData& renderData, TablatureDisplayType tabDisplayType, f
 
         if (!isChord)
         {
-            noteStem->Render(renderData, noteRenderPosition, tremoloSingle, isGraceNote, hasSlash, noteHead.GetNoteHeadWidth(renderData.displayConstants));
+            noteStem.Render(renderData, noteRenderPosition, tremoloSingle, isGraceNote, hasSlash, noteHead.GetNoteHeadWidth(renderData.displayConstants));
         }
-        if (noteFlag)
-            noteFlag->Render(renderData, { noteRenderPosition.x + noteStem->stemPositionX, noteRenderPosition.y + noteStem->stemEndY });
+
+        noteFlag.Render(renderData, { noteRenderPosition.x + noteStem.stemPositionX, noteRenderPosition.y + noteStem.stemEndY });
 
         accidental.Render(renderData, noteRenderPosition);
     }
@@ -476,9 +476,6 @@ void Note::CalculateDurationTypeFromString(const std::string& s)
 
 void Note::CalculatePositionAsPaged(const MusicDisplayConstants& displayConstants, int staffLines)
 {
-    if (!noteStem)
-        noteStem = std::make_shared<NoteStem>();
-
     // update note head
     noteHead.noteDuration = durationType;
     noteHead.noteType = type;
@@ -488,19 +485,22 @@ void Note::CalculatePositionAsPaged(const MusicDisplayConstants& displayConstant
     // update note flag
     if ((durationType == NoteValue::Eighth || durationType == NoteValue::Sixteenth || durationType == NoteValue::ThirtySecond) && !isChord && beamData.empty())
     {
-        noteFlag = std::make_shared<NoteFlag>();
         float defaultSize = 1.0f;
         if (noteSize == NoteSize::Grace)
             defaultSize = displayConstants.graceNoteSize;
         else if (noteSize == NoteSize::Cue)
             defaultSize = displayConstants.cueNoteSize;
-        noteFlag->noteDuration = durationType;
-        if (noteStem->stemType == NoteStem::StemType::Up) {
-            noteFlag->type = NoteFlag::Type::Up;
-        } else if (noteStem->stemType == NoteStem::StemType::Down) {
-            noteFlag->type = NoteFlag::Type::Down;
+        noteFlag.noteDuration = durationType;
+        if (noteStem.stemType == NoteStem::StemType::Up) {
+            noteFlag.type = NoteFlag::Type::Up;
+        } else if (noteStem.stemType == NoteStem::StemType::Down) {
+            noteFlag.type = NoteFlag::Type::Down;
         }
-        noteFlag->CalculateAsPaged(displayConstants, defaultSize);
+        noteFlag.CalculateAsPaged(displayConstants, defaultSize);
+    }
+    else
+    {
+        noteFlag.type = NoteFlag::Type::None;
     }
 
     accidental.CalculateAsPaged(displayConstants, noteSize);
@@ -565,17 +565,17 @@ void Note::CalculatePositionAsPaged(const MusicDisplayConstants& displayConstant
 
             stemLength *= sizeFactor;
 
-            noteStem->stemPositionX = noteHead.GetCenterPositionX(displayConstants);
+            noteStem.stemPositionX = noteHead.GetCenterPositionX(displayConstants);
 
-            if (noteStem->stemType == NoteStem::StemType::Up)
+            if (noteStem.stemType == NoteStem::StemType::Up)
             {
-                noteStem->stemStartY = -(displayConstants.tabLineSpacing * 0.75f);
-                noteStem->stemEndY = noteStem->stemStartY - stemLength;
+                noteStem.stemStartY = -(displayConstants.tabLineSpacing * 0.75f);
+                noteStem.stemEndY = noteStem.stemStartY - stemLength;
             }
-            else if (noteStem->stemType == NoteStem::StemType::Down)
+            else if (noteStem.stemType == NoteStem::StemType::Down)
             {
-                noteStem->stemStartY = displayConstants.tabLineSpacing * 0.75f;
-                noteStem->stemEndY = noteStem->stemStartY + stemLength;
+                noteStem.stemStartY = displayConstants.tabLineSpacing * 0.75f;
+                noteStem.stemEndY = noteStem.stemStartY + stemLength;
             }
         }
     }
@@ -605,19 +605,19 @@ void Note::CalculatePositionAsPaged(const MusicDisplayConstants& displayConstant
         float stemStokeWidth = displayConstants.stemLineWidth * sizeFactor;
 
         float stemLength = 30.0f * sizeFactor;
-        if (noteStem->stemType == NoteStem::StemType::Up)
+        if (noteStem.stemType == NoteStem::StemType::Up)
         {
-            noteStem->stemPositionX = notePositionX + noteWidth - stemStokeWidth;
+            noteStem.stemPositionX = notePositionX + noteWidth - stemStokeWidth;
 
-            noteStem->stemStartY = notePositionY;
-            noteStem->stemEndY = notePositionY - stemLength;
+            noteStem.stemStartY = notePositionY;
+            noteStem.stemEndY = notePositionY - stemLength;
         }
-        else if (noteStem->stemType == NoteStem::StemType::Down)
+        else if (noteStem.stemType == NoteStem::StemType::Down)
         {
-            noteStem->stemPositionX = notePositionX + stemStokeWidth;
+            noteStem.stemPositionX = notePositionX + stemStokeWidth;
 
-            noteStem->stemStartY = notePositionY;
-            noteStem->stemEndY = notePositionY + stemLength;
+            noteStem.stemStartY = notePositionY;
+            noteStem.stemEndY = notePositionY + stemLength;
         }
     }
 
@@ -682,7 +682,7 @@ BoundingBox Note::GetBoundingBoxRelativeToMeasure(const MusicDisplayConstants& d
     BoundingBox bb;
 
     bb = BoundingBox::CombineBoundingBoxes(noteHead.GetBoundingBoxRelativeToParent(displayConstants),
-                                           noteStem->GetBoundingBoxRelativeToParent(displayConstants));
+                                           noteStem.GetBoundingBoxRelativeToParent(displayConstants));
 
     bb.position += position;
 
@@ -694,7 +694,7 @@ BoundingBox Note::GetTotalBoundingBoxRelativeToMeasure(const MusicDisplayConstan
     BoundingBox bb;
 
     bb = BoundingBox::CombineBoundingBoxes(noteHead.GetBoundingBoxRelativeToParent(displayConstants),
-                                           noteStem->GetBoundingBoxRelativeToParent(displayConstants));
+                                           noteStem.GetBoundingBoxRelativeToParent(displayConstants));
 
     bb.position += position;
 
@@ -719,9 +719,9 @@ BoundingBox Note::GetTotalBoundingBoxRelativeToMeasure(const MusicDisplayConstan
 void Note::UpdateBoundingBox(const MusicDisplayConstants& displayConstants, Vec2<float> parentPosition)
 {
     noteHead.UpdateBoundingBox(displayConstants, position + parentPosition);
-    noteStem->UpdateBoundingBox(displayConstants, position + parentPosition);
+    noteStem.UpdateBoundingBox(displayConstants, position + parentPosition);
 
-    boundingBox = BoundingBox::CombineBoundingBoxes(noteHead.boundingBox, noteStem->boundingBox);
+    boundingBox = BoundingBox::CombineBoundingBoxes(noteHead.boundingBox, noteStem.boundingBox);
 
     /*if (type == NoteType::Tab)
     {
@@ -730,8 +730,8 @@ void Note::UpdateBoundingBox(const MusicDisplayConstants& displayConstants, Vec2
 
     if (!isChord)
     {
-        if (noteStem->stemEndY - noteStem->stemStartY != 0)
-            boundingBox.size.y = noteStem->stemEndY - noteStem->stemStartY;
+        if (noteStem.stemEndY - noteStem.stemStartY != 0)
+            boundingBox.size.y = noteStem.stemEndY - noteStem.stemStartY;
         else
             boundingBox.size.y = 10.0f;
     }

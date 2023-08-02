@@ -138,7 +138,7 @@ void Song::OnUpdate()
                             {
                                 beamGroup = BeamGroup();
 
-                                if (note->noteStem->stemType == NoteStem::StemType::Up)
+                                if (note->noteStem.stemType == NoteStem::StemType::Up)
                                     beamGroup.isAboveNote = true;
                             }
 
@@ -395,17 +395,17 @@ void Song::OnUpdate()
         }
 
         // calculate rest y positions
-        for (auto instrument : instruments)
+        for (const auto& instrument : instruments)
         {
-            for (auto staff : instrument->staves)
+            for (const auto& staff : instrument->staves)
             {
-                for (auto measure : staff->measures)
+                for (const auto& measure : staff->measures)
                 {
-                    for (auto restNote : measure->notes)
+                    for (const auto& restNote : measure->notes)
                     {
                         if (restNote->isRest)
                         {
-                            for (auto note : measure->notes)
+                            for (const auto& note : measure->notes)
                             {
                                 if (restNote->beatPosition == note->beatPosition && restNote != note)
                                 {
@@ -413,18 +413,16 @@ void Song::OnUpdate()
 
                                     float offset = 35.0f;
 
-                                    if (note->noteStem->stemType == NoteStem::StemType::Up)
+                                    if (note->noteStem.stemType == NoteStem::StemType::Up)
                                     {
                                         restNote->position.y += offset;
                                         break;
                                     }
-                                    else if (note->noteStem->stemType == NoteStem::StemType::Down)
+                                    else if (note->noteStem.stemType == NoteStem::StemType::Down)
                                     {
                                         restNote->position.y -= offset;
                                         break;
                                     }
-                                    else
-                                        LOGW("this stem type is not handled");
                                 }
                             }
                         }
@@ -798,11 +796,11 @@ void Song::OnUpdate()
                             std::shared_ptr<Note> firstNote = beamGroup.notes[0];
                             std::shared_ptr<Note> lastNote = beamGroup.notes[beamGroup.notes.size() - 1];
 
-                            beamGroup.beamStartPosition.x = firstNote->position.x + firstNote->noteStem->stemPositionX;
-                            beamGroup.beamStartPosition.y = firstNote->position.y + firstNote->noteStem->stemEndY;
+                            beamGroup.beamStartPosition.x = firstNote->position.x + firstNote->noteStem.stemPositionX;
+                            beamGroup.beamStartPosition.y = firstNote->position.y + firstNote->noteStem.stemEndY;
 
-                            beamGroup.beamEndPosition.x = lastNote->position.x + lastNote->noteStem->stemPositionX;
-                            beamGroup.beamEndPosition.y = lastNote->position.y + lastNote->noteStem->stemEndY;
+                            beamGroup.beamEndPosition.x = lastNote->position.x + lastNote->noteStem.stemPositionX;
+                            beamGroup.beamEndPosition.y = lastNote->position.y + lastNote->noteStem.stemEndY;
 
                             float slope = std::abs(beamGroup.GetSlope());
 
@@ -829,10 +827,10 @@ void Song::OnUpdate()
                                 std::shared_ptr<Note> firstNote = beam.notes[0];
                                 std::shared_ptr<Note> lastNote = beam.notes[beam.notes.size() - 1];
 
-                                beam.beamStartPosition.x = firstNote->position.x + firstNote->noteStem->stemPositionX;
+                                beam.beamStartPosition.x = firstNote->position.x + firstNote->noteStem.stemPositionX;
                                 beam.beamStartPosition.y = beamGroup.GetPositionYOnBeam(beam.beamStartPosition.x);
 
-                                beam.beamEndPosition.x = lastNote->position.x + lastNote->noteStem->stemPositionX;
+                                beam.beamEndPosition.x = lastNote->position.x + lastNote->noteStem.stemPositionX;
                                 beam.beamEndPosition.y = beamGroup.GetPositionYOnBeam(beam.beamEndPosition.x);
                             }
                             else
@@ -842,15 +840,15 @@ void Song::OnUpdate()
                         // calculate stem lengths
                         float smallestStemHeight = INFINITY;
                         float direction = 1.0f;
-                        if (beamGroup.notes[0]->noteStem->stemEndY < beamGroup.notes[0]->noteStem->stemStartY)
+                        if (beamGroup.notes[0]->noteStem.stemEndY < beamGroup.notes[0]->noteStem.stemStartY)
                             direction = -1.0f;
 
                         for (std::shared_ptr<Note> beamNote : beamGroup.notes)
                         {
-                            float beamPositionYAtNote = beamGroup.GetPositionYOnBeam(beamNote->position.x + beamNote->noteStem->stemPositionX);
-                            beamNote->noteStem->stemEndY = beamPositionYAtNote - beamNote->position.y;
+                            float beamPositionYAtNote = beamGroup.GetPositionYOnBeam(beamNote->position.x + beamNote->noteStem.stemPositionX);
+                            beamNote->noteStem.stemEndY = beamPositionYAtNote - beamNote->position.y;
 
-                            float stemHeight = beamNote->noteStem->stemEndY - beamNote->noteStem->stemStartY;
+                            float stemHeight = beamNote->noteStem.stemEndY - beamNote->noteStem.stemStartY;
 
                             if (std::abs(stemHeight) < smallestStemHeight)
                             {
@@ -876,8 +874,8 @@ void Song::OnUpdate()
                             // recalculate stem lengths
                             for (std::shared_ptr<Note> beamNote : beamGroup.notes)
                             {
-                                float beamPositionYAtNote = beamGroup.GetPositionYOnBeam(beamNote->position.x + beamNote->noteStem->stemPositionX);
-                                beamNote->noteStem->stemEndY = beamPositionYAtNote - beamNote->position.y;
+                                float beamPositionYAtNote = beamGroup.GetPositionYOnBeam(beamNote->position.x + beamNote->noteStem.stemPositionX);
+                                beamNote->noteStem.stemEndY = beamPositionYAtNote - beamNote->position.y;
                             }
                         }
                     }
