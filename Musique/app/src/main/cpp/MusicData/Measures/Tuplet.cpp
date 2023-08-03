@@ -29,11 +29,11 @@ void Tuplet::Render(RenderData& renderData, Vec2<float> measurePosition, Vec2<fl
             direction = -1.0f;
 
         // bracket ends
-        renderData.AddLine(std::make_shared<Line>(positionStart.x + measurePosition.x + offset.x, positionStart.y + measurePosition.y + offset.y, positionStart.x + measurePosition.x + offset.x, positionStart.y + measurePosition.y + offset.y + (endLengthHeight * direction), bracketPaint));
-        renderData.AddLine(std::make_shared<Line>(positionEnd.x + measurePosition.x + offset.x, positionEnd.y + measurePosition.y + offset.y, positionEnd.x + measurePosition.x + offset.x, positionEnd.y + measurePosition.y + offset.y + (endLengthHeight * direction), bracketPaint));
+        renderData.AddLine(Line(positionStart.x + measurePosition.x + offset.x, positionStart.y + measurePosition.y + offset.y, positionStart.x + measurePosition.x + offset.x, positionStart.y + measurePosition.y + offset.y + (endLengthHeight * direction), bracketPaint));
+        renderData.AddLine(Line(positionEnd.x + measurePosition.x + offset.x, positionEnd.y + measurePosition.y + offset.y, positionEnd.x + measurePosition.x + offset.x, positionEnd.y + measurePosition.y + offset.y + (endLengthHeight * direction), bracketPaint));
 
         // main line
-        renderData.AddLine(std::make_shared<Line>(positionStart.x + measurePosition.x + offset.x, positionStart.y + measurePosition.y + offset.y, positionEnd.x + measurePosition.x + offset.x, positionEnd.y + measurePosition.y + offset.y, bracketPaint));
+        renderData.AddLine(Line(positionStart.x + measurePosition.x + offset.x, positionStart.y + measurePosition.y + offset.y, positionEnd.x + measurePosition.x + offset.x, positionEnd.y + measurePosition.y + offset.y, bracketPaint));
     }
 }
 

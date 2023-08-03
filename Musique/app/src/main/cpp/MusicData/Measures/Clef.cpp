@@ -13,7 +13,7 @@ void Clef::Render(RenderData& renderData, bool showSystemClef, float positionX, 
         if (clefChanged)
             paint.glyphSizeFactor = renderData.displayConstants.clefChangeScale;
 
-        SMuFLGlyph glyph = SMuFLGlyph(GetClefSMuFLID(*this, lines), positionX + offsetX, position.y + offsetY, paint);
+        SMuFLGlyph glyph = SMuFLGlyph(GetClefSMuFLID(*this, lines), { positionX + offsetX, position.y + offsetY }, paint);
         renderData.AddGlyph(glyph);
     }
 }
@@ -87,7 +87,7 @@ void Clef::UpdateBoundingBox(const Vec2<float> &parentPosition, int staffLines, 
     {
         Paint paint;
         VisibleElement::ModifyPaint(paint);
-        BoundingBox bb = RenderMeasurement::GetGlyphBoundingBox(SMuFLGlyph(GetClefSMuFLID(*this, staffLines), 0.0f, 0.0f, paint));
+        BoundingBox bb = RenderMeasurement::GetGlyphBoundingBox(SMuFLGlyph(GetClefSMuFLID(*this, staffLines), { 0.0f, 0.0f }, paint));
 
         boundingBox.position.x = position.x + bb.position.x + parentPosition.x;
         boundingBox.position.y = position.y + bb.position.y + parentPosition.y;

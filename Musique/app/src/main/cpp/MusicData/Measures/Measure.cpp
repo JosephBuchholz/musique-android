@@ -14,17 +14,17 @@ BoundingBox Measure::GetTotalBoundingBox(const MusicDisplayConstants& displayCon
     totalBoundingBox.size.y = float(staffLineCount - 1) * lineSpacing;
     totalBoundingBox.size.x = measureWidth;
 
-    for (auto direction : directions)
+    for (const auto& direction : directions)
     {
         totalBoundingBox = BoundingBox::CombineBoundingBoxes(totalBoundingBox, direction.GetBoundingBoxRelativeToMeasure());
     }
 
-    for (auto note : notes)
+    for (const auto& note : notes)
     {
         totalBoundingBox = BoundingBox::CombineBoundingBoxes(totalBoundingBox, note->GetTotalBoundingBoxRelativeToMeasure(displayConstants));
     }
 
-    for (auto noteChord : noteChords)
+    for (const auto& noteChord : noteChords)
     {
         totalBoundingBox = BoundingBox::CombineBoundingBoxes(totalBoundingBox, noteChord->GetTotalBoundingBoxRelativeToMeasure(displayConstants));
     }
@@ -34,7 +34,7 @@ BoundingBox Measure::GetTotalBoundingBox(const MusicDisplayConstants& displayCon
         totalBoundingBox = BoundingBox::CombineBoundingBoxes(totalBoundingBox, beam.GetBoundingBoxRelativeToMeasure(displayConstants));
     }
 
-    for (auto tuplet : tuplets)
+    for (const auto& tuplet : tuplets)
     {
         totalBoundingBox = BoundingBox::CombineBoundingBoxes(totalBoundingBox, tuplet->GetBoundingBoxRelativeToParent());
     }
@@ -113,10 +113,10 @@ void Measure::Render(RenderData& renderData, Vec2<float> measurePosition, float 
         noteIndex = 0;
         for (auto noteChord : noteChords)
         {
-            if (noteChord->notes.empty())
+            if (noteChord->m_notes.empty())
                 throw IsEmptyException();
-            float rootNotePositionYRelativeToMeasure = CalculateNoteYPositionRelativeToMeasure(noteChord->notes[0]);
-            float topNotePositionYRelativeToMeasure = CalculateNoteYPositionRelativeToMeasure(noteChord->notes[noteChord->notes.size()-1]);
+            float rootNotePositionYRelativeToMeasure = CalculateNoteYPositionRelativeToMeasure(noteChord->m_notes[0]);
+            float topNotePositionYRelativeToMeasure = CalculateNoteYPositionRelativeToMeasure(noteChord->m_notes[noteChord->m_notes.size()-1]);
             noteChord->Render(renderData, tablatureDisplayType, rootNotePositionYRelativeToMeasure, topNotePositionYRelativeToMeasure, staffLineCount, measurePosition, nextMeasurePositionX, staffLineSpacing);
         }
 
@@ -204,10 +204,10 @@ void Measure::RenderDebug(RenderData& renderData, Vec2<float> measurePosition, f
         noteIndex = 0;
         for (auto noteChord : noteChords)
         {
-            if (noteChord->notes.empty())
+            if (noteChord->m_notes.empty())
                 throw IsEmptyException();
-            float rootNotePositionYRelativeToMeasure = CalculateNoteYPositionRelativeToMeasure(noteChord->notes[0]);
-            float topNotePositionYRelativeToMeasure = CalculateNoteYPositionRelativeToMeasure(noteChord->notes[noteChord->notes.size()-1]);
+            float rootNotePositionYRelativeToMeasure = CalculateNoteYPositionRelativeToMeasure(noteChord->m_notes[0]);
+            float topNotePositionYRelativeToMeasure = CalculateNoteYPositionRelativeToMeasure(noteChord->m_notes[noteChord->m_notes.size()-1]);
             noteChord->RenderDebug(renderData, tablatureDisplayType, rootNotePositionYRelativeToMeasure, topNotePositionYRelativeToMeasure, staffLineCount, measurePosition, nextMeasurePositionX, staffLineSpacing);
         }
 
@@ -263,7 +263,7 @@ void Measure::RenderStaffLines(RenderData& renderData, Vec2<float> measurePositi
     for (int j = 0; j < staffLineCount; j++)
     {
         float endX = measurePosition.x + measureWidth;
-        std::shared_ptr<Line> line = renderData.AddLine(measurePosition.x, (staffLineSpacing * (float)j) + measurePosition.y, endX, (staffLineSpacing * (float)j) + measurePosition.y, staffLinePaint);
+        renderData.AddLine(Line({ measurePosition.x, (staffLineSpacing * (float)j) + measurePosition.y }, { endX, (staffLineSpacing * (float)j) + measurePosition.y }, staffLinePaint));
     }
 }
 
@@ -319,7 +319,7 @@ void Measure::RenderBarlines(RenderData& renderData, float measurePositionX, flo
     }
 
     if (!renderedRightBarline)
-        renderData.AddLine(std::make_shared<Line>(barlineRightPositionX, barlinePositionYTop, barlineRightPositionX, barlinePositionYBottom, renderData.paints.barlinePaint));
+        renderData.AddLine(Line({ barlineRightPositionX, barlinePositionYTop }, { barlineRightPositionX, barlinePositionYBottom }, renderData.paints.barlinePaint));
 
     // debug lines
     //renderData.AddLine(std::make_shared<Line>(barlineRightPositionX, barlinePositionYTop, barlineRightPositionX, barlinePositionYBottom, Paint(0xFFFF00FF)));
@@ -737,7 +737,7 @@ void Measure::OnUpdate(std::shared_ptr<Player> player, bool isCurrentMeasure, in
 
         for (auto noteChord : noteChords)
         {
-            std::shared_ptr<Note> rootNote = noteChord->notes[0];
+            std::shared_ptr<Note> rootNote = noteChord->m_notes[0];
 
             float noteBeatPosition = rootNote->soundBeatPosition;
             float noteDuration = rootNote->soundDuration;
@@ -862,7 +862,7 @@ void Measure::OnUpdate(std::shared_ptr<Player> player, bool isCurrentMeasure, in
     {
         for (auto noteChord : noteChords)
         {
-            if (noteChord->notes[0]->isPlaying)
+            if (noteChord->m_notes[0]->isPlaying)
             {
                 noteChord->OnStop(player, transpose, channel, currentVelocity);
             }
@@ -986,4 +986,36 @@ bool Measure::IsOffBeatSixteenthNote(std::shared_ptr<Note> note) const
     }
 
     return false;
+}
+
+void Measure::InitBeatPosition(float measureBeatPosition)
+{
+    beatPosition = measureBeatPosition;
+
+    for (const auto& note : notes)
+    {
+        note->beatPositionInSong = note->beatPosition + measureBeatPosition;
+    }
+
+    for (Chord& chord : chords)
+    {
+        chord.beatPositionInSong = chord.beatPosition + measureBeatPosition;
+    }
+
+    for (Direction& direction : directions)
+    {
+        direction.beatPositionInSong = direction.beatPosition + measureBeatPosition;
+
+        if (direction.dynamicWedge != nullptr)
+        {
+            direction.dynamicWedge->beatPositionInSongStart = direction.dynamicWedge->beatPositionStart + measureBeatPosition;
+            direction.dynamicWedge->beatPositionInSongEnd = direction.dynamicWedge->beatPositionEnd + measureBeatPosition;
+        }
+
+        if (direction.bracketDirection != nullptr)
+        {
+            direction.bracketDirection->beatPositionInSongStart = direction.bracketDirection->beatPositionStart + measureBeatPosition;
+            direction.bracketDirection->beatPositionInSongEnd = direction.bracketDirection->beatPositionEnd + measureBeatPosition;
+        }
+    }
 }

@@ -70,12 +70,12 @@ public:
 
 public:
 
-    std::vector<std::shared_ptr<Note>> notes; // all the notes in the chord (the first one is the root/controlling note)
+    std::vector<std::shared_ptr<Note>> m_notes; // all the notes in the chord (the first one is the root/controlling note)
 
-    NoteStem noteStem = NoteStem();
-    NoteFlag noteFlag = NoteFlag();
+    NoteStem m_noteStem = NoteStem();
+    NoteFlag m_noteFlag = NoteFlag();
 
-    int measureIndex = 0;
+    int m_measureIndex = 0;
 };
 
 #endif //MUSIQUE_NOTECHORD_H

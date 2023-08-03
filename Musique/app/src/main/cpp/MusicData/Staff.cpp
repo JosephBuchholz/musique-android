@@ -40,15 +40,16 @@ float Staff::GetBelowHeight(float lineSpacing, int start, int end)
 
 float Staff::GetTotalHeight(const MusicDisplayConstants& displayConstants, int startMeasureIndex, int endMeasureIndex) const
 {
-    return GetTotalBoundingBox(displayConstants, startMeasureIndex, endMeasureIndex).size.y;
+    //return GetTotalBoundingBox(displayConstants, startMeasureIndex, endMeasureIndex).size.y;
+    return 0.0f;
 }
 
-BoundingBox Staff::GetTotalBoundingBox(const MusicDisplayConstants& displayConstants, int startMeasureIndex, int endMeasureIndex) const
+BoundingBox Staff::GetTotalBoundingBox(const MusicDisplayConstants& displayConstants, int systemIndex) const
 {
-    BoundingBox bb;
+    /*BoundingBox bb;
     bool boundingBoxNotSet = true;
 
-    for (auto direction : durationDirections)
+    for (const auto& direction : durationDirections)
     {
         BoundingBox directionBoundingBox = direction->GetTotalBoundingBox(displayConstants, startMeasureIndex, endMeasureIndex, 0.0f, 0.0f);
 
@@ -72,9 +73,50 @@ BoundingBox Staff::GetTotalBoundingBox(const MusicDisplayConstants& displayConst
             bb = measureBoundingBox, boundingBoxNotSet = false;
         else
             bb = BoundingBox::CombineBoundingBoxes(bb, measureBoundingBox);
-    }
+    }*/
 
-    return bb;
+    if (systemIndex < systemBoundingBoxes.size())
+    {
+        return systemBoundingBoxes[systemIndex];
+    }
+    return {};
+}
+
+void Staff::CalculateTotalBoundingBoxes(const MusicDisplayConstants &displayConstants, const std::vector<std::shared_ptr<System>>& systems)
+{
+    for (const auto& system : systems)
+    {
+        BoundingBox bb;
+        bool boundingBoxNotSet = true;
+
+        for (const auto& direction : durationDirections)
+        {
+            BoundingBox directionBoundingBox = direction->GetTotalBoundingBox(displayConstants, system->beginningMeasureIndex, system->endingMeasureIndex, 0.0f, 0.0f);
+
+            if (boundingBoxNotSet)
+                bb = directionBoundingBox, boundingBoxNotSet = false;
+            else
+                bb = BoundingBox::CombineBoundingBoxes(bb, directionBoundingBox);
+        }
+
+        for (int i = system->beginningMeasureIndex; i <= system->endingMeasureIndex; i++)
+        {
+            if (i >= measures.size())
+            {
+                LOGE("Index is bigger than measures.size()!!");
+                break;
+            }
+
+            BoundingBox measureBoundingBox = measures[i]->GetTotalBoundingBox(displayConstants, lines);
+
+            if (boundingBoxNotSet)
+                bb = measureBoundingBox, boundingBoxNotSet = false;
+            else
+                bb = BoundingBox::CombineBoundingBoxes(bb, measureBoundingBox);
+        }
+
+        systemBoundingBoxes.push_back(bb);
+    }
 }
 
 float Staff::GetTotalBeatWidth()

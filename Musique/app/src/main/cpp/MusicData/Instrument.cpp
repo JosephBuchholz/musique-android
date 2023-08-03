@@ -18,7 +18,7 @@ float Instrument::GetMiddleHeight(float lineSpacing, float tabLineSpacing, int s
     }*/
 
     int i = 0;
-    for (auto staff : staves) {
+    for (const auto& staff : staves) {
         float ls = lineSpacing;
         if (staff->type == Staff::StaffType::Tab)
             ls = tabLineSpacing;
@@ -55,15 +55,15 @@ float Instrument::GetTotalHeight(float lineSpacing, float tabLineSpacing, int st
             GetBelowHeight(lineSpacing, tabLineSpacing, start, end);
 }
 
-BoundingBox Instrument::GetTotalBoundingBox(const MusicDisplayConstants& displayConstants, int startMeasureIndex, int endMeasureIndex) const
+BoundingBox Instrument::GetTotalBoundingBox(const MusicDisplayConstants& displayConstants, int systemIndex) const
 {
-    BoundingBox instrumentBoundingBox;
+    /*BoundingBox instrumentBoundingBox;
     bool instBBNotSet = true;
 
     Vec2<float> previousStaffPosition = { 0.0f, 0.0f };
     float previousStaffBelowAndMiddleHeight = 0.0f;
     bool firstStaff = true;
-    for (auto staff : staves)
+    for (const auto& staff : staves)
     {
         Vec2<float> staffPosition = { 0.0f, 0.0f };
 
@@ -92,9 +92,63 @@ BoundingBox Instrument::GetTotalBoundingBox(const MusicDisplayConstants& display
             instrumentBoundingBox = BoundingBox::CombineBoundingBoxes(instrumentBoundingBox, staffBoundingBox);
 
         firstStaff = false;
+    }*/
+
+    if (systemIndex < systemBoundingBoxes.size())
+    {
+        return systemBoundingBoxes[systemIndex];
+    }
+    return {};
+}
+
+void Instrument::CalculateTotalBoundingBoxes(const MusicDisplayConstants& displayConstants, const std::vector<std::shared_ptr<System>>& systems)
+{
+    for (const auto& staff : staves)
+    {
+        staff->CalculateTotalBoundingBoxes(displayConstants, systems);
     }
 
-    return instrumentBoundingBox;
+    int systemIndex = 0;
+    for (const auto& system : systems)
+    {
+        BoundingBox instrumentBoundingBox;
+        bool instBBNotSet = true;
+
+        Vec2<float> previousStaffPosition = { 0.0f, 0.0f };
+        float previousStaffBelowAndMiddleHeight = 0.0f;
+        bool firstStaff = true;
+        for (const auto& staff : staves)
+        {
+            Vec2<float> staffPosition = { 0.0f, 0.0f };
+
+            BoundingBox staffBoundingBox = staff->GetTotalBoundingBox(displayConstants, systemIndex);
+            staffBoundingBox.AddPadding(5.0f);
+
+            if (!firstStaff)
+            {
+                staffPosition.y = -staffBoundingBox.GetTop();
+                staffPosition.y += previousStaffPosition.y;
+                staffPosition.y += previousStaffBelowAndMiddleHeight;
+
+                //LOGE("above height: %f, previousStaffY: %f, previousStaffBelowAndMiddleHeight: %f, staffPosition.y: %f", -staffBoundingBox.GetTop(), previousStaffPosition.y, previousStaffBelowAndMiddleHeight, staffPosition.y);
+            }
+
+            previousStaffPosition = staffPosition;
+            previousStaffBelowAndMiddleHeight = staffBoundingBox.GetBottom();
+
+            staffBoundingBox.position += staffPosition;
+            if (instBBNotSet)
+                instrumentBoundingBox = staffBoundingBox, instBBNotSet = false;
+            else
+                instrumentBoundingBox = BoundingBox::CombineBoundingBoxes(instrumentBoundingBox, staffBoundingBox);
+
+            firstStaff = false;
+        }
+
+        systemBoundingBoxes.push_back(instrumentBoundingBox);
+
+        systemIndex++;
+    }
 }
 
 int Instrument::GetMeasureCount()
@@ -102,4 +156,52 @@ int Instrument::GetMeasureCount()
     if (!staves.empty())
         return staves[0]->measures.size();
     return 0;
+}
+
+void Instrument::CalculateSystemPositionData(MusicDisplayConstants displayConstants, int systemIndex, int startMeasureIndex, int endMeasureIndex, bool firstInst, Vec2<float>& previousInstPosition, float& previousInstBelowAndMiddleHeight)
+{
+    Vec2<float> instrumentPosition = { 0.0f, 0.0f };
+
+    //instrumentBoundingBox = GetTotalBoundingBox(displayConstants, startMeasureIndex, endMeasureIndex);
+
+    Vec2<float> previousStaffPosition = { 0.0f, 0.0f };
+    float previousStaffBelowAndMiddleHeight = 0.0f;
+    bool firstStaff = true;
+    for (const auto& staff : staves)
+    {
+        Vec2<float> staffPosition = { 0.0f, 0.0f };
+
+        BoundingBox staffBoundingBox = staff->GetTotalBoundingBox(displayConstants, systemIndex);
+        staffBoundingBox.AddPadding(5.0f);
+
+        if (!firstStaff)
+        {
+            staffPosition.y = -staffBoundingBox.GetTop();
+            staffPosition.y += previousStaffPosition.y;
+            staffPosition.y += previousStaffBelowAndMiddleHeight;
+
+            //LOGE("above height: %f, previousStaffY: %f, previousStaffBelowAndMiddleHeight: %f, staffPosition.y: %f", -staffBoundingBox.GetTop(), previousStaffPosition.y, previousStaffBelowAndMiddleHeight, staffPosition.y);
+        }
+
+        previousStaffPosition = staffPosition;
+        previousStaffBelowAndMiddleHeight = staffBoundingBox.GetBottom();
+
+        staff->systemPositionData.push_back(staffPosition);
+
+        firstStaff = false;
+    }
+
+    BoundingBox instrumentBoundingBox = GetTotalBoundingBox(displayConstants, systemIndex);
+
+    if (!firstInst)
+    {
+        instrumentPosition.y = -instrumentBoundingBox.GetTop();
+        instrumentPosition.y += previousInstPosition.y;
+        instrumentPosition.y += previousInstBelowAndMiddleHeight;
+    }
+
+    previousInstPosition = instrumentPosition;
+    previousInstBelowAndMiddleHeight = instrumentBoundingBox.GetBottom();
+
+    systemPositionData.push_back(instrumentPosition);
 }

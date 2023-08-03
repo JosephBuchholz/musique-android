@@ -91,7 +91,7 @@ void App::LoadSongFromString(const std::string& string)
 
 void App::DeleteSong()
 {
-    LOGI("Going To Delete Song Data");
+    /*LOGI("Going To Delete Song Data");
     if (song != nullptr)
     {
         LOGI("Deleting Song Data");
@@ -120,7 +120,7 @@ void App::DeleteSong()
         song->systems.clear();
         song->pages.clear();
         song = nullptr;
-    }
+    }*/
 }
 
 void App::OnMidiStart()
@@ -142,7 +142,14 @@ void App::OnUpdate(double dt)
         {
             if (song != nullptr && !songUpdated)
             {
-                song->OnUpdate();
+                auto startTotal = high_resolution_clock::now();
+                {
+                    auto start = high_resolution_clock::now();
+                    song->OnUpdate();
+                    auto stop = high_resolution_clock::now();
+                    auto duration = duration_cast<milliseconds>(stop - start);
+                    LOGD("Time taken by song->OnUpdate function: %lld milliseconds | %f seconds", duration.count(), duration.count() / 1000.0f);
+                }
 
                 int totalPages = musicRenderer->OnCalculateNumPages(song);
                 int pageIndex = 0;
@@ -164,25 +171,50 @@ void App::OnUpdate(double dt)
                     pageIndex++;
                 }
 
-                song->UpdateBoundingBoxes(musicRenderer->pagePositions, song->GetSystemPositions());
+                {
+                    auto start = high_resolution_clock::now();
+                    song->UpdateBoundingBoxes(musicRenderer->pagePositions, song->GetSystemPositions());
+                    auto stop = high_resolution_clock::now();
+                    auto duration = duration_cast<milliseconds>(stop - start);
+                    LOGD("Time taken by UpdateBoundingBoxes function: %lld milliseconds | %f seconds", duration.count(), duration.count() / 1000.0f);
+                }
+
                 auto totalStart = high_resolution_clock::now();
                 for (int i = 0; i < 5; i++)
                 {
-                    LOGI("Start resolving collisions (number %d)", i);
+                    LOGD("Start resolving collisions (number %d)", i);
                     auto start = high_resolution_clock::now();
                     song->ResolveCollisions();
                     auto stop = high_resolution_clock::now();
                     auto duration = duration_cast<milliseconds>(stop - start);
-                    LOGI("Time taken by collision function: %lld milliseconds | %f seconds", duration.count(), duration.count() / 1000.0f);
+                    LOGD("Time taken by collision function: %lld milliseconds | %f seconds", duration.count(), duration.count() / 1000.0f);
                 }
                 auto totalStop = high_resolution_clock::now();
                 auto totalDuration = duration_cast<milliseconds>(totalStop - totalStart);
-                LOGI("Total time taken by collision resolver: %lld milliseconds | %f seconds", totalDuration.count(), totalDuration.count() / 1000.0f);
+                LOGD("Total time taken by collision resolver: %lld milliseconds | %f seconds", totalDuration.count(), totalDuration.count() / 1000.0f);
 
-                song->CalculateSystemPositionsAndPageBreaks();
+                {
+                    auto start = high_resolution_clock::now();
+                    song->CalculateSystemPositionsAndPageBreaks();
+                    auto stop = high_resolution_clock::now();
+                    auto duration = duration_cast<milliseconds>(stop - start);
+                    LOGD("Time taken by CalculateSystemPositionsAndPageBreaks function: %lld milliseconds | %f seconds", duration.count(), duration.count() / 1000.0f);
+                }
 
                 songUpdated = true;
+
+                auto stop = high_resolution_clock::now();
+                auto duration = duration_cast<milliseconds>(stop - startTotal);
+                LOGD("|--------- Time taken by full song initialization: %lld milliseconds | %f seconds", duration.count(), duration.count() / 1000.0f);
             }
+
+            /*{
+                auto start = high_resolution_clock::now();
+
+                auto stop = high_resolution_clock::now();
+                auto duration = duration_cast<milliseconds>(stop - start);
+                LOGE("Time taken by Render function: %lld milliseconds | %f seconds", duration.count(), duration.count() / 1000.0f);
+            }*/
 
             musicRenderer->Render(song, settings);
 
@@ -200,12 +232,6 @@ void App::OnUpdate(double dt)
             frameData.playLineHeight = playLineHeight;
             frameData.playProgress = musicPlayer->GetPlayLineBeatPosition() / song->totalBeatWidth;
             frameData.isPlaying = musicPlayer->IsPlaying();
-
-            /*frameData.playLinePosition = 10.0f;
-            frameData.playLinePositionY = 10.0f;
-            frameData.playLineHeight = 500.0f;
-            frameData.playProgress = 10.0f;
-            frameData.isPlaying = true;*/
 
             UpdateFrameData(frameData);
         }

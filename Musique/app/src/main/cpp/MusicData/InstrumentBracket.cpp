@@ -9,7 +9,7 @@ void InstrumentBracket::Render(RenderData& renderData, Vec2<float> parentPositio
     {
         paint.glyphSizeFactor = height / 40.0f;
 
-        renderData.AddGlyph(SMuFLGlyph(SMuFLID::brace, positionX + parentPosition.x + offset.x, parentPosition.y + offset.y + height, paint));
+        renderData.AddGlyph(SMuFLGlyph(SMuFLID::brace, { positionX + parentPosition.x + offset.x, parentPosition.y + offset.y + height }, paint));
     }
     else if (type == InstrumentBracketType::Bracket)
     {

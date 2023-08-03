@@ -104,6 +104,7 @@ public:
     void UpdateBoundingBox(const MusicDisplayConstants& displayConstants, Vec2<float> parentPosition);
 
     void CalculatePositionAsPaged(const MusicDisplayConstants& displayConstants, int staffLines);
+    void UpdateTieAndGlissSlide(bool measureStartsNewSystem);
 
     /* ----- Sound Related Functions ----- */
 

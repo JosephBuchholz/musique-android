@@ -14,8 +14,8 @@ float RenderMeasurement::MeasureGlyph(const SMuFLGlyph& glyph)
     jclass glyphClass = env->FindClass("com/randsoft/apps/musique/renderdata/SMuFLGlyph");
     jobject newGlyph = JNIHelper::CreateNewObject(env, glyphClass);
 
-    JNIHelper::SetFloatField(env, newGlyph, "x", glyph.x);
-    JNIHelper::SetFloatField(env, newGlyph, "y", glyph.y);
+    JNIHelper::SetFloatField(env, newGlyph, "x", glyph.position.x);
+    JNIHelper::SetFloatField(env, newGlyph, "y", glyph.position.y);
     JNIHelper::SetIntField(env, newGlyph, "codePoint", (int)glyph.codePoint);
 
     jobject paintObject = ConvertPaintToObject(env, glyph.paint);
@@ -34,7 +34,7 @@ float RenderMeasurement::MeasureGlyph(const SMuFLGlyph& glyph)
 
 float RenderMeasurement::MeasureGlyph(SMuFLID codePoint)
 {
-    SMuFLGlyph glyph = SMuFLGlyph(codePoint, 0.0f, 0.0f);
+    SMuFLGlyph glyph = SMuFLGlyph(codePoint, { 0.0f, 0.0f });
     return MeasureGlyph(glyph);
 }
 
@@ -50,8 +50,8 @@ BoundingBox RenderMeasurement::GetTextBoundingBox(const Text& text)
     jclass textClass = env->FindClass("com/randsoft/apps/musique/renderdata/Text");
     jobject newText = JNIHelper::CreateNewObject(env, textClass);
 
-    JNIHelper::SetFloatField(env, newText, "x", text.x);
-    JNIHelper::SetFloatField(env, newText, "y", text.y);
+    JNIHelper::SetFloatField(env, newText, "x", text.position.x);
+    JNIHelper::SetFloatField(env, newText, "y", text.position.y);
 
     // EROR LINES
     JNIHelper::SetObjectField(env, newText, "text", env->NewStringUTF(text.text.c_str()), "Ljava/lang/String;");
@@ -91,8 +91,8 @@ BoundingBox RenderMeasurement::GetGlyphBoundingBox(const SMuFLGlyph& glyph)
     jclass glyphClass = env->FindClass("com/randsoft/apps/musique/renderdata/SMuFLGlyph");
     jobject newGlyph = JNIHelper::CreateNewObject(env, glyphClass);
 
-    JNIHelper::SetFloatField(env, newGlyph, "x", glyph.x);
-    JNIHelper::SetFloatField(env, newGlyph, "y", glyph.y);
+    JNIHelper::SetFloatField(env, newGlyph, "x", glyph.position.x);
+    JNIHelper::SetFloatField(env, newGlyph, "y", glyph.position.y);
     JNIHelper::SetIntField(env, newGlyph, "codePoint", (int)glyph.codePoint);
 
     jobject paintObject = ConvertPaintToObject(env, glyph.paint);

@@ -5,6 +5,7 @@
 #include <vector>
 
 #include "Paint.h"
+#include "../Collisions/Vec2.h"
 
 /**
  * An object that represents a span for spannable text
@@ -29,9 +30,9 @@ struct SpannableText {
 
     SpannableText() {}
 
-    SpannableText(std::vector<uint16_t> text, float x, float y, std::vector<TextSpan> spans, Paint mainPaint = Paint())
-            : x(x), y(y), spans(spans), mainPaint(mainPaint)
-            {
+    SpannableText(std::vector<uint16_t> text, Vec2<float> position, std::vector<TextSpan> spans, Paint mainPaint = Paint())
+            : position(position), spans(spans), mainPaint(mainPaint)
+    {
 
         textSize = text.size();
 
@@ -40,11 +41,30 @@ struct SpannableText {
 
         // copy the vector 'text' in to the utf16 string 'text'
         uint16_t* tempPtr = this->text;
-        for (uint16_t c : text)
+        for (uint16_t c: text)
         {
             (*tempPtr) = c;
             tempPtr++;
         }
+    }
+
+    SpannableText(const SpannableText& spannableText)
+            : position(spannableText.position), spans(spannableText.spans), mainPaint(spannableText.mainPaint)
+    {
+        textSize = spannableText.textSize;
+
+        // allocate memory for the utf16 string 'text'
+        this->text = new uint16_t[textSize];
+
+        // copy the text in spannableText to this->text
+        memcpy(this->text, spannableText.text, textSize * sizeof(uint16_t));
+    }
+
+    SpannableText(SpannableText&& spannableText)
+            : position(spannableText.position), spans(spannableText.spans), mainPaint(spannableText.mainPaint),
+            textSize(spannableText.textSize), text(spannableText.text)
+    {
+        spannableText.text = nullptr;
     }
 
     ~SpannableText()
@@ -54,9 +74,7 @@ struct SpannableText {
 
     uint16_t* text;
     unsigned int textSize = 0;
-    //std::string text = "";
-    float x = 0.0f;
-    float y = 0.0f;
+    Vec2<float> position;
     Paint mainPaint = Paint();
     std::vector<TextSpan> spans;
 };

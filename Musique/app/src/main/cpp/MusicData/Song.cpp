@@ -8,11 +8,6 @@
 
 #include "../Exceptions/Exceptions.h"
 
-Song::Song()
-{
-
-}
-
 Song::~Song()
 {
     LOGD("deconstructing song data");
@@ -41,10 +36,10 @@ void Song::OnLayoutChanged(Settings::MusicLayout layout)
 void Song::OnUpdate()
 {
     // TODO: this is some pretty terrible looking code, needs fixed
-    LOGD("updating song data");
+    LOGI("Updating song data");
 
     songData.instrumentInfos.clear();
-    for (auto instrument: instruments)
+    for (const auto& instrument: instruments)
     {
         InstrumentInfo instInfo = InstrumentInfo();
         instInfo.name = instrument->name.string;
@@ -53,73 +48,13 @@ void Song::OnUpdate()
         songData.instrumentInfos.push_back(instInfo);
     }
 
-    // tie calculations
-    /*for (auto instrument : instruments)
-    {
-        for (auto staff : instrument->staves)
-        {
-            std::vector<std::shared_ptr<Note>> tiedStartNotes;
-
-            int measureIndex = 0;
-            for (auto measure : staff->measures)
-            {
-                int noteIndex = 0;
-                for (auto note : measure->notes)
-                {
-                    //LOGV("s: %d", tiedStartNotes.size());
-                    if (note->tie.type == NoteTie::TieType::Start)
-                    {
-                        //LOGW("Tie start: s: %d", tiedStartNotes.size());
-                        tiedStartNotes.push_back(note);
-                    }
-                    else if (note->tie.type == NoteTie::TieType::Stop)
-                    {
-                        if (!tiedStartNotes.empty())
-                        {
-                            //LOGW("Tie end: s: %d", tiedStartNotes.size());
-
-                            tiedStartNotes[0]->tie.tiedNote = note;
-                            note->tie.tiedNote = tiedStartNotes[0];
-
-                            CurveOrientation orientation;
-                            AboveBelowType placement;
-
-                            if (tiedStartNotes[0]->noteStem.stemType == NoteStem::StemType::Up)
-                            {
-                                orientation = CurveOrientation::Under;
-                                placement = AboveBelowType::Below;
-                            }
-                            else
-                            {
-                                orientation = CurveOrientation::Over;
-                                placement = AboveBelowType::Above;
-                            }
-
-                            tiedStartNotes[0]->tie.orientation = orientation;
-                            note->tie.orientation = orientation;
-
-                            tiedStartNotes[0]->tie.placement = placement;
-                            note->tie.placement = placement;
-
-                            tiedStartNotes.erase(tiedStartNotes.begin());
-                        }
-                    }
-
-                    noteIndex++;
-                }
-
-                measureIndex++;
-            }
-        }
-    }*/
-
     // beam calculations
-    for (auto instrument: instruments)
+    for (const auto& instrument: instruments)
     {
-        for (auto staff: instrument->staves)
+        for (const auto& staff: instrument->staves)
         {
             int measureIndex = 0;
-            for (auto measure: staff->measures)
+            for (const auto& measure: staff->measures)
             {
                 int noteIndex = 0;
                 const int maxBeamLevel = 4; // TODO: probably should be fixed
@@ -128,7 +63,7 @@ void Song::OnUpdate()
 
                 bool beamGroupIsDone = false;
 
-                for (auto note: measure->notes)
+                for (const auto& note: measure->notes)
                 {
                     for (const NoteBeamData &noteBeamData: note->beamData)
                     {
@@ -202,53 +137,53 @@ void Song::OnUpdate()
     }
 
     // beat positions
-    for (auto instrument: instruments)
+    for (const auto& instrument: instruments)
     {
-        for (auto staff: instrument->staves)
+        for (const auto& staff: instrument->staves)
         {
             totalBeatWidth = staff->GetTotalBeatWidth();
             int measureIndex = 0;
-            for (auto measure: staff->measures)
+            for (const auto& measure: staff->measures)
             {
-                measure->beatPosition = staff->GetMeasureBeatPosition(measureIndex);
-                /*int minWidth = measure->CalculateMinWidth();
-
-                if ((int)m_MeasureWidths.size() - 1 >= measureIndex) { // if there is all ready a width at measureNumber
-                    if (m_MeasureWidths[measureIndex] < minWidth) { // if the width of this measure is bigger than the widths of the previous measures
-                        m_MeasureWidths[measureIndex] = minWidth;
-                    }
-                } else { // else push back width
-                    m_MeasureWidths.push_back(minWidth);
-                }*/
-
+                measure->InitBeatPosition(staff->GetMeasureBeatPosition(measureIndex));
                 measureIndex++;
             }
         }
     }
 
-    CalculateNoteBeatPositionsInSong();
+    for (const auto& instrument : instruments)
+    {
+        for (const auto& staff : instrument->staves)
+        {
+            for (const auto& direction : staff->durationDirections)
+            {
+                direction->beatPositionInSongStart = direction->beatPositionStart + staff->GetMeasureBeatPosition(direction->startMeasureIndex);
+                direction->beatPositionInSongEnd = direction->beatPositionEnd + staff->GetMeasureBeatPosition(direction->endMeasureIndex);
+            }
+        }
+    }
 
     {
         int instrumentIndex = 0;
-        for (auto instrument : instruments)
+        for (const auto& instrument : instruments)
         {
             instrument->midiInstrument.channel = instrumentIndex;
-            for (auto staff : instrument->staves)
+            for (const auto& staff : instrument->staves)
             {
-                for (auto measure : staff->measures)
+                for (const auto& measure : staff->measures)
                 {
                     std::shared_ptr<Note> previousNote = nullptr;
-                    for (auto note : measure->notes)
+                    for (const auto& note : measure->notes)
                     {
                         note->InitSound(previousNote);
                         previousNote = note;
                     }
 
                     previousNote = nullptr;
-                    for (auto noteChord : measure->noteChords)
+                    for (const auto& noteChord : measure->noteChords)
                     {
                         noteChord->InitSound(previousNote);
-                        previousNote = noteChord->notes[0];
+                        previousNote = noteChord->m_notes[0];
                     }
                 }
             }
@@ -269,9 +204,9 @@ void Song::OnUpdate()
             credit.CalculatePositionAsPaged();
         }
 
-        for (auto endingGroup : endingGroups)
+        for (const auto& endingGroup : endingGroups)
         {
-            for (auto ending : endingGroup->endings)
+            for (const auto& ending : endingGroup->endings)
             {
                 if (GetSystemIndex(ending->startMeasureIndex) != GetSystemIndex(ending->endMeasureIndex))
                 {
@@ -326,18 +261,18 @@ void Song::OnUpdate()
         }
 
         // calculate positions for notes and measures
-        for (auto instrument : instruments)
+        for (const auto& instrument : instruments)
         {
             if (instrument->instrumentBracket)
                 instrument->instrumentBracket->CalculateAsPaged(displayConstants, -15.0f);
 
-            for (auto staff : instrument->staves)
+            for (const auto& staff : instrument->staves)
             {
                 staff->CalculateAsPaged(displayConstants);
 
                 int measureIndex = 0;
                 int systemIndex = -1;
-                for (auto measure : staff->measures)
+                for (const auto& measure : staff->measures)
                 {
                     if (measure->startNewSystem)
                         systemIndex++;
@@ -359,7 +294,7 @@ void Song::OnUpdate()
                     systems[systemIndex].timeSignaturePositionX = std::max(measure->GetTimeSignaturePositionInMeasure(systems[systemIndex], systems[systemIndex].keySignaturePositionX), systems[systemIndex].timeSignaturePositionX);*/
 
                     int noteIndex = 0;
-                    for (auto note : measure->notes)
+                    for (const auto& note : measure->notes)
                     {
                         /*if (note->isRest && note->type == NoteType::Tab && softwareName == "MuseScore" && softwareMajorVersion == 4) // musescore only
                         {
@@ -384,7 +319,7 @@ void Song::OnUpdate()
                         noteIndex++;
                     }
 
-                    for (auto noteChord : measure->noteChords)
+                    for (const auto& noteChord : measure->noteChords)
                     {
                         noteChord->CalculatePositionAsPaged(displayConstants, staff->lines, measure, (softwareName == "MuseScore" && softwareMajorVersion == 4));
                     }
@@ -432,9 +367,9 @@ void Song::OnUpdate()
         }
 
         // calculate width for multi measure rests
-        for (auto instrument : instruments)
+        for (const auto& instrument : instruments)
         {
-            for (auto staff : instrument->staves)
+            for (const auto& staff : instrument->staves)
             {
                 std::vector<std::shared_ptr<Measure>> multiMeasureRests;
                 int multiMeasureRestCount = 0;
@@ -445,7 +380,7 @@ void Song::OnUpdate()
 
                 int measureIndex = 0;
                 int systemIndex = 0;
-                for (auto measure : staff->measures)
+                for (const auto& measure : staff->measures)
                 {
                     if ((measure->startNewSystem && measureIndex != 0) || measureIndex == staff->measures.size() - 1)
                     {
@@ -486,7 +421,7 @@ void Song::OnUpdate()
                         LOGV("systemLeftMargin: %f, systemRightMargin: %f, systemWidth: %f, remainingWidth: %f, multiMeasureRestWidth: %f", systems[systemIndex]->layout.systemLeftMargin, systems[systemIndex]->layout.systemRightMargin,
                              systemWidth, (systemWidth - totalMeasureWidth), multiMeasureRestWidth);
 
-                        for (auto multiMeasureRest : multiMeasureRests)
+                        for (const auto& multiMeasureRest : multiMeasureRests)
                         {
                             multiMeasureRest->measureWidth = multiMeasureRestWidth;
 
@@ -545,10 +480,10 @@ void Song::OnUpdate()
 
         // sort all the notes by their beat positions and put them in an array of time space points
         m_TimeSpacePoints.clear();
-        for (auto instrument : instruments) {
-            for (auto staff : instrument->staves) {
+        for (const auto& instrument : instruments) {
+            for (const auto& staff : instrument->staves) {
                 int measureIndex = 0;
-                for (auto measure : staff->measures) {
+                for (const auto& measure : staff->measures) {
                     TimeSpacePoint beginMeasurePoint = TimeSpacePoint();
                     beginMeasurePoint.beatPositionInSong = measure->beatPosition;
                     beginMeasurePoint.position = 0.0f;
@@ -561,7 +496,7 @@ void Song::OnUpdate()
                     //AddTimeSpacePoint(beginMeasurePoint);
                     AddTimeSpacePoint(endMeasurePoint);
 
-                    for (std::shared_ptr<Note> note : measure->notes) {
+                    for (const auto& note : measure->notes) {
 
                         //if (note->isRest)
                         //    continue;
@@ -604,12 +539,12 @@ void Song::OnUpdate()
         }
 
         // calculate positions for everything else
-        for (auto instrument : instruments)
+        for (const auto& instrument : instruments)
         {
-            for (auto staff : instrument->staves)
+            for (const auto& staff : instrument->staves)
             {
                 float defY = -30.0f;
-                for (auto direction : staff->durationDirections)
+                for (const auto& direction : staff->durationDirections)
                 {
                     if (GetSystemIndex(direction->startMeasureIndex) != GetSystemIndex(direction->endMeasureIndex))
                     {
@@ -618,7 +553,6 @@ void Song::OnUpdate()
 
                     if (!direction->isBroken) // only one segment
                     {
-                        LOGE("Direction is not broken");
                         DurationDirectionSegment segment;
                         segment.startMeasureIndex = direction->startMeasureIndex;
                         segment.endMeasureIndex = direction->endMeasureIndex;
@@ -630,7 +564,6 @@ void Song::OnUpdate()
                     }
                     else // multiple segments
                     {
-                        LOGE("Direction is broken");
                         bool first = true;
                         int startSegmentMeasureIndex = direction->startMeasureIndex;
                         float startSegmentBeatPositionInSong = direction->beatPositionInSongStart;
@@ -669,12 +602,11 @@ void Song::OnUpdate()
                 }
 
                 int measureIndex = 0;
-                for (auto measure : staff->measures)
+                for (const auto& measure : staff->measures)
                 {
                     for (auto& direction : measure->directions)
                     {
                         float defaultX = GetPositionXInMeasure(direction.beatPositionInSong, measureIndex);
-                        //LOGW("PositionX of direction: Beatposition: %f, MI: %i, X: %f", direction.beatPositionInSong, measureIndex, defaultX);
                         float defaultY = -30.0f;
 
                         for (auto& word : direction.words)
@@ -719,13 +651,12 @@ void Song::OnUpdate()
                     }
 
                     float measureHeight = measure->GetMiddleHeight(staff->lines, staff->GetLineSpacing(displayConstants));
-
-                    for (auto tuplet : measure->tuplets)
+                    for (const auto& tuplet : measure->tuplets)
                     {
                         tuplet->CalculatePositionAsPaged(displayConstants, measureHeight, { 0.0f, 0.0f }, { 0.0f, 0.0f });
                     }
 
-                    for (auto note : measure->notes)
+                    for (const auto& note : measure->notes)
                     {
                         if (note->isRest && (softwareName == "MuseScore" && softwareMajorVersion == 3))
                         {
@@ -736,57 +667,16 @@ void Song::OnUpdate()
                             }
                         }
 
-                        if (note->tie)
-                        {
-                            if (note->tie->notes.second == note) // the second note of tie
-                            {
-                                if (measure->startNewSystem && note->tie->notes.first->measureIndex != note->tie->notes.second->measureIndex) // the notes of the tie are on different systems
-                                {
-                                    note->tie->isBroken = true;
-                                }
-                            }
-                        }
-
-                        for (auto glissSlide : note->glissSlides)
-                        {
-                            if (glissSlide->notes.second == note) // the second note
-                            {
-                                if (measure->startNewSystem && glissSlide->notes.first->measureIndex != glissSlide->notes.second->measureIndex) // the notes are on different systems
-                                {
-                                    glissSlide->isBroken = true;
-                                }
-                            }
-                        }
+                        note->UpdateTieAndGlissSlide(measure->startNewSystem);
                     }
 
-                    for (auto noteChord : measure->noteChords)
+                    for (const auto& noteChord : measure->noteChords)
                     {
-                        for (auto note : noteChord->notes)
+                        for (const auto& note : noteChord->m_notes)
                         {
-                            if (note->tie)
-                            {
-                                if (note->tie->notes.second == note) // the second note of tie
-                                {
-                                    if (measure->startNewSystem && note->tie->notes.first->measureIndex != note->tie->notes.second->measureIndex) // the notes of the tie are on different systems
-                                    {
-                                        note->tie->isBroken = true;
-                                    }
-                                }
-                            }
-
-                            for (auto glissSlide : note->glissSlides)
-                            {
-                                if (glissSlide->notes.second == note) // the second note
-                                {
-                                    if (measure->startNewSystem && glissSlide->notes.first->measureIndex != glissSlide->notes.second->measureIndex) // the notes are on different systems
-                                    {
-                                        glissSlide->isBroken = true;
-                                    }
-                                }
-                            }
+                            note->UpdateTieAndGlissSlide(measure->startNewSystem);
                         }
                     }
-
 
                     // calculate beam positions
                     for (BeamGroup& beamGroup : measure->beams)
@@ -843,7 +733,7 @@ void Song::OnUpdate()
                         if (beamGroup.notes[0]->noteStem.stemEndY < beamGroup.notes[0]->noteStem.stemStartY)
                             direction = -1.0f;
 
-                        for (std::shared_ptr<Note> beamNote : beamGroup.notes)
+                        for (const std::shared_ptr<Note>& beamNote : beamGroup.notes)
                         {
                             float beamPositionYAtNote = beamGroup.GetPositionYOnBeam(beamNote->position.x + beamNote->noteStem.stemPositionX);
                             beamNote->noteStem.stemEndY = beamPositionYAtNote - beamNote->position.y;
@@ -872,7 +762,7 @@ void Song::OnUpdate()
                             }
 
                             // recalculate stem lengths
-                            for (std::shared_ptr<Note> beamNote : beamGroup.notes)
+                            for (const std::shared_ptr<Note>& beamNote : beamGroup.notes)
                             {
                                 float beamPositionYAtNote = beamGroup.GetPositionYOnBeam(beamNote->position.x + beamNote->noteStem.stemPositionX);
                                 beamNote->noteStem.stemEndY = beamPositionYAtNote - beamNote->position.y;
@@ -885,309 +775,27 @@ void Song::OnUpdate()
             }
         }
     }
-    /*else if (settings.musicLayout == Settings::MusicLayout::Vertical || settings.musicLayout == Settings::MusicLayout::Horizontal)
-    {
-        // sort all the notes by their stop times(beatPositionInSong + duration) from smallest to largest
-        std::vector<std::shared_ptr<Note>> orderedNotes;
-        for (auto instrument : instruments) {
-            for (auto staff : instrument->staves) {
-                int measureIndex = 0;
-                for (auto measure : staff->measures) {
-                    float measureBeatPosition = staff->GetMeasureBeatPosition(measureIndex);
 
-                    for (std::shared_ptr<Note> note : measure->notes) {
-                        float noteBeatPosition = note->beatPosition + measureBeatPosition;
-                        float noteBeatLength = note->duration.duration;
-
-                        int insertIndex = 0;
-                        for (std::shared_ptr<Note> orderedNote : orderedNotes) {
-                            if (orderedNote->beatPositionInSong + orderedNote->duration.duration > note->beatPositionInSong + note->duration.duration)
-                            {
-                                break; // note should come before orderedNote
-                            } // else note should come after orderedNote
-
-                            insertIndex++;
-                        }
-                        orderedNotes.insert(orderedNotes.begin() + insertIndex, note); // insert note at insertIndex
-                    }
-
-                    measureIndex++;
-                }
-            }
-        }
-
-        std::vector<float> measuresNotesWidths; // the widths of the combined widths of all the notes in each measure
-
-        m_MinNoteData.clear();
-        m_MeasureWidths.clear();
-        m_MeasureBeginWidths.clear();
-        // calculate m_MinNoteData
-        {
-            float time = 0.0f; // current time in song
-            int steps = 0; // debug var
-            int measureIndex = 0;
-            float width = 0.0f;
-            int noteIndex = 0;
-            for (std::shared_ptr<Note> note : orderedNotes) {
-                //LOGD("stop position %f", note->beatPositionInSong + note->duration.duration);
-                float startTime = note->beatPositionInSong;
-                if (startTime >= time) {
-                    time += note->duration.duration;
-                    steps++;
-
-                    //LOGD("note %i: beatpos: %f, duration: %f, width: %f, total width: %f", noteIndex, note->beatPositionInSong, note->duration.duration, note->GetMinWidth(), width);
-                    //std::array<float, 3> a = { note->GetMinWidth(), note->beatPositionInSong, note->duration };
-                    //m_MinNoteData.push_back({ note->GetMinWidth(), note->beatPositionInSong, note->duration.duration });
-                    m_MinNoteData.emplace_back(GetNoteMinWidthInFront(note), note->beatPositionInSong, note->duration.duration, note->measureIndex );
-
-                    if (measureIndex != note->measureIndex) {
-                        measureIndex = note->measureIndex;
-                        //measuresNotesWidths.push_back(width);
-                        width = 0.0f;
-                    }
-
-                    width += GetNoteMinWidthInFront(note); // moved
-                }
-
-                if (noteIndex >= orderedNotes.size()-1) // is last note
-                {
-                    //measuresNotesWidths.push_back(width);
-                }
-
-                noteIndex++;
-            }
-            LOGD("time: %f", time);
-            LOGD("steps: %i", steps);
-        }
-
-        {
-            int nx_debug = 0;
-            for (auto note : orderedNotes) {
-                float noteStartX = -1.0f;
-                float noteStopX = -1.0f;
-                float position = 0.0f;
-                float time = 0.0f;
-
-                NoteData* previousNoteData = nullptr;
-
-                std::vector<NoteData*> noteDatas;
-                for (auto& minNoteData: m_MinNoteData) {
-                    if (minNoteData.beatPositionInSong == note->beatPositionInSong && minNoteData.duration == note->duration.duration) // the same note
-                        break;
-
-                    // changed minNoteData.position to position in the if/else statement (this comment is only here be cause I could have caused a bug)
-                    if (position >= note->beatPositionInSong + note->duration.duration) // noteData.beatPositionInSong is past(or equal to) note stop beat position
-                    {
-                        if (previousNoteData != nullptr)
-                        {
-                            float stopBeatPosition = note->beatPositionInSong + note->duration.duration;
-                            // calculates how much of the previous note's width should be taken away from the position
-                            float diff = (stopBeatPosition - previousNoteData->beatPositionInSong); // num of beats between beatPositionInSong and previousNoteBeatPosition
-                            float howMuch = (diff/previousNoteData->duration); // the percentage of previousNoteWidth that needs to be added to previousNoteX to get the x of beatPositionInSong
-                            float howMuchToSub = 1.0f - howMuch; // the percentage of previousNoteWidth that needs to be subtracted from currentNoteX to get the x of beatPositionInSong
-                            noteStopX = position - (previousNoteData->width * howMuchToSub); // get the percentage of previousNoteWidth and subtract
-                            break;
-                        }
-                    }
-                    else if (position >= note->beatPositionInSong) // noteData.beatPositionInSong is past(or equal to) note->beatPositionInSong(what we want the x position of)
-                    {
-                        noteDatas.push_back(&minNoteData);
-
-                        if (noteStartX == -1.0f) // if noteStartX is not set yet
-                        {
-                            if (minNoteData.beatPositionInSong != note->beatPositionInSong) // add previousNoteData
-                                noteDatas.push_back(previousNoteData);
-
-                            if (previousNoteData == nullptr) // noteData is the first in the list so the start position is just 0.0f
-                            {
-                                noteStartX = 0.0f;
-                            }
-                            else
-                            {
-                                // calculates how much of the previous note's width should be taken away from the position
-                                float diff = (note->beatPositionInSong - previousNoteData->beatPositionInSong); // num of beats between beatPositionInSong and previousNoteBeatPosition
-                                float howMuch = (diff/previousNoteData->duration); // the percentage of previousNoteWidth that needs to be added to previousNoteX to get the x of beatPositionInSong
-                                float howMuchToSub = 1.0f - howMuch; // the percentage of previousNoteWidth that needs to be subtracted from currentNoteX to get the x of beatPositionInSong
-                                noteStartX = position - (previousNoteData->width * howMuchToSub); // get the percentage of previousNoteWidth and subtract
-                            }
-                        }
-                    }
-
-                    position += minNoteData.width;
-                    time += minNoteData.duration;
-                    previousNoteData = &minNoteData;
-                    //previousNoteData.beatPositionInSong = minNoteData.beatPositionInSong;
-                    //previousNoteData.duration = minNoteData.duration;
-                    //previousNoteData.width = minNoteData.width;
-                    //if (note->beatPositionInSong >= minNoteData.beatPositionInSong && note->beatPositionInSong <= minNoteData.beatPositionInSong + minNoteData.duration) {
-                    //    float pos = note->beatPositionInSong
-                    //}
-                    //position
-                } // m_MinNoteData for loop
-
-                float noteWidth = noteStopX - noteStartX;
-                float minNoteWidth = GetNoteMinWidthInFront(note);
-                //LOGD("noteWidth: %f, minNoteWidth: %f, noteStopX: %f, noteStartX: %f", noteWidth, minNoteWidth, noteStopX, noteStartX);
-                if (noteWidth < minNoteWidth) // then fix it so that noteWidth >= minNoteWidth
-                {
-                    //LOGD("noteWidth %i < minNoteWidth %i", nx_debug, noteDatas.size());
-                    float howMuchToAdd = minNoteWidth - noteWidth;
-                    for (auto* noteData: noteDatas) {
-                        float w = 0.0f;
-                        if (note->beatPositionInSong > noteData->beatPositionInSong)
-                        {
-                            w = (noteData->beatPositionInSong + noteData->duration) - note->beatPositionInSong;
-                        }
-                        else if (note->beatPositionInSong + note->duration.duration >= noteData->beatPositionInSong && note->beatPositionInSong + note->duration.duration < noteData->beatPositionInSong + noteData->duration)
-                        {
-                            w = (note->beatPositionInSong + note->duration.duration) - noteData->beatPositionInSong;
-                        }
-                        else
-                        {
-                            w = noteData->duration;
-                        }
-
-                        float pw = w / note->duration.duration;
-                        noteData->width += pw * howMuchToAdd;
-                        //LOGD("pw = %f; w = %f; howMuchToAdd = %f; pw * howMuchToAdd = %f", pw, w, howMuchToAdd, pw * howMuchToAdd);
-                    }
-                } // noteWidth < minNoteWidth if statement
-                nx_debug++;
-            } // ordered notes for loop
-        }
-
-        // calculate m_MinNoteData
-        {
-            float time = 0.0f; // current time in song
-            int steps = 0; // debug var
-            int measureIndex = 0;
-            float width = 0.0f;
-            int noteIndex = 0;
-            for (auto noteData : m_MinNoteData) {
-
-                if (measureIndex != noteData.measureIndex) {
-                    //LOGV("----: M_I: %i, N_M_I: %i, W: %f, N_I: %i", measureIndex, noteData.measureIndex, width, noteIndex);
-                    measureIndex = noteData.measureIndex;
-                    measuresNotesWidths.push_back(width);
-                    width = 0.0f;
-                }
-
-                if (noteIndex >= m_MinNoteData.size()-1) // is last note
-                {
-                    measuresNotesWidths.push_back(width);
-                }
-
-                width += noteData.width;
-                noteIndex++; // added this (this comment is only here be cause I could have caused a bug)
-            }
-        }
-
-        // calculate measure widths
-        for (auto instrument : instruments) {
-            for (auto staff : instrument->staves) {
-                int measureIndex = 0;
-                for (auto measure : staff->measures) {
-                    // these were ints (this comment is only here be cause I could have caused a bug)
-                    float minWidth = measure->CalculateMinWidth(measuresNotesWidths[measureIndex]);
-                    //float beginWidth = measure->GetBeginningWidth();
-                    float beginWidth = 20.0f;
-
-                    if ((int)m_MeasureWidths.size() - 1 >= measureIndex) { // if there is all ready a width at measureNumber
-                        if (m_MeasureWidths[measureIndex] < minWidth) { // if the width of this measure is bigger than the widths of the previous measures
-                            m_MeasureWidths[measureIndex] = minWidth;
-                        }
-
-                        if (m_MeasureBeginWidths[measureIndex] < beginWidth) { // if the begin width of this measure is bigger than the begin widths of the previous measures
-                            m_MeasureBeginWidths[measureIndex] = beginWidth;
-                        }
-                    } else { // else push back width
-                        m_MeasureWidths.push_back(minWidth);
-                        m_MeasureBeginWidths.push_back(beginWidth);
-                    }
-
-                    measureIndex++;
-                }
-            }
-        }
-
-        for (int i = 0; i < m_MeasureWidths.size(); i++)
-        {
-            //LOGD("width: %f pos: %f notesWidth: %f", m_MeasureWidths[i], GetMeasurePositionX(i), measuresNotesWidths[i]);
-        }
-
-        for (auto instrument : instruments)
-        {
-            for (auto staff : instrument->staves)
-            {
-                int measureIndex = 0;
-                for (auto measure : staff->measures)
-                {
-                    measure->measureWidth = GetMeasureWidth(measureIndex);
-
-                    int noteIndex = 0;
-                    for (auto note : measure->notes)
-                    {
-                        if (note->isRest) { // is a rest
-                            float ls;
-                            if (note->type == NoteType::Tab)
-                                ls = displayConstants.tabLineSpacing;
-                            else
-                                ls = displayConstants.lineSpacing;
-                            note->position.x = GetPositionXInMeasure(note->beatPositionInSong, measureIndex);
-                            note->position.y = ((ls * float(staff->lines - 1)) / 2.0f);
-                        }
-                        else if (note->type == NoteType::Tab) // is a tab note
-                        {
-                            note->position.x = GetPositionXInMeasure(note->beatPositionInSong, measureIndex);
-                            note->position.y = (displayConstants.tabLineSpacing * float(note->string - 1));
-                        }
-                        else // is a standard note
-                        {
-                            note->position.x = GetPositionXInMeasure(note->beatPositionInSong, measureIndex);
-                            note->position.y = (displayConstants.lineSpacing * measure->CalculateNoteYPositionRelativeToMeasure(noteIndex));
-                        }
-
-                        noteIndex++;
-                    }
-
-                    measureIndex++;
-                }
-            }
-        }
-    }*/
-
-    /*int numPages = GetNumPages();
-
-    Vec2<float> pageNumberDefaultPosition = { displayConstants.pageWidth / 2.0f, displayConstants.pageHeight * (17.0f / 18.0f) };
-    for (int i = 0; i < numPages; i++)
-    {
-        PageNumber newPageNumber(i + 1);
-
-        newPageNumber.CalculatePosition(displayConstants, pageNumberDefaultPosition);
-
-        pageNumbers.push_back(newPageNumber);
-    }*/
-
-    for (auto endingGroup : endingGroups)
-    {
-        LOGW("endingGroup: ");
-        for (auto ending : endingGroup->endings)
-        {
-            LOGE("ending: SMI: %d, EMI: %d, text: %s, size: %d, isLast: %d", ending->startMeasureIndex, ending->endMeasureIndex, ending->endingNumbersText.c_str(), ending->endingNumbers.size(), ending->isLastEndingInGroup);
-            for (int number : ending->endingNumbers)
-            {
-                LOGW("number: %d", number);
-            }
-        }
-    }
-
-    LOGD("done updating song data");
+    LOGI("Done updating song data!");
 }
+
+#include <chrono>
+using namespace std::chrono;
 
 void Song::CalculateSystemPositionsAndPageBreaks()
 {
+    auto start = high_resolution_clock::now();
+    for (const auto& instrument : instruments)
+    {
+        instrument->CalculateTotalBoundingBoxes(displayConstants, systems);
+    }
+    auto stop = high_resolution_clock::now();
+    auto duration = duration_cast<milliseconds>(stop - start);
+    LOGE("Time taken by position calculation in CalculateSystemPositionsAndPageBreaks func.: %lld milliseconds | %f seconds", duration.count(), duration.count() / 1000.0f);
+
     systemBoundingBoxes.clear();
-    for (auto system : systems)
+    int systemIndex = 0;
+    for (const auto& system : systems)
     {
         BoundingBox bb;
 
@@ -1196,58 +804,12 @@ void Song::CalculateSystemPositionsAndPageBreaks()
         Vec2<float> previousInstPosition = { 0.0f, 0.0f };
         float previousInstBelowAndMiddleHeight = 0.0f;
         bool firstInst = true;
-        for (auto instrument : instruments)
+        for (const auto& instrument : instruments)
         {
-            BoundingBox instrumentBoundingBox;
-            bool instBBNotSet = true;
+            instrument->CalculateSystemPositionData(displayConstants, systemIndex, system->beginningMeasureIndex, system->endingMeasureIndex, firstInst, previousInstPosition, previousInstBelowAndMiddleHeight);
+            BoundingBox instrumentBoundingBox = instrument->GetTotalBoundingBox(displayConstants, systemIndex);
+            instrumentBoundingBox.position += instrument->systemPositionData[systemIndex];
 
-            Vec2<float> instrumentPosition = { 0.0f, 0.0f };
-
-            instrumentBoundingBox = instrument->GetTotalBoundingBox(displayConstants, system->beginningMeasureIndex, system->endingMeasureIndex);
-
-            Vec2<float> previousStaffPosition = { 0.0f, 0.0f };
-            float previousStaffBelowAndMiddleHeight = 0.0f;
-            bool firstStaff = true;
-            for (auto staff : instrument->staves)
-            {
-                Vec2<float> staffPosition = { 0.0f, 0.0f };
-
-                int start = system->beginningMeasureIndex;
-                int end = system->endingMeasureIndex;
-
-                BoundingBox staffBoundingBox = staff->GetTotalBoundingBox(displayConstants, start, end);
-                staffBoundingBox.AddPadding(5.0f);
-
-                if (!firstStaff)
-                {
-                    staffPosition.y = -staffBoundingBox.GetTop();
-                    staffPosition.y += previousStaffPosition.y;
-                    staffPosition.y += previousStaffBelowAndMiddleHeight;
-
-                    //LOGE("above height: %f, previousStaffY: %f, previousStaffBelowAndMiddleHeight: %f, staffPosition.y: %f", -staffBoundingBox.GetTop(), previousStaffPosition.y, previousStaffBelowAndMiddleHeight, staffPosition.y);
-                }
-
-                previousStaffPosition = staffPosition;
-                previousStaffBelowAndMiddleHeight = staffBoundingBox.GetBottom();
-
-                staff->systemPositionData.push_back(staffPosition);
-
-                firstStaff = false;
-            }
-
-            if (!firstInst)
-            {
-                instrumentPosition.y = -instrumentBoundingBox.GetTop();
-                instrumentPosition.y += previousInstPosition.y;
-                instrumentPosition.y += previousInstBelowAndMiddleHeight;
-            }
-
-            previousInstPosition = instrumentPosition;
-            previousInstBelowAndMiddleHeight = instrumentBoundingBox.GetBottom();
-
-            instrumentBoundingBox.position += instrumentPosition;
-
-            instrument->systemPositionData.push_back(instrumentPosition);
             if (boundingBoxNotSet)
             {
                 bb = instrumentBoundingBox;
@@ -1258,9 +820,9 @@ void Song::CalculateSystemPositionsAndPageBreaks()
             firstInst = false;
         }
 
-        for (auto endingGroup : endingGroups)
+        for (const auto& endingGroup : endingGroups)
         {
-            for (auto ending : endingGroup->endings)
+            for (const auto& ending : endingGroup->endings)
             {
                 if (DoBoundsCollide(ending->startMeasureIndex, ending->endMeasureIndex, system->beginningMeasureIndex, system->endingMeasureIndex))
                 {
@@ -1271,14 +833,15 @@ void Song::CalculateSystemPositionsAndPageBreaks()
         }
 
         systemBoundingBoxes.push_back(bb);
+        systemIndex++;
     }
 
     // remove all page breaks
-    for (auto instrument : instruments)
+    for (const auto& instrument : instruments)
     {
-        for (auto staff : instrument->staves)
+        for (const auto& staff : instrument->staves)
         {
-            for (auto measure : staff->measures)
+            for (const auto& measure : staff->measures)
             {
                 measure->startNewPage = false;
             }
@@ -1292,7 +855,7 @@ void Song::CalculateSystemPositionsAndPageBreaks()
     Vec2<float> previousSystemPosition = { 0.0f, displayConstants.topMargin + systems[0]->layout.topSystemDistance };
     float bottomLimit = displayConstants.pageHeight * (17.0f / 18.0f);
     int previousSystemIndex = -1;
-    int systemIndex = 0;
+    systemIndex = 0;
     bool startNewPage = true;
     float systemPadding = 5.0f;
     for (auto& system : systems)
@@ -1381,57 +944,12 @@ void Song::AddTimeSpacePoint(TimeSpacePoint point)
         m_TimeSpacePoints.push_back(point);
 }
 
-void Song::CalculateNoteBeatPositionsInSong()
-{
-    for (auto instrument : instruments) {
-        for (auto staff : instrument->staves) {
-
-            for (auto direction : staff->durationDirections)
-            {
-                direction->beatPositionInSongStart = direction->beatPositionStart + staff->GetMeasureBeatPosition(direction->startMeasureIndex);
-                direction->beatPositionInSongEnd = direction->beatPositionEnd + staff->GetMeasureBeatPosition(direction->endMeasureIndex);
-            }
-
-            int measureIndex = 0;
-            for (auto measure : staff->measures) {
-                float measureBeatPosition = staff->GetMeasureBeatPosition(measureIndex);
-
-                for (std::shared_ptr<Note> note : measure->notes) {
-                    note->beatPositionInSong = note->beatPosition + measureBeatPosition;
-                }
-
-                for (Chord& chord : measure->chords) {
-                    chord.beatPositionInSong = chord.beatPosition + measureBeatPosition;
-                }
-
-                for (Direction& direction : measure->directions) {
-                    direction.beatPositionInSong = direction.beatPosition + measureBeatPosition;
-
-                    if (direction.dynamicWedge != nullptr)
-                    {
-                        direction.dynamicWedge->beatPositionInSongStart = direction.dynamicWedge->beatPositionStart + measureBeatPosition;
-                        direction.dynamicWedge->beatPositionInSongEnd = direction.dynamicWedge->beatPositionEnd + measureBeatPosition;
-                    }
-
-                    if (direction.bracketDirection != nullptr)
-                    {
-                        direction.bracketDirection->beatPositionInSongStart = direction.bracketDirection->beatPositionStart + measureBeatPosition;
-                        direction.bracketDirection->beatPositionInSongEnd = direction.bracketDirection->beatPositionEnd + measureBeatPosition;
-                    }
-                }
-
-                measureIndex++;
-            }
-        }
-    }
-}
-
-float Song::GetNoteMinWidthInFront(std::shared_ptr<Note> note) const
+float Song::GetNoteMinWidthInFront(const std::shared_ptr<Note>& note) const
 {
     return note->GetMinWidth();
 }
 
-float Song::GetNoteMinWidthBehind(std::shared_ptr<Note> note) const
+float Song::GetNoteMinWidthBehind(const std::shared_ptr<Note>& note) const
 {
     return 0.0f;
 }
@@ -1545,7 +1063,7 @@ float Song::GetPositionXInMeasure(float beatPositionInSong, int currentMeasureIn
 
                     break;
                 }
-                else if (beatPositionInSong == point.beatPosition) // TODO: fix dangerous comparision
+                else if (beatPositionInSong == point.beatPosition) // TODO: fix dangerous comparison
                 {
                     position = point.position;
                     LOGE("beatPositionInSong == point.beatPosition: %f", position);
@@ -1651,12 +1169,12 @@ bool Song::DoesMeasureStartNewPage(int measureIndex) const
         throw DoesNotExistException("Measure does not exist");
 }
 
-float Song::GetSystemPositionY(int measureIndex) const // TODO: needs finnished
+float Song::GetSystemPositionY(int measureIndex) const // TODO: needs finished
 {
     float instYPosition = 0.0f;
     int instrumentIndex = 0;
     std::shared_ptr<Instrument> prevInstrument = nullptr;
-    for (auto instrument: instruments) {
+    for (const auto& instrument: instruments) {
 
         if (songData.instrumentInfos[instrumentIndex].visible) {
             if (prevInstrument != nullptr)
@@ -1707,9 +1225,9 @@ BoundingBox Song::GetSystemBoundingBox(int systemIndex) const
 
 void Song::CreatePageBreak(int measureIndex) const
 {
-    for (auto instrument : instruments)
+    for (const auto& instrument : instruments)
     {
-        for (auto staff : instrument->staves)
+        for (const auto& staff : instrument->staves)
         {
             staff->measures[measureIndex]->startNewPage = true;
             staff->measures[measureIndex]->startNewSystem = true; // a new page always starts a new system
@@ -1731,7 +1249,7 @@ int Song::GetSystemIndex(int measureIndex) const
     if (instruments[0]->staves.empty())
         throw IsEmptyException("Staves empty");
 
-    for (auto measure : instruments[0]->staves[0]->measures)
+    for (const auto& measure : instruments[0]->staves[0]->measures)
     {
         if (measure == nullptr)
             throw IsNullException("Measure is nullptr");
@@ -1758,7 +1276,7 @@ int Song::GetPageIndex(int measureIndex) const
     if (instruments[0]->staves.empty())
         return 0;
 
-    for (auto measure : instruments[0]->staves[0]->measures)
+    for (const auto& measure : instruments[0]->staves[0]->measures)
     {
         if (measure->startNewPage)
             pageIndex++;
@@ -1780,7 +1298,7 @@ int Song::GetFirstMeasureOnPage(int pageIndex) const
         return 0;
 
     int i = -1;
-    for (auto measure : instruments[0]->staves[0]->measures)
+    for (const auto& measure : instruments[0]->staves[0]->measures)
     {
         if (measure->startNewPage)
             i++;
@@ -1804,7 +1322,7 @@ int Song::GetFirstMeasureInSystem(int systemIndex) const
         return 0;
 
     int i = -1;
-    for (auto measure : instruments[0]->staves[0]->measures)
+    for (const auto& measure : instruments[0]->staves[0]->measures)
     {
         if (measure->startNewSystem)
             i++;
@@ -1831,7 +1349,7 @@ int Song::GetNumPages() const
     if (!instruments[0]->staves[0])
         throw IsNullException();
 
-    for (auto measure : instruments[0]->staves[0]->measures)
+    for (const auto& measure : instruments[0]->staves[0]->measures)
     {
         if (measure)
         {
@@ -1887,7 +1405,7 @@ float Song::GetInstrumentPositionY(int measureIndex, int instrumentIndex) const
 
     std::shared_ptr<Instrument> prevInstrument = nullptr;
     int currentInstrumentIndex = 0;
-    for (auto instrument : instruments)
+    for (const auto& instrument : instruments)
     {
         if (prevInstrument != nullptr)
         {
@@ -1914,10 +1432,10 @@ void Song::UpdateBoundingBoxes(const std::vector<Vec2<float>>& pagePositions, co
         throw IsEmptyException("Missing positioning data");
 
     int instrumentIndex = 0;
-    for (auto instrument : instruments) {
+    for (const auto& instrument : instruments) {
 
         int staffIndex = 0;
-        for (auto staff : instrument->staves) {
+        for (const auto& staff : instrument->staves) {
             float ls = displayConstants.lineSpacing;
             if (staff->type == Staff::StaffType::Tab) {
                 ls = displayConstants.tabLineSpacing;
@@ -1925,7 +1443,7 @@ void Song::UpdateBoundingBoxes(const std::vector<Vec2<float>>& pagePositions, co
 
             staff->UpdateBoundingBoxes(displayConstants);
 
-            for (auto direction : staff->durationDirections)
+            for (const auto& direction : staff->durationDirections)
             {
                 for (int i = 0; i < direction->GetSegmentCount(); i++)
                 {
@@ -1954,7 +1472,7 @@ void Song::UpdateBoundingBoxes(const std::vector<Vec2<float>>& pagePositions, co
             }
 
             int measureIndex = 0;
-            for (auto measure : staff->measures) {
+            for (const auto& measure : staff->measures) {
 
                 float instPositionY = GetInstrumentPositionY(measureIndex, instrumentIndex) + systemPositions[GetSystemIndex(measureIndex)].y + pagePositions[GetPageIndex(measureIndex)].y;
                 //float instPositionY = systemPositions[GetSystemIndex(measureIndex)].y;
@@ -2007,9 +1525,9 @@ void Song::UpdateBoundingBoxes(const std::vector<Vec2<float>>& pagePositions, co
 
 void Song::RenderBoundingBoxes(RenderData& renderData, const std::vector<Vec2<float>>& pagePositions, const std::vector<Vec2<float>>& systemPositions)
 {
-    for (auto instrument : instruments)
+    for (const auto& instrument : instruments)
     {
-        for (auto staff : instrument->staves)
+        for (const auto& staff : instrument->staves)
         {
             staff->RenderDebug(renderData);
         }
@@ -2021,15 +1539,15 @@ void Song::RenderBoundingBoxes(RenderData& renderData, const std::vector<Vec2<fl
         //bb.size.y = 40.0f;
 
         int instrumentIndex = 0;
-        for (auto instrument : instruments)
+        for (const auto& instrument : instruments)
         {
             int staffIndex = 0;
-            for (auto staff : instrument->staves)
+            for (const auto& staff : instrument->staves)
             {
                 int start = system->beginningMeasureIndex;
                 int end = system->endingMeasureIndex;
 
-                BoundingBox bb = staff->GetTotalBoundingBox(displayConstants, start, end);
+                BoundingBox bb = staff->GetTotalBoundingBox(displayConstants, systemIndex);
                 bb.position += systemPositions[systemIndex];
                 bb.position += instrument->systemPositionData[systemIndex];
                 bb.position += staff->systemPositionData[systemIndex];
@@ -2044,7 +1562,7 @@ void Song::RenderBoundingBoxes(RenderData& renderData, const std::vector<Vec2<fl
                 staffIndex++;
             }
 
-            BoundingBox instrumentBoundingBox = instrument->GetTotalBoundingBox(displayConstants, system->beginningMeasureIndex, system->endingMeasureIndex);
+            BoundingBox instrumentBoundingBox = instrument->GetTotalBoundingBox(displayConstants, systemIndex);
             //instrumentBoundingBox.position.y -= instrument->GetAboveHeight(displayConstants, start, end);
             instrumentBoundingBox.position += systemPositions[systemIndex];
             instrumentBoundingBox.position += instrument->systemPositionData[systemIndex];
@@ -2063,19 +1581,19 @@ void Song::RenderBoundingBoxes(RenderData& renderData, const std::vector<Vec2<fl
     }
 
     {
-        int systemIndex = 0;
+        systemIndex = 0;
         for (const auto& system : systems)
         {
             int instrumentIndex = 0;
-            for (auto instrument : instruments)
+            for (const auto& instrument : instruments)
             {
                 int staffIndex = 0;
-                for (auto staff : instrument->staves)
+                for (const auto& staff : instrument->staves)
                 {
                     int start = system->beginningMeasureIndex;
                     int end = system->endingMeasureIndex;
 
-                    BoundingBox bb = staff->GetTotalBoundingBox(displayConstants, start, end);
+                    BoundingBox bb = staff->GetTotalBoundingBox(displayConstants, systemIndex);
                     bb.position += systemPositions[systemIndex];
                     bb.position += instrument->systemPositionData[systemIndex];
                     bb.position += staff->systemPositionData[systemIndex];
@@ -2106,10 +1624,12 @@ void Song::RenderBoundingBoxes(RenderData& renderData, const std::vector<Vec2<fl
 
 void Song::ResolveCollisions()
 {
-    for (auto instrument : instruments) {
-        for (auto staff : instrument->staves) {
+    for (const auto& instrument : instruments)
+    {
+        for (const auto& staff : instrument->staves)
+        {
 
-            for (auto direction : staff->durationDirections)
+            for (const auto& direction : staff->durationDirections)
             {
                 for (int i = 0; i < direction->GetSegmentCount(); i++)
                 {
@@ -2124,7 +1644,8 @@ void Song::ResolveCollisions()
 
             int measureIndex = 0;
             int pageIndex = -1;
-            for (auto measure : staff->measures) {
+            for (const auto& measure : staff->measures)
+            {
 
                 if (DoesMeasureStartNewPage(measureIndex))
                     pageIndex++;
@@ -2133,7 +1654,7 @@ void Song::ResolveCollisions()
                 ResolveCollisionsWith(measure->measureNumber.boundingBox, pageIndex);
                 ResolveCollisionsWith(measure->clef.boundingBox, pageIndex);
 
-                for (auto note : measure->notes)
+                for (const auto& note : measure->notes)
                 {
                     ResolveCollisionsWith(note->boundingBox, pageIndex);
 
@@ -2144,7 +1665,7 @@ void Song::ResolveCollisions()
                         note->fermata->Move(note->fermata->boundingBox.position - oldBoundingBox.position);
                     }
 
-                    for (auto ornament : note->ornaments)
+                    for (const auto& ornament : note->ornaments)
                     {
                         if (ornament)
                         {
@@ -2160,7 +1681,7 @@ void Song::ResolveCollisions()
                     }
                 }
 
-                for (auto noteChord : measure->noteChords)
+                for (const auto& noteChord : measure->noteChords)
                 {
                     ResolveCollisionsWith(noteChord->boundingBox, pageIndex);
                 }
@@ -2170,7 +1691,7 @@ void Song::ResolveCollisions()
                     ResolveCollisionsWith(beamGroup.boundingBox, pageIndex);
                 }
 
-                for (auto tuplet : measure->tuplets)
+                for (const auto& tuplet : measure->tuplets)
                 {
                     ResolveCollisionsWith(tuplet->boundingBox, pageIndex);
                 }
@@ -2242,12 +1763,12 @@ void Song::ResolveCollisions()
 
 void Song::ResolveCollisionsWith(BoundingBox& box, int pageIndex)
 {
-    for (auto instrument : instruments) {
-        for (auto staff : instrument->staves) {
+    for (const auto& instrument : instruments) {
+        for (const auto& staff : instrument->staves) {
             int measureIndex = 0;
             int currentPageIndex = -1;
 
-            for (auto direction : staff->durationDirections)
+            for (const auto& direction : staff->durationDirections)
             {
                 for (int i = 0; i < direction->GetSegmentCount(); i++)
                 {
@@ -2257,16 +1778,16 @@ void Song::ResolveCollisionsWith(BoundingBox& box, int pageIndex)
                 direction->Move({ 0.0f, 0.0f }); // TODO: this is just an easy fix for bracket directions (needs to be removed)
             }
 
-            for (auto measure : staff->measures) {
+            for (const auto& measure : staff->measures) {
 
                 if (measure->startNewPage)
                     currentPageIndex++;
 
                 if (currentPageIndex == pageIndex)
                 {
-                    for (auto note : measure->notes)
+                    for (const auto& note : measure->notes)
                     {
-                        for (auto ornament : note->ornaments)
+                        for (const auto& ornament : note->ornaments)
                         {
                             if (ornament)
                             {
@@ -2280,7 +1801,7 @@ void Song::ResolveCollisionsWith(BoundingBox& box, int pageIndex)
                         }
                     }
 
-                    for (auto tuplet : measure->tuplets)
+                    for (const auto& tuplet : measure->tuplets)
                     {
                         ResolveCollisionWith(tuplet, box);
                     }
@@ -2310,7 +1831,7 @@ void Song::ResolveCollisionsWith(BoundingBox& box, int pageIndex)
                         if (direction.metronomeMark != nullptr)
                         {
                             ResolveCollisionWith(direction.metronomeMark, box);
-                            //LOGW("metrnomeMark!: %s", direction.metronomeMark->tempo.c_str());
+                            //LOGW("metronomeMark!: %s", direction.metronomeMark->tempo.c_str());
                             //BoundingBox::ResolveOverlap(box, direction.metronomeMark->boundingBox);
                         }
 
@@ -2347,7 +1868,7 @@ void Song::ResolveCollisionsWith(BoundingBox& box, int pageIndex)
     }
 }
 
-void Song::ResolveCollisionWith(std::shared_ptr<VisibleElement> element, BoundingBox& box)
+void Song::ResolveCollisionWith(const std::shared_ptr<VisibleElement>& element, BoundingBox& box)
 {
     BoundingBox oldBoundingBox = element->boundingBox;
     BoundingBox::ResolveOverlap(box, element->boundingBox);
@@ -2410,15 +1931,15 @@ std::shared_ptr<Measure> Song::GetMeasureAtPoint(Vec2<float> point, const std::v
     for (const auto& system : systems)
     {
         int instrumentIndex = 0;
-        for (auto instrument : instruments)
+        for (const auto& instrument : instruments)
         {
             int staffIndex = 0;
-            for (auto staff : instrument->staves)
+            for (const auto& staff : instrument->staves)
             {
                 int start = system->beginningMeasureIndex;
                 int end = system->endingMeasureIndex;
 
-                BoundingBox bb = staff->GetTotalBoundingBox(displayConstants, start, end);
+                BoundingBox bb = staff->GetTotalBoundingBox(displayConstants, systemIndex);
                 bb.position += systemPositions[systemIndex];
                 bb.position += instrument->systemPositionData[systemIndex];
                 bb.position += staff->systemPositionData[systemIndex];
@@ -2448,19 +1969,6 @@ std::shared_ptr<Measure> Song::GetMeasureAtPoint(Vec2<float> point, const std::v
 
         systemIndex++;
     }
-
-    /*for (auto instrument : instruments)
-    {
-        for (auto staff: instrument->staves)
-        {
-            int measureIndex = 0;
-            for (auto measure: staff->measures)
-            {
-                if (measure->boundingBox.DoesOverlapWithPoint(point))
-                    return measure;
-            }
-        }
-    }*/
 
     return nullptr;
 }

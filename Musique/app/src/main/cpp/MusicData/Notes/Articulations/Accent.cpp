@@ -4,14 +4,14 @@
 
 void Accent::Render(RenderData& renderData, Vec2<float> notePosition) const
 {
-    renderData.AddGlyph(SMuFLGlyph(GetSMuFLID(), position.x + notePosition.x, position.y + notePosition.y, Paint(color.color)));
+    renderData.AddGlyph(SMuFLGlyph(GetSMuFLID(), position + notePosition, Paint(color.color)));
 }
 
 BoundingBox Accent::GetBoundingBox() const
 {
     BoundingBox bb;
 
-    bb = RenderMeasurement::GetGlyphBoundingBox(SMuFLGlyph(GetSMuFLID(), 0.0f, 0.0f, Paint(color.color)));
+    bb = RenderMeasurement::GetGlyphBoundingBox(SMuFLGlyph(GetSMuFLID(), { 0.0f, 0.0f }, Paint(color.color)));
     bb.position += position;
 
     return bb;

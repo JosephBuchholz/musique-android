@@ -9,7 +9,7 @@ void MeasureRepeat::Render(RenderData& renderData, Vec2<float> measurePosition, 
 
     float offsetWidth = RenderMeasurement::MeasureGlyph(GetSMuFLID()) / 2.0f;
 
-    renderData.AddGlyph(SMuFLGlyph(GetSMuFLID(), position.x + measurePosition.x + offset.x - offsetWidth, position.y + measurePosition.y + offset.y, paint));
+    renderData.AddGlyph(SMuFLGlyph(GetSMuFLID(), { position.x + measurePosition.x + offset.x - offsetWidth, position.y + measurePosition.y + offset.y }, paint));
 }
 
 SMuFLID MeasureRepeat::GetSMuFLID() const

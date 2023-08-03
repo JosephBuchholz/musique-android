@@ -173,7 +173,7 @@ void ComplexLine::Render(RenderData& renderData, Vec2<float> parentPosition, Vec
 
     if (startGlyph != SMuFLID::None)
     {
-        renderData.AddGlyph(SMuFLGlyph(startGlyph, pos.x, pos.y, paint));
+        renderData.AddGlyph(SMuFLGlyph(startGlyph, pos, paint));
         float glyphWidth = RenderMeasurement::MeasureGlyph(startGlyph);
         pos += directionUnitVector * Vec2<float>{ glyphWidth, glyphWidth };
         lineLength += glyphWidth;
@@ -199,7 +199,7 @@ void ComplexLine::Render(RenderData& renderData, Vec2<float> parentPosition, Vec
         if (lineLength + glyphWidth >= magnitude)
             break;
 
-        renderData.AddGlyph(SMuFLGlyph(glyph, pos.x, pos.y, paint));
+        renderData.AddGlyph(SMuFLGlyph(glyph, pos, paint));
         pos += directionUnitVector * Vec2<float>{ glyphWidth, glyphWidth };
         lineLength += glyphWidth;
 
@@ -208,7 +208,7 @@ void ComplexLine::Render(RenderData& renderData, Vec2<float> parentPosition, Vec
 
     if (endGlyph != SMuFLID::None)
     {
-        renderData.AddGlyph(SMuFLGlyph(endGlyph, pos.x, pos.y, paint));
+        renderData.AddGlyph(SMuFLGlyph(endGlyph, pos, paint));
     }
 }
 

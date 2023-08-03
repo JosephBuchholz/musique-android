@@ -7,7 +7,7 @@ void Fermata::Render(RenderData& renderData, Vec2<float> parentPositionCenter, V
     Paint paint;
     VisibleElement::ModifyPaint(paint);
     float offsetWidth = (RenderMeasurement::MeasureGlyph(GetSMuFLID()) / 2.0f);
-    renderData.AddGlyph(SMuFLGlyph(GetSMuFLID(), position.x + parentPositionCenter.x + offset.x - offsetWidth, position.y + parentPositionCenter.y + offset.y, paint));
+    renderData.AddGlyph(SMuFLGlyph(GetSMuFLID(), { position.x + parentPositionCenter.x + offset.x - offsetWidth, position.y + parentPositionCenter.y + offset.y }, paint));
 }
 
 void Fermata::RenderDebug(RenderData& renderData) const
@@ -59,7 +59,7 @@ BoundingBox Fermata::GetBoundingBoxRelativeToParent() const
 {
     Paint paint;
     VisibleElement::ModifyPaint(paint);
-    BoundingBox bb = RenderMeasurement::GetGlyphBoundingBox(SMuFLGlyph(GetSMuFLID(), 0.0f, 0.0f, paint));
+    BoundingBox bb = RenderMeasurement::GetGlyphBoundingBox(SMuFLGlyph(GetSMuFLID(), { 0.0f, 0.0f }, paint));
 
     BoundingBox fermatBoundingBox;
 

@@ -17,24 +17,24 @@ public:
 
     MusicRenderer();
 
-    void RenderMusicToPage(std::shared_ptr<Song> song, int page, RenderData& pageRenderData, float pageX, float pageY);
-    void RenderDebugToPage(std::shared_ptr<Song> song, int page, RenderData& pageRenderData, float pageX, float pageY);
+    void RenderMusicToPage(const std::shared_ptr<Song>& song, int page, RenderData& pageRenderData, float pageX, float pageY);
+    void RenderDebugToPage(const std::shared_ptr<Song>& song, int page, RenderData& pageRenderData, float pageX, float pageY);
 
-    void Render(std::shared_ptr<Song> song, Settings settings);
-    void CalculateRenderForPagedLayout(std::shared_ptr<Song> song, Settings settings);
+    void Render(const std::shared_ptr<Song>& song, Settings settings);
+    void CalculateRenderForPagedLayout(const std::shared_ptr<Song>& song, Settings settings);
     void RenderWithRenderData();
 
-    int OnCalculateNumPages(std::shared_ptr<Song> song);
+    int OnCalculateNumPages(const std::shared_ptr<Song>& song);
 
 private:
 
-    Vec2<float> RenderSystem(RenderData& renderData, std::shared_ptr<Song> song, unsigned int startMeasure, unsigned int endMeasure, int systemIndex, Vec2<float> systemPosition, Vec2<float> pagePosition, bool drawFullInstNames);
-    Vec2<float> RenderDebugSystem(RenderData& renderData, std::shared_ptr<Song> song, unsigned int startMeasure, unsigned int endMeasure, int systemIndex, Vec2<float> systemPosition, Vec2<float> pagePosition, bool drawFullInstNames);
+    Vec2<float> RenderSystem(RenderData& renderData, const std::shared_ptr<Song>& song, unsigned int startMeasure, unsigned int endMeasure, int systemIndex, Vec2<float> systemPosition, Vec2<float> pagePosition, bool drawFullInstNames);
+    Vec2<float> RenderDebugSystem(RenderData& renderData, const std::shared_ptr<Song>& song, unsigned int startMeasure, unsigned int endMeasure, int systemIndex, Vec2<float> systemPosition, Vec2<float> pagePosition, bool drawFullInstNames);
 
-    void RenderLineOfMeasures(RenderData& renderData, unsigned int startMeasure, unsigned int endMeasure, std::shared_ptr<System> system, std::shared_ptr<Staff> staff, float systemPositionX, float staffPositionY, float lineSpacing, bool isTopMeasureLine, std::vector<std::shared_ptr<EndingGroup>> endingGroups);
-    void RenderDebugLineOfMeasures(RenderData& renderData, unsigned int startMeasure, unsigned int endMeasure, std::shared_ptr<System> system, std::shared_ptr<Staff> staff, float systemPositionX, float staffPositionY, float lineSpacing, bool isTopMeasureLine);
+    void RenderLineOfMeasures(RenderData& renderData, unsigned int startMeasure, unsigned int endMeasure, const std::shared_ptr<System>& system, const std::shared_ptr<Staff>& staff, float systemPositionX, float staffPositionY, float lineSpacing, bool isTopMeasureLine, const std::vector<std::shared_ptr<EndingGroup>>& endingGroups);
+    void RenderDebugLineOfMeasures(RenderData& renderData, unsigned int startMeasure, unsigned int endMeasure, const std::shared_ptr<System>& system, const std::shared_ptr<Staff>& staff, float systemPositionX, float staffPositionY, float lineSpacing, bool isTopMeasureLine);
 
-    void RenderCredits(RenderData& renderData, std::shared_ptr<Song> song, const MusicDisplayConstants& displayConstants, const std::vector<Credit>& credits, float pageX, float pageY);
+    void RenderCredits(RenderData& renderData, const std::shared_ptr<Song>& song, const MusicDisplayConstants& displayConstants, const std::vector<Credit>& credits, float pageX, float pageY);
 
 public:
 

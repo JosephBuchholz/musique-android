@@ -100,16 +100,16 @@ void DynamicWedge::RenderWedge(RenderData& renderData, Vec2<float> startPosition
         if (leftSideIsOpen)
             otherSpread = DYNAMIC_WEDGE_DEFAULT_CONTINUE_SPREAD;
 
-        renderData.AddLine(startPosition.x, startPosition.y + (otherSpread/2.0f), endPosition.x, endPosition.y + (spread/2.0f), paint); // bottom line
-        renderData.AddLine(startPosition.x, startPosition.y - (otherSpread/2.0f), endPosition.x, endPosition.y - (spread/2.0f), paint); // top line
+        renderData.AddLine(Line(startPosition.x, startPosition.y + (otherSpread/2.0f), endPosition.x, endPosition.y + (spread/2.0f), paint)); // bottom line
+        renderData.AddLine(Line(startPosition.x, startPosition.y - (otherSpread/2.0f), endPosition.x, endPosition.y - (spread/2.0f), paint)); // top line
     }
     else if (type == WedgeType::Diminuendo)
     {
         if (rightSideIsOpen)
             otherSpread = DYNAMIC_WEDGE_DEFAULT_CONTINUE_SPREAD;
 
-        renderData.AddLine(startPosition.x, startPosition.y - (spread/2.0f), endPosition.x, endPosition.y - (otherSpread/2.0f), paint); // top line
-        renderData.AddLine(startPosition.x, startPosition.y + (spread/2.0f), endPosition.x, endPosition.y + (otherSpread/2.0f), paint); // bottom line
+        renderData.AddLine(Line(startPosition.x, startPosition.y - (spread/2.0f), endPosition.x, endPosition.y - (otherSpread/2.0f), paint)); // top line
+        renderData.AddLine(Line(startPosition.x, startPosition.y + (spread/2.0f), endPosition.x, endPosition.y + (otherSpread/2.0f), paint)); // bottom line
     }
 }
 

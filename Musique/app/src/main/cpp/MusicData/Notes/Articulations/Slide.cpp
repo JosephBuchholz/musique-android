@@ -6,7 +6,7 @@ void Slide::Render(RenderData& renderData, Vec2<float> notePosition) const
     slidePaint.strokeWidth = 1.25f;
     slidePaint.strokeCap = Paint::Cap::Butt;
 
-    renderData.AddLine(std::make_shared<Line>(position.x + lineStartPosition.x + notePosition.x, position.y + lineStartPosition.y + notePosition.y, position.x + lineEndPosition.x + notePosition.x, position.y + lineEndPosition.y + notePosition.y, slidePaint));
+    renderData.AddLine(Line({ position.x + lineStartPosition.x + notePosition.x, position.y + lineStartPosition.y + notePosition.y }, { position.x + lineEndPosition.x + notePosition.x, position.y + lineEndPosition.y + notePosition.y }, slidePaint));
 }
 
 BoundingBox Slide::GetBoundingBox() const

@@ -41,11 +41,11 @@ void Barline::Render(RenderData& renderData, Vec2<float> measurePosition, float 
         int bottomDotSpace = int((float)spaces / 2.0f + 1.5f); // floor
 
         float dotsPositionY = positionY + ((float)topDotSpace * lineSpacing) - (0.5f * lineSpacing); // barlineY + the spaces (scaled to lineSpcaing) - half a space to center the dot
-        renderData.AddGlyph(SMuFLGlyph(SMuFLID::repeatDot, dotsPositionX + measurePosition.x + offset.x, dotsPositionY + measurePosition.y + offset.y, dotsPaint));
+        renderData.AddGlyph(SMuFLGlyph(SMuFLID::repeatDot, { dotsPositionX + measurePosition.x + offset.x, dotsPositionY + measurePosition.y + offset.y }, dotsPaint));
 
         // same thing but with bottomDotSpace
         dotsPositionY = positionY + ((float)bottomDotSpace * lineSpacing) - (0.5f * lineSpacing);
-        renderData.AddGlyph(SMuFLGlyph(SMuFLID::repeatDot, dotsPositionX + measurePosition.x + offset.x, dotsPositionY + measurePosition.y + offset.y, dotsPaint));
+        renderData.AddGlyph(SMuFLGlyph(SMuFLID::repeatDot, { dotsPositionX + measurePosition.x + offset.x, dotsPositionY + measurePosition.y + offset.y }, dotsPaint));
     }
 
     float direction = 0.0f;
@@ -79,7 +79,7 @@ void Barline::Render(RenderData& renderData, Vec2<float> measurePosition, float 
     {
         case Barline::BarlineStyle::Regular:
         {
-            renderData.AddLine(std::make_shared<Line>(positionX + measurePosition.x + offset.x, positionY + measurePosition.y + offset.y, positionX + measurePosition.x + offset.x, barlinePositionYBottom + measurePosition.y + offset.y, paint));
+            renderData.AddLine(Line({ positionX + measurePosition.x + offset.x, positionY + measurePosition.y + offset.y }, { positionX + measurePosition.x + offset.x, barlinePositionYBottom + measurePosition.y + offset.y }, paint));
             break;
         }
         case Barline::BarlineStyle::LightLight:
@@ -87,9 +87,9 @@ void Barline::Render(RenderData& renderData, Vec2<float> measurePosition, float 
             barlineWidth = doubleBarlineOffset + (paint.strokeWidth * 2.0f);
             barlinePositionX += barlineWidth * doubleBarlineOffsetDirection;
             barlinePositionX += paint.strokeWidth / 2.0f;
-            renderData.AddLine(std::make_shared<Line>(barlinePositionX, barlinePositionY, barlinePositionX, barlinePositionYBottom, paint));
+            renderData.AddLine(Line({ barlinePositionX, barlinePositionY }, { barlinePositionX, barlinePositionYBottom }, paint));
             barlinePositionX += doubleBarlineOffset + paint.strokeWidth;
-            renderData.AddLine(std::make_shared<Line>(barlinePositionX, barlinePositionY, barlinePositionX, barlinePositionYBottom, paint));
+            renderData.AddLine(Line({ barlinePositionX, barlinePositionY }, { barlinePositionX, barlinePositionYBottom }, paint));
             break;
         }
         case Barline::BarlineStyle::HeavyLight:
@@ -98,19 +98,19 @@ void Barline::Render(RenderData& renderData, Vec2<float> measurePosition, float 
             barlinePositionX += barlineWidth * doubleBarlineOffsetDirection;
 
             //barlinePositionX += heavyBarlinePaint.strokeWidth / 2.0f;
-            renderData.AddLine(std::make_shared<Line>(barlinePositionX, barlinePositionY, barlinePositionX, barlinePositionYBottom, heavyBarlinePaint));
+            renderData.AddLine(Line({ barlinePositionX, barlinePositionY }, { barlinePositionX, barlinePositionYBottom }, heavyBarlinePaint));
 
             barlinePositionX += doubleBarlineOffset + (heavyBarlinePaint.strokeWidth / 2.0f);
-            renderData.AddLine(std::make_shared<Line>(barlinePositionX, barlinePositionY, barlinePositionX, barlinePositionYBottom, paint));
+            renderData.AddLine(Line({ barlinePositionX, barlinePositionY }, { barlinePositionX, barlinePositionYBottom }, paint));
             break;
         }
         case Barline::BarlineStyle::LightHeavy:
         {
             barlineWidth = doubleBarlineOffset + heavyBarlinePaint.strokeWidth;
             barlinePositionX += barlineWidth * doubleBarlineOffsetDirection;
-            renderData.AddLine(std::make_shared<Line>(barlinePositionX, barlinePositionY, barlinePositionX, barlinePositionYBottom, paint));
+            renderData.AddLine(Line({ barlinePositionX, barlinePositionY }, { barlinePositionX, barlinePositionYBottom }, paint));
             barlinePositionX += doubleBarlineOffset + (heavyBarlinePaint.strokeWidth / 2.0f);
-            renderData.AddLine(std::make_shared<Line>(barlinePositionX, barlinePositionY, barlinePositionX, barlinePositionYBottom, heavyBarlinePaint));
+            renderData.AddLine(Line({ barlinePositionX, barlinePositionY }, { barlinePositionX, barlinePositionYBottom }, heavyBarlinePaint));
             break;
         }
         case Barline::BarlineStyle::HeavyHeavy:
@@ -118,9 +118,9 @@ void Barline::Render(RenderData& renderData, Vec2<float> measurePosition, float 
             barlineWidth = doubleBarlineOffset + (heavyBarlinePaint.strokeWidth * 2.0f);
             barlinePositionX += barlineWidth * doubleBarlineOffsetDirection;
             barlinePositionX += heavyBarlinePaint.strokeWidth / 2.0f;
-            renderData.AddLine(std::make_shared<Line>(barlinePositionX, barlinePositionY, barlinePositionX, barlinePositionYBottom, heavyBarlinePaint));
+            renderData.AddLine(Line({ barlinePositionX, barlinePositionY }, { barlinePositionX, barlinePositionYBottom }, heavyBarlinePaint));
             barlinePositionX += doubleBarlineOffset + (heavyBarlinePaint.strokeWidth);
-            renderData.AddLine(std::make_shared<Line>(barlinePositionX, barlinePositionY, barlinePositionX, barlinePositionYBottom, heavyBarlinePaint));
+            renderData.AddLine(Line({ barlinePositionX, barlinePositionY }, { barlinePositionX, barlinePositionYBottom }, heavyBarlinePaint));
             break;
         }
         case Barline::BarlineStyle::NoBarline:

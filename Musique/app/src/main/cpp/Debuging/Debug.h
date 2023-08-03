@@ -7,7 +7,7 @@
 
 #include "AndroidDebug.h"
 
-#define SHOW_BOUNDING_BOXES 0
+#define SHOW_BOUNDING_BOXES 1
 
 #if SHOW_BOUNDING_BOXES
     #define DEBUG_BOUNDING_BOXES 1

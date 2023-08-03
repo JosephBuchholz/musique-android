@@ -26,7 +26,7 @@ public:
 
     float GetTotalHeight(const MusicDisplayConstants& displayConstants, int startMeasureIndex, int endMeasureIndex) const;
 
-    BoundingBox GetTotalBoundingBox(const MusicDisplayConstants& displayConstants, int startMeasureIndex, int endMeasureIndex) const;
+    BoundingBox GetTotalBoundingBox(const MusicDisplayConstants& displayConstants, int systemIndex) const;
 
     float GetTotalBeatWidth();
 
@@ -54,6 +54,8 @@ public:
 
     void CalculateAsPaged(const MusicDisplayConstants& displayConstants);
 
+    void CalculateTotalBoundingBoxes(const MusicDisplayConstants& displayConstants, const std::vector<std::shared_ptr<System>>& systems);
+
     /* ----- Sound Related Functions ----- */
 
     std::pair<int, float> GetMeasureFromSoundBeatPosition(float beatPosition, std::vector<std::shared_ptr<EndingGroup>> endingGroups);
@@ -78,6 +80,7 @@ public:
     unsigned int capo = 0; // 0 means no capo
 
     std::vector<Vec2<float>> systemPositionData;
+    std::vector<BoundingBox> systemBoundingBoxes;
 
     // -- Tab Only --
 

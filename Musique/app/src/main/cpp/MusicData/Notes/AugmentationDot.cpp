@@ -7,7 +7,7 @@ void AugmentationDot::Render(RenderData& renderData, Vec2<float> notePosition) c
     Paint paint;
     VisibleElement::ModifyPaint(paint);
 
-    renderData.AddGlyph(SMuFLGlyph(SMuFLID::augmentationDot, position.x + notePosition.x, position.y + notePosition.y, paint));
+    renderData.AddGlyph(SMuFLGlyph(SMuFLID::augmentationDot, position + notePosition, paint));
 }
 
 void AugmentationDot::CalculatePositionAsPaged(const MusicDisplayConstants& displayConstants, bool noteIsOnLine, bool isTab, float noteWidth)

@@ -56,7 +56,7 @@ void Note::Render(RenderData& renderData, TablatureDisplayType tabDisplayType, f
                 float y = measurePosition.y + ((float)lines * ls);
                 for (int i = 0; i < ledgerLineCount; i++)
                 {
-                    renderData.AddLine(std::make_shared<Line>(noteRenderPosition.x - ledgerLineMargin, y, noteRenderPosition.x + noteHeadWidth + ledgerLineMargin, y, ledgerLinePaint));
+                    renderData.AddLine(Line({ noteRenderPosition.x - ledgerLineMargin, y }, { noteRenderPosition.x + noteHeadWidth + ledgerLineMargin, y }, ledgerLinePaint));
                     y += 1.0f * ls;
                 }
             }
@@ -66,7 +66,7 @@ void Note::Render(RenderData& renderData, TablatureDisplayType tabDisplayType, f
                 float y = measurePosition.y - (1.0f * ls);
                 for (int i = 0; i < ledgerLineCount; i++)
                 {
-                    renderData.AddLine(std::make_shared<Line>(noteRenderPosition.x - ledgerLineMargin, y, noteRenderPosition.x + noteHeadWidth + ledgerLineMargin, y, ledgerLinePaint));
+                    renderData.AddLine(Line({ noteRenderPosition.x - ledgerLineMargin, y }, { noteRenderPosition.x + noteHeadWidth + ledgerLineMargin, y }, ledgerLinePaint));
                     y -= 1.0f * ls;
                 }
             }
@@ -236,14 +236,14 @@ void Note::RenderRest(RenderData& renderData, float measurePositionX, int lines,
 
     if (isFullMeasureRest) {
         positionY -= ls;
-        renderData.AddGlyph(SMuFLGlyph(GetRestSMuFLID(durationType), positionX, positionY, Paint(color)));
+        renderData.AddGlyph(SMuFLGlyph(GetRestSMuFLID(durationType), { positionX, positionY }, Paint(color)));
     }
     else if (durationType == NoteValue::Whole) {
         positionY -= ls;
-        renderData.AddGlyph(SMuFLGlyph(GetRestSMuFLID(durationType), positionX, positionY, Paint(color)));
+        renderData.AddGlyph(SMuFLGlyph(GetRestSMuFLID(durationType), { positionX, positionY }, Paint(color)));
     }
     else {
-        renderData.AddGlyph(SMuFLGlyph(GetRestSMuFLID(durationType), positionX, positionY, Paint(color)));
+        renderData.AddGlyph(SMuFLGlyph(GetRestSMuFLID(durationType), { positionX, positionY }, Paint(color)));
     }
 }
 
@@ -698,7 +698,7 @@ BoundingBox Note::GetTotalBoundingBoxRelativeToMeasure(const MusicDisplayConstan
 
     bb.position += position;
 
-    for (auto articulation : articulations)
+    for (const auto& articulation : articulations)
     {
         if (articulation != nullptr)
         {
@@ -764,5 +764,33 @@ void Note::UpdateBoundingBox(const MusicDisplayConstants& displayConstants, Vec2
     for (Lyric& lyric : lyrics)
     {
         lyric.UpdateBoundingBox(Vec2<float>{ position.x + parentPosition.x, parentPosition.y });
+    }
+}
+
+void Note::UpdateTieAndGlissSlide(bool measureStartsNewSystem)
+{
+    if (measureStartsNewSystem)
+    {
+        if (tie)
+        {
+            if (tie->notes.second.get() == this) // the second note of tie
+            {
+                if (tie->notes.first->measureIndex != tie->notes.second->measureIndex) // the notes of the tie are on different systems
+                {
+                    tie->isBroken = true;
+                }
+            }
+        }
+
+        for (const auto &glissSlide: glissSlides)
+        {
+            if (glissSlide->notes.second.get() == this) // the second note
+            {
+                if (glissSlide->notes.first->measureIndex != glissSlide->notes.second->measureIndex) // the notes are on different systems
+                {
+                    glissSlide->isBroken = true;
+                }
+            }
+        }
     }
 }

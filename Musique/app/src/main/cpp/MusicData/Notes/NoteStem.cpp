@@ -9,7 +9,7 @@ void NoteStem::Render(RenderData& renderData, Vec2<float> notePosition, std::sha
         VisibleElement::ModifyPaint(linePaint);
 
         float lineX = notePosition.x + stemPositionX + offset.x;
-        renderData.AddLine(std::make_shared<Line>(lineX, notePosition.y + stemStartY, lineX, notePosition.y + stemEndY, linePaint));
+        renderData.AddLine(Line({ lineX, notePosition.y + stemStartY }, { lineX, notePosition.y + stemEndY }, linePaint));
 
         if (tremoloSingle)
         {
@@ -23,7 +23,7 @@ void NoteStem::Render(RenderData& renderData, Vec2<float> notePosition, std::sha
     {
         Vec2<float> positionStart = { stemPositionX - (noteHeadWidth / 2.0f), (stemEndY - stemStartY) / 3.0f };
         Vec2<float> positionEnd = { positionStart.x + noteHeadWidth + 2.0f, positionStart.y + ((stemEndY - stemStartY) / 4.0f) };
-        renderData.AddLine(std::make_shared<Line>(notePosition.x + positionStart.x, notePosition.y + positionStart.y + stemStartY, notePosition.x + positionEnd.x, notePosition.y + positionEnd.y + stemStartY, renderData.paints.noteStemPaint));
+        renderData.AddLine(Line({ notePosition.x + positionStart.x, notePosition.y + positionStart.y + stemStartY }, { notePosition.x + positionEnd.x, notePosition.y + positionEnd.y + stemStartY }, renderData.paints.noteStemPaint));
     }
 }
 

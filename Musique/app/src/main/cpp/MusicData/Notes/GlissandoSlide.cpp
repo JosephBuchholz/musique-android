@@ -77,7 +77,7 @@ void GlissandoSlide::Render(RenderData& renderData, Vec2<float> startNotePositio
         textPosition.x = (positionStart.x + startNotePosition.x) + (((positionEnd.x + endNotePosition.x) - (positionStart.x + startNotePosition.x)) / 2.0f);
         textPosition.y = (positionStart.y + startNotePosition.y) + (((positionEnd.y + endNotePosition.y) - (positionStart.y + startNotePosition.y)) / 2.0f);
 
-        renderData.AddText(Text(text, textPosition.x + offset.x, textPosition.y + offset.y, textPaint));
+        renderData.AddText(Text(text, textPosition + offset, textPaint));
     }
 }
 
@@ -148,6 +148,6 @@ void GlissandoSlide::RenderLine(RenderData& renderData, Vec2<float> startPositio
     }
     else
     {
-        renderData.AddLine(std::make_shared<Line>(startPosition.x, startPosition.y, endPosition.x, endPosition.y, linePaint));
+        renderData.AddLine(Line(startPosition, endPosition, linePaint));
     }
 }

@@ -7,7 +7,7 @@ void Bend::Render(RenderData& renderData, Vec2<float> notePosition) const
     Paint paint = Paint(color.color);
 
     // arrow
-    renderData.AddGlyph(SMuFLGlyph(GetSMuFLID(), arrowPosition.x + position.x + notePosition.x - (RenderMeasurement::MeasureGlyph(GetSMuFLID()) / 2.0f), arrowPosition.y + position.y + notePosition.y, paint));
+    renderData.AddGlyph(SMuFLGlyph(GetSMuFLID(), { arrowPosition.x + position.x + notePosition.x - (RenderMeasurement::MeasureGlyph(GetSMuFLID()) / 2.0f), arrowPosition.y + position.y + notePosition.y }, paint));
 
     // tail
     paint.strokeWidth = 1.8f;
@@ -15,7 +15,7 @@ void Bend::Render(RenderData& renderData, Vec2<float> notePosition) const
 
     if (bendType == BendType::PreBend)
     {
-        renderData.AddLine(std::make_shared<Line>(tailPosition.x + position.x + notePosition.x, tailPosition.y + position.y + notePosition.y - offsetY, arrowPosition.x + position.x + notePosition.x, arrowPosition.y + position.y + notePosition.y - offsetY, paint));
+        renderData.AddLine(Line({ tailPosition.x + position.x + notePosition.x, tailPosition.y + position.y + notePosition.y - offsetY }, { arrowPosition.x + position.x + notePosition.x, arrowPosition.y + position.y + notePosition.y - offsetY }, paint));
     }
     else
     {
@@ -25,19 +25,18 @@ void Bend::Render(RenderData& renderData, Vec2<float> notePosition) const
         Vec2<float> curveEnd = arrowPosition + position + notePosition - Vec2<float>{ 0.0f, offsetY };
 
         // start
-        curve.x1 = curveStart.x;
-        curve.y1 = curveStart.y;
+        curve.point1 = curveStart;
 
         // curve points
-        curve.x2 = curveStart.x + (arrowPosition.x - tailPosition.x);
-        curve.y2 = curveStart.y;
+        curve.point2.x = curveStart.x + (arrowPosition.x - tailPosition.x);
+        curve.point2.y = curveStart.y;
 
-        curve.x3 = curve.x2;
-        curve.y3 = curve.y2 - 10.0f;
+        curve.point3.x = curve.point2.x;
+        curve.point3.y = curve.point2.y - 10.0f;
 
         // end
-        curve.x4 = curveEnd.x;
-        curve.y4 = curveEnd.y;
+        curve.point4.x = curveEnd.x;
+        curve.point4.y = curveEnd.y;
 
         curve.paint = paint;
 
@@ -51,30 +50,30 @@ void Bend::Render(RenderData& renderData, Vec2<float> notePosition) const
     {
         // arrow
         paint.rotateDegrees = 180.0f;
-        renderData.AddGlyph(SMuFLGlyph(GetSMuFLID(), arrowReleasePosition.x + position.x + notePosition.x + (RenderMeasurement::MeasureGlyph(GetSMuFLID()) / 2.0f),
-                                       arrowReleasePosition.y + position.y + notePosition.y, paint));
+        renderData.AddGlyph(SMuFLGlyph(GetSMuFLID(), { arrowReleasePosition.x + position.x + notePosition.x + (RenderMeasurement::MeasureGlyph(GetSMuFLID()) / 2.0f),
+                                       arrowReleasePosition.y + position.y + notePosition.y }, paint));
         paint.rotateDegrees = 0.0f;
 
         // tail
         CubicCurve curve = CubicCurve();
 
-        Vec2<float> curveStart = arrowPosition + position + notePosition - Vec2<float>{ 0.0f, RenderMeasurement::GetGlyphBoundingBox(SMuFLGlyph(GetSMuFLID(), 0.0f, 0.0f, Paint())).size.y };
+        Vec2<float> curveStart = arrowPosition + position + notePosition - Vec2<float>{ 0.0f, RenderMeasurement::GetGlyphBoundingBox(SMuFLGlyph(GetSMuFLID(), { 0.0f, 0.0f }, Paint())).size.y };
         Vec2<float> curveEnd = arrowReleasePosition + position + notePosition + Vec2<float>{ 0.0f, offsetY };
 
         // start
-        curve.x1 = curveStart.x;
-        curve.y1 = curveStart.y;
+        curve.point1.x = curveStart.x;
+        curve.point1.y = curveStart.y;
 
         // curve points
-        curve.x2 = curveStart.x + (arrowReleasePosition.x - arrowPosition.x);
-        curve.y2 = curveStart.y;
+        curve.point2.x = curveStart.x + (arrowReleasePosition.x - arrowPosition.x);
+        curve.point2.y = curveStart.y;
 
-        curve.x3 = curve.x2;
-        curve.y3 = curve.y2 + 10.0f;
+        curve.point3.x = curve.point2.x;
+        curve.point3.y = curve.point2.y + 10.0f;
 
         // end
-        curve.x4 = curveEnd.x;
-        curve.y4 = curveEnd.y;
+        curve.point4.x = curveEnd.x;
+        curve.point4.y = curveEnd.y;
 
         curve.paint = paint;
 

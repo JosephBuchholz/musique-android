@@ -38,7 +38,7 @@ void MetronomeMark::Render(RenderData& renderData, Vec2<float> measurePosition, 
         spans.emplace_back(1, 10, paint);
     }
 
-    renderData.AddSpannableText(std::make_shared<SpannableText>(chars, position.x + measurePosition.x + offset.x, position.y + measurePosition.y + offset.y, spans, Paint(color.color)));
+    renderData.AddSpannableText(SpannableText(chars, { position.x + measurePosition.x + offset.x, position.y + measurePosition.y + offset.y }, spans, Paint(color.color)));
     //renderData.AddDebugDot(positionX + measurePosition.x + offset.x, positionY + measurePosition.y + offset.y);
 }
 

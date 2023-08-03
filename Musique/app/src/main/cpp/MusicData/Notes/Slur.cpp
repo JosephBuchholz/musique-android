@@ -27,19 +27,19 @@ void Slur::Render(RenderData& renderData, Vec2<float> measureStartPosition, Vec2
     float curvePointDist = FindDistance(startCurvePosition, endCurvePosition) / 7.0f;
 
     // start
-    curve.x1 = startCurvePosition.x;
-    curve.y1 = startCurvePosition.y;
+    curve.point1.x = startCurvePosition.x;
+    curve.point1.y = startCurvePosition.y;
 
     // curve points
-    curve.x2 = startCurvePosition.x + curvePointDist;
-    curve.y2 = startCurvePosition.y - curvePointDist * direction;
+    curve.point2.x = startCurvePosition.x + curvePointDist;
+    curve.point2.y = startCurvePosition.y - curvePointDist * direction;
 
-    curve.x3 = endCurvePosition.x - curvePointDist;
-    curve.y3 = endCurvePosition.y - curvePointDist * direction;
+    curve.point3.x = endCurvePosition.x - curvePointDist;
+    curve.point3.y = endCurvePosition.y - curvePointDist * direction;
 
     // end
-    curve.x4 = endCurvePosition.x;
-    curve.y4 = endCurvePosition.y;
+    curve.point4.x = endCurvePosition.x;
+    curve.point4.y = endCurvePosition.y;
 
     curve.paint = paint;
     curve.paint.varyThickness = true;

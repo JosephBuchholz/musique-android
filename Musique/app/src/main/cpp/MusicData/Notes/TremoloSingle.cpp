@@ -4,7 +4,7 @@ void TremoloSingle::Render(RenderData& renderData, Vec2<float> notePosition, Vec
 {
     Paint paint;
     VisibleElement::ModifyPaint(paint);
-    renderData.AddGlyph(SMuFLGlyph(GetSMuFLID(), position.x + notePosition.x + offset.x, position.y + notePosition.y + offset.y, paint));
+    renderData.AddGlyph(SMuFLGlyph(GetSMuFLID(), position + notePosition + offset, paint));
 }
 
 SMuFLID TremoloSingle::GetSMuFLID() const

@@ -44,19 +44,19 @@ void NoteTie::RenderCurve(RenderData& renderData, Vec2<float> startPosition, Vec
     float curvePointDist = FindDistance(startPosition, endPosition) / 7.0f;
 
     // start
-    curve.x1 = startPosition.x;
-    curve.y1 = startPosition.y;
+    curve.point1.x = startPosition.x;
+    curve.point1.y = startPosition.y;
 
     // curve points
-    curve.x2 = startPosition.x + curvePointDist;
-    curve.y2 = startPosition.y - curvePointDist * direction;
+    curve.point2.x = startPosition.x + curvePointDist;
+    curve.point2.y = startPosition.y - curvePointDist * direction;
 
-    curve.x3 = endPosition.x - curvePointDist;
-    curve.y3 = endPosition.y - curvePointDist * direction;
+    curve.point3.x = endPosition.x - curvePointDist;
+    curve.point3.y = endPosition.y - curvePointDist * direction;
 
     // end
-    curve.x4 = endPosition.x;
-    curve.y4 = endPosition.y;
+    curve.point4.x = endPosition.x;
+    curve.point4.y = endPosition.y;
 
     curve.paint = paint;
     curve.paint.varyThickness = true;

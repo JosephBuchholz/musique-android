@@ -9,7 +9,7 @@ void NoteFlag::Render(RenderData& renderData, Vec2<float> endOfNoteStemPosition,
 
         paint.glyphSizeFactor = size;
 
-        renderData.AddGlyph(SMuFLGlyph(GetSMuFLID(), endOfNoteStemPosition.x + position.x + offset.x, endOfNoteStemPosition.y + position.y + offset.y, paint));
+        renderData.AddGlyph(SMuFLGlyph(GetSMuFLID(), { endOfNoteStemPosition.x + position.x + offset.x, endOfNoteStemPosition.y + position.y + offset.y }, paint));
     }
 }
 

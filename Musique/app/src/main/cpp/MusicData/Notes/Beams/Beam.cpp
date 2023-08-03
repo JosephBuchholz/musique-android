@@ -18,17 +18,17 @@ void Beam::Render(RenderData& renderData, Vec2<float> measurePosition, float slo
 
     if (beamType == Beam::BeamType::Normal)
     {
-        renderData.AddLine(std::make_shared<Line>(beamStartPosition.x + measurePosition.x + offset.x, beamStartPosition.y + measurePosition.y + offset.y - beamYOffset, beamEndPosition.x + measurePosition.x + offset.x, beamEndPosition.y + measurePosition.y + offset.y - beamYOffset, paint));
+        renderData.AddLine(Line({ beamStartPosition.x + measurePosition.x + offset.x, beamStartPosition.y + measurePosition.y + offset.y - beamYOffset }, { beamEndPosition.x + measurePosition.x + offset.x, beamEndPosition.y + measurePosition.y + offset.y - beamYOffset }, paint));
     }
     else if (beamType == Beam::BeamType::ForwardHook)
     {
-        renderData.AddLine(std::make_shared<Line>(beamStartPosition.x + measurePosition.x + offset.x, beamStartPosition.y + measurePosition.y + offset.y - beamYOffset, beamStartPosition.x + measurePosition.x + offset.x + hookOffset, GetPositionYOnBeam(beamStartPosition.x + hookOffset, slope, yIntercept) + measurePosition.y + offset.y - beamYOffset, paint));
+        renderData.AddLine(Line({ beamStartPosition.x + measurePosition.x + offset.x, beamStartPosition.y + measurePosition.y + offset.y - beamYOffset }, { beamStartPosition.x + measurePosition.x + offset.x + hookOffset, GetPositionYOnBeam(beamStartPosition.x + hookOffset, slope, yIntercept) + measurePosition.y + offset.y - beamYOffset }, paint));
     }
     else if (beamType == Beam::BeamType::BackwardHook)
     {
         Vec2<float> start = { beamStartPosition.x - hookOffset, GetPositionYOnBeam(beamStartPosition.x - hookOffset, slope, yIntercept) - beamYOffset };
         Vec2<float> end = { beamStartPosition.x, beamStartPosition.y - beamYOffset };
-        renderData.AddLine(std::make_shared<Line>(start.x + measurePosition.x + offset.x, start.y + measurePosition.y + offset.y, end.x + measurePosition.x + offset.x, end.y + measurePosition.y + offset.y, paint));
+        renderData.AddLine(Line({ start.x + measurePosition.x + offset.x, start.y + measurePosition.y + offset.y }, { end.x + measurePosition.x + offset.x, end.y + measurePosition.y + offset.y }, paint));
     }
 }
 

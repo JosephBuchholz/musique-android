@@ -17,7 +17,7 @@ void PageNumber::Render(RenderData& renderData, Vec2<float> pagePosition, Vec2<f
 
     paint.textSize = fontSize.size;
 
-    renderData.AddText(Text(displayNumber, position.x + pagePosition.x + offset.x, position.y + pagePosition.y + offset.y, paint));
+    renderData.AddText(Text(displayNumber, position + pagePosition + offset, paint));
 }
 
 void PageNumber::CalculatePosition(const MusicDisplayConstants& displayConstants, Vec2<float> defaultPosition)

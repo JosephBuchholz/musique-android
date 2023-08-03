@@ -25,7 +25,6 @@ class Song
 
 public:
 
-    Song();
     ~Song();
 
     std::shared_ptr<Instrument> GetInstrument(const std::string& id) const;
@@ -132,7 +131,7 @@ public:
      * @param note A pointer to the note.
      * @return The amount of space in front of the note.
      */
-    float GetNoteMinWidthInFront(std::shared_ptr<Note> note) const;
+    float GetNoteMinWidthInFront(const std::shared_ptr<Note>& note) const;
 
     /**
      * Finds the minimum amount of space needed behind the note.
@@ -140,7 +139,7 @@ public:
      * @param note A pointer to the note.
      * @return The amount of space behind the note.
      */
-    float GetNoteMinWidthBehind(std::shared_ptr<Note> note) const;
+    float GetNoteMinWidthBehind(const std::shared_ptr<Note>& note) const;
 
     /**
      * Gets the measure at the given index (this will be the measure in the first instrument and staff).
@@ -226,13 +225,11 @@ private:
         int measureIndex = 0;
     };
 
-    void CalculateNoteBeatPositionsInSong();
-
     void AddTimeSpacePoint(TimeSpacePoint point);
 
     void ResolveCollisionsWith(BoundingBox& box, int pageIndex);
 
-    void ResolveCollisionWith(std::shared_ptr<VisibleElement> element, BoundingBox& box);
+    void ResolveCollisionWith(const std::shared_ptr<VisibleElement>& element, BoundingBox& box);
     void ResolveCollisionWith(VisibleElement* element, BoundingBox& box);
 
 public:

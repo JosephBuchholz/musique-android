@@ -22,7 +22,7 @@ void MultiMeasureRestSymbol::Render(RenderData& renderData, Vec2<float> measureP
     float hBarEndPositionX = endPositionX + measurePosition.x + offset.x;
 
     // middle line
-    renderData.AddLine(hBarStartPositionX, hBarPositionY, hBarEndPositionX, hBarPositionY, midLinePaint);
+    renderData.AddLine(Line({ hBarStartPositionX, hBarPositionY }, { hBarEndPositionX, hBarPositionY }, midLinePaint ));
 
     Paint sideLinePaint = Paint();
     VisibleElement::ModifyPaint(sideLinePaint);
@@ -30,8 +30,8 @@ void MultiMeasureRestSymbol::Render(RenderData& renderData, Vec2<float> measureP
     sideLinePaint.strokeCap = Paint::Cap::Butt;
 
     // side lines
-    renderData.AddLine(hBarStartPositionX, hBarPositionY - (hBarTotalHeight/2.0f), hBarStartPositionX,hBarPositionY + (hBarTotalHeight/2.0f), sideLinePaint);
-    renderData.AddLine(hBarEndPositionX, hBarPositionY - (hBarTotalHeight/2.0f), hBarEndPositionX, hBarPositionY + (hBarTotalHeight/2.0f), sideLinePaint);
+    renderData.AddLine(Line({ hBarStartPositionX, hBarPositionY - (hBarTotalHeight/2.0f) }, { hBarStartPositionX, hBarPositionY + (hBarTotalHeight/2.0f) }, sideLinePaint));
+    renderData.AddLine(Line({ hBarEndPositionX, hBarPositionY - (hBarTotalHeight/2.0f) }, { hBarEndPositionX, hBarPositionY + (hBarTotalHeight/2.0f) }, sideLinePaint));
 
     // render digits above
 
@@ -50,7 +50,7 @@ void MultiMeasureRestSymbol::Render(RenderData& renderData, Vec2<float> measureP
     {
         SMuFLID glyphID = GetTimeSignatureSMuFLID(ToInt(c));
 
-        renderData.AddGlyph(SMuFLGlyph(glyphID, textStartPositionX, textPositionY, digitPaint));
+        renderData.AddGlyph(SMuFLGlyph(glyphID, { textStartPositionX, textPositionY }, digitPaint));
 
         textStartPositionX += timeDigitWidth;
     }

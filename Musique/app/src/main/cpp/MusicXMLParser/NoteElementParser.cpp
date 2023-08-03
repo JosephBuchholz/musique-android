@@ -114,17 +114,17 @@ void NoteElementParser::ParseNoteElement(XMLElement* noteElement, float& current
             currentNoteChord = std::make_shared<NoteChord>();
 
             previousNote->isChord = true;
-            currentNoteChord->notes.push_back(previousNote); // push the previous note to the note chord
+            currentNoteChord->m_notes.push_back(previousNote); // push the previous note to the note chord
             //currentMeasures[currentNote->staff - 1]->notes.pop_back(); // pop it from the measure's notes vector
 
-            currentNoteChord->notes.push_back(currentNote);
+            currentNoteChord->m_notes.push_back(currentNote);
 
-            currentNoteChord->measureIndex = measureNumber - 1;
+            currentNoteChord->m_measureIndex = measureNumber - 1;
             currentMeasures[currentNote->staff - 1]->noteChords.push_back(currentNoteChord);
         }
         else
         {
-            currentNoteChord->notes.push_back(currentNote);
+            currentNoteChord->m_notes.push_back(currentNote);
         }
     }
 

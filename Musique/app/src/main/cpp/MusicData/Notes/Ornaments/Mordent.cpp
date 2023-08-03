@@ -5,12 +5,12 @@
 void Mordent::Render(RenderData& renderData, float notePositionX, float topStaffLinePositionY, Vec2<float> offset) const
 {
     float offsetWidth = GetDimensions().x / 2.0f;
-    renderData.AddGlyph(SMuFLGlyph(GetSMuFLID(), position.x + notePositionX + offset.x - offsetWidth, position.y + topStaffLinePositionY + offset.y, GetPaint()));
+    renderData.AddGlyph(SMuFLGlyph(GetSMuFLID(), { position.x + notePositionX + offset.x - offsetWidth, position.y + topStaffLinePositionY + offset.y }, GetPaint()));
 }
 
 Vec2<float> Mordent::GetDimensions() const
 {
-    BoundingBox bb = RenderMeasurement::GetGlyphBoundingBox(SMuFLGlyph(GetSMuFLID(), 0.0f, 0.0f, GetPaint()));
+    BoundingBox bb = RenderMeasurement::GetGlyphBoundingBox(SMuFLGlyph(GetSMuFLID(), { 0.0f, 0.0f }, GetPaint()));
     return { bb.size.x, bb.size.y };
 }
 

@@ -39,7 +39,7 @@ void MeasureNumber::Render(RenderData& renderData, Vec2<float> measurePosition, 
 {
     Paint paint;
     TextualElement::ModifyPaint(paint);
-    renderData.AddText(Text(displayNumber, position.x + measurePosition.x + offset.x, position.y + measurePosition.y + offset.y, paint));
+    renderData.AddText(Text(displayNumber, position + measurePosition + offset, paint));
 }
 
 BoundingBox MeasureNumber::GetBoundingBoxRelativeToMeasure(const MusicDisplayConstants& displayConstants) const

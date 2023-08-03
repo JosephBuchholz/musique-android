@@ -17,8 +17,8 @@ public:
 
 public:
 
-    unsigned int startMeasureIndex = 0; // the measure that this object starts in
-    unsigned int endMeasureIndex = 0; // the measure that this object ends in
+    int startMeasureIndex = 0; // the measure that this object starts in
+    int endMeasureIndex = 0; // the measure that this object ends in
 
     Vec2<float> positionStart = { 0.0f, 0.0f };
     Vec2<float> positionEnd = { 0.0f, 0.0f };
@@ -82,8 +82,8 @@ public:
     float beatPositionEnd = 0.0f;
     float beatPositionInSongEnd = 0.0f;
 
-    unsigned int startMeasureIndex = 0; // the measure that this object starts in
-    unsigned int endMeasureIndex = 0; // the measure that this object ends in
+    int startMeasureIndex = 0; // the measure that this object starts in
+    int endMeasureIndex = 0; // the measure that this object ends in
 
     bool isBroken = false; // whether this object is split across two or more systems
 };

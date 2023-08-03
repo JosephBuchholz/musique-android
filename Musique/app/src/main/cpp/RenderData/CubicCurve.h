@@ -2,6 +2,7 @@
 #define MUSIQUE_CUBICCURVE_H
 
 #include "Paint.h"
+#include "../Collisions/Vec2.h"
 
 /**
  * An object that holds data needed to render cubic bezier curve.
@@ -10,21 +11,14 @@ struct CubicCurve {
 
     CubicCurve() {}
 
-    CubicCurve(float x1, float y1, float x2, float y2, float x3, float y3, float x4, float y4, Paint paint = Paint())
-            : x1(x1), y1(y1), x2(x2), y2(y2), x3(x3), y3(y3), x4(x4), y4(y4), paint(paint) {
+    CubicCurve(Vec2<float> point1, Vec2<float> point2, Vec2<float> point3, Vec2<float> point4, Paint paint = Paint())
+            : point1(point1), point2(point2), point3(point3), point4(point4), paint(paint) {
     }
 
-    float x1 = 0.0f;
-    float y1 = 0.0f;
-
-    float x2 = 0.0f;
-    float y2 = 0.0f;
-
-    float x3 = 0.0f;
-    float y3 = 0.0f;
-
-    float x4 = 0.0f;
-    float y4 = 0.0f;
+    Vec2<float> point1 = { 0.0f, 0.0f };
+    Vec2<float> point2 = { 0.0f, 0.0f };
+    Vec2<float> point3 = { 0.0f, 0.0f };
+    Vec2<float> point4 = { 0.0f, 0.0f };
 
     Paint paint = Paint();
 };

@@ -223,7 +223,10 @@ class SongListFragment() : Fragment(), WebRepository.Callbacks {
                 this@SongListFragment,
                 Observer { string ->
                     onStopLoading()
-                    callbacks?.onSongOpened(songItem.id, string)
+                    if (string != null)
+                        callbacks?.onSongOpened(songItem.id, string)
+                    else
+                        Log.e(TAG, "string is null!!")
                 })
         }
     }

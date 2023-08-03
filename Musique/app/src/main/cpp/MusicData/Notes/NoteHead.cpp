@@ -9,7 +9,7 @@ void NoteHead::Render(RenderData& renderData, Vec2<float> position, bool centerH
         if (centerHorizontally)
             position.x -= GetDimensions(renderData.displayConstants).x / 2.0f;
 
-        renderData.AddGlyph(SMuFLGlyph(GetSMuFLID(), position.x + offset.x, position.y + offset.y, GetPaint(renderData.displayConstants)));
+        renderData.AddGlyph(SMuFLGlyph(GetSMuFLID(), position + offset, GetPaint(renderData.displayConstants)));
     }
     else if (noteType == NoteType::Tab)
     {
@@ -18,12 +18,12 @@ void NoteHead::Render(RenderData& renderData, Vec2<float> position, bool centerH
         if (type == NoteHeadType::X)
         {
             //position.x -= GetDimensions(renderData.displayConstants).x / 2.0f;
-            renderData.AddGlyph(SMuFLGlyph(GetSMuFLID(), position.x + offset.x, position.y + offset.y, GetPaint(renderData.displayConstants)));
+            renderData.AddGlyph(SMuFLGlyph(GetSMuFLID(), position + offset, GetPaint(renderData.displayConstants)));
         }
         else
         {
             //position.x += GetDimensions(renderData.displayConstants).x / 2.0f;
-            renderData.AddText(Text(ToString(fret), position.x + offset.x, position.y + offset.y, GetPaint(renderData.displayConstants)));
+            renderData.AddText(Text(ToString(fret), position + offset, GetPaint(renderData.displayConstants)));
         }
 
         //renderData.AddDebugDot(position.x + offset.x, position.y + offset.y);
@@ -32,13 +32,13 @@ void NoteHead::Render(RenderData& renderData, Vec2<float> position, bool centerH
 
 Vec2<float> NoteHead::GetDimensions(const MusicDisplayConstants& displayConstants) const
 {
-    BoundingBox bb = RenderMeasurement::GetGlyphBoundingBox(SMuFLGlyph(GetSMuFLID(), 0.0f, 0.0f, GetPaint(displayConstants)));
+    BoundingBox bb = RenderMeasurement::GetGlyphBoundingBox(SMuFLGlyph(GetSMuFLID(), { 0.0f, 0.0f }, GetPaint(displayConstants)));
     Paint paint = GetPaint(displayConstants);
 
     if (noteType == NoteType::Standard)
-        bb = RenderMeasurement::GetGlyphBoundingBox(SMuFLGlyph(GetSMuFLID(), 0.0f, 0.0f, paint));
+        bb = RenderMeasurement::GetGlyphBoundingBox(SMuFLGlyph(GetSMuFLID(), { 0.0f, 0.0f }, paint));
     else if (noteType == NoteType::Tab)
-        bb = RenderMeasurement::GetTextBoundingBox(Text(ToString(fret), 0.0f, 0.0f, paint));
+        bb = RenderMeasurement::GetTextBoundingBox(Text(ToString(fret), { 0.0f, 0.0f }, paint));
 
     return { bb.size.x, bb.size.y };
 }

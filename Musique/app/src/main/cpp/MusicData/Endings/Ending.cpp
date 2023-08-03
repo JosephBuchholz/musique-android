@@ -51,19 +51,19 @@ void Ending::RenderSegment(RenderData& renderData, std::shared_ptr<EndingSegment
     Vec2<float> endPosition = { segment->positionEnd.x + measureEndPosition.x, segment->positionEnd.y + measureEndPosition.y };
 
     // top line
-    renderData.AddLine(startPosition.x, startPosition.y, endPosition.x, endPosition.y, linePaint);
+    renderData.AddLine(Line(startPosition.x, startPosition.y, endPosition.x, endPosition.y, linePaint));
 
     if (segment->isEnd)
     {
         // final jog
         if (hasFinalDownwardJog)
-            renderData.AddLine(endPosition.x, endPosition.y, endPosition.x, endPosition.y + jogLength, linePaint);
+            renderData.AddLine(Line(endPosition.x, endPosition.y, endPosition.x, endPosition.y + jogLength, linePaint));
     }
 
     if (segment->isStart)
     {
         // front jog
-        renderData.AddLine(startPosition.x, startPosition.y, startPosition.x, startPosition.y + jogLength, linePaint);
+        renderData.AddLine(Line(startPosition.x, startPosition.y, startPosition.x, startPosition.y + jogLength, linePaint));
 
         // render text
 

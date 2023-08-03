@@ -29,7 +29,7 @@ void BracketDirectionSegment::Render(RenderData& renderData, float staffPosition
     renderData.AddDebugDot(positionStart.x + startMeasurePositionX, positionStart.y + staffPositionY);
     renderData.AddDebugDot(positionEnd.x + endMeasurePositionX, positionEnd.y + staffPositionY);*/
 
-    renderData.AddLine(positionStart.x + startMeasurePositionX, positionStart.y + staffPositionY, positionEnd.x + endMeasurePositionX, positionEnd.y + staffPositionY, paint);
+    renderData.AddLine(Line(positionStart.x + startMeasurePositionX, positionStart.y + staffPositionY, positionEnd.x + endMeasurePositionX, positionEnd.y + staffPositionY, paint));
 }
 
 void BracketDirection::Render(RenderData& renderData, float staffPositionY, float startMeasurePositionX, float endMeasurePositionX, int startMeasureIndex, int endMeasureIndex) const
@@ -147,7 +147,7 @@ BoundingBox BracketDirection::GetTotalBoundingBox(const MusicDisplayConstants& d
     BoundingBox bb;
 
     int index = 0;
-    for (auto seg : segments)
+    for (const auto& seg : segments)
     {
         if (seg->startMeasureIndex == startMeasureIndex || seg->endMeasureIndex == endMeasureIndex)
         {
@@ -232,7 +232,7 @@ void BracketDirection::RenderLineEnd(RenderData& renderData, Vec2<float> positio
         return;
     }
 
-    renderData.AddLine(position.x, positionLineStartY, position.x, positionLineEndY, paint);
+    renderData.AddLine(Line(position.x, positionLineStartY, position.x, positionLineEndY, paint));
 }
 
 void BracketDirection::CalculateAsPaged(const MusicDisplayConstants& displayConstants)

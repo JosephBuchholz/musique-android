@@ -10,7 +10,7 @@ void Lyric::Render(RenderData& renderData, float notePositionX, float measurePos
         paint.isBold = true;
     paint.textSize = fontSize.size;
 
-    renderData.AddText(Text(text[0].text, position.x + notePositionX + offsetX, position.y + measurePositionY + offsetY, Paint(color.color, paint)));
+    renderData.AddText(Text(text[0].text, { position.x + notePositionX + offsetX, position.y + measurePositionY + offsetY }, Paint(color.color, paint)));
 }
 
 void Lyric::UpdateBoundingBox(const Vec2<float>& parentPosition)

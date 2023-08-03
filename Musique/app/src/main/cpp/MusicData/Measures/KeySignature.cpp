@@ -27,7 +27,7 @@ void KeySignature::Render(RenderData& renderData, bool showKeySignature, float p
                 }
 
                 positionY = (lineSpacing * y) + offsetY;
-                renderData.AddGlyph(SMuFLGlyph(SMuFLID::accidentalSharp, positionX + offsetX, positionY, Paint(0xff000000)));
+                renderData.AddGlyph(SMuFLGlyph(SMuFLID::accidentalSharp, { positionX + offsetX, positionY }, Paint(0xff000000)));
                 positionX += 10.0f;
             }
         }
@@ -49,7 +49,7 @@ void KeySignature::Render(RenderData& renderData, bool showKeySignature, float p
                 }
 
                 positionY = (lineSpacing * y) + offsetY;
-                renderData.AddGlyph(SMuFLGlyph(SMuFLID::accidentalFlat, positionX + offsetX, positionY, Paint(0xff000000)));
+                renderData.AddGlyph(SMuFLGlyph(SMuFLID::accidentalFlat, { positionX + offsetX, positionY }, Paint(0xff000000)));
                 positionX += 8.5f;
             }
         }

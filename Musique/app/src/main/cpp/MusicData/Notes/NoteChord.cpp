@@ -4,28 +4,29 @@
 
 void NoteChord::Render(RenderData& renderData, TablatureDisplayType tabDisplayType, float rootNotePositionYRelativeToMeasure, float topNotePositionYRelativeToMeasure, int lines, Vec2<float> measurePosition, float nextMeasurePositionX, float ls) const
 {
-    if (notes.empty())
+    if (m_notes.empty())
         throw IsEmptyException();
 
-    std::shared_ptr<Note> rootNote = notes[0];
-    std::shared_ptr<Note> topNote = notes[notes.size() - 1];
+    std::shared_ptr<Note> rootNote = m_notes[0];
+    std::shared_ptr<Note> topNote = m_notes[m_notes.size() - 1];
 
     if (rootNote == nullptr || topNote == nullptr)
         throw IsNullException();
 
     Vec2<float> position = { rootNote->position.x + measurePosition.x, rootNote->position.y + measurePosition.y };
 
-    for (auto note : notes)
+    for (auto note : m_notes)
     {
         note->Render(renderData, tabDisplayType, 0.0f, lines, measurePosition, nextMeasurePositionX, ls);
     }
 
+    NoteStem noteStem = rootNote->noteStem;
     // rhythm notation
     if (tabDisplayType == TablatureDisplayType::Full)
     {
         noteStem.Render(renderData, position, rootNote->tremoloSingle, rootNote->isGraceNote, rootNote->hasSlash, rootNote->noteHead.GetNoteHeadWidth(renderData.displayConstants));
 
-        noteFlag.Render(renderData, {position.x + noteStem.stemPositionX, position.y + noteStem.stemEndY});
+        m_noteFlag.Render(renderData, {position.x + noteStem.stemPositionX, position.y + noteStem.stemEndY});
     }
 
     Paint ledgerLinePaint;
@@ -41,7 +42,7 @@ void NoteChord::Render(RenderData& renderData, TablatureDisplayType tabDisplayTy
         float y = measurePosition.y + ((float)lines * ls);
         for (int i = 0; i < ledgerLineCount; i++)
         {
-            renderData.AddLine(std::make_shared<Line>(position.x - ledgerLineMargin, y, position.x + noteHeadWidth + ledgerLineMargin, y, ledgerLinePaint));
+            renderData.AddLine(Line({ position.x - ledgerLineMargin, y }, { position.x + noteHeadWidth + ledgerLineMargin, y }, ledgerLinePaint));
             y += 1.0f * ls;
         }
     }
@@ -52,7 +53,7 @@ void NoteChord::Render(RenderData& renderData, TablatureDisplayType tabDisplayTy
         float y = measurePosition.y - (1.0f * ls);
         for (int i = 0; i < ledgerLineCount; i++)
         {
-            renderData.AddLine(std::make_shared<Line>(position.x - ledgerLineMargin, y, position.x + noteHeadWidth + ledgerLineMargin, y, ledgerLinePaint));
+            renderData.AddLine(Line({ position.x - ledgerLineMargin, y }, { position.x + noteHeadWidth + ledgerLineMargin, y }, ledgerLinePaint));
             y -= 1.0f * ls;
         }
     }
@@ -60,18 +61,18 @@ void NoteChord::Render(RenderData& renderData, TablatureDisplayType tabDisplayTy
 
 void NoteChord::RenderDebug(RenderData& renderData, TablatureDisplayType tabDisplayType, float rootNotePositionYRelativeToMeasure, float topNotePositionYRelativeToMeasure, int lines, Vec2<float> measurePosition, float nextMeasurePositionX, float ls) const
 {
-    if (notes.empty())
+    if (m_notes.empty())
         throw IsEmptyException();
 
-    std::shared_ptr<Note> rootNote = notes[0];
-    std::shared_ptr<Note> topNote = notes[notes.size() - 1];
+    std::shared_ptr<Note> rootNote = m_notes[0];
+    std::shared_ptr<Note> topNote = m_notes[m_notes.size() - 1];
 
     if (rootNote == nullptr || topNote == nullptr)
         throw IsNullException();
 
     Vec2<float> position = { rootNote->position.x + measurePosition.x, rootNote->position.y + measurePosition.y };
 
-    for (auto note : notes)
+    for (auto note : m_notes)
     {
         note->RenderDebug(renderData, tabDisplayType, 0.0f, lines, measurePosition, nextMeasurePositionX, ls);
     }
@@ -81,8 +82,8 @@ void NoteChord::RenderDebug(RenderData& renderData, TablatureDisplayType tabDisp
     {
         noteStem->Render(renderData, position, rootNote->tremoloSingle, rootNote->isGraceNote, rootNote->hasSlash, rootNote->noteHead.GetNoteHeadWidth(renderData.displayConstants));
 
-        if (noteFlag)
-            noteFlag->Render(renderData, {position.x + noteStem->stemPositionX, position.y + noteStem->stemEndY});
+        if (m_noteFlag)
+            m_noteFlag->Render(renderData, {position.x + noteStem->stemPositionX, position.y + noteStem->stemEndY});
     }
 
     Paint ledgerLinePaint;
@@ -117,7 +118,7 @@ void NoteChord::RenderDebug(RenderData& renderData, TablatureDisplayType tabDisp
 
 void NoteChord::RenderDebug(RenderData& renderData) const
 {
-    /*for (auto note : notes)
+    /*for (auto note : m_notes)
     {
         note->RenderDebug(renderData);
     }*/
@@ -131,14 +132,14 @@ void NoteChord::RenderDebug(RenderData& renderData) const
 
 BoundingBox NoteChord::GetBoundingBoxRelativeToMeasure(const MusicDisplayConstants& displayConstants) const
 {
-    if (notes.empty())
+    if (m_notes.empty())
         throw IsEmptyException();
 
-    BoundingBox bb = notes[0]->GetBoundingBoxRelativeToMeasure(displayConstants);
+    BoundingBox bb = m_notes[0]->GetBoundingBoxRelativeToMeasure(displayConstants);
 
-    for (int i = 1; i < notes.size(); i++)
+    for (int i = 1; i < m_notes.size(); i++)
     {
-        bb = BoundingBox::CombineBoundingBoxes(bb, notes[i]->GetBoundingBoxRelativeToMeasure(displayConstants));
+        bb = BoundingBox::CombineBoundingBoxes(bb, m_notes[i]->GetBoundingBoxRelativeToMeasure(displayConstants));
     }
 
     return bb;
@@ -146,14 +147,14 @@ BoundingBox NoteChord::GetBoundingBoxRelativeToMeasure(const MusicDisplayConstan
 
 BoundingBox NoteChord::GetTotalBoundingBoxRelativeToMeasure(const MusicDisplayConstants& displayConstants) const
 {
-    if (notes.empty())
+    if (m_notes.empty())
         throw IsEmptyException();
 
-    BoundingBox bb = notes[0]->GetTotalBoundingBoxRelativeToMeasure(displayConstants);
+    BoundingBox bb = m_notes[0]->GetTotalBoundingBoxRelativeToMeasure(displayConstants);
 
-    for (int i = 1; i < notes.size(); i++)
+    for (int i = 1; i < m_notes.size(); i++)
     {
-        bb = BoundingBox::CombineBoundingBoxes(bb, notes[i]->GetTotalBoundingBoxRelativeToMeasure(displayConstants));
+        bb = BoundingBox::CombineBoundingBoxes(bb, m_notes[i]->GetTotalBoundingBoxRelativeToMeasure(displayConstants));
     }
 
     return bb;
@@ -161,16 +162,16 @@ BoundingBox NoteChord::GetTotalBoundingBoxRelativeToMeasure(const MusicDisplayCo
 
 void NoteChord::UpdateBoundingBox(const MusicDisplayConstants& displayConstants, Vec2<float> parentPosition)
 {
-    if (notes.empty())
+    if (m_notes.empty())
         throw IsEmptyException();
 
-    notes[0]->UpdateBoundingBox(displayConstants, parentPosition);
-    boundingBox = notes[0]->boundingBox;
+    m_notes[0]->UpdateBoundingBox(displayConstants, parentPosition);
+    boundingBox = m_notes[0]->boundingBox;
 
-    for (int i = 1; i < notes.size(); i++)
+    for (int i = 1; i < m_notes.size(); i++)
     {
-        notes[i]->UpdateBoundingBox(displayConstants, parentPosition);
-        boundingBox = BoundingBox::CombineBoundingBoxes(boundingBox, notes[i]->boundingBox);
+        m_notes[i]->UpdateBoundingBox(displayConstants, parentPosition);
+        boundingBox = BoundingBox::CombineBoundingBoxes(boundingBox, m_notes[i]->boundingBox);
     }
 
     boundingBox.constraints.emplace_back(Constraint::ConstraintType::Static);
@@ -182,16 +183,16 @@ void NoteChord::UpdateBoundingBox(const MusicDisplayConstants& displayConstants,
 
 void NoteChord::CalculatePositionAsPaged(const MusicDisplayConstants& displayConstants, int staffLines, std::shared_ptr<Measure> measure, bool isMuseScore4)
 {
-    if (notes.empty())
+    if (m_notes.empty())
         throw IsEmptyException();
 
-    std::shared_ptr<Note> rootNote = notes[0];
-    std::shared_ptr<Note> topNote = notes[notes.size() - 1];
+    std::shared_ptr<Note> rootNote = m_notes[0];
+    std::shared_ptr<Note> topNote = m_notes[m_notes.size() - 1];
 
     if (rootNote == nullptr || topNote == nullptr)
         throw IsNullException();
 
-    noteStem.stemType = rootNote->noteStem.stemType;
+    m_noteStem.stemType = rootNote->noteStem.stemType;
 
     // update note flag
     if ((rootNote->durationType == NoteValue::Eighth || rootNote->durationType == NoteValue::Sixteenth || rootNote->durationType == NoteValue::ThirtySecond) && rootNote->beamData.empty())
@@ -201,20 +202,20 @@ void NoteChord::CalculatePositionAsPaged(const MusicDisplayConstants& displayCon
             defaultSize = displayConstants.graceNoteSize;
         else if (rootNote->noteSize == NoteSize::Cue)
             defaultSize = displayConstants.cueNoteSize;
-        noteFlag.noteDuration = rootNote->durationType;
-        if (noteStem.stemType == NoteStem::StemType::Up) {
-            noteFlag.type = NoteFlag::Type::Up;
-        } else if (noteStem.stemType == NoteStem::StemType::Down) {
-            noteFlag.type = NoteFlag::Type::Down;
+        m_noteFlag.noteDuration = rootNote->durationType;
+        if (m_noteStem.stemType == NoteStem::StemType::Up) {
+            m_noteFlag.type = NoteFlag::Type::Up;
+        } else if (m_noteStem.stemType == NoteStem::StemType::Down) {
+            m_noteFlag.type = NoteFlag::Type::Down;
         }
-        noteFlag.CalculateAsPaged(displayConstants, defaultSize);
+        m_noteFlag.CalculateAsPaged(displayConstants, defaultSize);
     }
     else
     {
-        noteFlag.type = NoteFlag::Type::None;
+        m_noteFlag.type = NoteFlag::Type::None;
     }
 
-    for (auto note : notes)
+    for (auto note : m_notes)
     {
         if (note->isRest && note->type == NoteType::Tab && isMuseScore4) // musescore only
         {
@@ -233,7 +234,7 @@ void NoteChord::CalculatePositionAsPaged(const MusicDisplayConstants& displayCon
 
         float stemLength = displayConstants.tabLineSpacing * 2.5f;
 
-        if (rootNote->durationType == NoteValue::Half) // shorter stem for half notes
+        if (rootNote->durationType == NoteValue::Half) // shorter stem for half m_notes
         {
             stemLength *= 2.0f/3.0f;
         }
@@ -242,17 +243,17 @@ void NoteChord::CalculatePositionAsPaged(const MusicDisplayConstants& displayCon
 
         float topNotePositionY = topNote->position.y - rootNote->position.y;
 
-        noteStem.stemPositionX = rootNote->noteHead.GetCenterPositionX(displayConstants);
+        m_noteStem.stemPositionX = rootNote->noteHead.GetCenterPositionX(displayConstants);
 
-        if (noteStem.stemType == NoteStem::StemType::Up)
+        if (m_noteStem.stemType == NoteStem::StemType::Up)
         {
-            noteStem.stemStartY = topNotePositionY - (displayConstants.tabLineSpacing * 0.75f);
-            noteStem.stemEndY = noteStem.stemStartY - stemLength;
+            m_noteStem.stemStartY = topNotePositionY - (displayConstants.tabLineSpacing * 0.75f);
+            m_noteStem.stemEndY = m_noteStem.stemStartY - stemLength;
         }
-        else if (noteStem.stemType == NoteStem::StemType::Down)
+        else if (m_noteStem.stemType == NoteStem::StemType::Down)
         {
-            noteStem.stemStartY = displayConstants.tabLineSpacing * 0.75f;
-            noteStem.stemEndY = noteStem.stemStartY + stemLength;
+            m_noteStem.stemStartY = displayConstants.tabLineSpacing * 0.75f;
+            m_noteStem.stemEndY = m_noteStem.stemStartY + stemLength;
         }
     }
     else // is standard
@@ -265,7 +266,7 @@ void NoteChord::CalculatePositionAsPaged(const MusicDisplayConstants& displayCon
         float leftNotesPositionX = 0.0f;
         float rightNotesPositionX = 0.0f;
 
-        for (auto note : notes)
+        for (auto note : m_notes)
         {
             float notePositionX = note->position.x - rootNote->position.x;
 
@@ -296,41 +297,41 @@ void NoteChord::CalculatePositionAsPaged(const MusicDisplayConstants& displayCon
         float stemStokeWidth = 0.8333f * rootNote->sizeFactor;
 
         float stemLength = 30.0f * rootNote->sizeFactor;
-        if (noteStem.stemType == NoteStem::StemType::Up) {
+        if (m_noteStem.stemType == NoteStem::StemType::Up) {
             if (isDoubleNoteStack)
             {
-                noteStem.stemPositionX = rightNotesPositionX - stemStokeWidth / 2.0f;
+                m_noteStem.stemPositionX = rightNotesPositionX - stemStokeWidth / 2.0f;
             }
             else
-                noteStem.stemPositionX = notePositionX + noteWidth - stemStokeWidth / 2.0f;
+                m_noteStem.stemPositionX = notePositionX + noteWidth - stemStokeWidth / 2.0f;
 
-            noteStem.stemStartY = notePositionY;
-            noteStem.stemEndY = notePositionY + topNotePositionY - stemLength;
-        } else if (noteStem.stemType == NoteStem::StemType::Down) {
+            m_noteStem.stemStartY = notePositionY;
+            m_noteStem.stemEndY = notePositionY + topNotePositionY - stemLength;
+        } else if (m_noteStem.stemType == NoteStem::StemType::Down) {
             if (isDoubleNoteStack)
             {
-                noteStem.stemPositionX = rightNotesPositionX - stemStokeWidth / 2.0f;
+                m_noteStem.stemPositionX = rightNotesPositionX - stemStokeWidth / 2.0f;
             }
             else
-                noteStem.stemPositionX = notePositionX + stemStokeWidth / 2.0f;
+                m_noteStem.stemPositionX = notePositionX + stemStokeWidth / 2.0f;
 
-            noteStem.stemStartY = notePositionY + topNotePositionY;
-            noteStem.stemEndY = notePositionY + stemLength;
+            m_noteStem.stemStartY = notePositionY + topNotePositionY;
+            m_noteStem.stemEndY = notePositionY + stemLength;
         }
     }
 
-    rootNote->noteStem = noteStem;
+    rootNote->noteStem = m_noteStem;
 
     for (auto articulation : rootNote->articulations)
     {
         if (articulation != nullptr)
-            articulation->CalculatePositionAsPaged(displayConstants, rootNote->position.y, rootNote->type == NoteType::Tab, noteStem, topNote->position.y - rootNote->position.y, 0.0f);
+            articulation->CalculatePositionAsPaged(displayConstants, rootNote->position.y, rootNote->type == NoteType::Tab, m_noteStem, topNote->position.y - rootNote->position.y, 0.0f);
     }
 }
 
 void NoteChord::InitSound(std::shared_ptr<Note> previousNote)
 {
-    for (auto note : notes)
+    for (auto note : m_notes)
     {
         note->InitSound(previousNote);
     }
@@ -338,7 +339,7 @@ void NoteChord::InitSound(std::shared_ptr<Note> previousNote)
 
 void NoteChord::OnPlay(std::shared_ptr<Player> player, Transpose transpose, int channel, float velocity)
 {
-    for (auto note : notes)
+    for (auto note : m_notes)
     {
         note->OnPlay(player, transpose, channel, velocity);
     }
@@ -346,7 +347,7 @@ void NoteChord::OnPlay(std::shared_ptr<Player> player, Transpose transpose, int 
 
 void NoteChord::OnStop(std::shared_ptr<Player> player, Transpose transpose, int channel, float velocity)
 {
-    for (auto note : notes)
+    for (auto note : m_notes)
     {
         note->OnStop(player, transpose, channel, velocity);
     }
@@ -354,7 +355,7 @@ void NoteChord::OnStop(std::shared_ptr<Player> player, Transpose transpose, int 
 
 void NoteChord::OnUpdate(std::shared_ptr<Player> player, Transpose transpose, int channel, float velocity, float beatPositionRelativeToNote, float previousBeatPositionRelativeToNote)
 {
-    for (auto note : notes)
+    for (auto note : m_notes)
     {
         note->OnUpdate(player, transpose, channel, velocity, beatPositionRelativeToNote, previousBeatPositionRelativeToNote);
     }

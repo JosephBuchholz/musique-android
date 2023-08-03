@@ -12,7 +12,7 @@ void ChordDiagram::Render(RenderData& renderData, Vec2<float> chordPosition, Vec
     float stringPositionX = positionX;
     for (int i = 0; i < strings; i++)
     {
-        renderData.AddLine(std::make_shared<Line>(stringPositionX, nutPositionY, stringPositionX, nutPositionY + height, Paint(0xFF000000)));
+        renderData.AddLine(Line(stringPositionX, nutPositionY, stringPositionX, nutPositionY + height, Paint(0xFF000000)));
 
         stringPositionX += stringGap;
     }
@@ -25,14 +25,14 @@ void ChordDiagram::Render(RenderData& renderData, Vec2<float> chordPosition, Vec
     else
         ; // do nothing
 
-    renderData.AddLine(std::make_shared<Line>(positionX, nutPositionY, positionX + width, nutPositionY, nutPaint));
+    renderData.AddLine(Line(positionX, nutPositionY, positionX + width, nutPositionY, nutPaint));
 
     // render fret lines
     float fretGap = height / (float)frets;
     float fretPositionY = nutPositionY + fretGap;
     for (int i = 1; i < frets + 1; i++)
     {
-        renderData.AddLine(std::make_shared<Line>(positionX, fretPositionY, positionX + width, fretPositionY, Paint(0xFF000000)));
+        renderData.AddLine(Line(positionX, fretPositionY, positionX + width, fretPositionY, Paint(0xFF000000)));
 
         fretPositionY += fretGap;
     }

@@ -20,7 +20,11 @@ public:
     float GetBelowHeight(float lineSpacing, float tabLineSpacing, int start, int end);
     float GetTotalHeight(float lineSpacing, float tabLineSpacing, int start, int end);
 
-    BoundingBox GetTotalBoundingBox(const MusicDisplayConstants& displayConstants, int startMeasureIndex, int endMeasureIndex) const;
+    BoundingBox GetTotalBoundingBox(const MusicDisplayConstants& displayConstants, int systemIndex) const;
+
+    void CalculateTotalBoundingBoxes(const MusicDisplayConstants& displayConstants, const std::vector<std::shared_ptr<System>>& systems);
+
+    void CalculateSystemPositionData(MusicDisplayConstants displayConstants, int systemIndex, int startMeasureIndex, int endMeasureIndex, bool firstInst, Vec2<float>& previousInstPosition, float& previousInstBelowAndMiddleHeight);
 
     /**
      * Gets the number of measures
@@ -44,7 +48,8 @@ public:
     std::shared_ptr<InstrumentBracket> instrumentBracket;
 
     //std::vector<BoundingBox> instrumentBoundingBoxes;
-    std::vector<Vec2<float>> systemPositionData;
+    std::vector<Vec2<float>> systemPositionData; // the position for each system
+    std::vector<BoundingBox> systemBoundingBoxes; // the bounding boxes for each system
 };
 
 #endif // MUSIQUE_INSTRUMENT_H

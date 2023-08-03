@@ -22,6 +22,6 @@ void Credit::Render(RenderData& renderData, Vec2<float> pagePosition, Vec2<float
         else if (words.justify == Justify::Right)
             paint.align = Paint::Align::Right;
 
-        renderData.AddText(Text(words.text, positionX, positionY, paint));
+        renderData.AddText(Text(words.text, { positionX, positionY }, paint));
     }
 }

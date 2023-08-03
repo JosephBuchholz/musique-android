@@ -365,12 +365,12 @@ void BoundingBox::Render(RenderData& renderData, const int& color) const
     paint.strokeWidth = 2.0f;
 
     // horizontal lines
-    renderData.AddLine(position.x, position.y, position.x + size.x, position.y, paint);
-    renderData.AddLine(position.x, position.y + size.y, position.x + size.x, position.y + size.y, paint);
+    renderData.AddLine(Line(position.x, position.y, position.x + size.x, position.y, paint));
+    renderData.AddLine(Line(position.x, position.y + size.y, position.x + size.x, position.y + size.y, paint));
 
     // vertical lines
-    renderData.AddLine(position.x, position.y, position.x, position.y + size.y, paint);
-    renderData.AddLine(position.x + size.x, position.y, position.x + size.x, position.y + size.y, paint);
+    renderData.AddLine(Line(position.x, position.y, position.x, position.y + size.y, paint));
+    renderData.AddLine(Line(position.x + size.x, position.y, position.x + size.x, position.y + size.y, paint));
 }
 
 std::string BoundingBox::GetPrintableConstraints() const

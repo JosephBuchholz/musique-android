@@ -114,6 +114,8 @@ public:
     bool IsOnBeatSixteenthNote(std::shared_ptr<Note> note) const;
     bool IsOffBeatSixteenthNote(std::shared_ptr<Note> note) const;
 
+    void InitBeatPosition(float measureBeatPosition);
+
 public:
 
     /* ----- Sound Related Functions ----- */

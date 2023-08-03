@@ -186,7 +186,7 @@ jobject ConvertPaintToObject(JNIEnv* env, const Paint& paint)
     return paintObject;
 }
 
-jobject ConvertSpannableTextToObject(JNIEnv* env, const std::shared_ptr<SpannableText>& spannableText)
+jobject ConvertSpannableTextToObject(JNIEnv* env, const SpannableText& spannableText)
 {
     jobject newText = JNIHelper::CreateNewObject(env, "com/randsoft/apps/musique/renderdata/SpannableText");
 
@@ -196,16 +196,16 @@ jobject ConvertSpannableTextToObject(JNIEnv* env, const std::shared_ptr<Spannabl
     //std::u16string s;
     //env->NewString(spannableText.text, 10);
     //env->SetObjectField(newText, fieldId, env->NewStringUTF(spannableText.text.c_str()));
-    JNIHelper::SetStringUTF16Field(env, newText, "text", spannableText->text, spannableText->textSize);
+    JNIHelper::SetStringUTF16Field(env, newText, "text", spannableText.text, spannableText.textSize);
 
-    JNIHelper::SetFloatField(env, newText, "x", spannableText->x);
-    JNIHelper::SetFloatField(env, newText, "y", spannableText->y);
-    JNIHelper::SetObjectField(env, newText, "mainPaint", ConvertPaintToObject(env, spannableText->mainPaint), "Lcom/randsoft/apps/musique/renderdata/Paint;");
+    JNIHelper::SetFloatField(env, newText, "x", spannableText.position.x);
+    JNIHelper::SetFloatField(env, newText, "y", spannableText.position.y);
+    JNIHelper::SetObjectField(env, newText, "mainPaint", ConvertPaintToObject(env, spannableText.mainPaint), "Lcom/randsoft/apps/musique/renderdata/Paint;");
 
-    jobjectArray spanArray = JNIHelper::CreateNewObjectArray(env, spannableText->spans.size(), "com/randsoft/apps/musique/renderdata/TextSpan");
+    jobjectArray spanArray = JNIHelper::CreateNewObjectArray(env, spannableText.spans.size(), "com/randsoft/apps/musique/renderdata/TextSpan");
 
     int i = 0;
-    for (const TextSpan& span : spannableText->spans)
+    for (const TextSpan& span : spannableText.spans)
     {
         jobject newSpan = JNIHelper::CreateNewObject(env, "com/randsoft/apps/musique/renderdata/TextSpan");
         JNIHelper::SetIntField(env, newSpan, "startIndex", (int)span.startIndex);
@@ -221,7 +221,7 @@ jobject ConvertSpannableTextToObject(JNIEnv* env, const std::shared_ptr<Spannabl
     return newText;
 }
 
-jobjectArray ConvertSpannableTextVectorToObjectArray(JNIEnv* env, const std::vector<std::shared_ptr<SpannableText>>& spannableTexts)
+jobjectArray ConvertSpannableTextVectorToObjectArray(JNIEnv* env, const std::vector<SpannableText>& spannableTexts)
 {
     // creating new SpannableText Array
     jobjectArray textsArray = JNIHelper::CreateNewObjectArray(env, spannableTexts.size(), "com/randsoft/apps/musique/renderdata/SpannableText");
@@ -257,7 +257,7 @@ jobject ConvertRenderDataToObject(JNIEnv* env, const RenderData& renderData)
     jclass lineClass = env->FindClass("com/randsoft/apps/musique/renderdata/Line");
     jmethodID lineConstructor = env->GetMethodID(lineClass, "<init>", "()V");
     jobject lineObject = env->NewObject(lineClass, lineConstructor);
-    jobjectArray linesArray = env->NewObjectArray((jsize)renderData.Lines.size(), lineClass, lineObject);
+    jobjectArray linesArray = env->NewObjectArray((jsize)renderData.m_lines.size(), lineClass, lineObject);
 
 
     {
@@ -268,15 +268,15 @@ jobject ConvertRenderDataToObject(JNIEnv* env, const RenderData& renderData)
         jfieldID fieldIdPaint = env->GetFieldID(lineClass, "paint",
                                                 "Lcom/randsoft/apps/musique/renderdata/Paint;");
         int index = 0;
-        for (const std::shared_ptr<Line>& line : renderData.Lines) {
+        for (const Line& line : renderData.m_lines) {
             jobject newLine = env->NewObject(lineClass, lineConstructor);
 
-            env->SetFloatField(newLine, fieldIdStartX, line->startX);
-            env->SetFloatField(newLine, fieldIdStartY, line->startY);
-            env->SetFloatField(newLine, fieldIdEndX, line->endX);
-            env->SetFloatField(newLine, fieldIdEndY, line->endY);
+            env->SetFloatField(newLine, fieldIdStartX, line.start.x);
+            env->SetFloatField(newLine, fieldIdStartY, line.start.y);
+            env->SetFloatField(newLine, fieldIdEndX, line.end.x);
+            env->SetFloatField(newLine, fieldIdEndY, line.end.y);
 
-            jobject paintObject = ConvertPaintToObject(env, line->paint);
+            jobject paintObject = ConvertPaintToObject(env, line.paint);
             env->SetObjectField(newLine, fieldIdPaint, paintObject);
 
             env->SetObjectArrayElement(linesArray, index, newLine);
@@ -297,7 +297,7 @@ jobject ConvertRenderDataToObject(JNIEnv* env, const RenderData& renderData)
     jclass textClass = env->FindClass("com/randsoft/apps/musique/renderdata/Text");
     jmethodID textConstructor = env->GetMethodID(textClass, "<init>", "()V");
     jobject textObject = env->NewObject(textClass, textConstructor);
-    jobjectArray textsArray = env->NewObjectArray((jsize)renderData.Texts.size(), textClass, textObject);
+    jobjectArray textsArray = env->NewObjectArray((jsize)renderData.m_texts.size(), textClass, textObject);
 
     {
         jfieldID fieldIdText = env->GetFieldID(textClass, "text", "Ljava/lang/String;");
@@ -307,12 +307,12 @@ jobject ConvertRenderDataToObject(JNIEnv* env, const RenderData& renderData)
                                                 "Lcom/randsoft/apps/musique/renderdata/Paint;");
 
         int index = 0;
-        for (const auto& text : renderData.Texts) {
+        for (const auto& text : renderData.m_texts) {
             jobject newText = env->NewObject(textClass, textConstructor);
 
             env->SetObjectField(newText, fieldIdText, env->NewStringUTF(text.text.c_str()));
-            env->SetFloatField(newText, fieldIdX, text.x);
-            env->SetFloatField(newText, fieldIdY, text.y);
+            env->SetFloatField(newText, fieldIdX, text.position.x);
+            env->SetFloatField(newText, fieldIdY, text.position.y);
 
             jobject paintObject = ConvertPaintToObject(env, text.paint);
             env->SetObjectField(newText, fieldIdPaint, paintObject);
@@ -326,7 +326,7 @@ jobject ConvertRenderDataToObject(JNIEnv* env, const RenderData& renderData)
     env->SetObjectField(renderDataObject, fieldIdTexts, textsArray);
 
     // SPANNABLE TEXTS
-    JNIHelper::SetObjectField(env, renderDataObject, "spannableTexts", ConvertSpannableTextVectorToObjectArray(env, renderData.SpannableTexts), "[Lcom/randsoft/apps/musique/renderdata/SpannableText;");
+    JNIHelper::SetObjectField(env, renderDataObject, "spannableTexts", ConvertSpannableTextVectorToObjectArray(env, renderData.m_spannableTexts), "[Lcom/randsoft/apps/musique/renderdata/SpannableText;");
 
     // SMUFL GLYPHS
 
@@ -336,15 +336,15 @@ jobject ConvertRenderDataToObject(JNIEnv* env, const RenderData& renderData)
 
     // creating new SMuFLGlyph Array
     jclass glyphClass = env->FindClass("com/randsoft/apps/musique/renderdata/SMuFLGlyph");
-    jobjectArray glyphsArray = JNIHelper::CreateNewObjectArray(env, renderData.SMuFLGlyphs.size(), glyphClass);
+    jobjectArray glyphsArray = JNIHelper::CreateNewObjectArray(env, renderData.m_SMuFLGlyphs.size(), glyphClass);
 
     {
         int index = 0;
-        for (auto glyph : renderData.SMuFLGlyphs) {
+        for (const auto& glyph : renderData.m_SMuFLGlyphs) {
             jobject newGlyph = JNIHelper::CreateNewObject(env, glyphClass);
 
-            JNIHelper::SetFloatField(env, newGlyph, "x", glyph.x);
-            JNIHelper::SetFloatField(env, newGlyph, "y", glyph.y);
+            JNIHelper::SetFloatField(env, newGlyph, "x", glyph.position.x);
+            JNIHelper::SetFloatField(env, newGlyph, "y", glyph.position.y);
             JNIHelper::SetIntField(env, newGlyph, "codePoint", (int)glyph.codePoint);
 
             jobject paintObject = ConvertPaintToObject(env, glyph.paint);
@@ -368,7 +368,7 @@ jobject ConvertRenderDataToObject(JNIEnv* env, const RenderData& renderData)
     jclass bitmapClass = env->FindClass("com/randsoft/apps/musique/renderdata/RenderBitmap");
     jmethodID bitmapConstructor = env->GetMethodID(bitmapClass, "<init>", "()V");
     jobject bitmapObject = env->NewObject(bitmapClass, bitmapConstructor);
-    jobjectArray bitmapsArray = env->NewObjectArray((jsize)renderData.Bitmaps.size(), bitmapClass, bitmapObject);
+    jobjectArray bitmapsArray = env->NewObjectArray((jsize)renderData.m_bitmaps.size(), bitmapClass, bitmapObject);
 
 
     {
@@ -380,7 +380,7 @@ jobject ConvertRenderDataToObject(JNIEnv* env, const RenderData& renderData)
         jfieldID fieldIdPaint = env->GetFieldID(bitmapClass, "paint",
                                                 "Lcom/randsoft/apps/musique/renderdata/Paint;");
         int index = 0;
-        for (auto bitmap : renderData.Bitmaps) {
+        for (auto bitmap : renderData.m_bitmaps) {
             jobject newBitmap = env->NewObject(bitmapClass, bitmapConstructor);
 
             env->SetFloatField(newBitmap, fieldIdX, bitmap.x);
@@ -410,7 +410,7 @@ jobject ConvertRenderDataToObject(JNIEnv* env, const RenderData& renderData)
     jclass cubicCurveClass = env->FindClass("com/randsoft/apps/musique/renderdata/CubicCurve");
     jmethodID cubicCurveConstructor = env->GetMethodID(cubicCurveClass, "<init>", "()V");
     jobject cubicCurveObject = env->NewObject(cubicCurveClass, cubicCurveConstructor);
-    jobjectArray cubicCurvesArray = env->NewObjectArray((jsize)renderData.CubicCurves.size(), cubicCurveClass, cubicCurveObject);
+    jobjectArray cubicCurvesArray = env->NewObjectArray((jsize)renderData.m_cubicCurves.size(), cubicCurveClass, cubicCurveObject);
 
     {
         jfieldID fieldIdX1 = env->GetFieldID(cubicCurveClass, "x1", "F");
@@ -424,17 +424,17 @@ jobject ConvertRenderDataToObject(JNIEnv* env, const RenderData& renderData)
         jfieldID fieldIdPaint = env->GetFieldID(cubicCurveClass, "paint",
                                                 "Lcom/randsoft/apps/musique/renderdata/Paint;");
         int index = 0;
-        for (auto curve : renderData.CubicCurves) {
+        for (const auto& curve : renderData.m_cubicCurves) {
             jobject newCurve = env->NewObject(cubicCurveClass, cubicCurveConstructor);
 
-            env->SetFloatField(newCurve, fieldIdX1, curve.x1);
-            env->SetFloatField(newCurve, fieldIdY1, curve.y1);
-            env->SetFloatField(newCurve, fieldIdX2, curve.x2);
-            env->SetFloatField(newCurve, fieldIdY2, curve.y2);
-            env->SetFloatField(newCurve, fieldIdX3, curve.x3);
-            env->SetFloatField(newCurve, fieldIdY3, curve.y3);
-            env->SetFloatField(newCurve, fieldIdX4, curve.x4);
-            env->SetFloatField(newCurve, fieldIdY4, curve.y4);
+            env->SetFloatField(newCurve, fieldIdX1, curve.point1.x);
+            env->SetFloatField(newCurve, fieldIdY1, curve.point1.y);
+            env->SetFloatField(newCurve, fieldIdX2, curve.point2.x);
+            env->SetFloatField(newCurve, fieldIdY2, curve.point2.y);
+            env->SetFloatField(newCurve, fieldIdX3, curve.point3.x);
+            env->SetFloatField(newCurve, fieldIdY3, curve.point3.y);
+            env->SetFloatField(newCurve, fieldIdX4, curve.point4.x);
+            env->SetFloatField(newCurve, fieldIdY4, curve.point4.y);
 
             jobject paintObject = ConvertPaintToObject(env, curve.paint);
             env->SetObjectField(newCurve, fieldIdPaint, paintObject);
