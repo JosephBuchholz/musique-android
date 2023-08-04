@@ -15,7 +15,7 @@ static std::unordered_map<int, std::shared_ptr<Tuplet>> currentTuplets;
 
 static std::unordered_map<int, std::shared_ptr<GlissandoSlide>> currentGlissandos;
 static std::unordered_map<int, std::shared_ptr<GlissandoSlide>> currentSlides;
-static std::unordered_map<int, std::shared_ptr<NoteTie>> currentTies;
+static std::unordered_map<int, std::unordered_map<int, std::shared_ptr<NoteTie>>> currentTies;
 
 static std::shared_ptr<NoteChord> currentNoteChord;
 
@@ -275,12 +275,14 @@ void NoteElementParser::ParseNoteElement(XMLElement* noteElement, float& current
     XMLElement* accidentalElement = noteElement->FirstChildElement("accidental");
     if (accidentalElement)
     {
-        currentNote->accidental.accidentalType = Accidental::CalculateAccidentalTypeFromString(accidentalElement->GetText());
+        currentNote->accidental = std::make_shared<Accidental>();
 
-        currentNote->accidental.isCautionary = XMLHelper::GetBoolAttribute(accidentalElement, "cautionary", false);
-        currentNote->accidental.isEditorial = XMLHelper::GetBoolAttribute(accidentalElement, "editorial", false);
-        currentNote->accidental.hasBrackets = XMLHelper::GetBoolAttribute(accidentalElement, "bracket", false);
-        currentNote->accidental.hasParentheses = XMLHelper::GetBoolAttribute(accidentalElement, "parentheses", false);
+        currentNote->accidental->accidentalType = Accidental::CalculateAccidentalTypeFromString(accidentalElement->GetText());
+
+        currentNote->accidental->isCautionary = XMLHelper::GetBoolAttribute(accidentalElement, "cautionary", false);
+        currentNote->accidental->isEditorial = XMLHelper::GetBoolAttribute(accidentalElement, "editorial", false);
+        currentNote->accidental->hasBrackets = XMLHelper::GetBoolAttribute(accidentalElement, "bracket", false);
+        currentNote->accidental->hasParentheses = XMLHelper::GetBoolAttribute(accidentalElement, "parentheses", false);
     }
 
     // stem
@@ -1159,11 +1161,11 @@ void NoteElementParser::ParseTiedElement(XMLElement* element, std::shared_ptr<No
 
         if (number != -1)
         {
-            currentTies[number] = newTie;
+            currentTies[currentNote->staff][number] = newTie;
         }
         else
         {
-            currentTies[pitch] = newTie;
+            currentTies[currentNote->staff][pitch] = newTie;
         }
     }
     else if (typeString == "stop")
@@ -1171,11 +1173,11 @@ void NoteElementParser::ParseTiedElement(XMLElement* element, std::shared_ptr<No
         std::shared_ptr<NoteTie> tie;
         if (number != -1)
         {
-            tie = currentTies[number];
+            tie = currentTies[currentNote->staff][number];
         }
         else
         {
-            tie = currentTies[pitch];
+            tie = currentTies[currentNote->staff][pitch];
         }
 
         if (tie)

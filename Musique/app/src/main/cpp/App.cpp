@@ -37,7 +37,7 @@ void App::LoadSongFromString(const std::string& string)
     songUpdated = false;
     musicPlayer->Reset();
 
-    LOGI("Loading song from string");
+    LOGI_TAG("App", "Loading song from string");
     if (song != nullptr)
     {
         DeleteSong();

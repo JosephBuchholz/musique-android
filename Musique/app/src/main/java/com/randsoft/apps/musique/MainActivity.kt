@@ -292,11 +292,17 @@ class MainActivity : AppCompatActivity(), MusicDisplayFragment.Callbacks,
     // ---- Native C++ Callbacks ----
 
     private fun onUpdateRender(renderData: RenderData) {
-        Handler(Looper.getMainLooper()).post(Runnable {
+
+        runOnUiThread {
             if (musicDisplayFragment != null) {
                 musicDisplayFragment?.onUpdateRenderData(renderData);
             }
-        })
+        }
+        /*Handler(Looper.getMainLooper()).post(Runnable {
+            if (musicDisplayFragment != null) {
+                musicDisplayFragment?.onUpdateRenderData(renderData);
+            }
+        })*/
     }
 
     private fun onUpdatePrintRenderData(printRenderData: PrintRenderData) {

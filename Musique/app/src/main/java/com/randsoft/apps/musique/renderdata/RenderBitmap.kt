@@ -8,6 +8,6 @@ data class RenderBitmap(
     var y: Float = 0.0f,
     var sx: Float = 1.0f, // scale x
     var sy: Float = 1.0f, // scale y
-    var paint: Paint = Paint(0x00000000.toInt())
+    var paint: Paint = Paint(0x00000000)
 ) {
 }

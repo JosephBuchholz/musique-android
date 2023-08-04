@@ -30,7 +30,7 @@ class Note;
 #include "TremoloSingle.h"
 #include "NoteFlag.h"
 
-#include "../../Player.h"
+#include "../../MusicPlayers/Player.h"
 
 /**
  * Class that represents a note, whether it is TAB or not.
@@ -72,7 +72,7 @@ public:
 
     static bool IsNoteIsHigher(Note* note1, Note* note2);
 
-    float GetMinWidth();
+    float GetMinWidth() const;
 
     void CalculateDurationTypeFromString(const std::string& s);
 
@@ -108,15 +108,15 @@ public:
 
     /* ----- Sound Related Functions ----- */
 
-    void InitSound(std::shared_ptr<Note> previousNote);
+    void InitSound(const std::shared_ptr<Note>& previousNote);
 
-    void OnPlay(std::shared_ptr<Player> player, Transpose transpose, int channel, float velocity);
-    void OnStop(std::shared_ptr<Player> player, Transpose transpose, int channel, float velocity);
-    void OnUpdate(std::shared_ptr<Player> player, Transpose transpose, int channel, float velocity, float beatPositionRelativeToNote, float previousBeatPositionRelativeToNote);
+    void OnPlay(const std::shared_ptr<Player>& player, Transpose transpose, int channel, float velocity);
+    void OnStop(const std::shared_ptr<Player>& player, Transpose transpose, int channel, float velocity);
+    void OnUpdate(const std::shared_ptr<Player>& player, Transpose transpose, int channel, float velocity, float beatPositionRelativeToNote, float previousBeatPositionRelativeToNote);
 
 private:
-    void PlayPitch(std::shared_ptr<Player> player, Transpose transpose, int channel, float velocity);
-    void StopPitch(std::shared_ptr<Player> player, Transpose transpose, int channel, float velocity);
+    void PlayPitch(const std::shared_ptr<Player>& player, Transpose transpose, int channel, float velocity);
+    void StopPitch(const std::shared_ptr<Player>& player, Transpose transpose, int channel, float velocity);
 
 private:
     void RenderRest(RenderData& renderData, float measurePositionX, int lines, float ls, float offsetX, float offsetY) const;
@@ -147,7 +147,7 @@ public:
 
     std::vector<NoteBeamData> beamData;
 
-    Accidental accidental = Accidental();
+    std::shared_ptr<Accidental> accidental;
 
     std::vector<Lyric> lyrics;
 

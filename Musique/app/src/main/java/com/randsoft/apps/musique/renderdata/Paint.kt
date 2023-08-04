@@ -1,7 +1,7 @@
 package com.randsoft.apps.musique.renderdata
 
 data class Paint(
-    var color: Int
+    var color: Long
 ) {
     var strokeWidth: Float = 1.0f
     var strokeCap: Int = 0
@@ -20,7 +20,7 @@ data class Paint(
     var centerHorizontally: Boolean = false
 
     var hasBackground: Boolean = false
-    var backgroundColor: Int = (0xFFFFFFFF).toInt()
+    var backgroundColor: Long = 0xFFFFFFFF
     var backgroundPadding: Float = 0.0f
 
     var useMusicFont: Boolean = false

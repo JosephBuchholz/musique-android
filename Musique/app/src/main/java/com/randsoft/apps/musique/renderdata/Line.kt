@@ -5,6 +5,6 @@ data class Line(
     var startY: Float = 0.0f,
     var endX: Float = 0.0f,
     var endY: Float = 0.0f,
-    var paint: Paint = Paint(0x00000000.toInt())
+    var paint: Paint = Paint(0x00000000)
 ) {
 }

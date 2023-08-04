@@ -30,7 +30,7 @@ class Slur;
 #include "../Notes/NoteChord.h"
 #include "MultiMeasureRestSymbol.h"
 
-#include "../../Player.h"
+#include "../../MusicPlayers/Player.h"
 
 #include <vector>
 

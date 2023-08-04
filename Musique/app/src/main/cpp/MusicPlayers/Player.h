@@ -1,7 +1,7 @@
 #ifndef MUSIQUE_PLAYER_H
 #define MUSIQUE_PLAYER_H
 
-#include "MusicData/Pitch.h"
+#include "../MusicData/Pitch.h"
 
 class PlayableNote
 {

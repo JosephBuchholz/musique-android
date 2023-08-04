@@ -22,9 +22,9 @@ class NoteTie : public VisibleElement, public LineElement
 
 public:
 
-    void Render(RenderData& renderData, Vec2<float> startNotePosition, Vec2<float> endNotePosition, bool isFirstNote, Vec2<float> offset = { 0.0f, 0.0f }) const;
+    void Render(RenderData& renderData, Vec2<float> startNotePosition, Vec2<float> endNotePosition, bool isFirstNote) const;
 
-    void CalculatePositionAsPaged(const MusicDisplayConstants& displayConstants, Vec2<float> defPositionStart, Vec2<float> defPositionEnd, bool isNoteChord);
+    void CalculatePositionAsPaged(const MusicDisplayConstants& displayConstants, Vec2<float> defPositionStart, Vec2<float> defPositionEnd, AboveBelowType defaultPlacement, bool isNoteChord);
 
 private:
     void RenderCurve(RenderData& renderData, Vec2<float> startPosition, Vec2<float> endPosition) const;

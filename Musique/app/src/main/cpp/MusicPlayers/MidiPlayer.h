@@ -5,9 +5,9 @@
 
 #include "Player.h"
 
-#include "Callbacks.h"
-#include "MusicData/Transpose.h"
-#include "MusicData/Pitch.h"
+#include "../Callbacks.h"
+#include "../MusicData/Transpose.h"
+#include "../MusicData/Pitch.h"
 
 class MidiPlayer : public Player
 {

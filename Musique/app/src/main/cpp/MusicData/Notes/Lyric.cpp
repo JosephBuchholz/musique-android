@@ -1,6 +1,6 @@
 #include "Lyric.h"
 
-void Lyric::Render(RenderData& renderData, float notePositionX, float measurePositionY, float offsetX, float offsetY) const
+void Lyric::Render(RenderData& renderData, float notePositionX, float measurePositionY) const
 {
     Paint paint = Paint();
     paint.textSize = 16.0f;
@@ -10,10 +10,46 @@ void Lyric::Render(RenderData& renderData, float notePositionX, float measurePos
         paint.isBold = true;
     paint.textSize = fontSize.size;
 
-    renderData.AddText(Text(text[0].text, { position.x + notePositionX + offsetX, position.y + measurePositionY + offsetY }, Paint(color.color, paint)));
+    renderData.AddText(Text(text[0].text, { position.x + notePositionX, position.y + measurePositionY }, Paint(color.color, paint)));
 }
 
-void Lyric::UpdateBoundingBox(const Vec2<float>& parentPosition)
+void Lyric::RenderDebug(RenderData& renderData, float notePositionX, float measurePositionY) const
+{
+    BoundingBox bb = GetBoundingBox();
+    bb.position.x += notePositionX;
+    bb.position.y += measurePositionY;
+    bb.position += position;
+    bb.Render(renderData, 0xFFEEEE00);
+}
+
+BoundingBox Lyric::GetBoundingBox() const
+{
+    Paint paint = Paint();
+    if (fontStyle == FontStyle::Italic)
+        paint.isItalic = true;
+    if (fontWeight == FontWeight::Bold)
+        paint.isBold = true;
+    paint.textSize = fontSize.size;
+
+    BoundingBox bb = BoundingBox();
+    bb.size.x = (paint.textSize * (float)text[0].text.size()) + (paint.textSize * 2.0f);
+    bb.size.y = paint.textSize * 2.0f;
+    bb.position.x = -(bb.size.x / 2.0f);
+    bb.position.y = (-paint.textSize * 2.0f) + (bb.size.y / 2.0f);
+
+    return bb;
+}
+
+BoundingBox Lyric::GetBoundingBoxRelativeToParent(float notePositionX, float measurePositionY) const
+{
+    BoundingBox bb = GetBoundingBox();
+    bb.position += position;
+    bb.position.x += notePositionX;
+    bb.position.y += measurePositionY;
+    return bb;
+}
+
+void Lyric::UpdateBoundingBox(Vec2<float> parentPosition)
 {
     Paint paint = Paint();
     if (fontStyle == FontStyle::Italic)

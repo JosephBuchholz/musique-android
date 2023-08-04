@@ -2,28 +2,28 @@
 
 #include "../../Utils/Math.h"
 
-void NoteTie::Render(RenderData& renderData, Vec2<float> startNotePosition, Vec2<float> endNotePosition, bool isFirstNote, Vec2<float> offset) const
+void NoteTie::Render(RenderData& renderData, Vec2<float> startNotePosition, Vec2<float> endNotePosition, bool isFirstNote) const
 {
     if (isFirstNote && !isBroken) // the tie is not broken
     {
-        Vec2<float> startCurvePosition = startNotePosition + positionStart + offset;
-        Vec2<float> endCurvePosition = endNotePosition + positionEnd + offset;
+        Vec2<float> startCurvePosition = startNotePosition + positionStart;
+        Vec2<float> endCurvePosition = endNotePosition + positionEnd;
 
         RenderCurve(renderData, startCurvePosition, endCurvePosition);
     }
     else if (isFirstNote && isBroken) // the first part of the broken tie
     {
-        Vec2<float> startCurvePosition = startNotePosition + positionStart + offset;
-        Vec2<float> endCurvePosition = startNotePosition + positionStart + offset;
+        Vec2<float> startCurvePosition = startNotePosition + positionStart;
+        Vec2<float> endCurvePosition = startNotePosition + positionStart;
         endCurvePosition.x += 10.0f;
 
         RenderCurve(renderData, startCurvePosition, endCurvePosition);
     }
     else if (!isFirstNote && isBroken) // the second part of the broken tie
     {
-        Vec2<float> startCurvePosition = startNotePosition + positionEnd + offset;
+        Vec2<float> startCurvePosition = startNotePosition + positionEnd;
         startCurvePosition.x -= 10.0f;
-        Vec2<float> endCurvePosition = startNotePosition + positionEnd + offset;
+        Vec2<float> endCurvePosition = startNotePosition + positionEnd;
 
         RenderCurve(renderData, startCurvePosition, endCurvePosition);
     }
@@ -64,7 +64,7 @@ void NoteTie::RenderCurve(RenderData& renderData, Vec2<float> startPosition, Vec
     renderData.AddCubicCurve(curve);
 }
 
-void NoteTie::CalculatePositionAsPaged(const MusicDisplayConstants& displayConstants, Vec2<float> defPositionStart, Vec2<float> defPositionEnd, bool isNoteChord)
+void NoteTie::CalculatePositionAsPaged(const MusicDisplayConstants& displayConstants, Vec2<float> defPositionStart, Vec2<float> defPositionEnd, AboveBelowType defaultPlacement, bool isNoteChord)
 {
     positionStart = defPositionStart;
     positionEnd = defPositionEnd;
@@ -79,10 +79,18 @@ void NoteTie::CalculatePositionAsPaged(const MusicDisplayConstants& displayConst
         offsetY = 0.0f;
     }
 
+    placement = defaultPlacement;
+
     if (placement == AboveBelowType::Above)
+    {
         offsetY = -offsetY;
-    //else if (placement == AboveBelowType::Below)
-    //    offsetY = offsetY;
+        orientation = CurveOrientation::Over;
+    }
+    else if (placement == AboveBelowType::Below)
+    {
+        offsetY = offsetY;
+        orientation = CurveOrientation::Under;
+    }
 
     positionStart.y += offsetY;
     positionEnd.y += offsetY;

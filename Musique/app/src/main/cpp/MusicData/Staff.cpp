@@ -123,7 +123,7 @@ float Staff::GetTotalBeatWidth()
 {
     float width = 0.0f;
 
-    for (auto m : measures) {
+    for (const auto& m : measures) {
         width += m->GetDuration();
     }
 
@@ -146,7 +146,7 @@ float Staff::GetMeasureNextBeatPosition(int measureIndex, float currentBeatPosit
 
     if (measure->nextBeatPosition == -1 || measure->nextBeatPosition < currentBeatPosition) { // calculate new beat position
         int i = 0;
-        for (auto m : measures) {
+        for (const auto& m : measures) {
 
             if (i == measureIndex) {
                 break;
@@ -169,7 +169,7 @@ float Staff::GetMeasureBeatPosition(int measureIndex) {
     float position = 0.0f;
 
     int i = 0;
-    for (auto m : measures) {
+    for (const auto& m : measures) {
 
         if (!m)
         {
@@ -210,7 +210,7 @@ void Staff::UpdateBoundingBoxes(const MusicDisplayConstants& displayConstants)
     //boundingBox.size.y = GetTotalHeight(displayConstants);
 }
 
-std::pair<int, float> Staff::GetMeasureFromSoundBeatPosition(float beatPosition, std::vector<std::shared_ptr<EndingGroup>> endingGroups)
+std::pair<int, float> Staff::GetMeasureFromSoundBeatPosition(float beatPosition, const std::vector<std::shared_ptr<EndingGroup>>& endingGroups)
 {
     std::unordered_map<int, int> repeatCounts;
 
@@ -227,9 +227,9 @@ std::pair<int, float> Staff::GetMeasureFromSoundBeatPosition(float beatPosition,
         std::shared_ptr<Ending> ending = nullptr;
         std::shared_ptr<EndingGroup> endingGroup = nullptr;
         int endingGroupIndex = 0;
-        for (auto eg : endingGroups)
+        for (const auto& eg : endingGroups)
         {
-            for (auto e : eg->endings)
+            for (const auto& e : eg->endings)
             {
                 if (e->startMeasureIndex == mi)
                 {
@@ -248,7 +248,7 @@ std::pair<int, float> Staff::GetMeasureFromSoundBeatPosition(float beatPosition,
         if (ending && endingGroup) // measure is at an ending
         {
             bool foundCorrectEnding = false;
-            for (auto e : endingGroup->endings)
+            for (const auto& e : endingGroup->endings)
             {
                 for (int number : e->endingNumbers)
                 {
@@ -264,7 +264,7 @@ std::pair<int, float> Staff::GetMeasureFromSoundBeatPosition(float beatPosition,
                     }
                     else
                     {
-                        LOGE("Staff.cpp: not found");
+                        LOGE_TAG("Staff.cpp", "not found");
                     }
                 }
 
@@ -273,7 +273,7 @@ std::pair<int, float> Staff::GetMeasureFromSoundBeatPosition(float beatPosition,
             }
 
             if (!foundCorrectEnding)
-                LOGE("was note able to find correct ending for playback");
+                LOGE_TAG("Staff.cpp", "was note able to find correct ending for playback");
         } // end of ending code
 
         if (beatPosition >= measureBeatPosition && beatPosition <= measureBeatPosition + measures[mi]->duration.duration)
@@ -316,11 +316,11 @@ std::pair<int, float> Staff::GetMeasureFromSoundBeatPosition(float beatPosition,
     return std::make_pair(0, 0.0f);
 }
 
-float Staff::GetSoundBeatPositionFromVisualBeatPosition(float beatPosition, std::vector<std::shared_ptr<EndingGroup>> endingGroups)
+float Staff::GetSoundBeatPositionFromVisualBeatPosition(float beatPosition, const std::vector<std::shared_ptr<EndingGroup>>& endingGroups)
 {
     float soundBeatPosition = 0.0f;
 
-    for (auto measure : measures)
+    for (const auto& measure : measures)
     {
         if (beatPosition >= measure->beatPosition && beatPosition < measure->beatPosition + measure->duration.duration)
         {

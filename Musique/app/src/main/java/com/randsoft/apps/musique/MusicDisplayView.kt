@@ -6,6 +6,9 @@ import android.graphics.*
 import android.graphics.Paint
 import android.graphics.pdf.PdfDocument
 import android.os.Build
+import android.text.Layout
+import android.text.StaticLayout
+import android.text.TextPaint
 import android.util.AttributeSet
 import android.util.DisplayMetrics
 import android.util.Log
@@ -189,7 +192,7 @@ class MusicDisplayView(context: Context, attrs: AttributeSet? = null): View(cont
     private fun convertPaint(oldPaint: com.randsoft.apps.musique.renderdata.Paint): Paint
     {
         val newPaint = Paint().apply {
-            color = oldPaint.color
+            color = oldPaint.color.toInt()
             typeface = musicTypeface
             textAlign = Paint.Align.values()[oldPaint.align]
             isAntiAlias = oldPaint.isAntiAlias
@@ -204,7 +207,7 @@ class MusicDisplayView(context: Context, attrs: AttributeSet? = null): View(cont
     {
         // create paint
         val paint = Paint().apply {
-            color = glyph.paint.color
+            color = glyph.paint.color.toInt()
             typeface = musicTypeface
         }
 
@@ -238,7 +241,7 @@ class MusicDisplayView(context: Context, attrs: AttributeSet? = null): View(cont
 
         // create paint
         val paint = Paint().apply {
-            color = text.paint.color
+            color = text.paint.color.toInt()
             textSize = text.paint.textSize
             textAlign = Paint.Align.values()[text.paint.align]
             isAntiAlias = true
@@ -300,7 +303,7 @@ class MusicDisplayView(context: Context, attrs: AttributeSet? = null): View(cont
     {
         for (line in lines) {
             val paint = Paint().apply {
-                color = line.paint.color
+                color = line.paint.color.toInt()
                 strokeWidth = line.paint.strokeWidth * scale
                 isAntiAlias = true
                 strokeCap = Paint.Cap.values()[line.paint.strokeCap]
@@ -350,7 +353,7 @@ class MusicDisplayView(context: Context, attrs: AttributeSet? = null): View(cont
             //Log.v(TAG, "text: ${text.text}")
 
             val paint = Paint().apply {
-                color = text.paint.color
+                color = text.paint.color.toInt()
                 textSize = text.paint.textSize //* 2.0f // 30.0 text size =about= 22.0 normal size
                 textAlign = Paint.Align.values()[text.paint.align]
                 isAntiAlias = true
@@ -421,13 +424,12 @@ class MusicDisplayView(context: Context, attrs: AttributeSet? = null): View(cont
     {
         Log.v(TAG, "drawing glyphs")
 
+        var glyphIndex = 0
         for (glyph in glyphs) { // SMuFL glyphs
-
-            //Log.v(TAG, "glyph: ${glyph.codePoint}")
 
             // create paint
             val paint = Paint().apply {
-                color = glyph.paint.color
+                color = glyph.paint.color.toInt()
                 typeface = musicTypeface
             }
 
@@ -437,8 +439,11 @@ class MusicDisplayView(context: Context, attrs: AttributeSet? = null): View(cont
             var x = ((glyph.x) * scale)
             var y = ((glyph.y) * scale)
 
-            var bounds = Rect()
-            paint.getTextBounds(Character.toChars(glyph.codePoint), 0, 1, bounds)
+            val bounds = Rect()
+            if (glyph.paint.centerHorizontally || glyph.paint.centerVertically || glyph.paint.hasBackground)
+            {
+                paint.getTextBounds(Character.toChars(glyph.codePoint), 0, 1, bounds)
+            }
 
             if (glyph.paint.centerHorizontally)
             {
@@ -452,8 +457,8 @@ class MusicDisplayView(context: Context, attrs: AttributeSet? = null): View(cont
 
             if (glyph.paint.hasBackground)
             {
-                val backgroundPaint = Paint().apply {
-                    color = glyph.paint.backgroundColor
+                var backgroundPaint = Paint().apply {
+                    color = glyph.paint.backgroundColor.toInt()
                     isAntiAlias = true
                 }
 
@@ -478,6 +483,8 @@ class MusicDisplayView(context: Context, attrs: AttributeSet? = null): View(cont
             canvas.rotate(-glyph.paint.rotateDegrees, x + offsetX, y + offsetY) // rotate canvas
             canvas.drawText(Character.toChars(glyph.codePoint), 0, 1, x + offsetX, y + offsetY, paint) // draw
             canvas.restore(); // reset rotation
+
+            glyphIndex += 1;
         }
 
         Log.v(TAG, "done drawing glyphs")
@@ -505,7 +512,7 @@ class MusicDisplayView(context: Context, attrs: AttributeSet? = null): View(cont
         for (text in texts) {
 
             val mainPaint = Paint().apply {
-                color = text.mainPaint.color
+                color = text.mainPaint.color.toInt()
                 textSize = text.mainPaint.textSize //* 2.0f // 30.0 text size =about= 22.0 normal size
                 textAlign = Paint.Align.values()[text.mainPaint.align]
                 isAntiAlias = true
@@ -539,7 +546,7 @@ class MusicDisplayView(context: Context, attrs: AttributeSet? = null): View(cont
             for (span in text.spans)
             {
                 val paint = Paint().apply {
-                    color = span.paint.color
+                    color = span.paint.color.toInt()
                     textSize = span.paint.textSize //* 2.0f // 30.0 text size =about= 22.0 normal size
                     textAlign = Paint.Align.values()[span.paint.align]
                     isAntiAlias = true
@@ -599,7 +606,7 @@ class MusicDisplayView(context: Context, attrs: AttributeSet? = null): View(cont
                 //resources.getString(R.raw.glyphnames)
 
                 val paint = Paint().apply {
-                    color = bitmap.paint.color
+                    color = bitmap.paint.color.toInt()
                 }
 
                 val text: Text = Text("", ((bitmap.x) * scale), ((bitmap.y) * scale), bitmap.paint);
@@ -631,7 +638,7 @@ class MusicDisplayView(context: Context, attrs: AttributeSet? = null): View(cont
             }
             else {
                 val paint = Paint().apply {
-                    color = bitmap.paint.color
+                    color = bitmap.paint.color.toInt()
                 }
 
                 val resourceId = getResourceID(bitmap.assetId) // resource id of the bitmap
@@ -699,7 +706,7 @@ class MusicDisplayView(context: Context, attrs: AttributeSet? = null): View(cont
         // render cubic bezier curves
         for (curve in cubicCurves) {
             val paint = Paint().apply {
-                color = curve.paint.color
+                color = curve.paint.color.toInt()
                 strokeWidth = curve.paint.strokeWidth
                 isAntiAlias = true
                 strokeCap = Paint.Cap.values()[curve.paint.strokeCap]

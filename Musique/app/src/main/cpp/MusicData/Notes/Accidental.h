@@ -15,8 +15,6 @@
  */
 class Accidental : public VisibleElement
 {
-    friend class Note;
-
 public:
     enum class AccidentalType {
         None = 0, Sharp, Flat, Natural, DoubleSharp, DoubleFlat
@@ -24,7 +22,7 @@ public:
 
 public:
 
-    void Render(RenderData& renderData, Vec2<float> parentPosition, Vec2<float> offset = { 0.0f, 0.0f }) const;
+    void Render(RenderData& renderData, Vec2<float> parentPosition) const;
 
     Vec2<float> GetDimensions() const;
 
@@ -38,22 +36,7 @@ public:
      * @param string The string to convert
      * @return The value that was converted
      */
-    static AccidentalType CalculateAccidentalTypeFromString(const std::string& string) {
-        if (string == "sharp") {
-            return AccidentalType::Sharp;
-        } else if (string == "flat") {
-            return AccidentalType::Flat;
-        } else if (string == "natural") {
-            return AccidentalType::Natural;
-        } else if (string == "double-sharp") {
-            return AccidentalType::DoubleSharp;
-        } else if (string == "flat-flat") {
-            return AccidentalType::DoubleFlat;
-        }
-        return AccidentalType::None;
-    }
-
-protected:
+    static AccidentalType CalculateAccidentalTypeFromString(const std::string& string);
 
     void CalculateAsPaged(const MusicDisplayConstants& displayConstants, NoteSize noteSize);
 

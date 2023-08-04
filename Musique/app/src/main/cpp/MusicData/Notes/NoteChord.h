@@ -13,7 +13,7 @@ class NoteFlag;
 #include "Note.h"
 #include "NoteFlag.h"
 
-#include "../../Player.h"
+#include "../../MusicPlayers/Player.h"
 #include "../Transpose.h"
 
 /**

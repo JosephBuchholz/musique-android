@@ -18,8 +18,8 @@
 /**
  * This class represents a lyric for a note.
  */
-class Lyric : public TextualElement {
-    friend class Song;
+class Lyric : public TextualElement
+{
     friend class MusicXMLParser;
     friend class NoteElementParser;
 
@@ -32,19 +32,20 @@ public:
      * @param[out] renderData The RenderData object to render to
      * @param[in] notePositionX The x position of the parent note
      * @param[in] measurePositionY The y position of the parent measure
-     * @param[in] offsetX offset in x direction
-     * @param[in] offsetY offset in y direction
      */
-    void Render(RenderData& renderData, float notePositionX, float measurePositionY, float offsetX = 0.0f, float offsetY = 0.0f) const;
+    void Render(RenderData& renderData, float notePositionX, float measurePositionY) const;
+    void RenderDebug(RenderData& renderData, float notePositionX, float measurePositionY) const;
+
+    BoundingBox GetBoundingBox() const;
+    BoundingBox GetBoundingBoxRelativeToParent(float notePositionX, float measurePositionY) const;
 
     /**
      * Updates the position and size of this object's bounding box.
      *
      * @param parentPosition The position of the parent.
      */
-    void UpdateBoundingBox(const Vec2<float>& parentPosition);
+    void UpdateBoundingBox(Vec2<float> parentPosition);
 
-protected:
     void CalculatePositionAsPaged(const MusicDisplayConstants& displayConstants);
 
 public:

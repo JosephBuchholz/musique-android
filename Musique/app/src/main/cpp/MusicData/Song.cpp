@@ -791,7 +791,7 @@ void Song::CalculateSystemPositionsAndPageBreaks()
     }
     auto stop = high_resolution_clock::now();
     auto duration = duration_cast<milliseconds>(stop - start);
-    LOGE("Time taken by position calculation in CalculateSystemPositionsAndPageBreaks func.: %lld milliseconds | %f seconds", duration.count(), duration.count() / 1000.0f);
+    LOGD("Time taken by position calculation in CalculateSystemPositionsAndPageBreaks func.: %lld milliseconds | %f seconds", duration.count(), duration.count() / 1000.0f);
 
     systemBoundingBoxes.clear();
     int systemIndex = 0;

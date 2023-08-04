@@ -10,6 +10,6 @@ data class CubicCurve(
     var y3: Float = 0.0f,
     var x4: Float = 0.0f,
     var y4: Float = 0.0f,
-    var paint: Paint = Paint(0x00000000.toInt())
+    var paint: Paint = Paint(0x00000000)
 ) {
 }

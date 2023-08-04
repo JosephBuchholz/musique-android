@@ -54,7 +54,7 @@ struct Paint {
         Left = 0, Center, Right
     };
 
-    int color = 0xff000000;
+    long color = 0xff000000;
 
     float strokeWidth = 1.0f;
     Cap strokeCap = Cap::Butt;
@@ -73,7 +73,7 @@ struct Paint {
     bool centerHorizontally = false;
 
     bool hasBackground = false;
-    int backgroundColor = 0xFFFFFFFF;
+    long backgroundColor = 0xFFFFFFFF;
     float backgroundPadding = 0.0f;
 
     bool useMusicFont = false;

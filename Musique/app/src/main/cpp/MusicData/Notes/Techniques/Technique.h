@@ -8,7 +8,7 @@
 #include "../../BaseElements/VisibleElement.h"
 #include "../../Types.h"
 #include "../NoteStem.h"
-#include "../../../Player.h"
+#include "../../../MusicPlayers/Player.h"
 
 /**
  * The base class for musical techniques (such as bowing directions, fingerings, or harmonics).

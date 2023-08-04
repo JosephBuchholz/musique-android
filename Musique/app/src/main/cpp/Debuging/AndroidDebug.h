@@ -10,20 +10,40 @@
 #define LOG_TAG "NativeMusique"
 #endif
 
+#define LOGV_TAG(tag, ...) \
+  __android_log_print(ANDROID_LOG_VERBOSE, tag, __VA_ARGS__)
+#define LOGD_TAG(tag, ...) \
+  __android_log_print(ANDROID_LOG_DEBUG, tag, __VA_ARGS__)
+#define LOGI_TAG(tag, ...) \
+  __android_log_print(ANDROID_LOG_INFO, tag, __VA_ARGS__)
+#define LOGW_TAG(tag, ...) \
+  __android_log_print(ANDROID_LOG_WARN, tag, __VA_ARGS__)
+#define LOGE_TAG(tag, ...) \
+  __android_log_print(ANDROID_LOG_ERROR, tag, __VA_ARGS__)
+#define LOGF_TAG(tag, ...) \
+  __android_log_print(ANDROID_LOG_FATAL, tag, __VA_ARGS__)
+
 #define LOGV(...) \
-  __android_log_print(ANDROID_LOG_VERBOSE, LOG_TAG, __VA_ARGS__)
+  LOGV_TAG(LOG_TAG, __VA_ARGS__)
 #define LOGD(...) \
-  __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, __VA_ARGS__)
+  LOGD_TAG(LOG_TAG, __VA_ARGS__)
 #define LOGI(...) \
-  __android_log_print(ANDROID_LOG_INFO, LOG_TAG, __VA_ARGS__)
+  LOGI_TAG(LOG_TAG, __VA_ARGS__)
 #define LOGW(...) \
-  __android_log_print(ANDROID_LOG_WARN, LOG_TAG, __VA_ARGS__)
+  LOGW_TAG(LOG_TAG, __VA_ARGS__)
 #define LOGE(...) \
-  __android_log_print(ANDROID_LOG_ERROR, LOG_TAG, __VA_ARGS__)
+  LOGE_TAG(LOG_TAG, __VA_ARGS__)
 #define LOGF(...) \
-  __android_log_print(ANDROID_LOG_FATAL, LOG_TAG, __VA_ARGS__)
+  LOGF_TAG(LOG_TAG, __VA_ARGS__)
 
 #else
+
+#define LOGV_TAG(tag, ...)
+#define LOGD_TAG(tag, ...)
+#define LOGI_TAG(tag, ...)
+#define LOGW_TAG(tag, ...)
+#define LOGE_TAG(tag, ...)
+#define LOGF_TAG(tag, ...)
 
 #define LOGV(...)
 #define LOGD(...)

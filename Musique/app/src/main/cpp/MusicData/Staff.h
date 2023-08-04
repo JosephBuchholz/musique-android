@@ -58,8 +58,8 @@ public:
 
     /* ----- Sound Related Functions ----- */
 
-    std::pair<int, float> GetMeasureFromSoundBeatPosition(float beatPosition, std::vector<std::shared_ptr<EndingGroup>> endingGroups);
-    float GetSoundBeatPositionFromVisualBeatPosition(float beatPosition, std::vector<std::shared_ptr<EndingGroup>> endingGroups);
+    std::pair<int, float> GetMeasureFromSoundBeatPosition(float beatPosition, const std::vector<std::shared_ptr<EndingGroup>>& endingGroups);
+    float GetSoundBeatPositionFromVisualBeatPosition(float beatPosition, const std::vector<std::shared_ptr<EndingGroup>>& endingGroups);
 
 public:
 

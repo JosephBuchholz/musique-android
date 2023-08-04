@@ -5,6 +5,12 @@
 
 void Note::Render(RenderData& renderData, TablatureDisplayType tabDisplayType, float notePositionRelativeToMeasure, int lines, Vec2<float> measurePosition, float nextMeasurePositionX, float ls) const
 {
+    if (tie)
+    {
+        if (tie->notes.second.get() == this && tabDisplayType == TablatureDisplayType::NoRhythm && type == NoteType::Tab)
+            return;
+    }
+
     Vec2<float> noteRenderPosition = position + measurePosition;
 
     if (isRest) // is a rest
@@ -79,25 +85,26 @@ void Note::Render(RenderData& renderData, TablatureDisplayType tabDisplayType, f
 
         noteFlag.Render(renderData, { noteRenderPosition.x + noteStem.stemPositionX, noteRenderPosition.y + noteStem.stemEndY });
 
-        accidental.Render(renderData, noteRenderPosition);
+        if (accidental)
+            accidental->Render(renderData, noteRenderPosition);
     }
 
     // render articulations
-    for (auto articulation : articulations)
+    for (const auto& articulation : articulations)
     {
         if (articulation != nullptr)
             articulation->Render(renderData, { noteRenderPosition.x + noteHead.GetCenterPositionX(renderData.displayConstants), noteRenderPosition.y });
     }
 
     // render techniques
-    for (auto technique : techniques)
+    for (const auto& technique : techniques)
     {
         if (technique != nullptr)
             technique->Render(renderData, { noteRenderPosition.x + noteHead.GetCenterPositionX(renderData.displayConstants), noteRenderPosition.y });
     }
 
     // render ornament
-    for (auto ornament : ornaments)
+    for (const auto& ornament : ornaments)
     {
         if (ornament != nullptr)
             ornament->Render(renderData, noteRenderPosition.x + noteHead.GetCenterPositionX(renderData.displayConstants), measurePosition.y);
@@ -118,7 +125,7 @@ void Note::Render(RenderData& renderData, TablatureDisplayType tabDisplayType, f
         fermata->Render(renderData, {position.x + measurePosition.x + centerOffset, measurePosition.y});
     }
 
-    for (auto glissSlide : glissSlides)
+    for (const auto& glissSlide : glissSlides)
     {
         if (glissSlide->notes.first.get() == this && glissSlide->notes.second != nullptr) // this note is the start of glissSlide
         {
@@ -146,7 +153,7 @@ void Note::Render(RenderData& renderData, TablatureDisplayType tabDisplayType, f
         }
     }
 
-    if (tie)
+    if (tie && !(tabDisplayType == TablatureDisplayType::NoRhythm && type == NoteType::Tab))
     {
         if (tie->notes.first.get() == this && tie->notes.second != nullptr) // if this note is the start of the tie
         {
@@ -173,7 +180,8 @@ void Note::Render(RenderData& renderData, TablatureDisplayType tabDisplayType, f
         }
     }
 
-    for (const auto& lyric: lyrics) {
+    for (const auto& lyric: lyrics)
+    {
         lyric.Render(renderData, position.x + measurePosition.x, measurePosition.y);
     } // lyrics loop
 }
@@ -183,10 +191,15 @@ void Note::RenderDebug(RenderData& renderData, TablatureDisplayType tabDisplayTy
     Vec2<float> noteRenderPosition = position + measurePosition;
 
     // render articulations
-    for (auto articulation : articulations)
+    for (const auto& articulation : articulations)
     {
         if (articulation != nullptr)
             articulation->RenderDebug(renderData, { noteRenderPosition.x + noteHead.GetCenterPositionX(renderData.displayConstants), noteRenderPosition.y });
+    }
+
+    for (const auto& lyric : lyrics)
+    {
+        lyric.RenderDebug(renderData, position.x + measurePosition.x, measurePosition.y);
     }
 }
 
@@ -197,13 +210,13 @@ void Note::RenderDebug(RenderData& renderData) const
     if (fermata)
         fermata->RenderDebug(renderData);
 
-    for (auto glissSlide : glissSlides)
+    for (const auto& glissSlide : glissSlides)
     {
         if (glissSlide->notes.first.get() == this)
             glissSlide->RenderDebug(renderData);
     }
 
-    for (auto ornament : ornaments)
+    for (const auto& ornament : ornaments)
     {
         if (ornament)
             ornament->RenderDebug(renderData);
@@ -268,7 +281,7 @@ bool Note::IsNoteIsHigher(Note* note1, Note* note2)
     }
 }
 
-void Note::InitSound(std::shared_ptr<Note> previousNote)
+void Note::InitSound(const std::shared_ptr<Note>& previousNote)
 {
     soundBeatPosition = beatPosition;
     soundDuration = duration.duration - 0.05f;
@@ -287,17 +300,17 @@ void Note::InitSound(std::shared_ptr<Note> previousNote)
         }
     }
 
-    for (auto articulation : articulations)
+    for (const auto& articulation : articulations)
     {
         articulation->ModifySoundDuration(soundDuration);
     }
 }
 
-void Note::OnPlay(std::shared_ptr<Player> player, Transpose transpose, int channel, float velocity)
+void Note::OnPlay(const std::shared_ptr<Player>& player, Transpose transpose, int channel, float velocity)
 {
     isPlaying = true;
 
-    for (auto articulation : articulations)
+    for (const auto& articulation : articulations)
     {
         articulation->ModifyVelocity(velocity);
     }
@@ -324,7 +337,7 @@ void Note::OnPlay(std::shared_ptr<Player> player, Transpose transpose, int chann
     }
 }
 
-void Note::OnStop(std::shared_ptr<Player> player, Transpose transpose, int channel, float velocity)
+void Note::OnStop(const std::shared_ptr<Player>& player, Transpose transpose, int channel, float velocity)
 {
     isPlaying = false;
 
@@ -350,7 +363,7 @@ void Note::OnStop(std::shared_ptr<Player> player, Transpose transpose, int chann
     }
 }
 
-void Note::PlayPitch(std::shared_ptr<Player> player, Transpose transpose, int channel, float velocity)
+void Note::PlayPitch(const std::shared_ptr<Player>& player, Transpose transpose, int channel, float velocity)
 {
     PlayableNote note;
     note.pitch = pitch;
@@ -359,7 +372,7 @@ void Note::PlayPitch(std::shared_ptr<Player> player, Transpose transpose, int ch
     player->PlayNote(note, channel);
 }
 
-void Note::StopPitch(std::shared_ptr<Player> player, Transpose transpose, int channel, float velocity)
+void Note::StopPitch(const std::shared_ptr<Player>& player, Transpose transpose, int channel, float velocity)
 {
     PlayableNote note;
     note.pitch = pitch;
@@ -367,7 +380,7 @@ void Note::StopPitch(std::shared_ptr<Player> player, Transpose transpose, int ch
     note.velocity = velocity;
     player->StopNote(note, channel);
 
-    for (auto glissSlide : glissSlides)
+    for (const auto& glissSlide : glissSlides)
     {
         if (glissSlide)
         {
@@ -393,14 +406,14 @@ void Note::StopPitch(std::shared_ptr<Player> player, Transpose transpose, int ch
     }
 }
 
-void Note::OnUpdate(std::shared_ptr<Player> player, Transpose transpose, int channel, float velocity, float beatPositionRelativeToNote, float previousBeatPositionRelativeToNote)
+void Note::OnUpdate(const std::shared_ptr<Player>& player, Transpose transpose, int channel, float velocity, float beatPositionRelativeToNote, float previousBeatPositionRelativeToNote)
 {
-    for (auto technique : techniques)
+    for (const auto& technique : techniques)
     {
         technique->OnUpdate(player, beatPositionRelativeToNote, soundDuration, channel);
     }
 
-    for (auto glissSlide : glissSlides)
+    for (const auto& glissSlide : glissSlides)
     {
         if (glissSlide)
         {
@@ -446,7 +459,7 @@ void Note::OnUpdate(std::shared_ptr<Player> player, Transpose transpose, int cha
     }
 }
 
-float Note::GetMinWidth()
+float Note::GetMinWidth() const
 {
     float width = 0.0f;
     width += duration.duration * 5.0f * 10.0f; // should do a bit more calculations here
@@ -503,7 +516,8 @@ void Note::CalculatePositionAsPaged(const MusicDisplayConstants& displayConstant
         noteFlag.type = NoteFlag::Type::None;
     }
 
-    accidental.CalculateAsPaged(displayConstants, noteSize);
+    if (accidental)
+        accidental->CalculateAsPaged(displayConstants, noteSize);
 
     if (noteSize == NoteSize::Grace)
         sizeFactor = displayConstants.graceNoteSize;
@@ -621,19 +635,19 @@ void Note::CalculatePositionAsPaged(const MusicDisplayConstants& displayConstant
         }
     }
 
-    for (auto articulation : articulations)
+    for (const auto& articulation : articulations)
     {
         if (articulation != nullptr)
             articulation->CalculatePositionAsPaged(displayConstants, position.y, type == NoteType::Tab, noteStem, 0.0f, 0.0f);
     }
 
-    for (auto technique : techniques)
+    for (const auto& technique : techniques)
     {
         if (technique != nullptr)
             technique->CalculatePositionAsPaged(displayConstants, position.y, type == NoteType::Tab, noteStem, 0.0f, 0.0f);
     }
 
-    for (auto ornament : ornaments)
+    for (const auto& ornament : ornaments)
     {
         if (ornament != nullptr)
             ornament->CalculatePositionAsPaged(displayConstants, { 0.0f, 0.0f });
@@ -650,7 +664,7 @@ void Note::CalculatePositionAsPaged(const MusicDisplayConstants& displayConstant
     if (tremoloSingle)
         tremoloSingle->CalculatePositionAsPaged(displayConstants);
 
-    for (auto glissSlide : glissSlides)
+    for (const auto& glissSlide : glissSlides)
     {
         if (glissSlide->notes.first.get() == this)
         {
@@ -668,7 +682,14 @@ void Note::CalculatePositionAsPaged(const MusicDisplayConstants& displayConstant
 
     if (tie)
     {
-        tie->CalculatePositionAsPaged(displayConstants, { 0.0f, 0.0f }, { 0.0f, 0.0f }, isChord);
+        AboveBelowType defaultPlacement = AboveBelowType::Above;
+
+        if (noteStem.stemType == NoteStem::StemType::Up || voice != 1)
+        {
+            defaultPlacement = AboveBelowType::Below;
+        }
+
+        tie->CalculatePositionAsPaged(displayConstants, { 0.0f, 0.0f }, { 0.0f, 0.0f }, defaultPlacement, isChord);
     }
 }
 
@@ -706,6 +727,13 @@ BoundingBox Note::GetTotalBoundingBoxRelativeToMeasure(const MusicDisplayConstan
             articulationBoundingBox.position += position;
             bb = BoundingBox::CombineBoundingBoxes(bb, articulationBoundingBox);
         }
+    }
+
+    for (const auto& lyric : lyrics)
+    {
+        BoundingBox lyricBoundingBox = lyric.GetBoundingBoxRelativeToParent(position.x, 0.0f);
+        //lyricBoundingBox.position += position;
+        bb = BoundingBox::CombineBoundingBoxes(bb, lyricBoundingBox);
     }
 
     if (fermata)
@@ -747,7 +775,7 @@ void Note::UpdateBoundingBox(const MusicDisplayConstants& displayConstants, Vec2
     if (fermata)
         fermata->UpdateBoundingBox({ position.x + parentPosition.x, parentPosition.y });
 
-    for (auto glissSlide : glissSlides)
+    for (const auto& glissSlide : glissSlides)
     {
         if (glissSlide->notes.first.get() == this)
         {
@@ -755,7 +783,7 @@ void Note::UpdateBoundingBox(const MusicDisplayConstants& displayConstants, Vec2
         }
     }
 
-    for (auto ornament : ornaments)
+    for (const auto& ornament : ornaments)
     {
         if (ornament != nullptr)
             ornament->UpdateBoundingBox({ position.x + parentPosition.x, parentPosition.y });

@@ -1,7 +1,7 @@
 #ifndef MUSIQUE_METRONOME_H
 #define MUSIQUE_METRONOME_H
 
-#include "MusicData/Measures/TimeSignature.h"
+#include "../MusicData/Measures/TimeSignature.h"
 #include "Player.h"
 
 class Metronome

@@ -24,10 +24,10 @@ add_library( # Sets the name of the library.
         Callbacks.cpp
         App.cpp
         MusicRenderer.cpp
-        MusicPlayer.cpp
+        MusicPlayers/MusicPlayer.cpp
         RenderMeasurement.cpp
-        MidiPlayer.cpp
-        Metronome.cpp
+        MusicPlayers/MidiPlayer.cpp
+        MusicPlayers/Metronome.cpp
 
         RenderData/RenderData.cpp
         RenderData/Line.cpp

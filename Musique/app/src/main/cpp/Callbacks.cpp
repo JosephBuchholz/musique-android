@@ -120,7 +120,7 @@ jobject ConvertPaintToObject(JNIEnv* env, const Paint& paint)
 {
     // Paint class
     jclass paintClass = env->FindClass("com/randsoft/apps/musique/renderdata/Paint");
-    jmethodID paintConstructor = env->GetMethodID(paintClass, "<init>", "(I)V");
+    jmethodID paintConstructor = env->GetMethodID(paintClass, "<init>", "(J)V");
     jfieldID paintFieldIdStrokeWidth = env->GetFieldID(paintClass, "strokeWidth", "F");
     jfieldID paintFieldIdStrokeCap = env->GetFieldID(paintClass, "strokeCap", "I");
     jfieldID paintFieldIdTextSize = env->GetFieldID(paintClass, "textSize", "F");
@@ -138,7 +138,7 @@ jobject ConvertPaintToObject(JNIEnv* env, const Paint& paint)
     jfieldID paintFieldIdCenterHorizontally = env->GetFieldID(paintClass, "centerHorizontally", "Z");
 
     jfieldID paintFieldIdHasBackground = env->GetFieldID(paintClass, "hasBackground", "Z");
-    jfieldID paintFieldIdBackgroundColor = env->GetFieldID(paintClass, "backgroundColor", "I");
+    jfieldID paintFieldIdBackgroundColor = env->GetFieldID(paintClass, "backgroundColor", "J");
     jfieldID paintFieldIdBackgroundPadding = env->GetFieldID(paintClass, "backgroundPadding", "F");
 
     jfieldID paintFieldIdUseMusicFont = env->GetFieldID(paintClass, "useMusicFont", "Z");
@@ -151,7 +151,7 @@ jobject ConvertPaintToObject(JNIEnv* env, const Paint& paint)
     jfieldID paintFieldIdDotRadius = env->GetFieldID(paintClass, "dotRadius", "F");
 
     // set paint fields
-    jobject paintObject = env->NewObject(paintClass, paintConstructor, paint.color);
+    jobject paintObject = env->NewObject(paintClass, paintConstructor, (jlong)paint.color);
     env->SetFloatField(paintObject, paintFieldIdStrokeWidth, paint.strokeWidth);
     env->SetIntField(paintObject, paintFieldIdStrokeCap, (int)paint.strokeCap);
     env->SetFloatField(paintObject, paintFieldIdTextSize, paint.textSize);
@@ -170,7 +170,7 @@ jobject ConvertPaintToObject(JNIEnv* env, const Paint& paint)
     env->SetBooleanField(paintObject, paintFieldIdCenterHorizontally, paint.centerHorizontally);
 
     env->SetBooleanField(paintObject, paintFieldIdHasBackground, paint.hasBackground);
-    env->SetIntField(paintObject, paintFieldIdBackgroundColor, paint.backgroundColor);
+    env->SetLongField(paintObject, paintFieldIdBackgroundColor, (jlong)paint.backgroundColor);
     env->SetFloatField(paintObject, paintFieldIdBackgroundPadding, paint.backgroundPadding);
 
     env->SetBooleanField(paintObject, paintFieldIdUseMusicFont, paint.useMusicFont);

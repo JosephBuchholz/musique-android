@@ -13,7 +13,7 @@
 #include "Events/InputEvent.h"
 
 #include "MusicRenderer.h"
-#include "MusicPlayer.h"
+#include "MusicPlayers/MusicPlayer.h"
 
 /**
  * This class acts like an interface between Kotlin and C++.

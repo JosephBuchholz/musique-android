@@ -5,7 +5,7 @@
 #ifndef MUSIQUE_MUSICPLAYER_H
 #define MUSIQUE_MUSICPLAYER_H
 
-#include "MusicData/Song.h"
+#include "../MusicData/Song.h"
 
 #include "Player.h"
 #include "Metronome.h"
