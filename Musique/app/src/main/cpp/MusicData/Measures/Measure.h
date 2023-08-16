@@ -63,12 +63,12 @@ public:
     float GetTimeSignaturePositionInMeasure(std::shared_ptr<System> system, float keySignaturePositionX) const;
     float GetClefPositionInMeasure(std::shared_ptr<System> system) const;
 
-    void Render(RenderData& renderData, Vec2<float> measurePosition, float nextMeasurePositionX, std::shared_ptr<System> system, int staffLineCount, float staffLineSpacing, bool isTopMeasureLine, bool isLastMeasureInSystem, TablatureDisplayType tablatureDisplayType, bool isPartOfEnding) const;
+    void Render(RenderData& renderData, const Settings& settings, Vec2<float> measurePosition, float nextMeasurePositionX, std::shared_ptr<System> system, int staffLineCount, float staffLineSpacing, bool isTopMeasureLine, bool isLastMeasureInSystem, TablatureDisplayType tablatureDisplayType, bool isPartOfEnding) const;
 
     /**
      * Same as the 'Render' function except for debug rendering.
      */
-    void RenderDebug(RenderData& renderData, Vec2<float> measurePosition, float nextMeasurePositionX, std::shared_ptr<System> system, int staffLineCount, float staffLineSpacing, bool isTopMeasureLine, bool isLastMeasureInSystem, TablatureDisplayType tablatureDisplayType) const;
+    void RenderDebug(RenderData& renderData, const Settings& settings, Vec2<float> measurePosition, float nextMeasurePositionX, std::shared_ptr<System> system, int staffLineCount, float staffLineSpacing, bool isTopMeasureLine, bool isLastMeasureInSystem, TablatureDisplayType tablatureDisplayType) const;
 
     /**
      * Renders any debug info.
@@ -101,7 +101,7 @@ public:
 
     void UpdateBoundingBoxes(const MusicDisplayConstants& displayConstants, const Vec2<float>& measurePosition, float measureHeight);
 
-    void CalculateAsPaged(const MusicDisplayConstants& displayConstants, std::shared_ptr<System> system, int staffLines);
+    void CalculateAsPaged(const MusicDisplayConstants& displayConstants, const Settings& settings, std::shared_ptr<System> system, int staffLines);
 
     bool IsRepeatBackward() const;
     bool IsRepeatForward() const;

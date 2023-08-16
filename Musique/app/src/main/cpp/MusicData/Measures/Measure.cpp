@@ -73,7 +73,7 @@ float Measure::GetTotalHeight(const MusicDisplayConstants& displayConstants, int
     return height;
 }
 
-void Measure::Render(RenderData& renderData, Vec2<float> measurePosition, float nextMeasurePositionX, std::shared_ptr<System> system, int staffLineCount, float staffLineSpacing, bool isTopMeasureLine, bool isLastMeasureInSystem, TablatureDisplayType tablatureDisplayType, bool isPartOfEnding) const
+void Measure::Render(RenderData& renderData, const Settings& settings, Vec2<float> measurePosition, float nextMeasurePositionX, std::shared_ptr<System> system, int staffLineCount, float staffLineSpacing, bool isTopMeasureLine, bool isLastMeasureInSystem, TablatureDisplayType tablatureDisplayType, bool isPartOfEnding) const
 {
     if (startsMultiMeasureRest)
     {
@@ -132,7 +132,7 @@ void Measure::Render(RenderData& renderData, Vec2<float> measurePosition, float 
         // render all chords in this measure
         for (const Chord& chord : chords)
         {
-            chord.Render(renderData, measurePosition.x, measurePosition.y);
+            chord.Render(renderData, settings, measurePosition);
         }
 
         for (auto tuplet : tuplets)
@@ -163,7 +163,7 @@ void Measure::Render(RenderData& renderData, Vec2<float> measurePosition, float 
     }
 }
 
-void Measure::RenderDebug(RenderData& renderData, Vec2<float> measurePosition, float nextMeasurePositionX, std::shared_ptr<System> system, int staffLineCount, float staffLineSpacing, bool isTopMeasureLine, bool isLastMeasureInSystem, TablatureDisplayType tablatureDisplayType) const
+void Measure::RenderDebug(RenderData& renderData, const Settings& settings, Vec2<float> measurePosition, float nextMeasurePositionX, std::shared_ptr<System> system, int staffLineCount, float staffLineSpacing, bool isTopMeasureLine, bool isLastMeasureInSystem, TablatureDisplayType tablatureDisplayType) const
 {
     /*if (startsMultiMeasureRest)
     {
@@ -211,6 +211,11 @@ void Measure::RenderDebug(RenderData& renderData, Vec2<float> measurePosition, f
             noteChord->RenderDebug(renderData, tablatureDisplayType, rootNotePositionYRelativeToMeasure, topNotePositionYRelativeToMeasure, staffLineCount, measurePosition, nextMeasurePositionX, staffLineSpacing);
         }
 
+        for (const Chord& chord : chords)
+        {
+            chord.RenderDebug(renderData, settings, measurePosition);
+        }
+
         // rendering note beams
         /*if (tablatureDisplayType == TablatureDisplayType::Full || type == Measure::MeasureType::Standard)
         {
@@ -218,12 +223,6 @@ void Measure::RenderDebug(RenderData& renderData, Vec2<float> measurePosition, f
             {
                 beamGroup.Render(renderData, measurePosition);
             }
-        }
-
-        // render all chords in this measure
-        for (const Chord& chord : chords)
-        {
-            chord.Render(renderData, measurePosition.x, measurePosition.y);
         }
 
         for (auto tuplet : tuplets)
@@ -548,7 +547,7 @@ int Measure::GetLetterNumber(const std::string& s) const
     return num;
 }
 
-void Measure::CalculateAsPaged(const MusicDisplayConstants& displayConstants, std::shared_ptr<System> system, int staffLines)
+void Measure::CalculateAsPaged(const MusicDisplayConstants& displayConstants, const Settings& settings, std::shared_ptr<System> system, int staffLines)
 {
     measureWidth = defaultMeasureWidth;
 
@@ -623,7 +622,7 @@ void Measure::CalculateAsPaged(const MusicDisplayConstants& displayConstants, st
 
     for (auto& chord : chords)
     {
-        chord.CalculateChordName();
+        chord.CalculateChordName(settings);
     }
 }
 

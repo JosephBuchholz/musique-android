@@ -27,6 +27,7 @@ import androidx.core.text.HtmlCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.Observer
+import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.randsoft.apps.musique.event.InputEvent
@@ -72,9 +73,8 @@ class MusicDisplayFragment : Fragment(), PrintHandler.Callbacks, SettingsDialogF
 
     private var songData: SongData? = null
 
-    var playing = false // needs to be in a ViewModel
-    var metronomeIsOn = false
-    var volumeButtonIsOn = false
+    private lateinit var viewModel: MusicDisplayFragmentViewModel
+    private var sharedViewModel: SharedViewModel? = null
 
     private lateinit var webRepository: WebRepository
 
@@ -117,6 +117,12 @@ class MusicDisplayFragment : Fragment(), PrintHandler.Callbacks, SettingsDialogF
 
         printHandler = PrintHandler(requireContext())
         printHandler.setCallbacks(this)
+
+        // initializing view models
+        viewModel = ViewModelProvider(this)[MusicDisplayFragmentViewModel::class.java]
+        sharedViewModel = activity?.run {
+            ViewModelProvider(this)[SharedViewModel::class.java]
+        }
     }
 
     override fun onCalculateNumPages(): Int {
@@ -144,35 +150,42 @@ class MusicDisplayFragment : Fragment(), PrintHandler.Callbacks, SettingsDialogF
 
         musicDisplayView = view.findViewById(R.id.music_display_view)
         musicDisplayView?.setCallbacks(this)
+        musicDisplayView?.setFont(sharedViewModel!!.mainSettings.defaultFont)
 
         secondaryControlBar = view.findViewById(R.id.secondary_control_bar)
 
         playButton = view.findViewById(R.id.play_button_icon)
+        if (viewModel.isPlaying) {
+            playButton.setImageDrawable(resources.getDrawable(R.drawable.pause_icon))
+        }
+        else {
+            playButton.setImageDrawable(resources.getDrawable(R.drawable.play_icon))
+        }
         playButton.setOnClickListener {
             onPlayButtonClicked()
         }
 
         metronomeButton = view.findViewById(R.id.metronome_button_icon)
         metronomeButton.setOnClickListener {
-            metronomeIsOn = !metronomeIsOn;
-            callbacks?.onMetronomeButtonToggled(metronomeIsOn)
+            viewModel.isMetronomeOn = !viewModel.isMetronomeOn;
+            callbacks?.onMetronomeButtonToggled(viewModel.isMetronomeOn)
         }
 
         restartButton = view.findViewById(R.id.restart_button_icon)
         restartButton.setOnClickListener {
-            if (playing) {
-                playing = false;
+            if (viewModel.isPlaying) {
+                viewModel.isPlaying = false;
                 playButton.setImageDrawable(resources.getDrawable(R.drawable.pause_icon))
-                callbacks?.onPlayButtonToggled(playing)
+                callbacks?.onPlayButtonToggled(viewModel.isPlaying)
             }
             callbacks?.onResetButtonPressed()
         }
 
         printButton = view.findViewById(R.id.print_button_icon)
         printButton.setOnClickListener {
-            if (playing) { // stop the play back
-                playing = false;
-                callbacks?.onPlayButtonToggled(playing)
+            if (viewModel.isPlaying) { // stop the play back
+                viewModel.isPlaying = false;
+                callbacks?.onPlayButtonToggled(viewModel.isPlaying)
             }
 
             printHandler.print()
@@ -210,11 +223,15 @@ class MusicDisplayFragment : Fragment(), PrintHandler.Callbacks, SettingsDialogF
                 setVolumeButtonLevel(progressFloat)
             }
         })
+        if (viewModel.isVolumeButtonOn)
+            volumeControlSeekBar.visibility = View.VISIBLE
+        else
+            volumeControlSeekBar.visibility = View.GONE
 
         volumeButton = view.findViewById(R.id.volume_button_icon)
         volumeButton.setOnClickListener {
-            volumeButtonIsOn = !volumeButtonIsOn
-            if (volumeButtonIsOn)
+            viewModel.isVolumeButtonOn = !viewModel.isVolumeButtonOn
+            if (viewModel.isVolumeButtonOn)
                 volumeControlSeekBar.visibility = View.VISIBLE
             else
                 volumeControlSeekBar.visibility = View.GONE
@@ -246,7 +263,8 @@ class MusicDisplayFragment : Fragment(), PrintHandler.Callbacks, SettingsDialogF
         responseLiveData.observe(
             viewLifecycleOwner,
             Observer { descString ->
-                sideMenuSongDescTextView.text = HtmlCompat.fromHtml(descString, 0)
+                if (descString != null)
+                    sideMenuSongDescTextView.text = HtmlCompat.fromHtml(descString, 0)
             })
 
         sideMenuButton = view.findViewById(R.id.side_menu_button)
@@ -269,18 +287,24 @@ class MusicDisplayFragment : Fragment(), PrintHandler.Callbacks, SettingsDialogF
         return view
     }
 
+    fun onNativeInit()
+    {
+        callbacks?.onMetronomeButtonToggled(viewModel.isMetronomeOn)
+        callbacks?.onPlayButtonToggled(viewModel.isPlaying)
+    }
+
     private fun onPlayButtonClicked()
     {
-        playing = !playing;
+        viewModel.isPlaying = !viewModel.isPlaying;
 
-        if (playing) {
+        if (viewModel.isPlaying) {
             playButton.setImageDrawable(resources.getDrawable(R.drawable.pause_icon))
         }
         else {
             playButton.setImageDrawable(resources.getDrawable(R.drawable.play_icon))
         }
 
-        callbacks?.onPlayButtonToggled(playing)
+        callbacks?.onPlayButtonToggled(viewModel.isPlaying)
     }
 
     fun setVolumeButtonLevel(volume: Float)

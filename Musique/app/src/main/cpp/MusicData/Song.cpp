@@ -277,7 +277,7 @@ void Song::OnUpdate()
                     if (measure->startNewSystem)
                         systemIndex++;
 
-                    measure->CalculateAsPaged(displayConstants, systems[systemIndex], staff->lines);
+                    measure->CalculateAsPaged(displayConstants, settings, systems[systemIndex], staff->lines);
                     if (measureIndex >= m_MeasureWidths.size())
                     {
                         m_MeasureBeginWidths.push_back(0.0f);

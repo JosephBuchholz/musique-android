@@ -2,10 +2,10 @@
 
 #include <unordered_map>
 
-void ChordDiagram::Render(RenderData& renderData, Vec2<float> chordPosition, Vec2<float> offset) const
+void ChordDiagram::Render(RenderData& renderData, Vec2<float> chordPosition) const
 {
-    float nutPositionY = position.y + chordPosition.y + offset.y;
-    float positionX = position.x + chordPosition.x + offset.x - (width / 2.0f);
+    float nutPositionY = position.y + chordPosition.y;
+    float positionX = position.x + chordPosition.x - (width / 2.0f);
 
     // render string lines
     float stringGap = width / (float)(strings - 1);

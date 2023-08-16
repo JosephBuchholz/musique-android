@@ -1,20 +1,12 @@
 package com.randsoft.apps.musique
 
 import android.Manifest
-import android.app.Activity
-import android.content.ContentUris
-import android.content.ContentValues
-import android.content.Intent
 import android.content.pm.PackageManager
-import android.graphics.PointF
 import android.graphics.RectF
-import android.net.Uri
 import android.os.*
 import android.print.PrintAttributes
-import android.provider.MediaStore
 import androidx.appcompat.app.AppCompatActivity
 import android.util.Log
-import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
@@ -27,23 +19,26 @@ import com.randsoft.apps.musique.renderdata.*
 import com.randsoft.apps.musique.songdata.InstrumentInfo
 import com.randsoft.apps.musique.songdata.SongData
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.observeOn
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.runBlocking
 import org.billthefarmer.mididriver.MidiDriver
-import java.io.IOException
 import kotlin.concurrent.thread
 
 private const val TAG = "MainActivity"
 
 private const val TAG_SONG_LIST_FRAGMENT = "SongListFragment"
 private const val TAG_MUSIC_DISPLAY_FRAGMENT = "MusicDisplayFragment"
+private const val TAG_MAIN_SETTINGS_FRAGMENT = "MainSettingsFragment"
 
 private var StopMainLoopThread = false
 
 private const val REQUEST_DOCUMENT = 0
 
 class MainActivity : AppCompatActivity(), MusicDisplayFragment.Callbacks,
-    SongListFragment.Callbacks {
+    SongListFragment.Callbacks, MainSettingsFragment.Callbacks {
 
     private lateinit var binding: ActivityMainBinding
 
@@ -52,9 +47,12 @@ class MainActivity : AppCompatActivity(), MusicDisplayFragment.Callbacks,
 
     private lateinit var viewModel: MainActivityViewModel
     private lateinit var nativeViewModel: NativeViewModel
+    private lateinit var sharedViewModel: SharedViewModel
 
     private lateinit var midiDriver: MidiDriver
     private lateinit var config: IntArray
+
+    private lateinit var userSettingsRepository: UserSettingsRepository
 
     private lateinit var mainLoopThread: Thread
 
@@ -74,14 +72,25 @@ class MainActivity : AppCompatActivity(), MusicDisplayFragment.Callbacks,
             Log.d(TAG, "driver has started")
         }
 
+        userSettingsRepository = UserSettingsRepository(this)
+
         // initializing view model
-        viewModel = ViewModelProvider(this).get(MainActivityViewModel::class.java)
+        viewModel = ViewModelProvider(this)[MainActivityViewModel::class.java]
         if (viewModel.songIsOpen)
             onSongOpened(0/*viewModel.songId*/, viewModel.songString)
 
         // initializing native view model
-        nativeViewModel = ViewModelProvider(this).get(NativeViewModel::class.java)
+        nativeViewModel = ViewModelProvider(this)[NativeViewModel::class.java]
         setViewModelData(nativeViewModel.viewModelData)
+
+        sharedViewModel = ViewModelProvider(this)[SharedViewModel::class.java]
+
+        lifecycleScope.launch {
+            userSettingsRepository.dataStore.data.collect {
+                sharedViewModel.mainSettings = it
+                onSettingsChangedNative(sharedViewModel.mainSettings)
+            }
+        }
 
         // starting main loop thread
         if (StopMainLoopThread) {
@@ -153,6 +162,11 @@ class MainActivity : AppCompatActivity(), MusicDisplayFragment.Callbacks,
             }
         }
 
+        if (musicDisplayFragment != null)
+        {
+            musicDisplayFragment?.onNativeInit()
+        }
+
         /*if (writePermissionGranted) {
             if (saveStringToExternalStorage("test3", "musicxml", "<body>0000abcdefg</body>"))
             {
@@ -177,6 +191,14 @@ class MainActivity : AppCompatActivity(), MusicDisplayFragment.Callbacks,
         }*/
     }
 
+    override fun onSettingsChanged(mainSettings: MainSettings) {
+        lifecycleScope.launch {
+            userSettingsRepository.writeMainSettings(mainSettings)
+        }
+
+        onSettingsChangedNative(sharedViewModel.mainSettings)
+    }
+
     override fun onSongOpened(songId: Int, string: String) {
 
         if (supportFragmentManager.findFragmentByTag(TAG_MUSIC_DISPLAY_FRAGMENT) == null)
@@ -194,6 +216,15 @@ class MainActivity : AppCompatActivity(), MusicDisplayFragment.Callbacks,
 
         viewModel.songIsOpen = true
         viewModel.songString = string
+    }
+
+    override fun onMainSettingsOpened() {
+        val mainSettingsFragment = MainSettingsFragment.newInstance()
+        supportFragmentManager
+            .beginTransaction()
+            .replace(R.id.fragment_container, mainSettingsFragment, TAG_MAIN_SETTINGS_FRAGMENT)
+            .addToBackStack(null)
+            .commit()
     }
 
     override fun onDestroy() {
@@ -255,7 +286,7 @@ class MainActivity : AppCompatActivity(), MusicDisplayFragment.Callbacks,
     }
 
     override fun onSettingsChanged(settings: SettingsDialogFragment.Settings) {
-        onSettingsChangedNative(settings)
+        //onSettingsChangedNative(settings)
     }
 
     override fun onVolumeChange(volume: Float) {
@@ -281,7 +312,7 @@ class MainActivity : AppCompatActivity(), MusicDisplayFragment.Callbacks,
     private external fun onUpdatePrintLayoutNative(attributes: PrintAttributes): Boolean
     private external fun onCalculateNumPagesNative(): Int
     private external fun updateInstrumentInfoNative(instrumentInfo: InstrumentInfo, index: Int)
-    private external fun onSettingsChangedNative(settings: SettingsDialogFragment.Settings)
+    private external fun onSettingsChangedNative(settings: MainSettings)
     private external fun onVolumeChangedNative(volume: Float)
 
     private external fun onInputEventNative(inputEvent: InputEvent)

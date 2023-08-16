@@ -1,11 +1,36 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="purple_200">#FFFF0000</color>
-    <color name="purple_500">#1E88E5</color>
-    <color name="purple_700">#132BA1</color>
-    <color name="teal_200">#0073FF</color>
-    <color name="teal_700">#476EFF</color>
-    <color name="white2">#F6F6F6</color>
-    <color name="black">#FF000000</color>
+    <color name="main_100">#B6C8FD</color>
+    <color name="main_200">#7797F8</color>
+    <color name="main_300">#4B71E4</color>
+    <color name="main_400">#305ADA</color>
+    <color name="main_500">#1F4CD3</color>
+    <color name="main_600">#1039C3</color>
+    <color name="main_700">#092A97</color>
+    <color name="main_800">#04195E</color>
+    <color name="main_900">#010A27</color>
+
+    <color name="success">#39C817</color>
+    <color name="error">#C81717</color>
+
     <color name="white">#FFFFFFFF</color>
+    <color name="gray_100">#FFFFFF</color>
+    <color name="gray_200">#F1F1F3</color>
+    <color name="gray_300">#CCCBD1</color>
+    <color name="gray_400">#97969E</color>
+    <color name="gray_500">#4E4A5E</color>
+    <color name="gray_600">#403B50</color>
+    <color name="gray_700">#1F1B2C</color>
+    <color name="gray_800">#171422</color>
+    <color name="gray_900">#000000</color>
+    <color name="black">#FF000000</color>
+
+    <color name="main_color2">#0EA2A6</color>
+    <color name="secondary_color">#06D668</color>
+    <color name="secondary_color2">#079148</color>
+    <color name="dark_color">#5A6B6C</color>
+    <color name="secondary_dark_color">#2F3333</color>
+    <color name="light_color">#9FA8A8</color>
+    <color name="white2">#F6F6F6</color>
+
 </resources>

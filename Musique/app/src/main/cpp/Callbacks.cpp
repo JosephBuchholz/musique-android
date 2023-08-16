@@ -524,12 +524,8 @@ void UpdateViewModelData(const ViewModelData& viewModelData) {
 
     // -- Setting Fields --
 
-    // setting 'playing' field
-    jfieldID fieldId = env->GetFieldID(viewModelDataClass, "playing","Z");
-    env->SetBooleanField(viewModelDataObject, fieldId, viewModelData.playing);
-
     // setting 'playLineBeatPosition' field
-    fieldId = env->GetFieldID(viewModelDataClass, "playLineBeatPosition", "F");
+    jfieldID fieldId = env->GetFieldID(viewModelDataClass, "playLineBeatPosition", "F");
     env->SetFloatField(viewModelDataObject, fieldId, viewModelData.playLineBeatPosition);
 
     // setting 'currentMeasure' field

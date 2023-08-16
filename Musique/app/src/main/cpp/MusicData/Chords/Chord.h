@@ -11,16 +11,17 @@
 #include "ChordDiagram.h"
 #include "../../MusicDisplayConstants.h"
 #include "../../RenderData/RenderData.h"
+#include "../../Settings.h"
 
 class Chord : public TextualElement
 {
-    friend class Song;
     friend class MusicXMLParser;
 
 public:
     Chord() {}
 
-    void Render(RenderData& renderData, float measurePositionX, float measurePositionY, float offsetX = 0.0f, float offsetY = 0.0f) const;
+    void Render(RenderData& renderData, const Settings& settings, Vec2<float> measurePosition) const;
+    void RenderDebug(RenderData& renderData, const Settings& settings, Vec2<float> measurePosition) const;
 
     BoundingBox GetBoundingBoxRelativeToParent() const;
 
@@ -31,10 +32,21 @@ public:
      */
     void UpdateBoundingBox(const Vec2<float> &parentPosition);
 
-    void CalculateChordName();
+    void CalculateChordName(const Settings& settings);
 
-protected:
     void CalculatePositionAsPaged(const MusicDisplayConstants& displayConstants, float defaultX, float defaultY);
+
+private:
+
+    void AddCharsToString(std::vector<uint16_t>& dest, const std::vector<uint16_t>& charsToAdd);
+    void AddCharsToString(std::vector<uint16_t>& dest, const std::string& charsToAdd);
+
+    std::vector<uint16_t> GetHarmonyStringWithSymbols() const;
+    std::vector<uint16_t> GetHarmonyStringWithoutSymbols() const;
+
+    static std::vector<uint16_t> GetTextFromPitch(const Pitch& pitch);
+
+    static SMuFLID GetChordSymbolAccidentalSMuFLID(int alter);
 
 public:
 
@@ -45,6 +57,7 @@ public:
     float beatPosition = 0.0f; // the position of the note in the measure in beats(quarter notes)
     float beatPositionInSong = 0.0f; // the position of the note in the song(not counting repeats) in beats(quarter notes)
 
+    std::vector<uint16_t> chordNameString;
     String chordName = String();
     Pitch rootPitch;
 

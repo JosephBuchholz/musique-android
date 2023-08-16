@@ -1014,7 +1014,7 @@ void MusicXMLParser::ParseHarmonyElement(XMLElement* harmonyElement, float& curr
         ; // TODO: error: this element is required
 
     // loop through all degree elements
-    XMLNode* previousElement = kindElement->FirstChildElement(); // first element
+    XMLNode* previousElement = harmonyElement->FirstChildElement(); // first element
     while (true)
     {
         if (previousElement) {
@@ -1076,7 +1076,7 @@ void MusicXMLParser::ParseHarmonyElement(XMLElement* harmonyElement, float& curr
     ParseFrameElement(frameElement, newChord);
 
     newChord.beatPosition = currentTimeInMeasure; // note: harmony elements don't increment the time
-    newChord.CalculateChordName();
+    //newChord.CalculateChordName();
     //LOGE("Chord (%s) is at %f", newChord.chordName.string.c_str(), newChord.beatPosition);
     currentMeasures[newChord.staff - 1]->chords.push_back(newChord);
 }

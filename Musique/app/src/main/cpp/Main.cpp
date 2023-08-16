@@ -145,12 +145,8 @@ extern "C" {
 
             // -- Getting Fields --
 
-            // setting 'playing' field
-            jfieldID fieldId = env->GetFieldID(viewModelDataClass, "playing","Z");
-            viewModelData.playing = env->GetBooleanField(viewModelDataObject, fieldId);
-
             // setting 'playLineBeatPosition' field
-            fieldId = env->GetFieldID(viewModelDataClass, "playLineBeatPosition", "F");
+            jfieldID fieldId = env->GetFieldID(viewModelDataClass, "playLineBeatPosition", "F");
             viewModelData.playLineBeatPosition = env->GetFloatField(viewModelDataObject, fieldId);
 
             // setting 'currentMeasure' field
@@ -172,6 +168,8 @@ extern "C" {
     JNIEXPORT void JNICALL
     Java_com_randsoft_apps_musique_MainActivity_onMetronomeButtonToggledNative(JNIEnv* env, jobject instance,
                                                                           jboolean state) {
+
+        LOGE_TAG("Main", "metronomeIsOn: %d, appIsNull: %d", state, app == nullptr);
         if (app != nullptr) {
             app->OnMetronomeToggled(state);
         }
@@ -243,10 +241,16 @@ extern "C" {
     Java_com_randsoft_apps_musique_MainActivity_onSettingsChangedNative(JNIEnv* env, jobject instance, jobject settings) {
         if (app != nullptr) {
             Settings newSettings = Settings();
-            jfieldID musicLayoutField = env->GetFieldID(env->GetObjectClass(settings), "musicLayout", "Lcom/randsoft/apps/musique/SettingsDialogFragment$Settings$MusicLayout;");
-            jobject musicLayoutObject = env->GetObjectField(settings, musicLayoutField);
-            jint musicLayoutInt = env->CallIntMethod(musicLayoutObject, env->GetMethodID(env->GetObjectClass(musicLayoutObject), "ordinal", "()I"));
-            newSettings.musicLayout = (Settings::MusicLayout)musicLayoutInt;
+
+            newSettings.chordSymbolStyle = (Settings::ChordSymbolStyle)JNIHelper::GetEnumClassField(env, settings, "chordSymbolStyle", "Lcom/randsoft/apps/musique/ChordSymbolStyleType;");
+            newSettings.showChordDiagram = (Settings::ShowChordDiagram)JNIHelper::GetEnumClassField(env, settings, "showChordDiagrams", "Lcom/randsoft/apps/musique/ShowChordDiagramsType;");
+
+            //jfieldID field = env->GetFieldID(env->GetObjectClass(settings), "showChordDiagrams", "Lcom/randsoft/apps/musique/ShowChordDiagramsType;")
+            //jfieldID musicLayoutField = env->GetFieldID(env->GetObjectClass(settings), "musicLayout", "Lcom/randsoft/apps/musique/SettingsDialogFragment$Settings$MusicLayout;");
+            //jobject musicLayoutObject = env->GetObjectField(settings, musicLayoutField);
+            //jint musicLayoutInt = env->CallIntMethod(musicLayoutObject, env->GetMethodID(env->GetObjectClass(musicLayoutObject), "ordinal", "()I"));
+            //newSettings.musicLayout = (Settings::MusicLayout)musicLayoutInt;
+
             app->UpdateSettings(newSettings);
         }
     }

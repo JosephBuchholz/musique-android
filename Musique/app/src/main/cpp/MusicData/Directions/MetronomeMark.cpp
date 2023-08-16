@@ -16,15 +16,18 @@ void MetronomeMark::Render(RenderData& renderData, Vec2<float> measurePosition, 
         chars.push_back(c);
     }
 
+    float textSize = 14.0f;
+
     std::vector<TextSpan> spans;
     Paint glyphPaint = Paint(color.color);
     glyphPaint.useMusicFont = true;
-    glyphPaint.textSize = 40.0f;
+    glyphPaint.textSize = textSize * 1.5f;
     glyphPaint.align = Paint::Align::Left;
 
     Paint paint = Paint(color.color);
+    glyphPaint.useMusicFont = true;
     paint.isBold = true;
-    paint.textSize = 26.0f;
+    paint.textSize = textSize;
     paint.align = Paint::Align::Left;
 
     if (mainNoteUnit.isDotted)

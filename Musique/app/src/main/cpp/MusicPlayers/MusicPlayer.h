@@ -33,7 +33,7 @@ public:
     void TravelToVisualBeatPosition(float beatPosition, std::shared_ptr<Song> song);
     void TravelToSoundBeatPosition(float beatPosition);
 
-    void OnMetronomeToggled(bool state) { metronomeIsOn = state; }
+    void OnMetronomeToggled(bool state) { metronomeIsOn = state; LOGE_TAG("MusicPlayer", "metronomeIsOn: %d", state); }
 
     float GetPlayLineBeatPosition() const { return playLineBeatPosition; }
     void SetPlayLineBeatPosition(float beatPosition) { playLineBeatPosition = beatPosition; }

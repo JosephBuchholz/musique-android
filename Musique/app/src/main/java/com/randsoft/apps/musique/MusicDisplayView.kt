@@ -57,6 +57,11 @@ class MusicDisplayView(context: Context, attrs: AttributeSet? = null): View(cont
     private var typefaceBold = ResourcesCompat.getFont(context, R.font.timesbd)
     private var typefaceBoldItalic = ResourcesCompat.getFont(context, R.font.timesbi)
 
+    /*private var typefacePlain = ResourcesCompat.getFont(context, R.font.open_sans)
+    private var typefaceItalic = ResourcesCompat.getFont(context, R.font.open_sans_italic)
+    private var typefaceBold = ResourcesCompat.getFont(context, R.font.open_sans_bold)
+    private var typefaceBoldItalic = ResourcesCompat.getFont(context, R.font.open_sans_bold_italic)*/
+
     private var tablatureTypeface = ResourcesCompat.getFont(context, R.font.open_sans)
 
     var musicTypeface = ResourcesCompat.getFont(context, R.font.bravura)
@@ -552,6 +557,8 @@ class MusicDisplayView(context: Context, attrs: AttributeSet? = null): View(cont
                     isAntiAlias = true
                 }
 
+                paint.textSize = pointsToTenths(span.paint.textSize, Scaling())
+
                 if (span.paint.useMusicFont)
                 {
                     paint.typeface = musicTextTypeface
@@ -573,7 +580,7 @@ class MusicDisplayView(context: Context, attrs: AttributeSet? = null): View(cont
                     paint.typeface = typefacePlain
                 }
 
-                paint.textSize *= scale
+                //paint.textSize *= scale
 
                 var string = ""
                 if (span.endIndex <= text.text.length)
@@ -1041,5 +1048,29 @@ class MusicDisplayView(context: Context, attrs: AttributeSet? = null): View(cont
 
     private fun drawDebugPoint(canvas: Canvas, point: PointF, paint: Paint = visiblePaint) {
         canvas.drawRect(RectF(point.x, point.y, point.x + 6.0f, point.y + 6.0f), paint)
+    }
+
+    fun setFont(defaultFont: FontType) {
+        Log.w(TAG, "setting font")
+        if (defaultFont == FontType.TimesNewRoman)
+        {
+            Log.w(TAG, "TimesNewRoman")
+            typefacePlain = ResourcesCompat.getFont(context, R.font.times)
+            typefaceItalic = ResourcesCompat.getFont(context, R.font.timesi)
+            typefaceBold = ResourcesCompat.getFont(context, R.font.timesbd)
+            typefaceBoldItalic = ResourcesCompat.getFont(context, R.font.timesbi)
+        }
+        else if (defaultFont == FontType.OpenSans)
+        {
+            Log.w(TAG, "OpenSans")
+            typefacePlain = ResourcesCompat.getFont(context, R.font.open_sans)
+            typefaceItalic = ResourcesCompat.getFont(context, R.font.open_sans_italic)
+            typefaceBold = ResourcesCompat.getFont(context, R.font.open_sans_bold)
+            typefaceBoldItalic = ResourcesCompat.getFont(context, R.font.open_sans_bold_italic)
+        }
+        else
+        {
+            Log.e(TAG, "That font does not exist")
+        }
     }
 }

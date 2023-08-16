@@ -6,9 +6,31 @@
 
     <string name="open_button_cont_desc">Open</string>
 
+    <string name="browse_button_text">Browse</string>
+
     <string-array name="music_layout_values">
         <item>"Horizontal"</item>
         <item>"Vertical"</item>
         <item>"Paged"</item>
+    </string-array>
+
+    <string name="main_settings_chord_symbol_style_text">Chord symbol style</string>
+    <string-array name="main_settings_chord_symbol_style_values">
+        <item>"auto"</item>
+        <item>"Cmaj7 (normal)"</item>
+        <item>"C△ (jazzy)"</item>
+    </string-array>
+
+    <string name="main_settings_show_chord_diagrams_text">Show chord diagrams</string>
+    <string-array name="main_settings_show_chord_diagrams_values">
+        <item>"auto"</item>
+        <item>"never"</item>
+        <!--<item>"always"</item>-->
+    </string-array>
+
+    <string name="main_settings_default_font_text">Default font</string>
+    <string-array name="main_settings_default_font_values">
+        <item>"Times New Roman"</item>
+        <item>"Open Sans"</item>
     </string-array>
 </resources>

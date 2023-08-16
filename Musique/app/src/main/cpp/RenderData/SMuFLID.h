@@ -513,6 +513,20 @@ enum class SMuFLID : uint16_t
     fretboardX = 0xE859,
     fretboardO = 0xE85A,
 
+    csymDiminished = 0xE870,
+    csymHalfDiminished = 0xE871,
+    csymAugmented = 0xE872,
+    csymMajorSeventh = 0xE873,
+    csymMinor = 0xE874,
+    csymParensLeftTall = 0xE875,
+    csymParensRightTall = 0xE876,
+    csymBracketLeftTall = 0xE877,
+    csymBracketRightTall = 0xE878,
+    csymParensLeftVeryTall = 0xE879,
+    csymParensRightVeryTall = 0xE87A,
+    csymAlteredBassSlash = 0xE87B,
+    csymDiagonalArrangementSlash = 0xE87C,
+
     // tuplets
     tuplet0 = 0xE880,
     tuplet1 = 0xE881,
@@ -669,7 +683,15 @@ enum class SMuFLID : uint16_t
     metNote512thDown = 0xECB4,
     metNote1024thUp = 0xECB5,
     metNote1024thDown = 0xECB6,
-    metAugmentationDot = 0xECB7
+    metAugmentationDot = 0xECB7,
+
+    csymAccidentalFlat = 0xED60,
+    csymAccidentalNatural = 0xED61,
+    csymAccidentalSharp = 0xED62,
+    csymAccidentalDoubleSharp = 0xED63,
+    csymAccidentalDoubleFlat = 0xED64,
+    csymAccidentalTripleSharp = 0xED65,
+    csymAccidentalTripleFlat = 0xED66,
 };
 
 static SMuFLID GetNoteHeadSMuFLID(NoteValue type)

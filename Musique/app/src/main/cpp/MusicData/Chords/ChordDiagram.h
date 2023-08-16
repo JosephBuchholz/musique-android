@@ -31,9 +31,8 @@ public:
      *
      * @param renderData The render data to render to.
      * @param chordPosition The position of the parent chord.
-     * @param offset An offset position.
      */
-    void Render(RenderData& renderData, Vec2<float> chordPosition = { 0.0f, 0.0f }, Vec2<float> offset = { 0.0f, 0.0f }) const;
+    void Render(RenderData& renderData, Vec2<float> chordPosition = { 0.0f, 0.0f }) const;
 
     BoundingBox GetBoundingBoxRelativeToParent() const;
 

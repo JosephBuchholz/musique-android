@@ -47,9 +47,6 @@ public:
     int OnCalculateNumPages();
 
 private:
-    void DeleteSong();
-
-private:
 
     std::shared_ptr<MusicRenderer> musicRenderer;
     std::shared_ptr<MusicPlayer> musicPlayer;
@@ -70,6 +67,7 @@ private:
     std::shared_ptr<Song> song;
     bool songUpdated = false;
 
+    bool songLoaded = false;
 
 
     std::string songString = "";

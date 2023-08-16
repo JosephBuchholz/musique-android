@@ -21,11 +21,10 @@ App::~App()
     isUpdating = false;
     LOGI("App Deconstructer");
     ViewModelData viewModelData = ViewModelData();
-    viewModelData.playing = musicPlayer->IsPlaying();
+    //viewModelData.playing = musicPlayer->IsPlaying();
     viewModelData.playLineBeatPosition = musicPlayer->GetPlayLineBeatPosition();
     viewModelData.currentMeasure = musicPlayer->GetCurrentMeasure();
     UpdateViewModelData(viewModelData);
-    DeleteSong();
     LOGI("App Done Deconstructing");
 }
 
@@ -38,10 +37,6 @@ void App::LoadSongFromString(const std::string& string)
     musicPlayer->Reset();
 
     LOGI_TAG("App", "Loading song from string");
-    if (song != nullptr)
-    {
-        DeleteSong();
-    }
 
     std::string error;
     song = std::make_shared<Song>();
@@ -59,6 +54,8 @@ void App::LoadSongFromString(const std::string& string)
     unsigned int numMeasures = 0;
     unsigned int numNotes = 0;
     if (song != nullptr) {
+        song->settings = settings;
+
         for (auto inst : song->instruments) {
             numStaves += inst->staves.size();
             for (auto staff : inst->staves) {
@@ -87,40 +84,8 @@ void App::LoadSongFromString(const std::string& string)
         musicRenderer->updateRenderData = true;
         //startRendering = true;
     }
-}
 
-void App::DeleteSong()
-{
-    /*LOGI("Going To Delete Song Data");
-    if (song != nullptr)
-    {
-        LOGI("Deleting Song Data");
-        for (auto instrument : song->instruments) {
-            for (auto staff : instrument->staves) {
-                for (auto measure : staff->measures) {
-                    for (std::shared_ptr<Note> note : measure->notes) {
-                        //delete note;
-                        note = nullptr;
-                    }
-                    measure->notes.clear();
-                    measure->directions.clear();
-                    measure->soundEvents.clear();
-                    //delete measure;
-                    measure = nullptr;
-                }
-                staff->measures.clear();
-                //delete staff;
-                staff = nullptr;
-            }
-            instrument->staves.clear();
-            //delete instrument;
-            instrument = nullptr;
-        }
-        song->instruments.clear();
-        song->systems.clear();
-        song->pages.clear();
-        song = nullptr;
-    }*/
+    songLoaded = true;
 }
 
 void App::OnMidiStart()
@@ -242,10 +207,10 @@ void App::OnUpdate(double dt)
 
 void App::SetViewModelData(ViewModelData viewModelData)
 {
-    if (viewModelData.playing)
+    /*if (viewModelData.playing)
         musicPlayer->OnPlay();
     else
-        musicPlayer->OnStop();
+        musicPlayer->OnStop();*/
     musicPlayer->SetPlayLineBeatPosition(viewModelData.playLineBeatPosition);
     musicPlayer->SetCurrentMeasure(viewModelData.currentMeasure);
 }
@@ -270,7 +235,7 @@ bool App::OnUpdatePrintLayout()
     {
         RenderData pageRenderData = RenderData();
         musicRenderer->updateRenderData = true;
-        musicRenderer->RenderMusicToPage(song, pageIndex, pageRenderData, 0.0f, 0.0f);
+        musicRenderer->RenderMusicToPage(song, pageIndex, pageRenderData, settings, { 0.0f, 0.0f });
         printRenderData.pages.push_back(pageRenderData);
         pageIndex++;
     }
@@ -290,12 +255,20 @@ void App::UpdateInstrumentInfo(const InstrumentInfo& info, unsigned int index)
 
 void App::OnLayoutChanged()
 {
-    song->OnLayoutChanged(settings.musicLayout);
-    //m_RenderData = RenderData(); // reduntant
-    musicRenderer->updateRenderData = true;
-    musicRenderer->layoutCalculated = false;
+    LOGD("OnLayoutChanged!");
+    if (song != nullptr)
+    {
+        song->settings = settings;
+        if (songLoaded)
+        {
+            song->OnLayoutChanged(settings.musicLayout);
+            //m_RenderData = RenderData(); // reduntant
+            musicRenderer->updateRenderData = true;
+            musicRenderer->layoutCalculated = false;
 
-    LOGI("NEW layout: %d", (int)settings.musicLayout);
+            LOGI("NEW layout: %d", (int) settings.musicLayout);
+        }
+    }
 }
 
 void App::OnInputEvent(const InputEvent& event)

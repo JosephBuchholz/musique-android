@@ -7,6 +7,7 @@ import android.view.*
 import android.widget.Button
 import android.widget.ImageButton
 import android.widget.ProgressBar
+import android.widget.RelativeLayout
 import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.widget.SearchView
@@ -32,6 +33,7 @@ class SongListFragment() : Fragment(), WebRepository.Callbacks {
 
     interface Callbacks {
         fun onSongOpened(songId: Int, string: String)
+        fun onMainSettingsOpened()
     }
 
     private var readPermissionGranted: Boolean = false
@@ -42,6 +44,7 @@ class SongListFragment() : Fragment(), WebRepository.Callbacks {
     private lateinit var browseButton: Button
     private lateinit var searchView: SearchView
     private lateinit var songListRecyclerView: RecyclerView
+    private lateinit var mainSettingsButton: RelativeLayout
 
     private var loadingProgressBar: ProgressBar? = null
     private var isLoading = false
@@ -160,6 +163,11 @@ class SongListFragment() : Fragment(), WebRepository.Callbacks {
         songListRecyclerView = view.findViewById(R.id.song_list_recycler_view)
         songListRecyclerView.layoutManager = LinearLayoutManager(context)
         songListRecyclerView.adapter = SongListAdapter(viewModel.songItems)
+
+        mainSettingsButton = view.findViewById(R.id.main_settings_button)
+        mainSettingsButton.setOnClickListener {
+            callbacks?.onMainSettingsOpened()
+        }
 
         return view
     }
