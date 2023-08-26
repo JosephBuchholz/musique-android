@@ -39,6 +39,10 @@ class MusicDisplayView(context: Context, attrs: AttributeSet? = null): View(cont
 
     // equal to a tenth of a gap between two lines in standard notation
     var scale = 1.0f
+    var scaling: Scaling = Scaling()
+
+    var zoom = 1.0f
+
     var bitmapSizeScale = scale
     var mainScale = scale
 
@@ -133,8 +137,8 @@ class MusicDisplayView(context: Context, attrs: AttributeSet? = null): View(cont
 
     private var gestureDetector: GestureDetector = GestureDetector(context, object : SimpleOnGestureListener() {
         override fun onScroll(
-            e1: MotionEvent?,
-            e2: MotionEvent?,
+            e1: MotionEvent,
+            e2: MotionEvent,
             distanceX: Float,
             distanceY: Float
         ): Boolean {
@@ -146,14 +150,14 @@ class MusicDisplayView(context: Context, attrs: AttributeSet? = null): View(cont
             return true
         }
 
-        override fun onSingleTapUp(e: MotionEvent?): Boolean {
+        override fun onSingleTapUp(e: MotionEvent): Boolean {
 
-            if (callbacks != null && e != null) {
+            if (callbacks != null) {
                 val inputEvent = InputEvent()
 
                 inputEvent.type = InputEvent.InputEventType.INPUT_EVENT_TAP
 
-                var eventPosition = screenPositionToCanvasPosition(PointF(e.x, e.y))
+                val eventPosition = screenPositionToCanvasPosition(PointF(e.x, e.y))
 
                 inputEvent.x = eventPosition.x
                 inputEvent.y = eventPosition.y
@@ -252,7 +256,7 @@ class MusicDisplayView(context: Context, attrs: AttributeSet? = null): View(cont
             isAntiAlias = true
         }
 
-        paint.textSize = pointsToTenths(text.paint.textSize, Scaling()) // LOTS OF ERRORS ON THIS LINE
+        paint.textSize = Conversions.pointsToTenths(text.paint.textSize, Scaling()) // LOTS OF ERRORS ON THIS LINE
 
         if (text.paint.isTablature) {
             paint.typeface = tablatureTypeface
@@ -297,233 +301,151 @@ class MusicDisplayView(context: Context, attrs: AttributeSet? = null): View(cont
     }
 
     /**
-     * Draws an array of lines on the given canvas
+     * Converts a com.randsoft.apps.musique.renderdata.Paint object to a android.graphics.Paint object.
      *
-     * @param canvas the canvas to draw on
-     * @param lines the array of lines to draw
-     * @param offsetX how much to offset the lines in the x direction
-     * @param offsetY how much to offset the lines in the y direction
+     * @param paint The native paint object to convert.
      */
-    private fun drawLines(canvas: Canvas, lines: Array<Line>, offsetX: Float = 0.0f, offsetY: Float = 0.0f)
+    private fun getPaintFromNativePaintObject(paint: com.randsoft.apps.musique.renderdata.Paint): Paint
     {
-        for (line in lines) {
-            val paint = Paint().apply {
-                color = line.paint.color.toInt()
-                strokeWidth = line.paint.strokeWidth * scale
+        val newPaint = Paint().apply {
+            color = paint.color.toInt()
+            textSize = paint.textSize
+            textAlign = Paint.Align.values()[paint.align]
+            isAntiAlias = paint.isAntiAlias
+            strokeWidth = paint.strokeWidth * scale
+            strokeCap = Paint.Cap.values()[paint.strokeCap]
+            style = Paint.Style.values()[paint.drawStyle]
+        }
+
+        return newPaint
+    }
+
+    /**
+     * Draws a line on the given canvas.
+     *
+     * @param canvas The canvas to draw on.
+     * @param line The line to draw.
+     * @param offset An offset to the position of the object.
+     */
+    private fun drawLine(canvas: Canvas, line: Line, offset: PointF = PointF(0.0f, 0.0f))
+    {
+        val paint = Paint().apply {
+            color = line.paint.color.toInt()
+            strokeWidth = line.paint.strokeWidth * scale
+            isAntiAlias = true
+            strokeCap = Paint.Cap.values()[line.paint.strokeCap]
+        }
+
+        if (line.paint.verticalEnds) {
+            val path = Path();
+            path.moveTo((line.startX * scale) + offset.x, ((line.startY + (line.paint.strokeWidth / 2)) * scale) + offset.y)
+            path.lineTo((line.startX * scale) + offset.x, ((line.startY - (line.paint.strokeWidth / 2)) * scale) + offset.y)
+            path.lineTo((line.endX * scale) + offset.x, ((line.endY - (line.paint.strokeWidth / 2)) * scale) + offset.y)
+            path.lineTo((line.endX * scale) + offset.x, ((line.endY + (line.paint.strokeWidth / 2)) * scale) + offset.y)
+            path.lineTo((line.startX * scale) + offset.x, ((line.startY + (line.paint.strokeWidth / 2)) * scale) + offset.y)
+
+            canvas.drawPath(path, paint)
+        }
+        else {
+            if (line.paint.isDashedLine)
+            {
+                paint.pathEffect = DashPathEffect(floatArrayOf(line.paint.dashLength, line.paint.dashSpaceLength), 0.0f)
+            }
+            else if (line.paint.isDottedLine)
+            {
+                val dot = Path()
+                dot.addCircle(0.0f, 0.0f, line.paint.dotRadius, Path.Direction.CW)
+
+                paint.pathEffect = PathDashPathEffect(dot, line.paint.dashSpaceLength, 0.0f, PathDashPathEffect.Style.MORPH)
+            }
+
+            drawLine(canvas, line, paint, offset.x, offset.y)
+        }
+    }
+
+    /**
+     * Draws a text object on the given canvas.
+     *
+     * @param canvas The canvas to draw on.
+     * @param text The text object to draw.
+     * @param offset An offset to the position of the object.
+     */
+    private fun drawText(canvas: Canvas, text: Text, offset: PointF = PointF(0.0f, 0.0f))
+    {
+        val paint = Paint().apply {
+            color = text.paint.color.toInt()
+            textSize = text.paint.textSize //* 2.0f // 30.0 text size =about= 22.0 normal size
+            textAlign = Paint.Align.values()[text.paint.align]
+            isAntiAlias = true
+        }
+
+
+        /*if (text.paint.align == 0)
+            paint.textAlign = Paint.Align.LEFT;
+        else if (text.paint.align == 1)
+            paint.textAlign = Paint.Align.CENTER;
+        else if (text.paint.align == 2)
+            paint.textAlign = Paint.Align.RIGHT;*/
+
+        paint.textSize = Conversions.pointsToTenths(text.paint.textSize, Scaling())
+
+        if (text.paint.isTablature) {
+            paint.typeface = tablatureTypeface
+            paint.textSize = text.paint.textSize
+            paint.textAlign = Paint.Align.LEFT // ?? (should be CENTER?)
+
+            // add a white rectangle behind the text so that it is more visible
+            val rectPaint = Paint().apply {
+                color = 0xFFFFFFFF.toInt()
                 isAntiAlias = true
-                strokeCap = Paint.Cap.values()[line.paint.strokeCap]
             }
 
-            if (line.paint.verticalEnds) {
-                val path = Path();
-                path.moveTo((line.startX * scale) + offsetX, ((line.startY + (line.paint.strokeWidth / 2)) * scale) + offsetY)
-                path.lineTo((line.startX * scale) + offsetX, ((line.startY - (line.paint.strokeWidth / 2)) * scale) + offsetY)
-                path.lineTo((line.endX * scale) + offsetX, ((line.endY - (line.paint.strokeWidth / 2)) * scale) + offsetY)
-                path.lineTo((line.endX * scale) + offsetX, ((line.endY + (line.paint.strokeWidth / 2)) * scale) + offsetY)
-                path.lineTo((line.startX * scale) + offsetX, ((line.startY + (line.paint.strokeWidth / 2)) * scale) + offsetY)
+            val rect = Rect()
+            paint.getTextBounds(text.text, 0, text.text.length, rect)
 
-                canvas.drawPath(path, paint)
-            }
-            else {
-                if (line.paint.isDashedLine)
-                {
-                    paint.pathEffect = DashPathEffect(floatArrayOf(line.paint.dashLength, line.paint.dashSpaceLength), 0.0f)
-                }
-                else if (line.paint.isDottedLine)
-                {
-                    val dot = Path()
-                    dot.addCircle(0.0f, 0.0f, line.paint.dotRadius, Path.Direction.CW)
+            val rectX = (text.x * scale) + offset.x
+            val rectY = (text.y * scale) + offset.y
 
-                    paint.pathEffect = PathDashPathEffect(dot, line.paint.dashSpaceLength, 0.0f, PathDashPathEffect.Style.MORPH)
-                }
-
-                drawLine(canvas, line, paint, offsetX, offsetY)
-            }
+            canvas.drawRect(rectX + rect.left * scale, rectY - (rect.height()/2.0f) * scale, rectX + rect.right * scale, rectY + (rect.height()/2.0f) * scale, rectPaint)
         }
+        else if (text.paint.isItalic && text.paint.isBold) {
+            paint.typeface = typefaceBoldItalic
+        }
+        else if (!text.paint.isItalic && text.paint.isBold) {
+            paint.typeface = typefaceBold
+        }
+        else if (text.paint.isItalic) {
+            paint.typeface = typefaceItalic
+        }
+        else {
+            paint.typeface = typefacePlain
+            //paint.typeface = musicTypeface
+        }
+
+        // draw
+        canvas.save()
+        canvas.rotate(-text.paint.rotateDegrees, text.x + offset.x, text.y + offset.y) // rotate canvas
+        drawText(canvas, text, paint, offset.x, offset.y) // draw
+        canvas.restore(); // reset rotation
     }
 
     /**
-     * Draws an array of text objects on the given canvas
+     * Draws a spannable text object on the given canvas.
      *
-     * @param canvas the canvas to draw on
-     * @param texts the array of text objects to draw
-     * @param offsetX how much to offset the text in the x direction
-     * @param offsetY how much to offset the text in the y direction
+     * @param canvas The canvas to draw on.
+     * @param text The spannable text object to draw.
+     * @param offset An offset to the position of object.
      */
-    private fun drawTexts(canvas: Canvas, texts: Array<Text>, offsetX: Float = 0.0f, offsetY: Float = 0.0f)
+    private fun drawSpannableText(canvas: Canvas, text: SpannableText, offset: PointF = PointF(0.0f, 0.0f))
     {
-        Log.v(TAG, "drawing texts")
-        for (text in texts) {
-
-            //Log.v(TAG, "text: ${text.text}")
-
-            val paint = Paint().apply {
-                color = text.paint.color.toInt()
-                textSize = text.paint.textSize //* 2.0f // 30.0 text size =about= 22.0 normal size
-                textAlign = Paint.Align.values()[text.paint.align]
-                isAntiAlias = true
-            }
-
-
-            /*if (text.paint.align == 0)
-                paint.textAlign = Paint.Align.LEFT;
-            else if (text.paint.align == 1)
-                paint.textAlign = Paint.Align.CENTER;
-            else if (text.paint.align == 2)
-                paint.textAlign = Paint.Align.RIGHT;*/
-
-            paint.textSize = pointsToTenths(text.paint.textSize, Scaling())
-
-            if (text.paint.isTablature) {
-                paint.typeface = tablatureTypeface
-                paint.textSize = text.paint.textSize
-                paint.textAlign = Paint.Align.LEFT // ?? (should be CENTER?)
-
-                // add a white rectangle behind the text so that it is more visible
-                val rectPaint = Paint().apply {
-                    color = 0xFFFFFFFF.toInt()
-                    isAntiAlias = true
-                }
-
-                val rect = Rect()
-                paint.getTextBounds(text.text, 0, text.text.length, rect)
-
-                val rectX = (text.x * scale) + offsetX
-                val rectY = (text.y * scale) + offsetY
-
-                canvas.drawRect(rectX + rect.left, rectY - (rect.height()/2.0f) * scale, rectX + rect.right, rectY + (rect.height()/2.0f) * scale, rectPaint)
-            }
-            else if (text.paint.isItalic && text.paint.isBold) {
-                paint.typeface = typefaceBoldItalic
-            }
-            else if (!text.paint.isItalic && text.paint.isBold) {
-                paint.typeface = typefaceBold
-            }
-            else if (text.paint.isItalic) {
-                paint.typeface = typefaceItalic
-            }
-            else {
-                paint.typeface = typefacePlain
-                //paint.typeface = musicTypeface
-            }
-
-            // draw
-            canvas.save()
-            canvas.rotate(-text.paint.rotateDegrees, text.x + offsetX, text.y + offsetY) // rotate canvas
-            drawText(canvas, text, paint, offsetX, offsetY) // draw
-            canvas.restore(); // reset rotation
-        }
-
-        Log.v(TAG, "done drawing texts")
-    }
-
-    /**
-     * Draws an array of glyphs on the given canvas
-     *
-     * @param canvas the canvas to draw on
-     * @param glyphs the array of glyphs to draw
-     * @param offsetX how much to offset the glyphs in the x direction
-     * @param offsetY how much to offset the glyphs in the y direction
-     */
-    private fun drawGlyphs(canvas: Canvas, glyphs: Array<SMuFLGlyph>, offsetX: Float = 0.0f, offsetY: Float = 0.0f)
-    {
-        Log.v(TAG, "drawing glyphs")
-
-        var glyphIndex = 0
-        for (glyph in glyphs) { // SMuFL glyphs
-
-            // create paint
-            val paint = Paint().apply {
-                color = glyph.paint.color.toInt()
-                typeface = musicTypeface
-            }
-
-            paint.textSize = 40.0f * glyph.paint.glyphSizeFactor * scale // text size equals the standard staff height (according to SMuFL specification)
-
-            // position
-            var x = ((glyph.x) * scale)
-            var y = ((glyph.y) * scale)
-
-            val bounds = Rect()
-            if (glyph.paint.centerHorizontally || glyph.paint.centerVertically || glyph.paint.hasBackground)
-            {
-                paint.getTextBounds(Character.toChars(glyph.codePoint), 0, 1, bounds)
-            }
-
-            if (glyph.paint.centerHorizontally)
-            {
-                x -= bounds.width() / 2.0f
-            }
-
-            if (glyph.paint.centerVertically)
-            {
-                y += bounds.height() / 2.0f
-            }
-
-            if (glyph.paint.hasBackground)
-            {
-                var backgroundPaint = Paint().apply {
-                    color = glyph.paint.backgroundColor.toInt()
-                    isAntiAlias = true
-                }
-
-                val backgroundRect = RectF()
-
-                val rectX = x + offsetX
-                val rectY = y + offsetY
-
-                val padding = glyph.paint.backgroundPadding * scale
-
-                backgroundRect.left = rectX - padding
-                backgroundRect.right = rectX + bounds.width() + padding
-
-                backgroundRect.top = rectY - bounds.height() - padding
-                backgroundRect.bottom = rectY + padding
-
-                canvas.drawRect(backgroundRect, backgroundPaint)
-            }
-
-            // draw
-            canvas.save()
-            canvas.rotate(-glyph.paint.rotateDegrees, x + offsetX, y + offsetY) // rotate canvas
-            canvas.drawText(Character.toChars(glyph.codePoint), 0, 1, x + offsetX, y + offsetY, paint) // draw
-            canvas.restore(); // reset rotation
-
-            glyphIndex += 1;
-        }
-
-        Log.v(TAG, "done drawing glyphs")
-    }
-
-    /**
-     * Draws an array of spannable text objects on the given canvas
-     *
-     * @param canvas the canvas to draw on
-     * @param texts the array of text objects to draw
-     * @param offsetX how much to offset the text in the x direction
-     * @param offsetY how much to offset the text in the y direction
-     */
-    private fun drawSpannableTexts(canvas: Canvas, texts: Array<SpannableText>, offsetX: Float = 0.0f, offsetY: Float = 0.0f)
-    {
-        /*val p = com.randsoft.apps.musique.renderdata.Paint(0xff000000.toInt())
-        p.useMusicFont = true
-        p.textSize = 30.0f
-        val p2 = com.randsoft.apps.musique.renderdata.Paint(0xff0000FF.toInt())
-        p2.useMusicFont = false
-        p2.isBold = true
-        p2.textSize = 30.0f
-        var spans: Array<TextSpan> = arrayOf(TextSpan(0, 1, p), TextSpan(1, 7, p2))
-        var text: SpannableText = SpannableText(Char(0xECA5) + " = 120", 200.0f, 30.0f, com.randsoft.apps.musique.renderdata.Paint(0xff000000.toInt()), spans)*/
-        for (text in texts) {
-
-            val mainPaint = Paint().apply {
+        /*val mainPaint = Paint().apply {
                 color = text.mainPaint.color.toInt()
-                textSize = text.mainPaint.textSize //* 2.0f // 30.0 text size =about= 22.0 normal size
+                textSize = text.mainPaint.textSize
                 textAlign = Paint.Align.values()[text.mainPaint.align]
                 isAntiAlias = true
             }
 
-            mainPaint.textSize = pointsToTenths(text.mainPaint.textSize, Scaling())
+            mainPaint.textSize = pointsToTenths(text.mainPaint.textSize, scaling)
 
             if (text.mainPaint.isTablature) {
                 mainPaint.typeface = tablatureTypeface
@@ -541,57 +463,125 @@ class MusicDisplayView(context: Context, attrs: AttributeSet? = null): View(cont
             else {
                 mainPaint.typeface = typefacePlain
                 //paint.typeface = musicTypeface
+            }*/
+
+        var textX = text.x * scale
+        val textY = text.y * scale
+
+        //drawDebugPoint(canvas, PointF(text.x, text.y))
+
+        for (span in text.spans)
+        {
+            val paint = Paint().apply {
+                color = span.paint.color.toInt()
+                textSize = span.paint.textSize //* 2.0f // 30.0 text size =about= 22.0 normal size
+                textAlign = Paint.Align.values()[span.paint.align]
+                isAntiAlias = true
             }
 
-            var textX = text.x * scale
-            val textY = text.y * scale
+            paint.textSize = Conversions.pointsToTenths(span.paint.textSize, Scaling())
 
-            //drawDebugPoint(canvas, PointF(text.x, text.y))
-
-            for (span in text.spans)
+            if (span.paint.useMusicFont)
             {
-                val paint = Paint().apply {
-                    color = span.paint.color.toInt()
-                    textSize = span.paint.textSize //* 2.0f // 30.0 text size =about= 22.0 normal size
-                    textAlign = Paint.Align.values()[span.paint.align]
+                paint.typeface = musicTextTypeface
+            }
+            else if (span.paint.isTablature) {
+                paint.typeface = tablatureTypeface
+                paint.textSize = span.paint.textSize
+            }
+            else if (span.paint.isItalic && span.paint.isBold) {
+                paint.typeface = typefaceBoldItalic
+            }
+            else if (!span.paint.isItalic && span.paint.isBold) {
+                paint.typeface = typefaceBold
+            }
+            else if (span.paint.isItalic) {
+                paint.typeface = typefaceItalic
+            }
+            else {
+                paint.typeface = typefacePlain
+            }
+
+            paint.textSize *= scale
+
+            var string = ""
+            if (span.endIndex <= text.text.length)
+                string = text.text.substring(span.startIndex, span.endIndex)
+            else if (span.startIndex < text.text.length)
+                string = text.text.substring(span.startIndex, text.text.length)
+
+            canvas.drawText(string, textX + offset.x, textY + offset.y, paint)
+            textX += (paint.measureText(string, 0, string.length) / scale);
+        }
+    }
+
+    /**
+     * Draws a glyph on the given canvas.
+     *
+     * @param canvas The canvas to draw on.
+     * @param glyph The glyph to draw.
+     * @param offset An offset to the position of the glyph.
+     */
+    private fun drawGlyph(canvas: Canvas, glyph: SMuFLGlyph, offset: PointF = PointF(0.0f, 0.0f))
+    {
+        // create paint
+        val paint: Paint = getPaintFromNativePaintObject(glyph.paint)
+
+        paint.typeface = musicTypeface
+        paint.textAlign = Paint.Align.LEFT;
+
+        // calculate correct size
+        paint.textSize = 40.0f * glyph.paint.glyphSizeFactor * scale // text size equals the standard staff height (according to SMuFL specification)
+
+        // position
+        var x = ((glyph.x) * scale)
+        var y = ((glyph.y) * scale)
+
+        if (glyph.paint.centerHorizontally || glyph.paint.centerVertically || glyph.paint.hasBackground)
+        {
+            val bounds = Rect()
+
+            paint.getTextBounds(Character.toChars(glyph.codePoint), 0, 1, bounds)
+
+            if (glyph.paint.centerHorizontally)
+            {
+                x -= bounds.width() / 2.0f
+            }
+
+            if (glyph.paint.centerVertically)
+            {
+                y += bounds.height() / 2.0f
+            }
+
+            if (glyph.paint.hasBackground)
+            {
+                val backgroundPaint = Paint().apply {
+                    color = glyph.paint.backgroundColor.toInt()
                     isAntiAlias = true
                 }
 
-                paint.textSize = pointsToTenths(span.paint.textSize, Scaling())
+                val backgroundRect = RectF()
 
-                if (span.paint.useMusicFont)
-                {
-                    paint.typeface = musicTextTypeface
-                }
-                else if (span.paint.isTablature) {
-                    paint.typeface = tablatureTypeface
-                    paint.textSize = span.paint.textSize
-                }
-                else if (span.paint.isItalic && span.paint.isBold) {
-                    paint.typeface = typefaceBoldItalic
-                }
-                else if (!span.paint.isItalic && span.paint.isBold) {
-                    paint.typeface = typefaceBold
-                }
-                else if (span.paint.isItalic) {
-                    paint.typeface = typefaceItalic
-                }
-                else {
-                    paint.typeface = typefacePlain
-                }
+                val rectX = x + offset.x
+                val rectY = y + offset.y
 
-                //paint.textSize *= scale
+                val padding = glyph.paint.backgroundPadding * scale
 
-                var string = ""
-                if (span.endIndex <= text.text.length)
-                    string = text.text.substring(span.startIndex, span.endIndex)
-                else if (span.startIndex < text.text.length)
-                    string = text.text.substring(span.startIndex, text.text.length)
+                backgroundRect.left = rectX - padding
+                backgroundRect.right = rectX + bounds.width() + padding
 
-                canvas.drawText(string, textX + offsetX, textY + offsetY, paint)
-                textX += (paint.measureText(string, 0, string.length) / scale);
+                backgroundRect.top = rectY - bounds.height() - padding
+                backgroundRect.bottom = rectY + padding
+
+                canvas.drawRect(backgroundRect, backgroundPaint)
             }
         }
+
+        // draw
+        canvas.save()
+        canvas.rotate(-glyph.paint.rotateDegrees, x + offset.x, y + offset.y) // rotate canvas
+        canvas.drawText(Character.toChars(glyph.codePoint), 0, 1, x + offset.x, y + offset.y, paint) // draw
+        canvas.restore(); // reset rotation
     }
 
     /**
@@ -700,61 +690,95 @@ class MusicDisplayView(context: Context, attrs: AttributeSet? = null): View(cont
     }
 
     /**
-     * Draws an array of cubic curves on the given canvas
+     * Draws a cubic curve on the given canvas.
      *
-     * @param canvas the canvas to draw on
-     * @param cubicCurves the array of cubic curves to draw
-     * @param offsetX how much to offset the curves in the x direction
-     * @param offsetY how much to offset the curves in the y direction
+     * @param canvas The canvas to draw on.
+     * @param curve The curve to draw.
+     * @param offset An offset to the position of curve.
      */
-    private fun drawCubicCurves(canvas: Canvas, cubicCurves: Array<CubicCurve>, offsetX: Float = 0.0f, offsetY: Float = 0.0f)
+    private fun drawCubicCurve(canvas: Canvas, curve: CubicCurve, offset: PointF = PointF(0.0f, 0.0f))
     {
-        Log.i(TAG, "drawing cubic curves: ${cubicCurves.size}");
-        // render cubic bezier curves
-        for (curve in cubicCurves) {
-            val paint = Paint().apply {
-                color = curve.paint.color.toInt()
-                strokeWidth = curve.paint.strokeWidth
-                isAntiAlias = true
-                strokeCap = Paint.Cap.values()[curve.paint.strokeCap]
-                style = Paint.Style.STROKE
+        val paint = Paint().apply {
+            color = curve.paint.color.toInt()
+            strokeWidth = curve.paint.strokeWidth
+            isAntiAlias = true
+            strokeCap = Paint.Cap.values()[curve.paint.strokeCap]
+            style = Paint.Style.STROKE
+        }
+
+        val path = Path()
+        var s = 5.0f;
+        val start = PointF(curve.x1 * scale + offset.x, curve.y1 * scale + offset.y)
+        var point1 = PointF(curve.x2 * scale + offset.x, curve.y2 * scale + offset.y)
+        var point2 = PointF(curve.x3 * scale + offset.x, curve.y3 * scale + offset.y)
+        val end = PointF(curve.x4 * scale + offset.x, curve.y4 * scale + offset.y)
+
+        //Log.i(TAG, "drawing cubic curve: ${}");
+
+        path.moveTo(start.x, start.y)
+        path.cubicTo(point1.x, point1.y, point2.x, point2.y, end.x, end.y)
+
+        canvas.drawPath(path, paint)
+
+        if (curve.paint.varyThickness)
+        {
+            var i = 0;
+            while (i < 4) {
+                point1 = PointF(point1.x, point1.y - 0.6f * scale)
+                point2 = PointF(point2.x, point2.y - 0.6f * scale)
+                path.reset()
+                path.moveTo(start.x, start.y)
+                path.cubicTo(point1.x, point1.y, point2.x, point2.y, end.x, end.y)
+
+                canvas.drawPath(path, paint)
+                i++
             }
+        }
+    }
 
-            val path = Path()
-            var s = 5.0f;
-            val start = PointF(curve.x1 * scale + offsetX, curve.y1 * scale + offsetY)
-            var point1 = PointF(curve.x2 * scale + offsetX, curve.y2 * scale + offsetY)
-            var point2 = PointF(curve.x3 * scale + offsetX, curve.y3 * scale + offsetY)
-            val end = PointF(curve.x4 * scale + offsetX, curve.y4 * scale + offsetY)
+    /**
+     * Draws all the objects in the given
+     * RenderData object onto the given Canvas.
+     *
+     * @param canvas The canvas to draw on.
+     * @param renderData The RenderData object to draw.
+     * @param offset An offset to the position of all the objects.
+     */
+    private fun drawObjects(canvas: Canvas, renderData: RenderData, offset: PointF = PointF(0.0f, 0.0f))
+    {
+        for (line in renderData.lines) {
+            drawLine(canvas, line, offset)
+        }
 
-            //Log.i(TAG, "drawing cubic curve: ${}");
+        for (text in renderData.texts) {
+            drawText(canvas, text, offset)
+        }
 
-            path.moveTo(start.x, start.y)
-            path.cubicTo(point1.x, point1.y, point2.x, point2.y, end.x, end.y)
+        for (text in renderData.spannableTexts) {
+            drawSpannableText(canvas, text, offset)
+        }
 
-            canvas.drawPath(path, paint)
+        for (glyph in renderData.glyphs) {
+            drawGlyph(canvas, glyph, offset)
+        }
 
-            if (curve.paint.varyThickness)
-            {
-                var i = 0;
-                while (i < 4) {
-                    point1 = PointF(point1.x, point1.y - 0.6f * scale)
-                    point2 = PointF(point2.x, point2.y - 0.6f * scale)
-                    path.reset()
-                    path.moveTo(start.x, start.y)
-                    path.cubicTo(point1.x, point1.y, point2.x, point2.y, end.x, end.y)
+        // note: bitmaps are not currently being used anymore
+        drawBitmaps(canvas, renderData.bitmaps, offset.x, offset.y)
 
-                    canvas.drawPath(path, paint)
-                    i++
-                }
-            }
+        for (curve in renderData.cubicCurves) {
+            drawCubicCurve(canvas, curve, offset)
         }
     }
 
     private fun renderOnToBitmap()
     {
         if (renderData != null) {
-            Log.v(TAG, "START RENDER ${renderData?.lines?.size}")
+
+            scaling = Scaling()
+            scale = mainScale
+            bitmapSizeScale = scale
+
+            Log.v(TAG, "START RENDER $scale, $scaling, $mainScale")
             val density = resources.displayMetrics.density
             val sizeX = (renderData?.right!! - renderData?.left!!) * scale // in tenths
             val sizeY = (renderData?.bottom!! - renderData?.top!!) * scale // in tenths
@@ -764,25 +788,10 @@ class MusicDisplayView(context: Context, attrs: AttributeSet? = null): View(cont
             // create the bitmap
             mainBitmap = Bitmap.createBitmap(sizeX.toInt(), sizeY.toInt(), Bitmap.Config.ARGB_8888)
 
-            Log.v(TAG, "Created bitmap")
-
             // "connect/link" the canvas to the bitmap so that the canvas draws on the bitmap
             val mainCanvas = Canvas(mainBitmap!!)
 
-            Log.v(TAG, "linked")
-
-            drawLines(mainCanvas, renderData?.lines!!)
-            Log.v(TAG, "calling drawTexts")
-            drawTexts(mainCanvas, renderData?.texts!!)
-            Log.v(TAG, "called drawTexts")
-            drawGlyphs(mainCanvas, renderData?.glyphs!!)
-            Log.v(TAG, "called drawGlyphs")
-            //drawBitmaps(mainCanvas, renderData?.bitmaps!!)
-            drawCubicCurves(mainCanvas, renderData?.cubicCurves!!)
-            Log.v(TAG, "called drawCubicCurves")
-            drawSpannableTexts(mainCanvas, renderData?.spannableTexts!!)
-
-            Log.v(TAG, "drew objects")
+            drawObjects(mainCanvas, renderData!!)
         }
         else
         {
@@ -859,7 +868,7 @@ class MusicDisplayView(context: Context, attrs: AttributeSet? = null): View(cont
             {
                 // translate bitmap
                 val mat = Matrix()
-                mat.setScale(mainScale, mainScale)
+                mat.setScale((mainScale / scale), (mainScale / scale))
                 mat.postTranslate(mainBitmapPositionX + positionX * mainScale, mainBitmapPositionY + positionY * mainScale)
 
                 // draw the bitmap that has renderData rendered on it
@@ -871,39 +880,18 @@ class MusicDisplayView(context: Context, attrs: AttributeSet? = null): View(cont
         if (frameData != null) {
 
             val paint = Paint().apply {
+                color = context.resources.getColor(R.color.main_500, context.theme)
                 color = 0xff0044dd.toInt()
-                strokeWidth = 2.0f * scale * mainScale
+                strokeWidth = 3.0f * mainScale
                 isAntiAlias = true
                 strokeCap = Paint.Cap.SQUARE
             }
 
             // draw play line
             //canvas.drawLine((0.0f * scale), (0.0f * scale), (frameData!!.playLinePosition * scale), ((frameData!!.playLinePositionY + frameData!!.playLineHeight) * scale), paint)
-            drawLine(canvas, Line(frameData!!.playLinePosition * mainScale, frameData!!.playLinePositionY * mainScale, frameData!!.playLinePosition * mainScale, (frameData!!.playLinePositionY + frameData!!.playLineHeight) * mainScale), paint)
+            drawLine(canvas, Line(frameData!!.playLinePosition * (mainScale / scale), frameData!!.playLinePositionY * (mainScale / scale), frameData!!.playLinePosition * (mainScale / scale), (frameData!!.playLinePositionY + frameData!!.playLineHeight) * (mainScale / scale)), paint)
             //drawLine(canvas, Line(0.0f, 0.0f, frameData!!.playLinePosition, frameData!!.playLinePositionY + frameData!!.playLineHeight), paint)
         }
-    }
-
-    private fun millimetersToPoints(millimeters: Float): Float // converts from millimeters to points (1/72 inch)
-    {
-        return (millimeters / 25.4f) * 75.0f; // divide by 25.4 to get inches then multiply by 75 to get points
-    }
-
-    private fun pointsToMillimeters(pt: Float): Float // converts from points (1/72 inch) to millimeters
-    {
-        return (pt / 75.0f) * 25.4f; // divide by 75 to get inches then multiply by 25.4 to get millimeters
-    }
-
-    private fun pointsToTenths(pt: Float, scaling: Scaling): Float // converts from points (1/72 inch) to tenths (defined at top)
-    {
-        val millimeters = pointsToMillimeters(pt); // convert points to millimeters
-        return (millimeters / scaling.millimeters) * scaling.tenths; // convert to tenths
-    }
-
-    private fun tenthsToPoints(tenths: Float, scaling: Scaling): Float // converts from tenths (defined at top) to points (1/72 inch)
-    {
-        val millimeters = (tenths / scaling.tenths) * scaling.millimeters; // convert tenths to millimeters
-        return millimetersToPoints(millimeters); // convert to points
     }
 
     private fun screenPositionToCanvasPosition(position: PointF): PointF
@@ -940,20 +928,16 @@ class MusicDisplayView(context: Context, attrs: AttributeSet? = null): View(cont
             Log.d(TAG, "drawing page ${page.info.pageNumber}");
             val pageRenderData: RenderData = printRenderData?.pages?.get(page.info.pageNumber)!!
 
-            val pageWidth = tenthsToPoints(1233.87f, pageRenderData.scaling)
-            val pageHeight = tenthsToPoints(1596.77f, pageRenderData.scaling)
+            val pageWidth = Conversions.tenthsToPoints(1233.87f, pageRenderData.scaling)
+            val pageHeight = Conversions.tenthsToPoints(1596.77f, pageRenderData.scaling)
             val pagePositionX: Float = (page.info.pageWidth - pageWidth) / 2.0f
             val pagePositionY: Float = (page.info.pageHeight - pageHeight) / 2.0f
 
-            scale = tenthsToPoints(1.0f, pageRenderData.scaling)
+            scale = Conversions.tenthsToPoints(1.0f, pageRenderData.scaling)
             bitmapSizeScale = scale
+            scaling = pageRenderData.scaling
 
-            drawLines(mainCanvas, pageRenderData.lines, pagePositionX, pagePositionY)
-            drawTexts(mainCanvas, pageRenderData.texts, pagePositionX, pagePositionY)
-            drawGlyphs(mainCanvas, pageRenderData.glyphs, pagePositionX, pagePositionY)
-            drawBitmaps(mainCanvas, pageRenderData.bitmaps, pagePositionX, pagePositionY)
-            drawCubicCurves(mainCanvas, pageRenderData.cubicCurves, pagePositionX, pagePositionY)
-            drawSpannableTexts(mainCanvas, pageRenderData.spannableTexts, pagePositionX, pagePositionY)
+            drawObjects(mainCanvas, pageRenderData, PointF(pagePositionX, pagePositionY))
         }
     }
 

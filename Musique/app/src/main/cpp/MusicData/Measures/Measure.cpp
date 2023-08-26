@@ -55,7 +55,7 @@ float Measure::GetMiddleHeight(int staffLineCount, float lineSpacing)
     return (lineSpacing * float(staffLineCount - 1));
 }
 
-float Measure::GetAboveHeight(const MusicDisplayConstants& displayConstants, int staffLineCount)
+float Measure::GetAboveHeight(const MusicDisplayConstants& displayConstants, int staffLineCount) const
 {
     BoundingBox bb = GetTotalBoundingBox(displayConstants, staffLineCount);
     float height = -bb.GetTop();
@@ -67,13 +67,13 @@ float Measure::GetBelowHeight(int staffLineCount, float lineSpacing)
     return 50.0f;
 }
 
-float Measure::GetTotalHeight(const MusicDisplayConstants& displayConstants, int staffLineCount)
+float Measure::GetTotalHeight(const MusicDisplayConstants& displayConstants, int staffLineCount) const
 {
     float height = GetTotalBoundingBox(displayConstants, staffLineCount).size.y;
     return height;
 }
 
-void Measure::Render(RenderData& renderData, const Settings& settings, Vec2<float> measurePosition, float nextMeasurePositionX, std::shared_ptr<System> system, int staffLineCount, float staffLineSpacing, bool isTopMeasureLine, bool isLastMeasureInSystem, TablatureDisplayType tablatureDisplayType, bool isPartOfEnding) const
+void Measure::Render(RenderData& renderData, const Settings& settings, Vec2<float> measurePosition, float nextMeasurePositionX, const std::shared_ptr<System>& system, int staffLineCount, float staffLineSpacing, bool isTopMeasureLine, bool isLastMeasureInSystem, TablatureDisplayType tablatureDisplayType, bool isPartOfEnding) const
 {
     if (startsMultiMeasureRest)
     {
@@ -103,7 +103,7 @@ void Measure::Render(RenderData& renderData, const Settings& settings, Vec2<floa
     if (!startsMultiMeasureRest && !isMeasureRepeat)
     {
         int noteIndex = 0;
-        for (auto note : notes)
+        for (const auto& note : notes)
         {
             if (!note->isChord)
                 note->Render(renderData, tablatureDisplayType, CalculateNoteYPositionRelativeToMeasure(noteIndex), staffLineCount, measurePosition, nextMeasurePositionX, staffLineSpacing);
@@ -111,7 +111,7 @@ void Measure::Render(RenderData& renderData, const Settings& settings, Vec2<floa
         }
 
         noteIndex = 0;
-        for (auto noteChord : noteChords)
+        for (const auto& noteChord : noteChords)
         {
             if (noteChord->m_notes.empty())
                 throw IsEmptyException();
@@ -135,19 +135,19 @@ void Measure::Render(RenderData& renderData, const Settings& settings, Vec2<floa
             chord.Render(renderData, settings, measurePosition);
         }
 
-        for (auto tuplet : tuplets)
+        for (const auto& tuplet : tuplets)
         {
             tuplet->Render(renderData, measurePosition);
         }
 
-        for (auto arpeggio : arpeggios)
+        for (const auto& arpeggio : arpeggios)
         {
             float notePositionX = measurePosition.x;
             if (arpeggio)
                 arpeggio->Render(renderData, notePositionX, measurePosition.y);
         }
 
-        for (auto slur : slurs)
+        for (const auto& slur : slurs)
         {
             Vec2<float> startMeasurePosition = measurePosition;
             Vec2<float> endMeasurePosition = measurePosition;
@@ -163,7 +163,7 @@ void Measure::Render(RenderData& renderData, const Settings& settings, Vec2<floa
     }
 }
 
-void Measure::RenderDebug(RenderData& renderData, const Settings& settings, Vec2<float> measurePosition, float nextMeasurePositionX, std::shared_ptr<System> system, int staffLineCount, float staffLineSpacing, bool isTopMeasureLine, bool isLastMeasureInSystem, TablatureDisplayType tablatureDisplayType) const
+void Measure::RenderDebug(RenderData& renderData, const Settings& settings, Vec2<float> measurePosition, float nextMeasurePositionX, const std::shared_ptr<System>& system, int staffLineCount, float staffLineSpacing, bool isTopMeasureLine, bool isLastMeasureInSystem, TablatureDisplayType tablatureDisplayType) const
 {
     /*if (startsMultiMeasureRest)
     {
@@ -174,19 +174,19 @@ void Measure::RenderDebug(RenderData& renderData, const Settings& settings, Vec2
 
     RenderBarlines(renderData, measurePosition.x, measurePosition.y, measureWidth, staffLineCount, staffLineSpacing, isTopMeasureLine);
 
-    RenderMeasureBeginning(renderData, measurePosition, system, staffLineCount, staffLineSpacing, isTopMeasureLine);
+    RenderMeasureBeginning(renderData, measurePosition, system, staffLineCount, staffLineSpacing, isTopMeasureLine);*/
 
     // render directions
     if (!isMeasureRepeat)
     {
         for (const Direction& direction : directions)
         {
-            direction.Render(renderData, measurePosition);
+            direction.RenderDebug(renderData, measurePosition);
         }
     }
 
 
-    if (isMeasureRepeat && measureRepeat != nullptr)
+    /*if (isMeasureRepeat && measureRepeat != nullptr)
     {
         measureRepeat->Render(renderData, measurePosition);
     }*/
@@ -194,7 +194,7 @@ void Measure::RenderDebug(RenderData& renderData, const Settings& settings, Vec2
     if (!startsMultiMeasureRest && !isMeasureRepeat)
     {
         int noteIndex = 0;
-        for (auto note : notes)
+        for (const auto& note : notes)
         {
             if (!note->isChord)
                 note->RenderDebug(renderData, tablatureDisplayType, CalculateNoteYPositionRelativeToMeasure(noteIndex), staffLineCount, measurePosition, nextMeasurePositionX, staffLineSpacing);
@@ -202,7 +202,7 @@ void Measure::RenderDebug(RenderData& renderData, const Settings& settings, Vec2
         }
 
         noteIndex = 0;
-        for (auto noteChord : noteChords)
+        for (const auto& noteChord : noteChords)
         {
             if (noteChord->m_notes.empty())
                 throw IsEmptyException();
@@ -266,7 +266,7 @@ void Measure::RenderStaffLines(RenderData& renderData, Vec2<float> measurePositi
     }
 }
 
-void Measure::RenderMeasureBeginning(RenderData& renderData, Vec2<float> measurePosition, std::shared_ptr<System> system, int staffLineCount, float staffLineSpacing, bool isTopMeasureLine) const
+void Measure::RenderMeasureBeginning(RenderData& renderData, Vec2<float> measurePosition, const std::shared_ptr<System>& system, int staffLineCount, float staffLineSpacing, bool isTopMeasureLine) const
 {
     auto measureDataItem = system->systemMeasureData.find(index);
 
@@ -325,7 +325,7 @@ void Measure::RenderBarlines(RenderData& renderData, float measurePositionX, flo
     //renderData.AddLine(std::make_shared<Line>(barlineLeftPositionX, barlinePositionYTop, barlineLeftPositionX, barlinePositionYBottom, Paint(0xFFFF00FF)));
 }
 
-float Measure::GetBeginningWidth(std::shared_ptr<System> system) const
+float Measure::GetBeginningWidth(const std::shared_ptr<System>& system) const
 {
     float width = 0.0f;
 
@@ -392,7 +392,7 @@ float Measure::GetNotePositionInMeasure(float width, int noteIndex) const
     return position;
 }
 
-float Measure::GetKeySignaturePositionInMeasure(std::shared_ptr<System> system, float clefPositionX) const
+float Measure::GetKeySignaturePositionInMeasure(const std::shared_ptr<System>& system, float clefPositionX) const
 {
 
     float position;
@@ -411,7 +411,7 @@ float Measure::GetKeySignaturePositionInMeasure(std::shared_ptr<System> system, 
     return position;
 }
 
-float Measure::GetTimeSignaturePositionInMeasure(std::shared_ptr<System> system, float keySignaturePositionX) const
+float Measure::GetTimeSignaturePositionInMeasure(const std::shared_ptr<System>& system, float keySignaturePositionX) const
 {
     float position;
     bool isBeginningMeasure = (system->beginningMeasureIndex == index);
@@ -428,7 +428,7 @@ float Measure::GetTimeSignaturePositionInMeasure(std::shared_ptr<System> system,
     return position;
 }
 
-float Measure::GetClefPositionInMeasure(std::shared_ptr<System> system) const
+float Measure::GetClefPositionInMeasure(const std::shared_ptr<System>& system) const
 {
     float position = 5.0f;
 
@@ -447,12 +447,12 @@ void Measure::RenderDebug(RenderData& renderData) const
 
     clef.boundingBox.Render(renderData, (int)0x66FF0000);
 
-    for (auto note : notes)
+    for (const auto& note : notes)
     {
         note->RenderDebug(renderData);
     }
 
-    for (auto noteChord : noteChords)
+    for (const auto& noteChord : noteChords)
     {
         noteChord->RenderDebug(renderData);
     }
@@ -462,7 +462,7 @@ void Measure::RenderDebug(RenderData& renderData) const
         beamGroup.RenderDebug(renderData);
     }
 
-    for (auto tuplet : tuplets)
+    for (const auto& tuplet : tuplets)
     {
         tuplet->RenderDebug(renderData);
     }
@@ -490,7 +490,7 @@ void Measure::RenderDebug(RenderData& renderData) const
     }
 }
 
-float Measure::GetPitchYPosition(Pitch pitch) const
+float Measure::GetPitchYPosition(const Pitch& pitch) const
 {
     float position = 0.0f;
 
@@ -521,12 +521,12 @@ float Measure::CalculateNoteYPositionRelativeToMeasure(int noteIndex) const
     return CalculateNoteYPositionRelativeToMeasure(note);
 }
 
-float Measure::CalculateNoteYPositionRelativeToMeasure(std::shared_ptr<Note> note) const
+float Measure::CalculateNoteYPositionRelativeToMeasure(const std::shared_ptr<Note>& note) const
 {
     return GetPitchYPosition(note->pitch);
 }
 
-int Measure::GetLetterNumber(const std::string& s) const
+int Measure::GetLetterNumber(const std::string& s)
 {
     int num = 0;
     if (s == "C") {
@@ -547,7 +547,7 @@ int Measure::GetLetterNumber(const std::string& s) const
     return num;
 }
 
-void Measure::CalculateAsPaged(const MusicDisplayConstants& displayConstants, const Settings& settings, std::shared_ptr<System> system, int staffLines)
+void Measure::CalculateAsPaged(const MusicDisplayConstants& displayConstants, const Settings& settings, const std::shared_ptr<System>& system, int staffLines)
 {
     measureWidth = defaultMeasureWidth;
 
@@ -591,13 +591,13 @@ void Measure::CalculateAsPaged(const MusicDisplayConstants& displayConstants, co
     if (isMeasureRepeat && measureRepeat != nullptr)
         measureRepeat->CalculatePositionAsPaged(displayConstants, measureDataItem->second, { measureWidth, GetMiddleHeight(staffLines, lineSpacing) });
 
-    for (auto arpeggio : arpeggios)
+    for (const auto& arpeggio : arpeggios)
     {
         if (arpeggio)
             arpeggio->CalculatePositionAsPaged(displayConstants, { 0.0f, 0.0f }, { 0.0f, 0.0f });
     }
 
-    for (auto slur : slurs)
+    for (const auto& slur : slurs)
     {
         if (slur)
             slur->CalculatePositionAsPaged(displayConstants);
@@ -652,7 +652,7 @@ float Measure::MeausreTimeSignatureWidth() const
     return std::max(topNumWidth, bottomNumWidth) + 10.0f; // adding margins of 10.0f
 }
 
-float Measure::GetRepeatBarlinePositionX(std::shared_ptr<System> system) const
+float Measure::GetRepeatBarlinePositionX(const std::shared_ptr<System>& system) const
 {
     float width = 0.0f;
 
@@ -684,12 +684,12 @@ void Measure::UpdateBoundingBoxes(const MusicDisplayConstants& displayConstants,
     {
         clef.UpdateBoundingBox(measurePosition, 5, true);
 
-        for (auto note: notes)
+        for (const auto& note: notes)
         {
             note->UpdateBoundingBox(displayConstants, measurePosition);
         }
 
-        for (auto noteChord: noteChords)
+        for (const auto& noteChord: noteChords)
         {
             noteChord->UpdateBoundingBox(displayConstants, measurePosition);
         }
@@ -699,7 +699,7 @@ void Measure::UpdateBoundingBoxes(const MusicDisplayConstants& displayConstants,
             beamGroup.UpdateBoundingBox(displayConstants, measurePosition);
         }
 
-        for (auto tuplet : tuplets)
+        for (const auto& tuplet : tuplets)
         {
             tuplet->UpdateBoundingBox(measurePosition);
         }
@@ -716,11 +716,11 @@ void Measure::UpdateBoundingBoxes(const MusicDisplayConstants& displayConstants,
     }
 }
 
-void Measure::OnUpdate(std::shared_ptr<Player> player, bool isCurrentMeasure, int channel, float playLineBeatPosition, float previousPlayLineBeatPosition, float measureBeatPosition, float& currentTempo, SwingTempo& swingTempo, float& currentVelocity)
+void Measure::OnUpdate(const std::shared_ptr<Player>& player, bool isCurrentMeasure, int channel, float playLineBeatPosition, float previousPlayLineBeatPosition, float measureBeatPosition, float& currentTempo, SwingTempo& swingTempo, float& currentVelocity)
 {
     if (isCurrentMeasure && playLineBeatPosition >= measureBeatPosition && playLineBeatPosition <= duration.duration + measureBeatPosition)
     {
-        for (auto event : soundEvents)
+        for (const auto& event : soundEvents)
         {
             if (playLineBeatPosition >= event->beatPosition + measureBeatPosition &&
                 previousPlayLineBeatPosition <= event->beatPosition + measureBeatPosition)
@@ -734,7 +734,7 @@ void Measure::OnUpdate(std::shared_ptr<Player> player, bool isCurrentMeasure, in
             }
         }
 
-        for (auto noteChord : noteChords)
+        for (const auto& noteChord : noteChords)
         {
             std::shared_ptr<Note> rootNote = noteChord->m_notes[0];
 
@@ -796,7 +796,7 @@ void Measure::OnUpdate(std::shared_ptr<Player> player, bool isCurrentMeasure, in
         }
 
         int noteIndex = 0;
-        for (auto note : notes)
+        for (const auto& note : notes)
         {
             float noteBeatPosition = note->soundBeatPosition;
             float noteDuration = note->soundDuration;
@@ -859,7 +859,7 @@ void Measure::OnUpdate(std::shared_ptr<Player> player, bool isCurrentMeasure, in
     }
     else
     {
-        for (auto noteChord : noteChords)
+        for (const auto& noteChord : noteChords)
         {
             if (noteChord->m_notes[0]->isPlaying)
             {
@@ -867,7 +867,7 @@ void Measure::OnUpdate(std::shared_ptr<Player> player, bool isCurrentMeasure, in
             }
         }
 
-        for (auto note : notes)
+        for (const auto& note : notes)
         {
             if (note->isPlaying)
             {
@@ -925,7 +925,7 @@ int Measure::GetRepeatCount() const
     return 1;
 }
 
-bool Measure::IsOnBeatEighthNote(std::shared_ptr<Note> note) const
+bool Measure::IsOnBeatEighthNote(const std::shared_ptr<Note>& note) const
 {
     if (note->durationType == NoteValue::Eighth && note->duration.duration == 0.5f)
     {
@@ -940,7 +940,7 @@ bool Measure::IsOnBeatEighthNote(std::shared_ptr<Note> note) const
     return false;
 }
 
-bool Measure::IsOffBeatEighthNote(std::shared_ptr<Note> note) const
+bool Measure::IsOffBeatEighthNote(const std::shared_ptr<Note>& note) const
 {
     if (note->durationType == NoteValue::Eighth && note->duration.duration == 0.5f)
     {
@@ -956,7 +956,7 @@ bool Measure::IsOffBeatEighthNote(std::shared_ptr<Note> note) const
     return false;
 }
 
-bool Measure::IsOnBeatSixteenthNote(std::shared_ptr<Note> note) const
+bool Measure::IsOnBeatSixteenthNote(const std::shared_ptr<Note>& note) const
 {
     if (note->durationType == NoteValue::Sixteenth && note->duration.duration == 0.25f)
     {
@@ -971,7 +971,7 @@ bool Measure::IsOnBeatSixteenthNote(std::shared_ptr<Note> note) const
     return false;
 }
 
-bool Measure::IsOffBeatSixteenthNote(std::shared_ptr<Note> note) const
+bool Measure::IsOffBeatSixteenthNote(const std::shared_ptr<Note>& note) const
 {
     if (note->durationType == NoteValue::Sixteenth && note->duration.duration == 0.25f)
     {

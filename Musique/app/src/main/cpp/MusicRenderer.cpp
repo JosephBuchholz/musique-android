@@ -310,24 +310,16 @@ Vec2<float> MusicRenderer::RenderSystem(RenderData& renderData, const Settings& 
 {
     std::shared_ptr<Instrument> prevInstrument = nullptr;
     int instrumentIndex = 0;
-    float instYPosition = systemPosition.y;
+    float instPositionY = systemPosition.y;
     for (const auto& instrument: song->instruments)
     {
         if (song->songData.instrumentInfos[instrumentIndex].visible)
         {
-            /*if (instrumentIndex != 0 && !instrument->staves.empty())
-            {
-                if (prevInstrument != nullptr)
-                    instYPosition += prevInstrument->GetMiddleHeight(10.0f, 13.33f, 0,instrument->GetMeasureCount());
-
-                instYPosition += instrument->staves.front()->measures[startMeasure]->staffDistance;
-            }*/
-
-            instYPosition = systemPosition.y + instrument->systemPositionData[systemIndex].y;
+            instPositionY = systemPosition.y + instrument->systemPositionData[systemIndex].y;
 
             if (song->instruments.size() > 1)
             {
-                float textPositionY = instYPosition + (instrument->GetMiddleHeight(song->displayConstants.lineSpacing, song->displayConstants.tabLineSpacing, 0, 1) / 2.0f);
+                float textPositionY = instPositionY + (instrument->GetMiddleHeight(song->displayConstants, systemIndex) / 2.0f);
                 if (drawFullInstNames)
                 {
                     renderData.AddText(Text(instrument->name.string, { systemPosition.x - 20.0f, textPositionY }, InstNameTextPaint));
@@ -346,19 +338,7 @@ Vec2<float> MusicRenderer::RenderSystem(RenderData& renderData, const Settings& 
                     ls = song->displayConstants.tabLineSpacing;
                 }
 
-                // staff y position
-                float staffYPosition = 0.0f;
-                /*if (staffIndex == 0)
-                {
-                    staffYPosition = 0.0f;
-                }
-                else if (staffIndex >= 1)
-                {
-                    staffYPosition += staff->measures[startMeasure]->staffDistance + instrument->staves[staffIndex - 1]->GetMiddleHeight(ls);
-                }*/
-
-                staffYPosition = staff->systemPositionData[systemIndex].y;
-                //staffYPosition = instYPosition;
+                float staffPositionY = staff->systemPositionData[systemIndex].y;
 
                 for (const auto& direction : staff->durationDirections)
                 {
@@ -373,11 +353,11 @@ Vec2<float> MusicRenderer::RenderSystem(RenderData& renderData, const Settings& 
                         float startMeasurePositionX = song->GetMeasurePositionX(startMeasureIndex) + systemPosition.x;
                         float endMeasurePositionX = song->GetMeasurePositionX(endMeasureIndex) + systemPosition.x;
 
-                        direction->Render(renderData, staffYPosition + instYPosition, startMeasurePositionX, endMeasurePositionX, startMeasureIndex, endMeasureIndex);
+                        direction->Render(renderData, staffPositionY + instPositionY, startMeasurePositionX, endMeasurePositionX, startMeasureIndex, endMeasureIndex);
                     }
                 }
 
-                RenderLineOfMeasures(renderData, settings, startMeasure, endMeasure, song->systems[systemIndex], staff, systemPosition.x, staffYPosition + instYPosition, ls, instrumentIndex == 0 && staffIndex == 0, song->endingGroups);
+                RenderLineOfMeasures(renderData, settings, startMeasure, endMeasure, song->systems[systemIndex], staff, systemPosition.x, staffPositionY + instPositionY, ls, instrumentIndex == 0 && staffIndex == 0, song->endingGroups);
 
                 staffIndex++;
             } // staves loop
@@ -391,7 +371,7 @@ Vec2<float> MusicRenderer::RenderSystem(RenderData& renderData, const Settings& 
                     lineSpacing = renderData.displayConstants.tabLineSpacing;
                 height += instrument->staves[instrument->staves.size() - 1]->GetMiddleHeight(lineSpacing);
 
-                instrument->instrumentBracket->Render(renderData, { systemPosition.x, instYPosition }, height);
+                instrument->instrumentBracket->Render(renderData, { systemPosition.x, instPositionY }, height);
             }
 
             prevInstrument = instrument;
@@ -400,17 +380,11 @@ Vec2<float> MusicRenderer::RenderSystem(RenderData& renderData, const Settings& 
         instrumentIndex++;
     } // instruments loop
 
-    float lastInstrumentMiddleHeight = prevInstrument->GetMiddleHeight(10.0f, 13.33f, startMeasure, endMeasure);
-
-    if (song->instruments.size() != 1) // more than one instrument
+    if (song->instruments.size() > 1) // more than one instrument
     {
         // system connecting line
-        renderData.AddLine(Line({ systemPosition.x, systemPosition.y }, { systemPosition.x, instYPosition + lastInstrumentMiddleHeight }, BarLinePaint));
+        renderData.AddLine(Line(systemPosition, { systemPosition.x, systemPosition.y + song->GetSystemHeight(systemIndex) }, BarLinePaint));
     }
-
-    /*if (prevInstrument != nullptr)
-        systemPosition.y = instYPosition + song->systems[systemIndex + 1]->layout.systemDistance + lastInstrumentMiddleHeight;
-    systemPosition.x = pagePosition.x + song->displayConstants.leftMargin + song->systems[systemIndex + 1]->layout.systemLeftMargin;*/
 
     for (const auto& endingGroup : song->endingGroups)
     {
@@ -428,8 +402,6 @@ Vec2<float> MusicRenderer::RenderSystem(RenderData& renderData, const Settings& 
                 Vec2<float> measureStartPosition = { startMeasurePositionX, systemPosition.y };
                 Vec2<float> measureEndPosition = { endMeasurePositionX + endMeasureWidth, systemPosition.y };
 
-                //LOGE("startMI: %d, endMI: %d, SposX: %f, EposX: %f, mWidth: %f", startMeasureIndex, endMeasureIndex, startMeasurePositionX, endMeasurePositionX, endMeasureWidth);
-
                 if (ending)
                     ending->Render(renderData, measureStartPosition, measureEndPosition, startMeasureIndex, endMeasureIndex);
             }
@@ -443,16 +415,16 @@ Vec2<float> MusicRenderer::RenderDebugSystem(RenderData& renderData, const Setti
 {
     std::shared_ptr<Instrument> prevInstrument = nullptr;
     int instrumentIndex = 0;
-    float instYPosition = systemPosition.y;
+    float instPositionY = systemPosition.y;
     for (const auto& instrument: song->instruments)
     {
         if (song->songData.instrumentInfos[instrumentIndex].visible)
         {
-            instYPosition = systemPosition.y + instrument->systemPositionData[systemIndex].y;
+            instPositionY = systemPosition.y + instrument->systemPositionData[systemIndex].y;
 
             /*if (song->instruments.size() > 1)
             {
-                float textPositionY = instYPosition + (instrument->GetMiddleHeight(song->displayConstants.lineSpacing, song->displayConstants.tabLineSpacing, 0, 1) / 2.0f);
+                float textPositionY = instPositionY + (instrument->GetMiddleHeight(song->displayConstants.lineSpacing, song->displayConstants.tabLineSpacing, 0, 1) / 2.0f);
                 if (drawFullInstNames)
                 {
                     renderData.AddText(Text(instrument->name.string, systemPosition.x - 20.0f, textPositionY, InstNameTextPaint));
@@ -488,11 +460,11 @@ Vec2<float> MusicRenderer::RenderDebugSystem(RenderData& renderData, const Setti
                         float startMeasurePositionX = song->GetMeasurePositionX(startMeasureIndex) + systemPosition.x;
                         float endMeasurePositionX = song->GetMeasurePositionX(endMeasureIndex) + systemPosition.x;
 
-                        direction->RenderDebug(renderData, staffYPosition + instYPosition, startMeasurePositionX, endMeasurePositionX, startMeasureIndex, endMeasureIndex);
+                        direction->RenderDebug(renderData, staffYPosition + instPositionY, startMeasurePositionX, endMeasurePositionX, startMeasureIndex, endMeasureIndex);
                     }
                 }
 
-                RenderDebugLineOfMeasures(renderData, settings, startMeasure, endMeasure, song->systems[systemIndex], staff, systemPosition.x, staffYPosition + instYPosition, ls, instrumentIndex == 0 && staffIndex == 0);
+                RenderDebugLineOfMeasures(renderData, settings, startMeasure, endMeasure, song->systems[systemIndex], staff, systemPosition.x, staffYPosition + instPositionY, ls, instrumentIndex == 0 && staffIndex == 0);
 
                 staffIndex++;
             } // staves loop

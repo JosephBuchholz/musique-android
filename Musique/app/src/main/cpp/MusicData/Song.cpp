@@ -264,7 +264,7 @@ void Song::OnUpdate()
         for (const auto& instrument : instruments)
         {
             if (instrument->instrumentBracket)
-                instrument->instrumentBracket->CalculateAsPaged(displayConstants, -15.0f);
+                instrument->instrumentBracket->CalculateAsPaged(displayConstants, -18.0f);
 
             for (const auto& staff : instrument->staves)
             {

@@ -64,7 +64,7 @@ struct Paint {
     bool isItalic = false;
     bool isBold = false;
     bool isTablature = false;
-    bool isAntiAlias = false;
+    bool isAntiAlias = true;
     bool strikeThruText = false;
 
     float rotateDegrees = 0.0f; // how much to rotate by in degrees

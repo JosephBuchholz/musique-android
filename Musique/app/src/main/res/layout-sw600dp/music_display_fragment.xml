@@ -51,6 +51,19 @@
         android:orientation="vertical"
         app:layout_constraintGuide_percent="0.35" />
 
+    <com.randsoft.apps.musique.MusicDisplayView
+        android:id="@+id/music_display_view"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toTopOf="@+id/control_bar"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="1.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/top_control_bar"
+        app:layout_constraintVertical_bias="1.0">
+
+    </com.randsoft.apps.musique.MusicDisplayView>
+
     <include
         android:id="@+id/side_menu"
         layout="@layout/side_menu"
@@ -62,19 +75,6 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/top_control_bar"
         tools:visibility="visible" />
-
-    <com.randsoft.apps.musique.MusicDisplayView
-        android:id="@+id/music_display_view"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        app:layout_constraintBottom_toTopOf="@+id/control_bar"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="1.0"
-        app:layout_constraintStart_toEndOf="@+id/side_menu"
-        app:layout_constraintTop_toBottomOf="@+id/top_control_bar"
-        app:layout_constraintVertical_bias="1.0">
-
-    </com.randsoft.apps.musique.MusicDisplayView>
 
     <SeekBar
         android:id="@+id/volume_control_seek_bar"

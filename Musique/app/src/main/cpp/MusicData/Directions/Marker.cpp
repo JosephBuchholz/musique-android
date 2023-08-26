@@ -2,11 +2,20 @@
 
 #include "../../RenderMeasurement.h"
 
-void Marker::Render(RenderData& renderData, Vec2<float> measurePosition, Vec2<float> offset) const
+void Marker::Render(RenderData& renderData, Vec2<float> measurePosition) const
 {
     Paint paint;
     VisibleElement::ModifyPaint(paint);
-    renderData.AddGlyph(SMuFLGlyph(GetSMuFLID(), position.x + measurePosition.x + offset.x, position.y + measurePosition.y + offset.y, paint));
+    renderData.AddGlyph(SMuFLGlyph(GetSMuFLID(), position + measurePosition, paint));
+}
+
+void Marker::RenderDebug(RenderData& renderData, Vec2<float> measurePosition) const
+{
+    BoundingBox bb = GetBoundingBoxRelativeToParent();
+
+    bb.position += measurePosition;
+
+    bb.Render(renderData, 0xFFFF0000);
 }
 
 SMuFLID Marker::GetSMuFLID() const
@@ -19,16 +28,34 @@ SMuFLID Marker::GetSMuFLID() const
     }
 }
 
-void Marker::UpdateBoundingBox(Vec2<float> parentPosition)
+Vec2<float> Marker::GetDimensions() const
 {
     Paint paint;
     VisibleElement::ModifyPaint(paint);
     BoundingBox bb = RenderMeasurement::GetGlyphBoundingBox(SMuFLGlyph(GetSMuFLID(), 0.0f, 0.0f, paint));
 
-    boundingBox.position.x = position.x + bb.position.x + parentPosition.x;
-    boundingBox.position.y = position.y + bb.position.y + parentPosition.y;
-    boundingBox.size.x = bb.size.x;
-    boundingBox.size.y = bb.size.y;
+    bb.position.x = position.x + bb.position.x;
+    bb.position.y = position.y + bb.position.y;
+
+    return bb.size;
+}
+
+BoundingBox Marker::GetBoundingBoxRelativeToParent() const
+{
+    Paint paint;
+    VisibleElement::ModifyPaint(paint);
+    BoundingBox bb = RenderMeasurement::GetGlyphBoundingBox(SMuFLGlyph(GetSMuFLID(), 0.0f, 0.0f, paint));
+
+    bb.position.x = position.x + bb.position.x;
+    bb.position.y = position.y + bb.position.y;
+
+    return bb;
+}
+
+void Marker::UpdateBoundingBox(Vec2<float> parentPosition)
+{
+    boundingBox = GetBoundingBoxRelativeToParent();
+    boundingBox.position += parentPosition;
 
     boundingBox.AddPadding(3.0f);
 

@@ -47,8 +47,6 @@ void Chord::RenderDebug(RenderData& renderData, const Settings& settings, Vec2<f
 
     bb.position += measurePosition;
 
-    LOGE("rendering debug chord: %s, %s", bb.GetPrintableString().c_str(), measurePosition.GetPrintableString().c_str());
-
     bb.Render(renderData, 0xFFFF0000);
 }
 
@@ -90,7 +88,7 @@ void Chord::UpdateBoundingBox(const Vec2<float> &parentPosition)
     boundingBox = GetBoundingBoxRelativeToParent();
     boundingBox.position += parentPosition;
 
-    boundingBox.AddPadding();
+    boundingBox.AddPadding(3.0f);
 
     boundingBox.constraints.emplace_back(Constraint::ConstraintType::NoHorizontal);
 
@@ -284,6 +282,8 @@ void Chord::CalculatePositionAsPaged(const MusicDisplayConstants& displayConstan
 {
     position.x = defaultX;
     position.y = defaultY;
+
+    fontSize.size = 8.0f;
 
     if (chordDiagram)
         chordDiagram->CalculatePositionAsPaged(displayConstants, { 0.0f, 18.0f });

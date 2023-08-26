@@ -11,7 +11,7 @@ data class Paint(
     var isBold: Boolean = false
     var align: Int = 0
     var isTablature: Boolean = false
-    var isAntiAlias: Boolean = false
+    var isAntiAlias: Boolean = true
     var strikeThruText: Boolean = false
 
     var rotateDegrees: Float = 0.0f // how much to rotate by in degrees
@@ -30,6 +30,8 @@ data class Paint(
     var isDashedLine: Boolean = false
 
     var varyThickness: Boolean = false
+
+    var drawStyle: Int = android.graphics.Paint.Style.FILL.ordinal
 
     // for dashed lines
     var dashLength: Float = 10.0f

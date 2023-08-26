@@ -34,6 +34,18 @@ float Instrument::GetMiddleHeight(float lineSpacing, float tabLineSpacing, int s
     return height;
 }
 
+float Instrument::GetMiddleHeight(const MusicDisplayConstants& displayConstants, int systemIndex)
+{
+    std::shared_ptr<Staff> bottomStaff = staves[staves.size() - 1];
+
+    float height = bottomStaff->systemPositionData[systemIndex].y;
+    float staffHeight = bottomStaff->GetMiddleHeight(bottomStaff->GetLineSpacing(displayConstants));
+
+    height += staffHeight;
+
+    return height;
+}
+
 float Instrument::GetAboveHeight(float lineSpacing, float tabLineSpacing, int start, int end)
 {
     //if (staves.size() > 0)
@@ -158,7 +170,7 @@ int Instrument::GetMeasureCount()
     return 0;
 }
 
-void Instrument::CalculateSystemPositionData(MusicDisplayConstants displayConstants, int systemIndex, int startMeasureIndex, int endMeasureIndex, bool firstInst, Vec2<float>& previousInstPosition, float& previousInstBelowAndMiddleHeight)
+void Instrument::CalculateSystemPositionData(const MusicDisplayConstants& displayConstants, int systemIndex, int startMeasureIndex, int endMeasureIndex, bool firstInst, Vec2<float>& previousInstPosition, float& previousInstBelowAndMiddleHeight)
 {
     Vec2<float> instrumentPosition = { 0.0f, 0.0f };
 

@@ -1,46 +1,54 @@
 #include "Direction.h"
 
-void Direction::Render(RenderData& renderData, Vec2<float> measurePosition, Vec2<float> offset) const
+void Direction::Render(RenderData& renderData, Vec2<float> measurePosition) const
 {
     if (!rehearsals.empty())
     {
         for (const auto& rehearsal : rehearsals)
         {
-            rehearsal.Render(renderData, measurePosition + offset);
+            rehearsal.Render(renderData, measurePosition);
         }
     }
     else if (!words.empty())
     {
         for (const auto& word : words)
         {
-            word.Render(renderData, measurePosition + offset);
+            word.Render(renderData, measurePosition);
         }
     }
     else if (metronomeMark != nullptr)
     {
-        metronomeMark->Render(renderData, measurePosition + offset);
+        metronomeMark->Render(renderData, measurePosition);
     }
     else if (!dynamics.empty())
     {
         for (const Dynamic& dynamic : dynamics)
         {
-            dynamic.Render(renderData, measurePosition + offset);
+            dynamic.Render(renderData, measurePosition);
         }
     }
 
-    /*if (dynamicWedge != nullptr)
+    if (marker != nullptr)
     {
-        dynamicWedge->Render(renderData, measurePosition + offset);
-    }*/
+        marker->Render(renderData, measurePosition);
+    }
+}
 
-    /*if (bracketDirection != nullptr)
+void Direction::RenderDebug(RenderData& renderData, Vec2<float> measurePosition) const
+{
+    for (const auto& word : words)
     {
-        bracketDirection->Render(renderData, measurePosition + offset);
-    }*/
+        word.RenderDebug(renderData, measurePosition);
+    }
+
+    for (const auto& rehearsal : rehearsals)
+    {
+        rehearsal.RenderDebug(renderData, measurePosition);
+    }
 
     if (marker != nullptr)
     {
-        marker->Render(renderData, measurePosition + offset);
+        marker->RenderDebug(renderData, measurePosition);
     }
 }
 
@@ -48,12 +56,12 @@ void Direction::RenderDebug(RenderData& renderData) const
 {
     for (auto& word : words)
     {
-        word.RenderDebug(renderData);
+        //word.RenderDebug(renderData);
     }
 
     for (auto& rehearsal : rehearsals)
     {
-        rehearsal.RenderDebug(renderData);
+        //rehearsal.RenderDebug(renderData);
     }
 
     for (auto& dynamic : dynamics)
@@ -68,7 +76,7 @@ void Direction::RenderDebug(RenderData& renderData) const
 
     if (marker)
     {
-        marker->RenderDebug(renderData);
+        //marker->RenderDebug(renderData);
     }
 }
 
@@ -131,6 +139,11 @@ Vec2<float> Direction::GetDimensions() const
     for (auto& dynamic : dynamics)
     {
         dimensions = dynamic.GetDimensions();
+    }
+
+    if (marker != nullptr)
+    {
+        dimensions = marker->GetDimensions();
     }
 
     /*if (metronomeMark != nullptr)

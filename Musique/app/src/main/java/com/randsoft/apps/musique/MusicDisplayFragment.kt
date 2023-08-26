@@ -1,15 +1,9 @@
 package com.randsoft.apps.musique
 
 import android.content.Context
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
-import android.graphics.PointF
 import android.graphics.RectF
 import android.graphics.pdf.PdfDocument
-import android.opengl.Visibility
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
 import android.print.PrintAttributes
 import android.text.method.LinkMovementMethod
 import android.util.Log
@@ -17,9 +11,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
-import android.widget.ImageButton
-import android.widget.ImageView
-import android.widget.RelativeLayout
 import android.widget.SeekBar
 import android.widget.TextView
 import androidx.constraintlayout.widget.ConstraintLayout
@@ -30,6 +21,7 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.button.MaterialButton
 import com.randsoft.apps.musique.event.InputEvent
 import com.randsoft.apps.musique.framedata.FrameData
 import com.randsoft.apps.musique.printing.PrintHandler
@@ -47,19 +39,19 @@ class MusicDisplayFragment : Fragment(), PrintHandler.Callbacks, SettingsDialogF
 
     private lateinit var titleTextView: TextView
 
-    private lateinit var playButton: ImageView
-    private lateinit var metronomeButton: ImageView
-    private lateinit var restartButton: ImageView
-    private lateinit var printButton: ImageView
-    private lateinit var instrumentControlButton: RelativeLayout
-    private lateinit var settingsButton: ImageView
-    private lateinit var volumeButton: ImageView
+    private lateinit var playButton: MaterialButton
+    private lateinit var metronomeButton: MaterialButton
+    private lateinit var restartButton: MaterialButton
+    private lateinit var printButton: MaterialButton
+    private lateinit var instrumentControlButton: MaterialButton
+    private lateinit var settingsButton: MaterialButton
+    private lateinit var volumeButton: MaterialButton
 
     private lateinit var secondaryControlBar: ConstraintLayout
 
     private lateinit var volumeControlSeekBar: SeekBar
 
-    private lateinit var sideMenuButton: RelativeLayout
+    private lateinit var sideMenuButton: MaterialButton
     private lateinit var sideMenu: ConstraintLayout
     private lateinit var sideMenuSongDescTextView: TextView
 
@@ -137,8 +129,6 @@ class MusicDisplayFragment : Fragment(), PrintHandler.Callbacks, SettingsDialogF
         return callbacks?.onUpdatePrintLayout(attributes)!!
     }
 
-    private var bitmap: Bitmap? = null
-
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -154,37 +144,44 @@ class MusicDisplayFragment : Fragment(), PrintHandler.Callbacks, SettingsDialogF
 
         secondaryControlBar = view.findViewById(R.id.secondary_control_bar)
 
-        playButton = view.findViewById(R.id.play_button_icon)
+        playButton = view.findViewById(R.id.play_button)
         if (viewModel.isPlaying) {
-            playButton.setImageDrawable(resources.getDrawable(R.drawable.pause_icon))
+            playButton.setIconResource(R.drawable.pause_icon)
         }
         else {
-            playButton.setImageDrawable(resources.getDrawable(R.drawable.play_icon))
+            playButton.setIconResource(R.drawable.play_icon)
         }
         playButton.setOnClickListener {
             onPlayButtonClicked()
         }
 
-        metronomeButton = view.findViewById(R.id.metronome_button_icon)
+        metronomeButton = view.findViewById(R.id.metronome_button)
         metronomeButton.setOnClickListener {
-            viewModel.isMetronomeOn = !viewModel.isMetronomeOn;
+            viewModel.isMetronomeOn = !viewModel.isMetronomeOn
+
+            if (viewModel.isMetronomeOn) {
+                metronomeButton.iconTint = requireContext().resources.getColorStateList(R.color.main_500, requireContext().theme)
+            } else {
+                metronomeButton.iconTint = requireContext().resources.getColorStateList(R.color.gray_800, requireContext().theme)
+            }
+
             callbacks?.onMetronomeButtonToggled(viewModel.isMetronomeOn)
         }
 
-        restartButton = view.findViewById(R.id.restart_button_icon)
+        restartButton = view.findViewById(R.id.restart_button)
         restartButton.setOnClickListener {
             if (viewModel.isPlaying) {
-                viewModel.isPlaying = false;
-                playButton.setImageDrawable(resources.getDrawable(R.drawable.pause_icon))
+                viewModel.isPlaying = false
+                playButton.setIconResource(R.drawable.pause_icon)
                 callbacks?.onPlayButtonToggled(viewModel.isPlaying)
             }
             callbacks?.onResetButtonPressed()
         }
 
-        printButton = view.findViewById(R.id.print_button_icon)
+        printButton = view.findViewById(R.id.print_button)
         printButton.setOnClickListener {
             if (viewModel.isPlaying) { // stop the play back
-                viewModel.isPlaying = false;
+                viewModel.isPlaying = false
                 callbacks?.onPlayButtonToggled(viewModel.isPlaying)
             }
 
@@ -199,13 +196,13 @@ class MusicDisplayFragment : Fragment(), PrintHandler.Callbacks, SettingsDialogF
                 instrumentControlRecyclerView.visibility = View.GONE
         }
 
-        settingsButton = view.findViewById(R.id.settings_button_icon)
+        settingsButton = view.findViewById(R.id.settings_button)
         settingsButton.setOnClickListener {
             settingsDialogFragment.show(parentFragmentManager, "SettingsDialog")
         }
 
         volumeControlSeekBar = view.findViewById(R.id.volume_control_seek_bar)
-        volumeControlSeekBar.progress = 100;
+        volumeControlSeekBar.progress = 100
         volumeControlSeekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar, progress: Int, fromUser: Boolean) {
                 val progressFloat: Float = progress.toFloat() / 100.0f
@@ -228,13 +225,18 @@ class MusicDisplayFragment : Fragment(), PrintHandler.Callbacks, SettingsDialogF
         else
             volumeControlSeekBar.visibility = View.GONE
 
-        volumeButton = view.findViewById(R.id.volume_button_icon)
+        volumeButton = view.findViewById(R.id.volume_button)
         volumeButton.setOnClickListener {
             viewModel.isVolumeButtonOn = !viewModel.isVolumeButtonOn
-            if (viewModel.isVolumeButtonOn)
+
+            if (viewModel.isVolumeButtonOn) {
+                volumeButton.iconTint = requireContext().resources.getColorStateList(R.color.main_500, requireContext().theme)
                 volumeControlSeekBar.visibility = View.VISIBLE
-            else
+            }
+            else {
+                volumeButton.iconTint = requireContext().resources.getColorStateList(R.color.gray_800, requireContext().theme)
                 volumeControlSeekBar.visibility = View.GONE
+            }
         }
 
         playSeekBar = view.findViewById(R.id.play_seek_bar)
@@ -282,8 +284,6 @@ class MusicDisplayFragment : Fragment(), PrintHandler.Callbacks, SettingsDialogF
         instrumentControlRecyclerView.layoutManager = LinearLayoutManager(context)
         instrumentControlRecyclerView.adapter = InstrumentControlAdapter(emptyList())
 
-        //bitmap = BitmapFactory.decodeResource(resources, R.drawable.quarter_note)
-
         return view
     }
 
@@ -295,13 +295,13 @@ class MusicDisplayFragment : Fragment(), PrintHandler.Callbacks, SettingsDialogF
 
     private fun onPlayButtonClicked()
     {
-        viewModel.isPlaying = !viewModel.isPlaying;
+        viewModel.isPlaying = !viewModel.isPlaying
 
         if (viewModel.isPlaying) {
-            playButton.setImageDrawable(resources.getDrawable(R.drawable.pause_icon))
+            playButton.setIconResource(R.drawable.pause_icon)
         }
         else {
-            playButton.setImageDrawable(resources.getDrawable(R.drawable.play_icon))
+            playButton.setIconResource(R.drawable.play_icon)
         }
 
         callbacks?.onPlayButtonToggled(viewModel.isPlaying)
@@ -310,22 +310,22 @@ class MusicDisplayFragment : Fragment(), PrintHandler.Callbacks, SettingsDialogF
     fun setVolumeButtonLevel(volume: Float)
     {
         if (volume > 0.70f) {
-            volumeButton.setImageDrawable(resources.getDrawable(R.drawable.volume_full_icon))
+            volumeButton.setIconResource(R.drawable.volume_full_icon)
         }
         else if (volume > 0.40f) {
-            volumeButton.setImageDrawable(resources.getDrawable(R.drawable.volume_mid_icon))
+            volumeButton.setIconResource(R.drawable.volume_mid_icon)
         }
         else if (volume > 0.0f) {
-            volumeButton.setImageDrawable(resources.getDrawable(R.drawable.volume_low_icon))
+            volumeButton.setIconResource(R.drawable.volume_low_icon)
         }
         else {
-            volumeButton.setImageDrawable(resources.getDrawable(R.drawable.volume_mute_icon))
+            volumeButton.setIconResource(R.drawable.volume_mute_icon)
         }
     }
 
     override fun onSettingsChanged(settings: SettingsDialogFragment.Settings) {
-        Log.i(TAG, "SETTINGS CHANGED");
-        callbacks?.onSettingsChanged(settings);
+        Log.i(TAG, "SETTINGS CHANGED")
+        callbacks?.onSettingsChanged(settings)
     }
 
     inner class InstrumentControlViewHolder(view: View) : RecyclerView.ViewHolder(view) {
@@ -352,7 +352,7 @@ class MusicDisplayFragment : Fragment(), PrintHandler.Callbacks, SettingsDialogF
             name.text = instrument.name
             volume.text = "Volume " + instrument.volume.toString()
             if (instrument.visible)
-                isVisibleButton.text = "Visible";
+                isVisibleButton.text = "Visible"
             else
                 isVisibleButton.text = "Not Visible"
         }
@@ -375,7 +375,7 @@ class MusicDisplayFragment : Fragment(), PrintHandler.Callbacks, SettingsDialogF
 
     private fun onUpdatePlayProgress(progress: Float)
     {
-        playSeekBar.progress = (progress * 100.0f).toInt();
+        playSeekBar.progress = (progress * 100.0f).toInt()
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -402,13 +402,13 @@ class MusicDisplayFragment : Fragment(), PrintHandler.Callbacks, SettingsDialogF
         }
         else
         {
-            Log.w(TAG, "musicDisplayView is null");
+            Log.w(TAG, "musicDisplayView is null")
         }
     }
 
     fun onUpdatePrintRenderData(printRenderData: PrintRenderData) {
         if (musicDisplayView != null) {
-            musicDisplayView?.printRenderData = printRenderData;
+            musicDisplayView?.printRenderData = printRenderData
         }
     }
 
@@ -429,46 +429,38 @@ class MusicDisplayFragment : Fragment(), PrintHandler.Callbacks, SettingsDialogF
     }
 
     fun measureGlyph(glyph: SMuFLGlyph): Float {
-        if (musicDisplayView != null) {
-            return musicDisplayView!!.measureGlyph(glyph)
-        }
-        else
-        {
+        return if (musicDisplayView != null) {
+            musicDisplayView!!.measureGlyph(glyph)
+        } else {
             Log.w(TAG, "musicDisplayView is null")
-            return 0.0f
+            0.0f
         }
     }
 
     fun getGlyphBoundingBox(glyph: SMuFLGlyph): RectF {
-        if (musicDisplayView != null) {
-            return musicDisplayView!!.getGlyphBoundingBox(glyph)
-        }
-        else
-        {
+        return if (musicDisplayView != null) {
+            musicDisplayView!!.getGlyphBoundingBox(glyph)
+        } else {
             Log.w(TAG, "musicDisplayView is null")
-            return RectF()
+            RectF()
         }
     }
 
     fun measureText(text: Text): RectF {
-        if (musicDisplayView != null) {
-            return musicDisplayView!!.measureText(text)
-        }
-        else
-        {
+        return if (musicDisplayView != null) {
+            musicDisplayView!!.measureText(text)
+        } else {
             Log.w(TAG, "musicDisplayView is null")
-            return RectF()
+            RectF()
         }
     }
 
     fun measureSpannableText(text: SpannableText): RectF {
-        if (musicDisplayView != null) {
-            return musicDisplayView!!.measureSpannableText(text)
-        }
-        else
-        {
+        return if (musicDisplayView != null) {
+            musicDisplayView!!.measureSpannableText(text)
+        } else {
             Log.w(TAG, "musicDisplayView is null")
-            return RectF()
+            RectF()
         }
     }
 

@@ -16,6 +16,7 @@ class Instrument
 public:
     // gets the max height of the stave's measures from start to end
     float GetMiddleHeight(float lineSpacing, float tabLineSpacing, int start, int end);
+    float GetMiddleHeight(const MusicDisplayConstants& displayConstants, int systemIndex);
     float GetAboveHeight(float lineSpacing, float tabLineSpacing, int start, int end);
     float GetBelowHeight(float lineSpacing, float tabLineSpacing, int start, int end);
     float GetTotalHeight(float lineSpacing, float tabLineSpacing, int start, int end);
@@ -24,7 +25,7 @@ public:
 
     void CalculateTotalBoundingBoxes(const MusicDisplayConstants& displayConstants, const std::vector<std::shared_ptr<System>>& systems);
 
-    void CalculateSystemPositionData(MusicDisplayConstants displayConstants, int systemIndex, int startMeasureIndex, int endMeasureIndex, bool firstInst, Vec2<float>& previousInstPosition, float& previousInstBelowAndMiddleHeight);
+    void CalculateSystemPositionData(const MusicDisplayConstants& displayConstants, int systemIndex, int startMeasureIndex, int endMeasureIndex, bool firstInst, Vec2<float>& previousInstPosition, float& previousInstBelowAndMiddleHeight);
 
     /**
      * Gets the number of measures

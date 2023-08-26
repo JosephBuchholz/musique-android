@@ -2,7 +2,7 @@
 
 #include "../../RenderMeasurement.h"
 
-void Words::Render(RenderData& renderData, Vec2<float> measurePosition, Vec2<float> offset) const
+void Words::Render(RenderData& renderData, Vec2<float> measurePosition) const
 {
     Paint paint = Paint();
     paint.textSize = 16.0f;
@@ -12,7 +12,18 @@ void Words::Render(RenderData& renderData, Vec2<float> measurePosition, Vec2<flo
         paint.isBold = true;
     paint.textSize = fontSize.size;
 
-    renderData.AddText(Text(text.string, position.x + measurePosition.x + offset.y, position.y + measurePosition.y + offset.y, Paint(color.color, paint)));
+    renderData.AddText(Text(text.string, position.x + measurePosition.x, position.y + measurePosition.y, Paint(color.color, paint)));
+}
+
+void Words::RenderDebug(RenderData& renderData, Vec2<float> measurePosition) const
+{
+    BoundingBox bb = GetBoundingBoxRelativeToParent();
+
+    bb.position += measurePosition;
+
+    bb.AddPadding(3.0f);
+
+    bb.Render(renderData, 0xFFFF0000);
 }
 
 Vec2<float> Words::GetDimensions() const
@@ -23,9 +34,28 @@ Vec2<float> Words::GetDimensions() const
     return dimensions;
 }
 
-void Words::UpdateBoundingBox(const Vec2<float>& parentPosition)
+BoundingBox Words::GetBoundingBoxRelativeToParent() const
 {
     Paint paint = Paint();
+    if (fontStyle == FontStyle::Italic)
+        paint.isItalic = true;
+    if (fontWeight == FontWeight::Bold)
+        paint.isBold = true;
+    paint.textSize = fontSize.size;
+
+    BoundingBox bb = RenderMeasurement::GetTextBoundingBox(Text(text.string, 0.0f, 0.0f, paint));
+
+    bb.position += position;
+
+    bb.position.x -= bb.size.x / 2.0f;
+    bb.position.y += bb.size.y / 2.0f;
+
+    return bb;
+}
+
+void Words::UpdateBoundingBox(const Vec2<float>& parentPosition)
+{
+    /*Paint paint = Paint();
     //paint.textSize = 16.0f;
     if (fontStyle == FontStyle::Italic)
         paint.isItalic = true;
@@ -53,7 +83,12 @@ void Words::UpdateBoundingBox(const Vec2<float>& parentPosition)
     boundingBox.position.x -= bb.size.x / 2.0f;
     boundingBox.position.y += bb.size.y / 2.0f;
     boundingBox.size.x = bb.size.x;
-    boundingBox.size.y = bb.size.y;
+    boundingBox.size.y = bb.size.y;*/
+
+    boundingBox = GetBoundingBoxRelativeToParent();
+    boundingBox.position += parentPosition;
+
+    boundingBox.AddPadding(3.0f);
 
     boundingBox.constraints.emplace_back(Constraint::ConstraintType::None);
 

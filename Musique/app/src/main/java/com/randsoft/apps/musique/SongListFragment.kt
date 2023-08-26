@@ -1,29 +1,28 @@
 package com.randsoft.apps.musique
 
 import android.content.Context
+import android.os.Build
+import android.os.Build.VERSION_CODES.Q
 import android.os.Bundle
 import android.util.Log
 import android.view.*
+import android.view.inputmethod.EditorInfo
+import android.view.inputmethod.InputMethodManager
 import android.widget.Button
-import android.widget.ImageButton
+import android.widget.EditText
+import android.widget.PopupMenu
 import android.widget.ProgressBar
-import android.widget.RelativeLayout
 import android.widget.TextView
+import android.widget.TextView.OnEditorActionListener
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.appcompat.widget.SearchView
-import androidx.appcompat.widget.SearchView.OnQueryTextListener
+import androidx.core.content.ContextCompat.getSystemService
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.randsoft.apps.musique.api.GetSongApi
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
-import retrofit2.Retrofit
-import retrofit2.converter.scalars.ScalarsConverterFactory
+
 
 private const val TAG = "SongListFragment"
 
@@ -40,11 +39,13 @@ class SongListFragment() : Fragment(), WebRepository.Callbacks {
 
     private var callbacks: Callbacks? = null
 
-    private lateinit var openButton: ImageButton
+    private lateinit var openButton: Button
     private lateinit var browseButton: Button
-    private lateinit var searchView: SearchView
+    private lateinit var searchButton: Button
+    private lateinit var searchField: EditText
     private lateinit var songListRecyclerView: RecyclerView
-    private lateinit var mainSettingsButton: RelativeLayout
+    private lateinit var mainSettingsButton: Button
+    private lateinit var moreOptionsMenuButton: Button
 
     private var loadingProgressBar: ProgressBar? = null
     private var isLoading = false
@@ -108,12 +109,6 @@ class SongListFragment() : Fragment(), WebRepository.Callbacks {
         loadingProgressBar = view.findViewById(R.id.loading_progress_bar)
         onUpdateLoading()
 
-        openButton = view.findViewById(R.id.open_button)
-        openButton.setOnClickListener {
-            Log.i(TAG, "Open button was clicked")
-            openDocument.launch(arrayOf("*/*"))
-        }
-
         browseButton = view.findViewById(R.id.browse_button)
         browseButton.setOnClickListener {
             Log.i(TAG, "Browse button was clicked")
@@ -132,44 +127,90 @@ class SongListFragment() : Fragment(), WebRepository.Callbacks {
                 })
         }
 
-        searchView = view.findViewById(R.id.search_view)
-        searchView.isIconified = false
-        searchView.setOnQueryTextListener(object : OnQueryTextListener {
-            override fun onQueryTextSubmit(query: String?): Boolean {
-
-                if (query != null)
-                {
-                    onStartLoading()
-
-                    val responseLiveData: LiveData<List<SongItem>> = webRepository.performSearch(query)
-                    responseLiveData.observe(
-                        viewLifecycleOwner,
-                        Observer { songItems ->
-                            onStopLoading()
-                            Log.d(TAG, "Got data: $songItems")
-                            viewModel.songItems = songItems
-                            songListRecyclerView.adapter = SongListAdapter(songItems)
-                        })
+        searchField = view.findViewById(R.id.search_field)
+        searchField.setOnEditorActionListener(object : OnEditorActionListener {
+            override fun onEditorAction(v: TextView?, actionId: Int, event: KeyEvent?): Boolean {
+                if (actionId == EditorInfo.IME_ACTION_GO) {
+                    searchField.clearFocus()
+                    onSearch(searchField.text.toString())
+                    return true;
                 }
-
-                return true
-            }
-
-            override fun onQueryTextChange(newText: String?): Boolean {
-                return false
+                return false;
             }
         })
+
+        searchButton = view.findViewById(R.id.search_button)
+        searchButton.setOnClickListener {
+            if (searchField.text.isNotEmpty()) {
+                searchField.clearFocus()
+                val inputMethodManager: InputMethodManager? = getSystemService(requireContext(), InputMethodManager::class.java)
+                inputMethodManager?.showSoftInput(searchField, InputMethodManager.HIDE_IMPLICIT_ONLY)
+
+                onSearch(searchField.text.toString())
+            }
+            else {
+                if (searchField.requestFocus()) {
+                    val inputMethodManager: InputMethodManager? = getSystemService(requireContext(), InputMethodManager::class.java)
+                    inputMethodManager?.showSoftInput(searchField, InputMethodManager.SHOW_IMPLICIT)
+                }
+            }
+        }
 
         songListRecyclerView = view.findViewById(R.id.song_list_recycler_view)
         songListRecyclerView.layoutManager = LinearLayoutManager(context)
         songListRecyclerView.adapter = SongListAdapter(viewModel.songItems)
 
-        mainSettingsButton = view.findViewById(R.id.main_settings_button)
-        mainSettingsButton.setOnClickListener {
-            callbacks?.onMainSettingsOpened()
+//        openButton = view.findViewById(R.id.open_button)
+//        openButton.setOnClickListener {
+//            Log.i(TAG, "Open button was clicked")
+//            openDocument.launch(arrayOf("*/*"))
+//        }
+//
+//        mainSettingsButton = view.findViewById(R.id.main_settings_button)
+//        mainSettingsButton.setOnClickListener {
+//            callbacks?.onMainSettingsOpened()
+//        }
+
+        moreOptionsMenuButton = view.findViewById(R.id.more_options_menu_button)
+        moreOptionsMenuButton.setOnClickListener {
+            val popupMenu = PopupMenu(requireContext(), moreOptionsMenuButton)
+            popupMenu.inflate(R.menu.more_options_menu)
+            popupMenu.setOnMenuItemClickListener {
+                when (it.itemId) {
+                    R.id.open_item -> {
+                        Log.i(TAG, "Open button was clicked")
+                        openDocument.launch(arrayOf("*/*"))
+                        true
+                    }
+                    R.id.settings_item -> {
+                        callbacks?.onMainSettingsOpened()
+                        true
+                    }
+                    else -> true
+                }
+            }
+
+            if (Build.VERSION.SDK_INT >= 29)
+                popupMenu.setForceShowIcon(true)
+
+            popupMenu.show()
         }
 
         return view
+    }
+
+    private fun onSearch(query: String) {
+        onStartLoading()
+
+        val responseLiveData: LiveData<List<SongItem>> = webRepository.performSearch(query)
+        responseLiveData.observe(
+            viewLifecycleOwner,
+            Observer { songItems ->
+                onStopLoading()
+                Log.d(TAG, "Got data: $songItems")
+                viewModel.songItems = songItems
+                songListRecyclerView.adapter = SongListAdapter(songItems)
+            })
     }
 
     inner class SongListViewHolder(var view: View) : RecyclerView.ViewHolder(view), PartPickerDialogFragment.Callbacks {

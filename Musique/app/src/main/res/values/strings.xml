@@ -1,10 +1,28 @@
 <resources>
     <string name="app_name">Musique</string>
 
+    <string name="default_text_1_para">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aenean posuere ut lacus in tincidunt. Fusce molestie ante quis euismod viverra. Integer tincidunt venenatis tortor eget dapibus. Fusce egestas libero vel auctor auctor. Nulla facilisi. Ut pretium, dui quis eleifend posuere, risus risus elementum enim, eu efficitur metus nunc sit amet eros. Duis pellentesque congue ultricies.</string>
+
     <string name="cancel">Cancel</string>
     <string name="ok">OK</string>
 
+    <string name="settings_button">Settings</string>
+    <string name="open_button">Open</string>
+
     <string name="open_button_cont_desc">Open</string>
+    <string name="main_settings_cont_desc">Settings</string>
+    <string name="side_menu_button_cont_desc">Side Menu</string>
+
+    <string name="play_button_cont_desc">Play</string>
+    <string name="restart_button_cont_desc">Restart</string>
+
+    <string name="instrument_control_button_cont_desc">Instrument Controller</string>
+    <string name="print_button_cont_desc">Print</string>
+    <string name="volume_button_cont_desc">Volume</string>
+    <string name="metronome_button_cont_desc">Metronome</string>
+    <string name="settings_button_cont_desc">Settings</string>
+
+    <string name="more_options_button_cont_desc">More Options</string>
 
     <string name="browse_button_text">Browse</string>
 
