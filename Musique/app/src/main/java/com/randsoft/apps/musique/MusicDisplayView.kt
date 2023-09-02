@@ -61,20 +61,10 @@ class MusicDisplayView(context: Context, attrs: AttributeSet? = null): View(cont
     private var typefaceBold = ResourcesCompat.getFont(context, R.font.timesbd)
     private var typefaceBoldItalic = ResourcesCompat.getFont(context, R.font.timesbi)
 
-    /*private var typefacePlain = ResourcesCompat.getFont(context, R.font.open_sans)
-    private var typefaceItalic = ResourcesCompat.getFont(context, R.font.open_sans_italic)
-    private var typefaceBold = ResourcesCompat.getFont(context, R.font.open_sans_bold)
-    private var typefaceBoldItalic = ResourcesCompat.getFont(context, R.font.open_sans_bold_italic)*/
-
     private var tablatureTypeface = ResourcesCompat.getFont(context, R.font.open_sans)
 
     var musicTypeface = ResourcesCompat.getFont(context, R.font.bravura)
     var musicTextTypeface = ResourcesCompat.getFont(context, R.font.bravura_text)
-
-    // handwritten style typeface
-    /*var musicTypeface = ResourcesCompat.getFont(context, R.font.petaluma)
-    var musicTextTypeface = ResourcesCompat.getFont(context, R.font.petaluma_text)*/
-
 
     private val backgroundPaint = Paint().apply {
         color = 0xffffffff.toInt()
@@ -1034,7 +1024,7 @@ class MusicDisplayView(context: Context, attrs: AttributeSet? = null): View(cont
         canvas.drawRect(RectF(point.x, point.y, point.x + 6.0f, point.y + 6.0f), paint)
     }
 
-    fun setFont(defaultFont: FontType) {
+    fun setFont(defaultFont: FontType, defaultMusicFont: MusicFontType) {
         Log.w(TAG, "setting font")
         if (defaultFont == FontType.TimesNewRoman)
         {
@@ -1055,6 +1045,24 @@ class MusicDisplayView(context: Context, attrs: AttributeSet? = null): View(cont
         else
         {
             Log.e(TAG, "That font does not exist")
+        }
+
+        when (defaultMusicFont) {
+            MusicFontType.Bravura -> {
+                musicTypeface = ResourcesCompat.getFont(context, R.font.bravura)
+                musicTextTypeface = ResourcesCompat.getFont(context, R.font.bravura_text)
+            }
+            MusicFontType.Petaluma -> {
+                musicTypeface = ResourcesCompat.getFont(context, R.font.petaluma)
+                musicTextTypeface = ResourcesCompat.getFont(context, R.font.petaluma_text)
+            }
+            MusicFontType.Leland -> {
+                musicTypeface = ResourcesCompat.getFont(context, R.font.leland)
+                musicTextTypeface = ResourcesCompat.getFont(context, R.font.leland_text)
+            }
+            else -> {
+                Log.e(TAG, "That music font does not exist")
+            }
         }
     }
 }

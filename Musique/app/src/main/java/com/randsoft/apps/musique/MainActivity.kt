@@ -293,6 +293,10 @@ class MainActivity : AppCompatActivity(), MusicDisplayFragment.Callbacks,
         onVolumeChangedNative(volume)
     }
 
+    override fun onTempoPercentageChange(tempoPercentage: Float) {
+        onTempoPercentageChangedNative(tempoPercentage)
+    }
+
     override fun onInputEvent(inputEvent: InputEvent) {
         onInputEventNative(inputEvent)
     }
@@ -314,6 +318,7 @@ class MainActivity : AppCompatActivity(), MusicDisplayFragment.Callbacks,
     private external fun updateInstrumentInfoNative(instrumentInfo: InstrumentInfo, index: Int)
     private external fun onSettingsChangedNative(settings: MainSettings)
     private external fun onVolumeChangedNative(volume: Float)
+    private external fun onTempoPercentageChangedNative(volume: Float)
 
     private external fun onInputEventNative(inputEvent: InputEvent)
 
@@ -408,6 +413,14 @@ class MainActivity : AppCompatActivity(), MusicDisplayFragment.Callbacks,
 
     private fun setMidiReverb(reverb: Int) {
         midiDriver.setReverb(reverb)
+    }
+
+    private fun onTempoChangedCallback(tempo: Float) {
+        Handler(Looper.getMainLooper()).post(Runnable {
+            if (musicDisplayFragment != null) {
+                musicDisplayFragment!!.onTempoChangedCallback(tempo)
+            }
+        })
     }
 
     // stroage tests

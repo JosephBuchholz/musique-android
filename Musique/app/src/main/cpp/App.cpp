@@ -14,6 +14,7 @@ App::App()
 {
     musicRenderer = std::make_shared<MusicRenderer>();
     musicPlayer = std::make_shared<MusicPlayer>();
+    musicPlayer->SetOnTempoChangedCallback(OnTempoChangedCallback);
 }
 
 App::~App()

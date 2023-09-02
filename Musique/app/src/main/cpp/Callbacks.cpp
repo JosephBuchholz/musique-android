@@ -574,3 +574,15 @@ void SetMidiReverb(int reverb) {
     // calling callback
     env->CallVoidMethod(mainActivityRefObj, callback, (jint)reverb);
 }
+
+void OnTempoChangedCallback(float tempo)
+{
+    JNIEnv* env = GetEnv();
+
+    jclass classMainActivity = env->FindClass("com/randsoft/apps/musique/MainActivity");
+    jmethodID callback = env->GetMethodID(classMainActivity, "onTempoChangedCallback",
+                                          "(F)V");
+
+    // calling callback
+    env->CallVoidMethod(mainActivityRefObj, callback, (jfloat)tempo);
+}

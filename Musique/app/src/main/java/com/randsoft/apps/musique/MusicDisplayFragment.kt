@@ -28,6 +28,7 @@ import com.randsoft.apps.musique.printing.PrintHandler
 import com.randsoft.apps.musique.renderdata.*
 import com.randsoft.apps.musique.songdata.InstrumentInfo
 import com.randsoft.apps.musique.songdata.SongData
+import java.time.temporal.Temporal
 
 private const val TAG = "MusicDisplayFragment"
 
@@ -46,10 +47,19 @@ class MusicDisplayFragment : Fragment(), PrintHandler.Callbacks, SettingsDialogF
     private lateinit var instrumentControlButton: MaterialButton
     private lateinit var settingsButton: MaterialButton
     private lateinit var volumeButton: MaterialButton
+    private lateinit var tempoButton: MaterialButton
+
+    private lateinit var volumeControl: View
+    private lateinit var tempoControl: View
 
     private lateinit var secondaryControlBar: ConstraintLayout
 
     private lateinit var volumeControlSeekBar: SeekBar
+    private lateinit var volumeControlTextView: TextView
+
+    private lateinit var tempoControlSeekBar: SeekBar
+    private lateinit var tempoControlProgressTextView: TextView
+    private lateinit var tempoControlTempoTextView: TextView
 
     private lateinit var sideMenuButton: MaterialButton
     private lateinit var sideMenu: ConstraintLayout
@@ -72,6 +82,8 @@ class MusicDisplayFragment : Fragment(), PrintHandler.Callbacks, SettingsDialogF
 
     private var songId: Int = 0
 
+    private var currentTempo: Float = 120.0f
+
     interface Callbacks {
         fun onStartRendering()
         fun onPlayButtonToggled(state: Boolean)
@@ -83,6 +95,7 @@ class MusicDisplayFragment : Fragment(), PrintHandler.Callbacks, SettingsDialogF
         fun updateInstrumentInfo(info: InstrumentInfo, index: Int)
         fun onSettingsChanged(settings: SettingsDialogFragment.Settings)
         fun onVolumeChange(volume: Float)
+        fun onTempoPercentageChange(tempoPercentage: Float)
 
         fun onInputEvent(inputEvent: InputEvent)
     }
@@ -140,7 +153,7 @@ class MusicDisplayFragment : Fragment(), PrintHandler.Callbacks, SettingsDialogF
 
         musicDisplayView = view.findViewById(R.id.music_display_view)
         musicDisplayView?.setCallbacks(this)
-        musicDisplayView?.setFont(sharedViewModel!!.mainSettings.defaultFont)
+        musicDisplayView?.setFont(sharedViewModel!!.mainSettings.defaultFont, sharedViewModel!!.mainSettings.defaultMusicFont)
 
         secondaryControlBar = view.findViewById(R.id.secondary_control_bar)
 
@@ -201,11 +214,17 @@ class MusicDisplayFragment : Fragment(), PrintHandler.Callbacks, SettingsDialogF
             settingsDialogFragment.show(parentFragmentManager, "SettingsDialog")
         }
 
+        volumeControl = view.findViewById(R.id.volume_control)
+
+        volumeControlTextView = view.findViewById(R.id.volume_control_text_view)
+
         volumeControlSeekBar = view.findViewById(R.id.volume_control_seek_bar)
         volumeControlSeekBar.progress = 100
+        volumeControlTextView.text = volumeControlSeekBar.progress.toString()
         volumeControlSeekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar, progress: Int, fromUser: Boolean) {
                 val progressFloat: Float = progress.toFloat() / 100.0f
+                volumeControlTextView.text = progress.toString()
                 callbacks?.onVolumeChange(progressFloat)
                 setVolumeButtonLevel(progressFloat)
             }
@@ -216,28 +235,73 @@ class MusicDisplayFragment : Fragment(), PrintHandler.Callbacks, SettingsDialogF
 
             override fun onStopTrackingTouch(seekBar: SeekBar) {
                 val progressFloat: Float = seekBar.progress.toFloat() / 100.0f
+                volumeControlTextView.text = volumeControlSeekBar.progress.toString()
                 callbacks?.onVolumeChange(progressFloat)
                 setVolumeButtonLevel(progressFloat)
             }
         })
-        if (viewModel.isVolumeButtonOn)
-            volumeControlSeekBar.visibility = View.VISIBLE
-        else
-            volumeControlSeekBar.visibility = View.GONE
 
         volumeButton = view.findViewById(R.id.volume_button)
         volumeButton.setOnClickListener {
             viewModel.isVolumeButtonOn = !viewModel.isVolumeButtonOn
 
             if (viewModel.isVolumeButtonOn) {
-                volumeButton.iconTint = requireContext().resources.getColorStateList(R.color.main_500, requireContext().theme)
-                volumeControlSeekBar.visibility = View.VISIBLE
+                showVolumeControl()
             }
             else {
-                volumeButton.iconTint = requireContext().resources.getColorStateList(R.color.gray_800, requireContext().theme)
-                volumeControlSeekBar.visibility = View.GONE
+                hideVolumeControl()
             }
         }
+
+        tempoControl = view.findViewById(R.id.tempo_control)
+
+        tempoControlProgressTextView = view.findViewById(R.id.tempo_control_progress_text_view)
+        tempoControlTempoTextView = view.findViewById(R.id.tempo_control_tempo_text_view)
+
+        tempoControlSeekBar = view.findViewById(R.id.tempo_control_seek_bar)
+        tempoControlProgressTextView.text = getString(R.string.tempo_control_percentage, tempoControlSeekBar.progress)
+        tempoControlTempoTextView.text = getString(R.string.tempo_control_tempo, tempoControlSeekBar.progress)
+        tempoControlSeekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(seekBar: SeekBar, progress: Int, fromUser: Boolean) {
+                val progressFloat: Float = progress.toFloat()
+                tempoControlProgressTextView.text = getString(R.string.tempo_control_percentage, progressFloat.toInt())
+                tempoControlTempoTextView.text = getString(R.string.tempo_control_tempo, (currentTempo * (tempoControlSeekBar.progress / 100.0f)).toInt())
+                callbacks?.onTempoPercentageChange(progressFloat / 100.0f)
+            }
+
+            override fun onStartTrackingTouch(seekBar: SeekBar) {
+
+            }
+
+            override fun onStopTrackingTouch(seekBar: SeekBar) {
+                val progressFloat: Float = seekBar.progress.toFloat()
+                tempoControlProgressTextView.text = getString(R.string.tempo_control_percentage, progressFloat.toInt())
+                tempoControlTempoTextView.text = getString(R.string.tempo_control_tempo, (currentTempo * (tempoControlSeekBar.progress / 100.0f)).toInt())
+                callbacks?.onTempoPercentageChange(progressFloat / 100.0f)
+            }
+        })
+
+        tempoButton = view.findViewById(R.id.tempo_button)
+        tempoButton.setOnClickListener {
+            viewModel.isTempoButtonOn = !viewModel.isTempoButtonOn
+
+            if (viewModel.isTempoButtonOn) {
+                showTempoControl()
+            }
+            else {
+                hideTempoControl()
+            }
+        }
+
+        if (viewModel.isVolumeButtonOn)
+            showVolumeControl()
+        else
+            hideVolumeControl()
+
+        if (viewModel.isTempoButtonOn)
+            showTempoControl()
+        else
+            hideTempoControl()
 
         playSeekBar = view.findViewById(R.id.play_seek_bar)
         playSeekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
@@ -285,6 +349,42 @@ class MusicDisplayFragment : Fragment(), PrintHandler.Callbacks, SettingsDialogF
         instrumentControlRecyclerView.adapter = InstrumentControlAdapter(emptyList())
 
         return view
+    }
+
+    private fun showVolumeControl()
+    {
+        hideAllControls()
+        viewModel.isVolumeButtonOn = true
+        volumeButton.iconTint = requireContext().resources.getColorStateList(R.color.main_500, requireContext().theme)
+        volumeControl.visibility = View.VISIBLE
+    }
+
+    private fun hideVolumeControl()
+    {
+        viewModel.isVolumeButtonOn = false
+        volumeButton.iconTint = requireContext().resources.getColorStateList(R.color.gray_800, requireContext().theme)
+        volumeControl.visibility = View.GONE
+    }
+
+    private fun showTempoControl()
+    {
+        hideAllControls()
+        viewModel.isTempoButtonOn = true
+        tempoButton.iconTint = requireContext().resources.getColorStateList(R.color.main_500, requireContext().theme)
+        tempoControl.visibility = View.VISIBLE
+    }
+
+    private fun hideTempoControl()
+    {
+        viewModel.isTempoButtonOn = false
+        tempoButton.iconTint = requireContext().resources.getColorStateList(R.color.gray_800, requireContext().theme)
+        tempoControl.visibility = View.GONE
+    }
+
+    private fun hideAllControls()
+    {
+        hideVolumeControl()
+        hideTempoControl()
     }
 
     fun onNativeInit()
@@ -462,6 +562,11 @@ class MusicDisplayFragment : Fragment(), PrintHandler.Callbacks, SettingsDialogF
             Log.w(TAG, "musicDisplayView is null")
             RectF()
         }
+    }
+
+    fun onTempoChangedCallback(tempo: Float) {
+        currentTempo = tempo
+        tempoControlTempoTextView.text = getString(R.string.tempo_control_tempo, (tempo * (tempoControlSeekBar.progress / 100.0f)).toInt())
     }
 
     override fun onInputEvent(inputEvent: InputEvent) {

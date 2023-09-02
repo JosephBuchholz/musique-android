@@ -26,9 +26,18 @@ enum class FontType {
     }
 }
 
+enum class MusicFontType {
+    None, Bravura, Petaluma, Leland;
+
+    companion object {
+        fun getByValue(value: Int) = values().firstOrNull { it.ordinal == value }
+    }
+}
+
 @Serializable
 data class MainSettings(
     val chordSymbolStyle: ChordSymbolStyleType = ChordSymbolStyleType.Auto,
     val showChordDiagrams: ShowChordDiagramsType = ShowChordDiagramsType.Auto,
-    val defaultFont: FontType = FontType.TimesNewRoman
+    val defaultFont: FontType = FontType.TimesNewRoman,
+    val defaultMusicFont: MusicFontType = MusicFontType.Bravura
 )

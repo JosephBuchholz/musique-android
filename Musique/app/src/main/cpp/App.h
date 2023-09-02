@@ -39,6 +39,7 @@ public:
     void UpdateSettings(const Settings& s) { settings = s; OnLayoutChanged(); }
     void OnLayoutChanged();
     void OnVolumeChanged(float volume) { if (musicPlayer) musicPlayer->SetVolume(volume); }
+    void OnTempoPercentageChanged(float tempoPercentage) { if (musicPlayer) musicPlayer->SetTempoPercentage(tempoPercentage); }
 
     void OnMetronomeToggled(bool state) { if (musicPlayer) musicPlayer->OnMetronomeToggled(state); }
 

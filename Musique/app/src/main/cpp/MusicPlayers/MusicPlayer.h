@@ -26,11 +26,11 @@ public:
 
     bool IsPlaying() const { return playing; }
 
-    void OnUpdate(double dt, std::shared_ptr<Song> song);
+    void OnUpdate(double dt, const std::shared_ptr<Song>& song);
 
     void Reset();
 
-    void TravelToVisualBeatPosition(float beatPosition, std::shared_ptr<Song> song);
+    void TravelToVisualBeatPosition(float beatPosition, const std::shared_ptr<Song>& song);
     void TravelToSoundBeatPosition(float beatPosition);
 
     void OnMetronomeToggled(bool state) { metronomeIsOn = state; LOGE_TAG("MusicPlayer", "metronomeIsOn: %d", state); }
@@ -42,6 +42,12 @@ public:
     void SetCurrentMeasure(int measure) { currentMeasure = measure; }
 
     void SetVolume(float volume);
+    void SetTempoPercentage(float tp);
+
+    void SetOnTempoChangedCallback(void (*callback) (float tempo)) { OnTempoChangedCallback = callback; }
+
+private:
+    static void DefaultOnTempoChangedCallback(float tempo) {}
 
 private:
 
@@ -52,6 +58,7 @@ private:
     float currentMeasureBeatPosition = 0.0f;
     int currentMeasure = 0;
 
+    float tempoPercentage = 1.0f; // this is a speed modifier for the tempo (1.0f just keeps the tempo the same; 2.0f is twice as fast)
     float currentTempo = 120.0f; // beats per minute
     SwingTempo swingTempo;
 
@@ -59,6 +66,8 @@ private:
     std::shared_ptr<Metronome> metronome;
 
     bool playing = false;
+
+    void (*OnTempoChangedCallback) (float tempo) = DefaultOnTempoChangedCallback;
 };
 
 #endif //MUSIQUE_MUSICPLAYER_H

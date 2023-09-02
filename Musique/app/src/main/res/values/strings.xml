@@ -9,6 +9,9 @@
     <string name="settings_button">Settings</string>
     <string name="open_button">Open</string>
 
+    <string name="tempo_control_percentage">%1$d%%</string>
+    <string name="tempo_control_tempo">BPM = %1$d</string>
+
     <string name="open_button_cont_desc">Open</string>
     <string name="main_settings_cont_desc">Settings</string>
     <string name="side_menu_button_cont_desc">Side Menu</string>
@@ -21,6 +24,7 @@
     <string name="volume_button_cont_desc">Volume</string>
     <string name="metronome_button_cont_desc">Metronome</string>
     <string name="settings_button_cont_desc">Settings</string>
+    <string name="tempo_button_cont_desc">Tempo</string>
 
     <string name="more_options_button_cont_desc">More Options</string>
 
@@ -50,5 +54,12 @@
     <string-array name="main_settings_default_font_values">
         <item>"Times New Roman"</item>
         <item>"Open Sans"</item>
+    </string-array>
+
+    <string name="main_settings_default_music_font_text">Default music font</string>
+    <string-array name="main_settings_default_music_font_values">
+        <item>"Bravura"</item>
+        <item>"Petaluma"</item>
+        <item>"Leland"</item>
     </string-array>
 </resources>

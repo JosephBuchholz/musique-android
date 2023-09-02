@@ -25,6 +25,7 @@ class MainSettingsFragment : Fragment() {
     private lateinit var showChordDiagramsDropdown: Spinner
 
     private lateinit var defaultFontDropdown: Spinner
+    private lateinit var defaultMusicFontDropdown: Spinner
 
     private var sharedViewModel: SharedViewModel? = null
 
@@ -121,6 +122,22 @@ class MainSettingsFragment : Fragment() {
                 val type = FontType.getByValue(position+1)
                 if (type != null)
                     sharedViewModel!!.mainSettings = sharedViewModel!!.mainSettings.copy(defaultFont = type)
+
+                callbacks?.onSettingsChanged(sharedViewModel!!.mainSettings)
+            }
+
+            override fun onNothingSelected(p0: AdapterView<*>?) {
+
+            }
+        }
+
+        defaultMusicFontDropdown = view.findViewById(R.id.default_music_font_dropdown) as Spinner
+        defaultMusicFontDropdown.setSelection(sharedViewModel!!.mainSettings.defaultMusicFont.ordinal - 1)
+        defaultMusicFontDropdown.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(adapterView: AdapterView<*>?, view: View?, position: Int, id: Long) {
+                val type = MusicFontType.getByValue(position+1)
+                if (type != null)
+                    sharedViewModel!!.mainSettings = sharedViewModel!!.mainSettings.copy(defaultMusicFont = type)
 
                 callbacks?.onSettingsChanged(sharedViewModel!!.mainSettings)
             }

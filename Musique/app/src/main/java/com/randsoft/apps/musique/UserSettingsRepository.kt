@@ -38,7 +38,8 @@ class UserSettingsRepository(context: Context) {
         dataStore.updateData {
             it.copy(chordSymbolStyle = mainSettings.chordSymbolStyle,
                 showChordDiagrams = mainSettings.showChordDiagrams,
-                defaultFont = mainSettings.defaultFont)
+                defaultFont = mainSettings.defaultFont,
+                defaultMusicFont = mainSettings.defaultMusicFont)
         }
     }
 }

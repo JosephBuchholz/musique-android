@@ -279,4 +279,11 @@ extern "C" {
             app->OnVolumeChanged(volume);
         }
     }
+
+    JNIEXPORT void JNICALL
+    Java_com_randsoft_apps_musique_MainActivity_onTempoPercentageChangedNative(JNIEnv* env, jobject instance, jfloat tempoPercentage) {
+        if (app != nullptr) {
+            app->OnTempoPercentageChanged(tempoPercentage);
+        }
+    }
 }

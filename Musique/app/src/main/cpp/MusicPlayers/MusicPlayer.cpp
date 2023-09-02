@@ -26,15 +26,17 @@ void MusicPlayer::OnStop()
     player->StopAllNotes();
 }
 
-void MusicPlayer::OnUpdate(double dt, std::shared_ptr<Song> song)
+void MusicPlayer::OnUpdate(double dt, const std::shared_ptr<Song>& song)
 {
     double dts = dt / 1000.0; // delta time in seconds
     double dtm = dts / 60.0; // delta time in minutes
 
     if (playing)
     {
+        float previousTempo = currentTempo;
+
         float previousPlayLineBeatPosition = playLineBeatPosition;
-        playLineBeatPosition += float(currentTempo * dtm);
+        playLineBeatPosition += float(currentTempo * tempoPercentage * dtm);
 
         bool isFirstInstrumentAndStaff = true;
 
@@ -95,6 +97,10 @@ void MusicPlayer::OnUpdate(double dt, std::shared_ptr<Song> song)
 
             instrumentIndex++;
         }
+
+
+        if (previousTempo != currentTempo)
+            OnTempoChangedCallback(currentTempo);
     }
 }
 
@@ -108,7 +114,7 @@ void MusicPlayer::Reset()
     swingTempo = SwingTempo();
 }
 
-void MusicPlayer::TravelToVisualBeatPosition(float beatPosition, std::shared_ptr<Song> song)
+void MusicPlayer::TravelToVisualBeatPosition(float beatPosition, const std::shared_ptr<Song>& song)
 {
     std::shared_ptr<Instrument> instrument = song->instruments[0];
     if (instrument)
@@ -122,15 +128,18 @@ void MusicPlayer::TravelToVisualBeatPosition(float beatPosition, std::shared_ptr
 
     for (auto instrument : song->instruments)
     {
-        for (auto staff : instrument->staves)
+        for (const auto& staff : instrument->staves)
         {
-            for (auto measure : staff->measures)
+            for (const auto& measure : staff->measures)
             {
-                for (auto soundEvent : measure->soundEvents)
+                for (const auto& soundEvent : measure->soundEvents)
                 {
                     if (soundEvent->beatPosition + measure->beatPosition <= beatPosition)
                     {
+                        float previousTempo = currentTempo;
                         soundEvent->ModifyTempo(currentTempo);
+                        if (previousTempo != currentTempo)
+                            OnTempoChangedCallback(currentTempo);
                         soundEvent->ModifySwingTempo(swingTempo);
                         soundEvent->ModifyVelocity(staff->currentVelocity);
                     }
@@ -149,4 +158,9 @@ void MusicPlayer::SetVolume(float volume)
 {
     if (player)
         player->SetVolume(volume);
+}
+
+void MusicPlayer::SetTempoPercentage(float tp)
+{
+    tempoPercentage = tp;
 }

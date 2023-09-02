@@ -140,6 +140,18 @@
             app:layout_constraintTop_toTopOf="parent" />
 
         <Button
+            android:id="@+id/tempo_button"
+            style="@style/Widget.Material3.Button.IconButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:contentDescription="@string/tempo_button_cont_desc"
+            app:icon="@drawable/tempo_icon"
+            app:iconTint="@color/gray_800"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toEndOf="@+id/metronome_button"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <Button
             android:id="@+id/settings_button"
             style="@style/Widget.Material3.Button.IconButton"
             android:layout_width="wrap_content"
@@ -148,7 +160,7 @@
             app:icon="@drawable/settings_icon"
             app:iconTint="@color/gray_800"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintStart_toEndOf="@+id/metronome_button"
+            app:layout_constraintStart_toEndOf="@+id/tempo_button"
             app:layout_constraintTop_toTopOf="parent" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>

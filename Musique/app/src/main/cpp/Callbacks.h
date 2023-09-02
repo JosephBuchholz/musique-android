@@ -25,4 +25,6 @@ void WriteMidi(char* bytes, size_t size);
 void SetMidiVolume(int volume);
 void SetMidiReverb(int reverb);
 
+void OnTempoChangedCallback(float tempo);
+
 #endif // MUSIQUE_CALLBACKS_H
