@@ -28,6 +28,7 @@ add_library( # Sets the name of the library.
         RenderMeasurement.cpp
         MusicPlayers/MidiPlayer.cpp
         MusicPlayers/Metronome.cpp
+        TranspositionRequest.cpp
 
         RenderData/RenderData.cpp
         RenderData/Line.cpp

@@ -52,7 +52,6 @@ public:
     }
 
     int fifths = 0;
-    //int previousFifths = 0; // the fifths of the previous key signature
     Mode mode = Mode::None;
     bool print = true;
 

@@ -16,6 +16,7 @@
 #include "System.h"
 #include "Page/Page.h"
 #include "Endings/EndingGroup.h"
+#include "../TranspositionRequest.h"
 
 /**
  * Represents and holds all the musical data for a song/piece.
@@ -213,6 +214,8 @@ public:
      * returns nullptr if the point doesn't collide with any Measures.
      */
     std::shared_ptr<Measure> GetMeasureAtPoint(Vec2<float> point, const std::vector<Vec2<float>>& systemPositions) const;
+
+    void Transpose(const TranspositionRequest& transposeRequest);
 
     void ResolveCollisions();
 

@@ -24,3 +24,10 @@ bool DoBoundsCollide(int start1, int end1, int start2, int end2)
                start1 <= start2 && end1 >= start2 ||   // partly left
                start1 <= end2 && end1 >= end2);         // partly right
 }
+
+int GetSign(int x)
+{
+   if (x < 0) return -1;
+   if (x > 0) return 1;
+   return 0;
+}

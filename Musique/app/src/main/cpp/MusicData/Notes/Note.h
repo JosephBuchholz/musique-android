@@ -106,6 +106,8 @@ public:
     void CalculatePositionAsPaged(const MusicDisplayConstants& displayConstants, int staffLines);
     void UpdateTieAndGlissSlide(bool measureStartsNewSystem);
 
+    void OnTranspose(const TranspositionRequest& transposeRequest, const MusicalKey& currentKey);
+
     /* ----- Sound Related Functions ----- */
 
     void InitSound(const std::shared_ptr<Note>& previousNote);

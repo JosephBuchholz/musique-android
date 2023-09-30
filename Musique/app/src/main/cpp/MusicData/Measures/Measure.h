@@ -31,6 +31,7 @@ class Slur;
 #include "MultiMeasureRestSymbol.h"
 
 #include "../../MusicPlayers/Player.h"
+#include "../../TranspositionRequest.h"
 
 #include <vector>
 
@@ -115,6 +116,8 @@ public:
     bool IsOffBeatSixteenthNote(const std::shared_ptr<Note>& note) const;
 
     void InitBeatPosition(float measureBeatPosition);
+
+    void OnTranspose(const TranspositionRequest& transposeRequest);
 
 public:
 

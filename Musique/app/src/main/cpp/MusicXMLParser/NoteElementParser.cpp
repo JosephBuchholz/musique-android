@@ -144,7 +144,7 @@ void NoteElementParser::ParseNoteElement(XMLElement* noteElement, float& current
         XMLElement* step = pitch->FirstChildElement("step");
         if (step)
         {
-            currentNote->pitch.step = step->GetText();
+            currentNote->pitch.step = DiatonicNoteFromString(step->GetText());
         }
         else
         {

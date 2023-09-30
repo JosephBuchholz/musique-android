@@ -11,19 +11,19 @@ int MidiPlayer::GetMidiNotePitch(const Pitch& pitch)
 
     midiPitch += (pitch.octave) * 12;
     int num = 0;
-    if (pitch.step == "C") {
+    if (pitch.step == DiatonicNote::C) {
         num = 0;
-    } else if (pitch.step == "D") {
+    } else if (pitch.step == DiatonicNote::D) {
         num = 2;
-    } else if (pitch.step == "E") {
+    } else if (pitch.step == DiatonicNote::E) {
         num = 4;
-    } else if (pitch.step == "F") {
+    } else if (pitch.step == DiatonicNote::F) {
         num = 5;
-    } else if (pitch.step == "G") {
+    } else if (pitch.step == DiatonicNote::G) {
         num = 7;
-    } else if (pitch.step == "A") {
+    } else if (pitch.step == DiatonicNote::A) {
         num = 9;
-    } else if (pitch.step == "B") {
+    } else if (pitch.step == DiatonicNote::B) {
         num = 11;
     }
     midiPitch += num;

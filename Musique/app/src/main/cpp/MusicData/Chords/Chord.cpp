@@ -117,7 +117,7 @@ std::vector<uint16_t> Chord::GetTextFromPitch(const Pitch& pitch)
 {
     std::vector<uint16_t> chars;
 
-    chars.push_back((uint16_t)pitch.step[0]);
+    chars.push_back((uint16_t)DiatonicNoteToString(pitch.step)[0]);
     if (pitch.alter != 0)
         chars.push_back((uint16_t) GetChordSymbolAccidentalSMuFLID((int)pitch.alter));
 
@@ -287,6 +287,12 @@ void Chord::CalculatePositionAsPaged(const MusicDisplayConstants& displayConstan
 
     if (chordDiagram)
         chordDiagram->CalculatePositionAsPaged(displayConstants, { 0.0f, 18.0f });
+}
+
+void Chord::OnTranspose(const TranspositionRequest& transposeRequest, const MusicalKey& currentKey)
+{
+    rootPitch.OnTranspose(transposeRequest, currentKey);
+    bassPitch.OnTranspose(transposeRequest, currentKey);
 }
 
 SMuFLID Chord::GetChordSymbolAccidentalSMuFLID(int alter)

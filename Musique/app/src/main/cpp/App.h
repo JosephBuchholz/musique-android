@@ -11,6 +11,7 @@
 #include "Settings.h"
 #include "Collisions/Vec2.h"
 #include "Events/InputEvent.h"
+#include "TranspositionRequest.h"
 
 #include "MusicRenderer.h"
 #include "MusicPlayers/MusicPlayer.h"
@@ -40,6 +41,7 @@ public:
     void OnLayoutChanged();
     void OnVolumeChanged(float volume) { if (musicPlayer) musicPlayer->SetVolume(volume); }
     void OnTempoPercentageChanged(float tempoPercentage) { if (musicPlayer) musicPlayer->SetTempoPercentage(tempoPercentage); }
+    void OnTranspose(const TranspositionRequest& transpositionRequest);
 
     void OnMetronomeToggled(bool state) { if (musicPlayer) musicPlayer->OnMetronomeToggled(state); }
 

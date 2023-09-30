@@ -34,7 +34,7 @@ private const val TAG = "MusicDisplayFragment"
 
 private const val ARG_SONG_ID = "SongId"
 
-class MusicDisplayFragment : Fragment(), PrintHandler.Callbacks, SettingsDialogFragment.Callbacks, MusicDisplayView.Callbacks, WebRepository.Callbacks {
+class MusicDisplayFragment : Fragment(), PrintHandler.Callbacks, SettingsDialogFragment.Callbacks, TransposeDialogFragment.Callbacks, MusicDisplayView.Callbacks, WebRepository.Callbacks {
 
     private var musicDisplayView: MusicDisplayView? = null
 
@@ -48,6 +48,7 @@ class MusicDisplayFragment : Fragment(), PrintHandler.Callbacks, SettingsDialogF
     private lateinit var settingsButton: MaterialButton
     private lateinit var volumeButton: MaterialButton
     private lateinit var tempoButton: MaterialButton
+    private lateinit var transposeButton: MaterialButton
 
     private lateinit var volumeControl: View
     private lateinit var tempoControl: View
@@ -72,6 +73,7 @@ class MusicDisplayFragment : Fragment(), PrintHandler.Callbacks, SettingsDialogF
     private lateinit var printHandler: PrintHandler
 
     private lateinit var settingsDialogFragment: SettingsDialogFragment
+    private lateinit var transposeDialogFragment: TransposeDialogFragment
 
     private var songData: SongData? = null
 
@@ -96,6 +98,7 @@ class MusicDisplayFragment : Fragment(), PrintHandler.Callbacks, SettingsDialogF
         fun onSettingsChanged(settings: SettingsDialogFragment.Settings)
         fun onVolumeChange(volume: Float)
         fun onTempoPercentageChange(tempoPercentage: Float)
+        fun onTranspose(transpositionRequest: TranspositionRequest)
 
         fun onInputEvent(inputEvent: InputEvent)
     }
@@ -150,6 +153,7 @@ class MusicDisplayFragment : Fragment(), PrintHandler.Callbacks, SettingsDialogF
         val view = inflater.inflate(R.layout.music_display_fragment, container, false)
 
         settingsDialogFragment = SettingsDialogFragment.newInstance(this)
+        transposeDialogFragment = TransposeDialogFragment.newInstance(this, TranspositionRequest())
 
         musicDisplayView = view.findViewById(R.id.music_display_view)
         musicDisplayView?.setCallbacks(this)
@@ -302,6 +306,11 @@ class MusicDisplayFragment : Fragment(), PrintHandler.Callbacks, SettingsDialogF
             showTempoControl()
         else
             hideTempoControl()
+
+        transposeButton = view.findViewById(R.id.transpose_button)
+        transposeButton.setOnClickListener {
+            transposeDialogFragment.show(parentFragmentManager, "TransposeDialog")
+        }
 
         playSeekBar = view.findViewById(R.id.play_seek_bar)
         playSeekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
@@ -575,6 +584,10 @@ class MusicDisplayFragment : Fragment(), PrintHandler.Callbacks, SettingsDialogF
 
     override fun onWebRequestFailed() {
         Log.e(TAG, "Web request failed")
+    }
+
+    override fun onTranspositionRequest(transpositionRequest: TranspositionRequest) {
+       callbacks?.onTranspose(transpositionRequest)
     }
 
     companion object {

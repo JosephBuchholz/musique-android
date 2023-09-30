@@ -304,3 +304,13 @@ int App::OnCalculateNumPages()
 {
     return musicRenderer->OnCalculateNumPages(song);
 }
+
+void App::OnTranspose(const TranspositionRequest& transpositionRequest)
+{
+    LOGE("Got transpoition request: %d", transpositionRequest.key.root);
+    TranspositionRequest tr = transpositionRequest;
+    tr.originalKey.root = MusicalKey::GetKeyFromFifths(song->instruments[0]->staves[0]->measures[0]->keySignature.fifths);
+    song->Transpose(tr);
+    musicRenderer->updateRenderData = true;
+    musicRenderer->layoutCalculated = false;
+}

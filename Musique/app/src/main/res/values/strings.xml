@@ -25,6 +25,12 @@
     <string name="metronome_button_cont_desc">Metronome</string>
     <string name="settings_button_cont_desc">Settings</string>
     <string name="tempo_button_cont_desc">Tempo</string>
+    <string name="transpose_button_cont_desc">Transpose</string>
+
+    <string name="transpose_dialog_label">Transpose</string>
+    <string name="transpose_key_label">Key</string>
+    <string name="transpose_direction_label">Direction</string>
+    <string name="transpose_tablature_label">Tablature</string>
 
     <string name="more_options_button_cont_desc">More Options</string>
 
@@ -62,4 +68,37 @@
         <item>"Petaluma"</item>
         <item>"Leland"</item>
     </string-array>
+
+    <string-array name="transpose_keys">
+        <item>"C&#9837;/A&#9837;m"</item>
+        <item>"G&#9837;/E&#9837;m"</item>
+        <item>"D&#9837;/B&#9837;m"</item>
+        <item>"A&#9837;/Fm"</item>
+        <item>"E&#9837;/Cm"</item>
+        <item>"B&#9837;/Gm"</item>
+        <item>"F/Dm"</item>
+
+        <item>"C/Am"</item>
+
+        <item>"G/Em"</item>
+        <item>"D/Bm"</item>
+        <item>"A/F&#9839;m"</item>
+        <item>"E/C&#9839;m"</item>
+        <item>"B/G&#9839;m"</item>
+        <item>"F&#9839;/D&#9839;m"</item>
+        <item>"C&#9839;/A&#9839;m"</item>
+    </string-array>
+
+    <string-array name="transpose_direction_values">
+        <item>"Closest"</item>
+        <item>"Up"</item>
+        <item>"Down"</item>
+    </string-array>
+
+    <string-array name="transpose_tablature_values">
+        <item>"Auto"</item>
+        <item>"Use Capo"</item>
+        <item>"No Capo"</item>
+    </string-array>
+
 </resources>

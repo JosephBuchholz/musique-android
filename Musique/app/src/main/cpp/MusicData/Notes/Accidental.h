@@ -9,6 +9,7 @@
 
 #include "../BaseElements/VisibleElement.h"
 #include "../../RenderData/RenderData.h"
+#include "../Pitch.h"
 
 /**
  * This class represents a musical accidental for a note.
@@ -37,6 +38,7 @@ public:
      * @return The value that was converted
      */
     static AccidentalType CalculateAccidentalTypeFromString(const std::string& string);
+    void CalculateTypeFromPitch(const Pitch& pitch, const MusicalKey& key);
 
     void CalculateAsPaged(const MusicDisplayConstants& displayConstants, NoteSize noteSize);
 

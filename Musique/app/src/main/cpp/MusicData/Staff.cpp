@@ -372,3 +372,11 @@ float Staff::GetSoundBeatPositionFromVisualBeatPosition(float beatPosition, cons
 
     return soundBeatPosition;
 }
+
+void Staff::Transpose(const TranspositionRequest& transposeRequest)
+{
+    for (auto measure : measures)
+    {
+        measure->OnTranspose(transposeRequest);
+    }
+}

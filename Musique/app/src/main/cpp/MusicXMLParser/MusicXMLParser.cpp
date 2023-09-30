@@ -957,7 +957,7 @@ void MusicXMLParser::ParseHarmonyElement(XMLElement* harmonyElement, float& curr
         XMLElement* rootStepElement = rootElement->FirstChildElement("root-step");
         if (rootStepElement)
         {
-            newChord.rootPitch.step = XMLHelper::GetStringValue(rootStepElement, newChord.rootPitch.step);
+            newChord.rootPitch.step = DiatonicNoteFromString(XMLHelper::GetStringValue(rootStepElement, DiatonicNoteToString(newChord.rootPitch.step)));
         }
         else
             ; // TODO: error: this element is required
@@ -972,7 +972,7 @@ void MusicXMLParser::ParseHarmonyElement(XMLElement* harmonyElement, float& curr
         XMLElement* bassStepElement = bassElement->FirstChildElement("bass-step");
         if (bassStepElement)
         {
-            newChord.bassPitch.step = XMLHelper::GetStringValue(bassStepElement, newChord.bassPitch.step);
+            newChord.bassPitch.step = DiatonicNoteFromString(XMLHelper::GetStringValue(bassStepElement, DiatonicNoteToString(newChord.bassPitch.step)));
         }
         else
             ; // TODO: error: this element is required
@@ -1932,7 +1932,7 @@ void MusicXMLParser::ParseMusicXML(const std::string& data, std::string& error, 
                                                         "tuning-step");
                                                 StaffTuning tuning;
                                                 if (tuningStep)
-                                                    tuning.pitch.step = tuningStep->GetText();
+                                                    tuning.pitch.step = DiatonicNoteFromString(tuningStep->GetText());
                                                 XMLElement *tuningOctave = staffTuning->FirstChildElement(
                                                         "tuning-octave");
                                                 if (tuningOctave)

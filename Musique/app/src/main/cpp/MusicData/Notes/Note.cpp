@@ -822,3 +822,11 @@ void Note::UpdateTieAndGlissSlide(bool measureStartsNewSystem)
         }
     }
 }
+
+void Note::OnTranspose(const TranspositionRequest& transposeRequest, const MusicalKey& currentKey)
+{
+    pitch.OnTranspose(transposeRequest, currentKey);
+
+    if (accidental)
+        accidental->CalculateTypeFromPitch(pitch, transposeRequest.key);
+}

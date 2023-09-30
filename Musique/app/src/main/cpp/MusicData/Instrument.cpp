@@ -217,3 +217,11 @@ void Instrument::CalculateSystemPositionData(const MusicDisplayConstants& displa
 
     systemPositionData.push_back(instrumentPosition);
 }
+
+void Instrument::Transpose(const TranspositionRequest& transposeRequest)
+{
+    for (auto staff : staves)
+    {
+        staff->Transpose(transposeRequest);
+    }
+}

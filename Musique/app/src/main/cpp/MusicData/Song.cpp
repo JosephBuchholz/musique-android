@@ -1972,3 +1972,13 @@ std::shared_ptr<Measure> Song::GetMeasureAtPoint(Vec2<float> point, const std::v
 
     return nullptr;
 }
+
+void Song::Transpose(const TranspositionRequest& transposeRequest)
+{
+   for (const auto& instrument : instruments)
+   {
+       instrument->Transpose(transposeRequest);
+   }
+
+   OnUpdate();
+}

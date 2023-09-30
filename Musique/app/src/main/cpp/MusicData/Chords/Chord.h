@@ -36,6 +36,8 @@ public:
 
     void CalculatePositionAsPaged(const MusicDisplayConstants& displayConstants, float defaultX, float defaultY);
 
+    void OnTranspose(const TranspositionRequest& transposeRequest, const MusicalKey& currentKey);
+
 private:
 
     void AddCharsToString(std::vector<uint16_t>& dest, const std::vector<uint16_t>& charsToAdd);

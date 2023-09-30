@@ -16,13 +16,13 @@ void KeySignature::Render(RenderData& renderData, bool showKeySignature, float p
                 float y = 0;
                 switch (n)
                 {
-                    case 1: y = Pitch::GetPitchPositionY(Pitch("F", 5 + octaveOffset, 0.0f), clef); break;
-                    case 2: y = Pitch::GetPitchPositionY(Pitch("C", 5 + octaveOffset, 0.0f), clef); break;
-                    case 3: y = Pitch::GetPitchPositionY(Pitch("G", 5 + octaveOffset, 0.0f), clef); break;
-                    case 4: y = Pitch::GetPitchPositionY(Pitch("D", 5 + octaveOffset, 0.0f), clef); break;
-                    case 5: y = Pitch::GetPitchPositionY(Pitch("A", 4 + octaveOffset, 0.0f), clef); break;
-                    case 6: y = Pitch::GetPitchPositionY(Pitch("E", 5 + octaveOffset, 0.0f), clef); break;
-                    case 7: y = Pitch::GetPitchPositionY(Pitch("B", 4 + octaveOffset, 0.0f), clef); break;
+                    case 1: y = Pitch::GetPitchPositionY(Pitch(DiatonicNote::F, 5 + octaveOffset, 0.0f), clef); break;
+                    case 2: y = Pitch::GetPitchPositionY(Pitch(DiatonicNote::C, 5 + octaveOffset, 0.0f), clef); break;
+                    case 3: y = Pitch::GetPitchPositionY(Pitch(DiatonicNote::G, 5 + octaveOffset, 0.0f), clef); break;
+                    case 4: y = Pitch::GetPitchPositionY(Pitch(DiatonicNote::D, 5 + octaveOffset, 0.0f), clef); break;
+                    case 5: y = Pitch::GetPitchPositionY(Pitch(DiatonicNote::A, 4 + octaveOffset, 0.0f), clef); break;
+                    case 6: y = Pitch::GetPitchPositionY(Pitch(DiatonicNote::E, 5 + octaveOffset, 0.0f), clef); break;
+                    case 7: y = Pitch::GetPitchPositionY(Pitch(DiatonicNote::B, 4 + octaveOffset, 0.0f), clef); break;
                     default: break;
                 }
 
@@ -38,13 +38,13 @@ void KeySignature::Render(RenderData& renderData, bool showKeySignature, float p
                 float y = 0.0f;
                 switch (n)
                 {
-                    case -1: y = Pitch::GetPitchPositionY(Pitch("B", 4 + octaveOffset, 0.0f), clef); break;
-                    case -2: y = Pitch::GetPitchPositionY(Pitch("E", 5 + octaveOffset, 0.0f), clef); break;
-                    case -3: y = Pitch::GetPitchPositionY(Pitch("A", 4 + octaveOffset, 0.0f), clef); break;
-                    case -4: y = Pitch::GetPitchPositionY(Pitch("D", 5 + octaveOffset, 0.0f), clef); break;
-                    case -5: y = Pitch::GetPitchPositionY(Pitch("G", 4 + octaveOffset, 0.0f), clef); break;
-                    case -6: y = Pitch::GetPitchPositionY(Pitch("C", 5 + octaveOffset, 0.0f), clef); break;
-                    case -7: y = Pitch::GetPitchPositionY(Pitch("F", 4 + octaveOffset, 0.0f), clef); break;
+                    case -1: y = Pitch::GetPitchPositionY(Pitch(DiatonicNote::B, 4 + octaveOffset, 0.0f), clef); break;
+                    case -2: y = Pitch::GetPitchPositionY(Pitch(DiatonicNote::E, 5 + octaveOffset, 0.0f), clef); break;
+                    case -3: y = Pitch::GetPitchPositionY(Pitch(DiatonicNote::A, 4 + octaveOffset, 0.0f), clef); break;
+                    case -4: y = Pitch::GetPitchPositionY(Pitch(DiatonicNote::D, 5 + octaveOffset, 0.0f), clef); break;
+                    case -5: y = Pitch::GetPitchPositionY(Pitch(DiatonicNote::G, 4 + octaveOffset, 0.0f), clef); break;
+                    case -6: y = Pitch::GetPitchPositionY(Pitch(DiatonicNote::C, 5 + octaveOffset, 0.0f), clef); break;
+                    case -7: y = Pitch::GetPitchPositionY(Pitch(DiatonicNote::F, 4 + octaveOffset, 0.0f), clef); break;
                     default: break;
                 }
 

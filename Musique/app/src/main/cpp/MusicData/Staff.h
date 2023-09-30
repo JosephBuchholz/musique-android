@@ -5,6 +5,7 @@
 #include "BaseElements/VisibleElement.h"
 #include "Endings/Ending.h"
 #include "Endings/EndingGroup.h"
+#include "../TranspositionRequest.h"
 
 #include <vector>
 
@@ -60,6 +61,8 @@ public:
 
     std::pair<int, float> GetMeasureFromSoundBeatPosition(float beatPosition, const std::vector<std::shared_ptr<EndingGroup>>& endingGroups);
     float GetSoundBeatPositionFromVisualBeatPosition(float beatPosition, const std::vector<std::shared_ptr<EndingGroup>>& endingGroups);
+
+    void Transpose(const TranspositionRequest& transposeRequest);
 
 public:
 

@@ -5,6 +5,7 @@
 #include "App.h"
 #include "JNIHelpers/JNIHelper.h"
 #include "Events/InputEvent.h"
+#include "TranspositionRequest.h"
 
 // got some help from: https://github.com/android/ndk-samples/tree/main/native-midi/app/src/main/cpp
 
@@ -284,6 +285,19 @@ extern "C" {
     Java_com_randsoft_apps_musique_MainActivity_onTempoPercentageChangedNative(JNIEnv* env, jobject instance, jfloat tempoPercentage) {
         if (app != nullptr) {
             app->OnTempoPercentageChanged(tempoPercentage);
+        }
+    }
+
+    JNIEXPORT void JNICALL
+    Java_com_randsoft_apps_musique_MainActivity_onTransposeNative(JNIEnv* env, jobject instance, jobject transpositionRequest) {
+        if (app != nullptr) {
+            TranspositionRequest newTranspositionRequest = TranspositionRequest();
+
+            newTranspositionRequest.key.root = (MusicalKey::KeyPitch)JNIHelper::GetEnumClassField(env, transpositionRequest, "key", "Lcom/randsoft/apps/musique/TransposeKey;");
+            newTranspositionRequest.direction = (TranspositionRequest::TransposeDirection)JNIHelper::GetEnumClassField(env, transpositionRequest, "direction", "Lcom/randsoft/apps/musique/TransposeDirection;");
+            newTranspositionRequest.transposeTablatureType = (TranspositionRequest::TransposeTablatureType)JNIHelper::GetEnumClassField(env, transpositionRequest, "transposeTablatureType", "Lcom/randsoft/apps/musique/TransposeTablatureType;");
+
+            app->OnTranspose(newTranspositionRequest);
         }
     }
 }

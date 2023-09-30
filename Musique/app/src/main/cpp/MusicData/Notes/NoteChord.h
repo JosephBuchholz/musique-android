@@ -60,6 +60,8 @@ public:
 
     void CalculatePositionAsPaged(const MusicDisplayConstants& displayConstants, int staffLines, std::shared_ptr<Measure> measure, bool isMuseScore4);
 
+    void OnTranspose(const TranspositionRequest& transposeRequest, const MusicalKey& currentKey);
+
     /* ----- Sound Related Functions ----- */
 
     void InitSound(std::shared_ptr<Note> previousNote);

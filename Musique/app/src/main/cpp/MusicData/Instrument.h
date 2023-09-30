@@ -9,6 +9,7 @@
 #include "Notes/Slur.h"
 
 #include "InstrumentBracket.h"
+#include "../TranspositionRequest.h"
 
 class Instrument
 {
@@ -33,6 +34,8 @@ public:
      * @return the number of measures
      */
     int GetMeasureCount();
+
+    void Transpose(const TranspositionRequest& transposeRequest);
 
 public:
     std::string id = "";

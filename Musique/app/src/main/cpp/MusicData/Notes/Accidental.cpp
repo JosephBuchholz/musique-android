@@ -67,3 +67,19 @@ Accidental::AccidentalType Accidental::CalculateAccidentalTypeFromString(const s
 
     return AccidentalType::None;
 }
+
+void Accidental::CalculateTypeFromPitch(const Pitch& pitch, const MusicalKey& key)
+{
+    float alterInKey = key.GetAlterFromDiatonicNote(pitch.step);
+
+    if (pitch.alter == 0.0f && alterInKey != 0.0f)
+        accidentalType = AccidentalType::Natural;
+    else if (pitch.alter == 1.0f && alterInKey != 1.0f)
+        accidentalType = AccidentalType::Sharp;
+    else if (pitch.alter == 2.0f && alterInKey != 2.0f)
+        accidentalType = AccidentalType::DoubleSharp;
+    else if (pitch.alter == -1.0f && alterInKey != -1.0f)
+        accidentalType = AccidentalType::Flat;
+    else if (pitch.alter == -2.0f && alterInKey != -2.0f)
+        accidentalType = AccidentalType::DoubleFlat;
+}

@@ -360,3 +360,11 @@ void NoteChord::OnUpdate(std::shared_ptr<Player> player, Transpose transpose, in
         note->OnUpdate(player, transpose, channel, velocity, beatPositionRelativeToNote, previousBeatPositionRelativeToNote);
     }
 }
+
+void NoteChord::OnTranspose(const TranspositionRequest& transposeRequest, const MusicalKey& currentKey)
+{
+    for (int i = 1; i < m_notes.size(); i++) // skip first note
+    {
+        m_notes[i]->OnTranspose(transposeRequest, currentKey);
+    }
+}

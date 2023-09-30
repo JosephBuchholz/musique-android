@@ -13,6 +13,43 @@ typedef float Alter;
 typedef unsigned int StringValue;
 typedef unsigned int FretValue;
 
+enum class DiatonicNote
+{
+    C = 0, D, E, F, G, A, B
+};
+
+static std::string DiatonicNoteToString(DiatonicNote value)
+{
+    switch (value)
+    {
+        case DiatonicNote::C: return "C";
+        case DiatonicNote::D: return "D";
+        case DiatonicNote::E: return "E";
+        case DiatonicNote::F: return "F";
+        case DiatonicNote::G: return "G";
+        case DiatonicNote::A: return "A";
+        case DiatonicNote::B: return "B";
+    }
+}
+
+static DiatonicNote DiatonicNoteFromString(std::string string)
+{
+    if (string == "C")
+        return DiatonicNote::C;
+    if (string == "D")
+        return DiatonicNote::D;
+    if (string == "E")
+        return DiatonicNote::E;
+    if (string == "F")
+        return DiatonicNote::F;
+    if (string == "G")
+        return DiatonicNote::G;
+    if (string == "A")
+        return DiatonicNote::A;
+    if (string == "B")
+        return DiatonicNote::B;
+}
+
 enum class NoteValue {
     None = 0, Maxima, Long, Breve, Whole, Half, Quarter, Eighth, Sixteenth, ThirtySecond, _64th, _128th, _256th, _512th, _1024th
 };

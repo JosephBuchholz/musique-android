@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="main_100">#A4BCFA</color>
-    <color name="main_200">#7097FB</color>
-    <color name="main_300">#5082FD</color>
-    <color name="main_400">#235FF8</color>
-    <color name="main_500">#1552ED</color>
-    <color name="main_600">#0E46D6</color>
-    <color name="main_700">#0734A6</color>
-    <color name="main_800">#05267C</color>
-    <color name="main_900">#010B27</color>
+    <color name="main_100">#B4C0FF</color>
+    <color name="main_200">#7F92FA</color>
+    <color name="main_300">#4A65F6</color>
+    <color name="main_400">#2342E8</color>
+    <color name="main_500">#1433D8</color>
+    <color name="main_600">#0E29BC</color>
+    <color name="main_700">#091E8F</color>
+    <color name="main_800">#03125E</color>
+    <color name="main_900">#01051B</color>
 
     <color name="success">#39C817</color>
     <color name="error">#C81717</color>
@@ -25,9 +25,14 @@
     <color name="gray_900">#000000</color>
     <color name="black">#FF000000</color>
 
-    <color name="main_color2">#0EA2A6</color>
-    <color name="secondary_color">#06D668</color>
-    <color name="secondary_color2">#079148</color>
+    <color name="accent_500">#8327CE</color>
+    <color name="accent_dark_500">#CBA1ED</color>
+
+    <color name="secondary">#C8CFFF</color>
+    <color name="secondary_dark">#00062F</color>
+
+    <color name="background_dark">#15151D</color>
+
     <color name="dark_color">#5A6B6C</color>
     <color name="secondary_dark_color">#2F3333</color>
     <color name="light_color">#9FA8A8</color>

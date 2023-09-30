@@ -497,7 +497,7 @@ float Measure::GetPitchYPosition(const Pitch& pitch) const
     // transpose pitch
     // pitch.octave += transpose.octaveChange;
 
-    int y = GetLetterNumber(pitch.step) + pitch.octave*7; // the y position of pitch of the note
+    int y = GetLetterNumber(DiatonicNoteToString(pitch.step)) + pitch.octave*7; // the y position of pitch of the note
 
     int line = 5 - clef.line; // getting line starting from the top instead of the bottom
     if (clef.sign == "G" || clef.sign == "F" || clef.sign == "C") {
@@ -1017,4 +1017,38 @@ void Measure::InitBeatPosition(float measureBeatPosition)
             direction.bracketDirection->beatPositionInSongEnd = direction.bracketDirection->beatPositionEnd + measureBeatPosition;
         }
     }
+}
+
+void Measure::OnTranspose(const TranspositionRequest& transposeRequest)
+{
+    MusicalKey currentKey;
+    currentKey.root = MusicalKey::GetKeyFromFifths(keySignature.fifths);
+
+    for (const auto& note : notes)
+    {
+        note->OnTranspose(transposeRequest, currentKey);
+    }
+
+    for (const auto& noteChord : noteChords)
+    {
+        noteChord->OnTranspose(transposeRequest, currentKey);
+    }
+
+    for (auto& chord : chords)
+    {
+       chord.OnTranspose(transposeRequest, currentKey);
+    }
+
+    int interval = transposeRequest.GetInterval(); // interval between the keys
+    int diatonicInterval = transposeRequest.GetDiatonicInterval(); // diatonic interval between the keys
+    MusicalKey newKey = currentKey;
+    if (currentKey.root == transposeRequest.originalKey.root)
+        newKey = transposeRequest.key;
+    else
+        newKey.AddInterval(interval, diatonicInterval);
+
+    //LOGW("interval: %d, fifths: %d, currentKey.root: %d, currentKey.root.fifths: %d, transpose.oKey.root: %d, toKey.fifths: %d, tKey.root: %d, tKey.fifths: %d, newKey.root: %d, newKey.fifths: %d",
+    //     interval, keySignature.fifths, currentKey.root, currentKey.GetFifths(), transposeRequest.originalKey.root, transposeRequest.originalKey.GetFifths(), transposeRequest.key.root, transposeRequest.key.GetFifths(), newKey.root, newKey.GetFifths());
+
+    keySignature.fifths = newKey.GetFifths();
 }

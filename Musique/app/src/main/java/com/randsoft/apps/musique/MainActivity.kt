@@ -297,6 +297,10 @@ class MainActivity : AppCompatActivity(), MusicDisplayFragment.Callbacks,
         onTempoPercentageChangedNative(tempoPercentage)
     }
 
+    override fun onTranspose(transpositionRequest: TranspositionRequest) {
+        onTransposeNative(transpositionRequest)
+    }
+
     override fun onInputEvent(inputEvent: InputEvent) {
         onInputEventNative(inputEvent)
     }
@@ -319,6 +323,7 @@ class MainActivity : AppCompatActivity(), MusicDisplayFragment.Callbacks,
     private external fun onSettingsChangedNative(settings: MainSettings)
     private external fun onVolumeChangedNative(volume: Float)
     private external fun onTempoPercentageChangedNative(volume: Float)
+    private external fun onTransposeNative(transpositionRequest: TranspositionRequest)
 
     private external fun onInputEventNative(inputEvent: InputEvent)
 
