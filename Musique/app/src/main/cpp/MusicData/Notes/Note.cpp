@@ -368,6 +368,7 @@ void Note::PlayPitch(const std::shared_ptr<Player>& player, Transpose transpose,
     PlayableNote note;
     note.pitch = pitch;
     note.pitch.octave += transpose.octaveChange;
+    note.pitch.SetPitchValue(note.pitch.GetPitchValue() + transpose.chromatic);
     note.velocity = velocity;
     player->PlayNote(note, channel);
 }
@@ -377,6 +378,7 @@ void Note::StopPitch(const std::shared_ptr<Player>& player, Transpose transpose,
     PlayableNote note;
     note.pitch = pitch;
     note.pitch.octave += transpose.octaveChange;
+    note.pitch.SetPitchValue(note.pitch.GetPitchValue() + transpose.chromatic);
     note.velocity = velocity;
     player->StopNote(note, channel);
 
@@ -825,6 +827,28 @@ void Note::UpdateTieAndGlissSlide(bool measureStartsNewSystem)
 
 void Note::OnTranspose(const TranspositionRequest& transposeRequest, const MusicalKey& currentKey)
 {
+    if (type == NoteType::Tab)
+    {
+        if (transposeRequest.transposeTablatureType == TranspositionRequest::TransposeTablatureType::NoCapo)
+        {
+            //TranspositionRequest::TransposeDirection direction = transposeRequest.GetTransposeDirection();
+
+            //if (direction == TranspositionRequest::TransposeDirection::Up)
+            //{
+            //    fret += GetInter;
+            //}
+            //else if (direction == TranspositionRequest::TransposeDirection::Down)
+            //{
+            //    fret -= 1;
+            //}
+            fret += transposeRequest.GetInterval();
+        }
+        else
+        {
+            return;
+        }
+    }
+
     pitch.OnTranspose(transposeRequest, currentKey);
 
     if (accidental)

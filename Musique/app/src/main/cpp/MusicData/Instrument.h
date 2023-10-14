@@ -35,6 +35,7 @@ public:
      */
     int GetMeasureCount();
 
+    bool UsesOpenStrings() const;
     void Transpose(const TranspositionRequest& transposeRequest);
 
 public:
@@ -46,6 +47,8 @@ public:
     MidiInstrument midiInstrument = MidiInstrument();
 
     std::vector<std::shared_ptr<Staff>> staves;
+
+    uint32_t capo = 0;
 
     //std::vector<std::shared_ptr<Slur>> slurs; // slurs that are contained in this part (including cross system slurs and cross staff slurs)
 

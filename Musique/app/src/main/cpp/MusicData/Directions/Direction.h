@@ -25,6 +25,7 @@
 #include <memory>
 
 #include "../../RenderData/RenderData.h"
+#include "../../TranspositionRequest.h"
 
 /**
  * Represents a musical direction (such as a rehearsal or metronome mark).
@@ -58,6 +59,8 @@ public:
     void UpdateBoundingBox(const Vec2<float>& measurePosition);
 
     std::shared_ptr<SoundEvent> GetSoundEvent() const;
+
+    void OnTranspose(const TranspositionRequest& transposeRequest);
 
 public:
 

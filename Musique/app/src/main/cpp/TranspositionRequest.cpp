@@ -171,3 +171,20 @@ int TranspositionRequest::GetDiatonicInterval() const
 {
     return GetDiatonicInterval(key, originalKey);
 }
+
+TranspositionRequest::TransposeDirection TranspositionRequest::GetTransposeDirection() const
+{
+    if (direction == TransposeDirection::Closest)
+    {
+        int interval = MusicalKey::GetPitchValue(key.root) - MusicalKey::GetPitchValue(originalKey.root);
+        if (interval < 0)
+            interval += 12;
+
+        if (interval <= std::abs(interval - 12))
+            return TransposeDirection::Up;
+        else
+            return TransposeDirection::Down;
+    }
+
+    return direction;
+}

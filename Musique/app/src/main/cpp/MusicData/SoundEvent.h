@@ -58,6 +58,13 @@ public:
      */
     virtual void ModifyPizzicato(bool& pizzicato) {}
 
+    /**
+     * Modifies capo fret if event needs to.
+     *
+     * @param capo The value to modify.
+     */
+    virtual void ModifyCapo(uint32_t& capo) {}
+
     std::vector<int> timeOnly; // These values indicate what times this event should happen for multiple repeats. If empty, then this event happens on all repeats.
 };
 
@@ -97,6 +104,14 @@ public:
     void ModifyPizzicato(bool& pizzicato) override { pizzicato = this->pizzicato; }
 
     bool pizzicato = false;
+};
+
+class CapoSoundEvent : public SoundEvent
+{
+public:
+    void ModifyCapo(uint32_t& capo) override { capo = this->capo; }
+
+    uint32_t capo = 0;
 };
 
 /*class JumpSoundEvent : public SoundEvent

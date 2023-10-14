@@ -38,19 +38,24 @@ public:
 class TranspositionRequest
 {
 public:
+    enum class TransposeDirection
+    {
+        None = 0, Closest, Up, Down
+    };
+
+public:
     int GetInterval() const;
     int GetDiatonicInterval() const;
 
     int GetDiatonicInterval(const MusicalKey& key1, const MusicalKey& key2) const;
 
+    TransposeDirection GetTransposeDirection() const;
+
 public:
     MusicalKey key = MusicalKey(); // the key to transpose to
     MusicalKey originalKey = MusicalKey(); // the key to transpose from
 
-    enum class TransposeDirection
-    {
-        None = 0, Closest, Up, Down
-    } direction = TransposeDirection::Closest;
+    TransposeDirection direction = TransposeDirection::Closest;
 
     enum class TransposeTablatureType
     {

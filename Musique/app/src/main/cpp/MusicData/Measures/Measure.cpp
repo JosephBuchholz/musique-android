@@ -716,8 +716,11 @@ void Measure::UpdateBoundingBoxes(const MusicDisplayConstants& displayConstants,
     }
 }
 
-void Measure::OnUpdate(const std::shared_ptr<Player>& player, bool isCurrentMeasure, int channel, float playLineBeatPosition, float previousPlayLineBeatPosition, float measureBeatPosition, float& currentTempo, SwingTempo& swingTempo, float& currentVelocity)
+void Measure::OnUpdate(const std::shared_ptr<Player>& player, bool isCurrentMeasure, int channel, float playLineBeatPosition, float previousPlayLineBeatPosition, float measureBeatPosition, float& currentTempo, SwingTempo& swingTempo, float& currentVelocity, uint32_t& capo)
 {
+    Transpose trans = transpose;
+    trans.chromatic = (int)capo;
+
     if (isCurrentMeasure && playLineBeatPosition >= measureBeatPosition && playLineBeatPosition <= duration.duration + measureBeatPosition)
     {
         for (const auto& event : soundEvents)
@@ -725,14 +728,18 @@ void Measure::OnUpdate(const std::shared_ptr<Player>& player, bool isCurrentMeas
             if (playLineBeatPosition >= event->beatPosition + measureBeatPosition &&
                 previousPlayLineBeatPosition <= event->beatPosition + measureBeatPosition)
             {
+                uint32_t capoBefore = capo;
                 event->ModifyTempo(currentTempo);
                 event->ModifyVelocity(currentVelocity);
                 event->ModifySwingTempo(swingTempo);
                 //event->ModifyPizzicato();
-
-                LOGD("Got sound event: velocity: %f, tempo: %f", currentVelocity, currentTempo);
+                event->ModifyCapo(capo);
+                LOGV_TAG("Measure.cpp", "event capo before: %d, after: %d", capoBefore, capo);
+                LOGD_TAG("Measure.cpp", "Got sound event: velocity: %f, tempo: %f", currentVelocity, currentTempo);
             }
         }
+
+        trans.chromatic = (int)capo; // in case it has been updated;
 
         for (const auto& noteChord : noteChords)
         {
@@ -781,17 +788,17 @@ void Measure::OnUpdate(const std::shared_ptr<Player>& player, bool isCurrentMeas
             {
                 if (!rootNote->isPlaying)
                 {
-                    noteChord->OnPlay(player, transpose, channel, currentVelocity);
+                    noteChord->OnPlay(player, trans, channel, currentVelocity);
                 }
             }
             else if (rootNote->isPlaying &&
                      !(playLineBeatPosition <= noteBeatPosition + noteDuration + measureBeatPosition)) // note is playing but/and the play line has passed the end of the note
             { // so stop the note
-                noteChord->OnStop(player, transpose, channel, currentVelocity);
+                noteChord->OnStop(player, trans, channel, currentVelocity);
             }
             else if (rootNote->isPlaying)
             {
-                noteChord->OnUpdate(player, transpose, channel, currentVelocity, playLineBeatPosition - (noteBeatPosition + measureBeatPosition), previousPlayLineBeatPosition - (noteBeatPosition + measureBeatPosition));
+                noteChord->OnUpdate(player, trans, channel, currentVelocity, playLineBeatPosition - (noteBeatPosition + measureBeatPosition), previousPlayLineBeatPosition - (noteBeatPosition + measureBeatPosition));
             }
         }
 
@@ -841,17 +848,17 @@ void Measure::OnUpdate(const std::shared_ptr<Player>& player, bool isCurrentMeas
             {
                 if (!note->isPlaying)
                 {
-                    note->OnPlay(player, transpose, channel, currentVelocity);
+                    note->OnPlay(player, trans, channel, currentVelocity);
                 }
             }
             else if (note->isPlaying &&
                      !(playLineBeatPosition <= noteBeatPosition + noteDuration + measureBeatPosition)) // note is playing but/and the play line has passed the end of the note
             { // so stop the note
-                note->OnStop(player, transpose, channel, currentVelocity);
+                note->OnStop(player, trans, channel, currentVelocity);
             }
             else if (note->isPlaying)
             {
-                note->OnUpdate(player, transpose, channel, currentVelocity, playLineBeatPosition - (noteBeatPosition + measureBeatPosition), previousPlayLineBeatPosition - (noteBeatPosition + measureBeatPosition));
+                note->OnUpdate(player, trans, channel, currentVelocity, playLineBeatPosition - (noteBeatPosition + measureBeatPosition), previousPlayLineBeatPosition - (noteBeatPosition + measureBeatPosition));
             }
 
             noteIndex++;
@@ -863,7 +870,7 @@ void Measure::OnUpdate(const std::shared_ptr<Player>& player, bool isCurrentMeas
         {
             if (noteChord->m_notes[0]->isPlaying)
             {
-                noteChord->OnStop(player, transpose, channel, currentVelocity);
+                noteChord->OnStop(player, trans, channel, currentVelocity);
             }
         }
 
@@ -871,7 +878,7 @@ void Measure::OnUpdate(const std::shared_ptr<Player>& player, bool isCurrentMeas
         {
             if (note->isPlaying)
             {
-                note->OnStop(player, transpose, channel, currentVelocity);
+                note->OnStop(player, trans, channel, currentVelocity);
             }
         }
     }
@@ -1019,6 +1026,26 @@ void Measure::InitBeatPosition(float measureBeatPosition)
     }
 }
 
+bool Measure::UsesOpenStrings() const
+{
+    for (const auto& note : notes)
+    {
+        if (note->type == NoteType::Tab && note->fret == 0 && !note->isRest)
+            return true;
+    }
+
+    for (const auto& noteChord : noteChords)
+    {
+        for (const auto& note : noteChord->m_notes)
+        {
+            if (note->type == NoteType::Tab && note->fret == 0 && !note->isRest)
+                return true;
+        }
+    }
+
+    return false;
+}
+
 void Measure::OnTranspose(const TranspositionRequest& transposeRequest)
 {
     MusicalKey currentKey;
@@ -1037,6 +1064,11 @@ void Measure::OnTranspose(const TranspositionRequest& transposeRequest)
     for (auto& chord : chords)
     {
        chord.OnTranspose(transposeRequest, currentKey);
+    }
+
+    for (auto& direction : directions)
+    {
+        direction.OnTranspose(transposeRequest);
     }
 
     int interval = transposeRequest.GetInterval(); // interval between the keys

@@ -236,3 +236,11 @@ std::shared_ptr<SoundEvent> Direction::GetSoundEvent() const
 
     return soundEvent;
 }
+
+void Direction::OnTranspose(const TranspositionRequest& transposeRequest)
+{
+    for (auto& wordsObject : words)
+    {
+        wordsObject.OnTranspose(transposeRequest);
+    }
+}

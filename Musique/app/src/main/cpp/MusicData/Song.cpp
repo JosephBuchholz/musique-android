@@ -1977,7 +1977,20 @@ void Song::Transpose(const TranspositionRequest& transposeRequest)
 {
    for (const auto& instrument : instruments)
    {
-       instrument->Transpose(transposeRequest);
+       TranspositionRequest newRequest = transposeRequest;
+       if (transposeRequest.transposeTablatureType == TranspositionRequest::TransposeTablatureType::Auto)
+       {
+           if (instrument->UsesOpenStrings())
+           {
+               newRequest.transposeTablatureType = TranspositionRequest::TransposeTablatureType::UseCapo;
+           }
+           else
+           {
+               newRequest.transposeTablatureType = TranspositionRequest::TransposeTablatureType::NoCapo;
+           }
+       }
+
+       instrument->Transpose(newRequest);
    }
 
    OnUpdate();

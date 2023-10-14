@@ -218,6 +218,20 @@ void Instrument::CalculateSystemPositionData(const MusicDisplayConstants& displa
     systemPositionData.push_back(instrumentPosition);
 }
 
+bool Instrument::UsesOpenStrings() const
+{
+    for (const auto& staff : staves)
+    {
+        for (const auto& measure : staff->measures)
+        {
+            if (measure->UsesOpenStrings())
+                return true;
+        }
+    }
+
+    return false;
+}
+
 void Instrument::Transpose(const TranspositionRequest& transposeRequest)
 {
     for (auto staff : staves)

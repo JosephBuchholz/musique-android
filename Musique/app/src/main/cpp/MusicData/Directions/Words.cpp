@@ -141,6 +141,44 @@ std::shared_ptr<SoundEvent> Words::GetSoundEvent() const
 
         return soundEvent;
     }
+    if (text.string.find("Capo") != std::string::npos || text.string.find("capo") != std::string::npos)
+    {
+        std::shared_ptr<CapoSoundEvent> soundEvent = std::make_shared<CapoSoundEvent>();
+
+        // extract capo fret number
+        size_t found = text.string.find_last_not_of("0123456789");
+        std::string numberString;
+        if (found != std::string::npos)
+            numberString = text.string.substr(found + 1);
+
+        soundEvent->capo = ToInt(numberString);
+
+        LOGV_TAG("Words", "soundEvent->capo: %d", soundEvent->capo);
+        return soundEvent;
+    }
 
     return nullptr;
+}
+
+void Words::OnTranspose(const TranspositionRequest& transposeRequest)
+{
+    if (transposeRequest.transposeTablatureType == TranspositionRequest::TransposeTablatureType::UseCapo)
+    {
+        if (text.string.find("Capo") != std::string::npos || text.string.find("capo") != std::string::npos)
+        {
+            std::shared_ptr<CapoSoundEvent> soundEvent = std::make_shared<CapoSoundEvent>();
+
+            // extract capo fret number
+            size_t found = text.string.find_last_not_of("0123456789");
+            std::string numberString;
+            if (found != std::string::npos)
+                numberString = text.string.substr(found + 1);
+
+            int capo = ToInt(numberString);
+
+            capo += transposeRequest.GetInterval();
+
+            text.string = "Capo " + ToString(capo);
+        }
+    }
 }

@@ -117,13 +117,14 @@ public:
 
     void InitBeatPosition(float measureBeatPosition);
 
+    bool UsesOpenStrings() const;
     void OnTranspose(const TranspositionRequest& transposeRequest);
 
 public:
 
     /* ----- Sound Related Functions ----- */
 
-    void OnUpdate(const std::shared_ptr<Player>& player, bool isCurrentMeasure, int channel, float playLineBeatPosition, float previousPlayLineBeatPosition, float measureBeatPosition, float& currentTempo, SwingTempo& swingTempo, float& currentVelocity);
+    void OnUpdate(const std::shared_ptr<Player>& player, bool isCurrentMeasure, int channel, float playLineBeatPosition, float previousPlayLineBeatPosition, float measureBeatPosition, float& currentTempo, SwingTempo& swingTempo, float& currentVelocity, uint32_t& capo);
 
 private:
     float MeausreClefWidth() const;

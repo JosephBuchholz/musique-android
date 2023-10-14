@@ -57,7 +57,7 @@ void MusicPlayer::OnUpdate(double dt, const std::shared_ptr<Song>& song)
                 {
                     currentMeasure = measureData.first;
                     currentMeasureBeatPosition = measureData.second;
-                    LOGD("currentMeasure: %d, currentMBP: %f, duration: %f, playLineBeat: %f, measureBeatPosition: %f", currentMeasure, currentMeasureBeatPosition, staff->measures[measureData.first]->duration.duration, playLineBeatPosition);
+                    //LOGD("currentMeasure: %d, currentMBP: %f, duration: %f, playLineBeat: %f, measureBeatPosition: %f", currentMeasure, currentMeasureBeatPosition, staff->measures[measureData.first]->duration.duration, playLineBeatPosition);
                 }
 
                 int measureIndex = 0;
@@ -87,7 +87,7 @@ void MusicPlayer::OnUpdate(double dt, const std::shared_ptr<Song>& song)
                         }
                     }
 
-                    measure->OnUpdate(player, measureIndex == currentMeasure, instrument->midiInstrument.channel, playLineBeatPosition, previousPlayLineBeatPosition, currentMeasureBeatPosition, currentTempo, swingTempo, staff->currentVelocity);
+                    measure->OnUpdate(player, measureIndex == currentMeasure, instrument->midiInstrument.channel, playLineBeatPosition, previousPlayLineBeatPosition, currentMeasureBeatPosition, currentTempo, swingTempo, staff->currentVelocity, instrument->capo);
 
                     measureIndex++;
                 }
