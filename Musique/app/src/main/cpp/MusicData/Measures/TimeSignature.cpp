@@ -43,3 +43,22 @@ void TimeSignature::CalculatePositionAsPaged(const MusicDisplayConstants& displa
 {
 
 }
+
+SMuFLID TimeSignature::GetTimeSignatureSMuFLID(int time)
+{
+    switch (time)
+    {
+        case 0: return SMuFLID::timeSig0;
+        case 1: return SMuFLID::timeSig1;
+        case 2: return SMuFLID::timeSig2;
+        case 3: return SMuFLID::timeSig3;
+        case 4: return SMuFLID::timeSig4;
+        case 5: return SMuFLID::timeSig5;
+        case 6: return SMuFLID::timeSig6;
+        case 7: return SMuFLID::timeSig7;
+        case 8: return SMuFLID::timeSig8;
+        case 9: return SMuFLID::timeSig9;
+    }
+
+    return SMuFLID::None;
+}

@@ -44,6 +44,9 @@ public:
 
     void CalculatePositionAsPaged(const MusicDisplayConstants& displayConstants, float defaultX, float defaultY);
 
+    static SMuFLID GetMetronomeNoteSMuFLID(NoteValue type);
+
+
 public:
     NoteUnit mainNoteUnit = NoteUnit();
     NoteUnit mainNoteUnitTied = NoteUnit();

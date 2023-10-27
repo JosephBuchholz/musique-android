@@ -647,8 +647,8 @@ float Measure::MeausreKeySignatureWidth() const
 
 float Measure::MeausreTimeSignatureWidth() const
 {
-    float topNumWidth = RenderMeasurement::MeasureGlyph(GetTimeSignatureSMuFLID(timeSignature.notes));
-    float bottomNumWidth = RenderMeasurement::MeasureGlyph(GetTimeSignatureSMuFLID(timeSignature.noteType));
+    float topNumWidth = RenderMeasurement::MeasureGlyph(TimeSignature::GetTimeSignatureSMuFLID(timeSignature.notes));
+    float bottomNumWidth = RenderMeasurement::MeasureGlyph(TimeSignature::GetTimeSignatureSMuFLID(timeSignature.noteType));
     return std::max(topNumWidth, bottomNumWidth) + 10.0f; // adding margins of 10.0f
 }
 

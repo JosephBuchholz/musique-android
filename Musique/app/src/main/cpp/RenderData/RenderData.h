@@ -13,6 +13,7 @@
 #include "Paint.h"
 
 #include "../MusicDisplayConstants.h"
+#include "../MusicData/Types.h"
 
 class Paints
 {

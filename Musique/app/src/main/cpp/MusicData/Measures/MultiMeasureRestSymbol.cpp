@@ -1,5 +1,7 @@
 #include "MultiMeasureRestSymbol.h"
 
+#include "TimeSignature.h"
+
 const float hBarSideMargin = 8.0f;
 const float hBarMidThickness = 8.0f;
 
@@ -48,7 +50,7 @@ void MultiMeasureRestSymbol::Render(RenderData& renderData, Vec2<float> measureP
 
     for (const char& c : numberString)
     {
-        SMuFLID glyphID = GetTimeSignatureSMuFLID(ToInt(c));
+        SMuFLID glyphID = TimeSignature::GetTimeSignatureSMuFLID(ToInt(c));
 
         renderData.AddGlyph(SMuFLGlyph(glyphID, { textStartPositionX, textPositionY }, digitPaint));
 

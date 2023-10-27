@@ -77,7 +77,7 @@ class MainActivity : AppCompatActivity(), MusicDisplayFragment.Callbacks,
         // initializing view model
         viewModel = ViewModelProvider(this)[MainActivityViewModel::class.java]
         if (viewModel.songIsOpen)
-            onSongOpened(0/*viewModel.songId*/, viewModel.songString)
+            onSongOpened(0/*viewModel.songId*/, viewModel.extension, viewModel.songString)
 
         // initializing native view model
         nativeViewModel = ViewModelProvider(this)[NativeViewModel::class.java]
@@ -199,7 +199,7 @@ class MainActivity : AppCompatActivity(), MusicDisplayFragment.Callbacks,
         onSettingsChangedNative(sharedViewModel.mainSettings)
     }
 
-    override fun onSongOpened(songId: Int, string: String) {
+    override fun onSongOpened(songId: Int, extension: String, string: String) {
 
         if (supportFragmentManager.findFragmentByTag(TAG_MUSIC_DISPLAY_FRAGMENT) == null)
         {
@@ -212,10 +212,11 @@ class MainActivity : AppCompatActivity(), MusicDisplayFragment.Callbacks,
             viewModel.isShowingMusicDisplayFragment = true
         }
 
-        loadSongFromString(string)
+        loadSongFromString(extension, string)
 
         viewModel.songIsOpen = true
         viewModel.songString = string
+        viewModel.extension = extension
     }
 
     override fun onMainSettingsOpened() {
@@ -311,7 +312,7 @@ class MainActivity : AppCompatActivity(), MusicDisplayFragment.Callbacks,
     private external fun initNative()
     private external fun destroyNative()
     private external fun onUpdate(dt: Double)
-    private external fun loadSongFromString(string: String)
+    private external fun loadSongFromString(extension: String, string: String)
 
     private external fun onPlayButtonToggledNative(state: Boolean)
     private external fun onMetronomeButtonToggledNative(state: Boolean)

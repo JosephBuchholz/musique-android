@@ -11,13 +11,13 @@ void PageNumber::UpdateBoundingBox(const Vec2<float>& parentPosition)
     // TODO: implement
 }
 
-void PageNumber::Render(RenderData& renderData, Vec2<float> pagePosition, Vec2<float> offset) const
+void PageNumber::Render(RenderData& renderData, Vec2<float> pagePosition) const
 {
     Paint paint = Paint(color.color);
 
     paint.textSize = fontSize.size;
 
-    renderData.AddText(Text(displayNumber, position + pagePosition + offset, paint));
+    renderData.AddText(Text(displayNumber, position + pagePosition, paint));
 }
 
 void PageNumber::CalculatePosition(const MusicDisplayConstants& displayConstants, Vec2<float> defaultPosition)

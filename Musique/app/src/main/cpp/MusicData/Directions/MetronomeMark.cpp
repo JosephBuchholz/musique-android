@@ -106,3 +106,24 @@ void MetronomeMark::CalculatePositionAsPaged(const MusicDisplayConstants& displa
 
     position.x = defaultX - (GetDimensions().x / 2.0f);
 }
+
+SMuFLID MetronomeMark::GetMetronomeNoteSMuFLID(NoteValue type)
+{
+    switch (type)
+    {
+        case NoteValue::Breve: return SMuFLID::metNoteDoubleWhole;
+        case NoteValue::Whole: return SMuFLID::metNoteWhole;
+        case NoteValue::Half: return SMuFLID::metNoteHalfUp;
+        case NoteValue::Quarter: return SMuFLID::metNoteQuarterUp;
+        case NoteValue::Eighth: return SMuFLID::metNote8thUp;
+        case NoteValue::Sixteenth: return SMuFLID::metNote16thUp;
+        case NoteValue::ThirtySecond: return SMuFLID::metNote32ndUp;
+        case NoteValue::_64th: return SMuFLID::metNote64thUp;
+        case NoteValue::_128th: return SMuFLID::metNote128thUp;
+        case NoteValue::_256th: return SMuFLID::metNote256thUp;
+        case NoteValue::_512th: return SMuFLID::metNote512thUp;
+        case NoteValue::_1024th: return SMuFLID::metNote1024thUp;
+
+        default: return SMuFLID::None;
+    }
+}

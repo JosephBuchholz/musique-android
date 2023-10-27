@@ -80,7 +80,7 @@ void MusicRenderer::Render(const std::shared_ptr<Song>& song, const Settings& se
                 CalculateRenderForPagedLayout(song, settings);
 
             m_RenderData.left = 0.0f;
-            m_RenderData.right = (song->displayConstants.pageWidth + pageGap) * (float)song->pages.size() + 10.0f;
+            m_RenderData.right = (song->displayConstants.pageWidth + pageGap) * (float)song->GetNumPages() + 10.0f;
             m_RenderData.top = 0.0f;
             m_RenderData.bottom = song->displayConstants.pageHeight + 10.0f;
 
@@ -162,7 +162,8 @@ void MusicRenderer::RenderMusicToPage(const std::shared_ptr<Song>& song, int pag
      * An instrument's height is aboveHeight + middleHeight + belowHeight
      */
 
-    if (updateRenderData) {
+    if (updateRenderData)
+    {
 
         int measureCount = song->GetMeasureCount();
 
@@ -173,7 +174,7 @@ void MusicRenderer::RenderMusicToPage(const std::shared_ptr<Song>& song, int pag
 
         int systemIndex = song->GetSystemIndex(startingMeasureIndex);
 
-        LOGD("page: %d, start measure: %d, systemIndex: %d", page, startingMeasureIndex, systemIndex);
+        LOGD("page: %d, start measure: %d, systemIndex: %d, pages: %d", page, startingMeasureIndex, systemIndex, song->GetNumPages());
 
         bool drawFullInstNames = true;
 
@@ -188,7 +189,7 @@ void MusicRenderer::RenderMusicToPage(const std::shared_ptr<Song>& song, int pag
             RenderCredits(pageRenderData, song, song->displayConstants, song->credits, pagePosition.x, pagePosition.y);
         }
 
-        if (page < song->pages.size())
+        if (page < song->GetNumPages())
             song->pages[page].pageNumber.Render(pageRenderData, pagePosition);
 
         for (int i = startingMeasureIndex; i <= measureCount; i++)
@@ -504,6 +505,16 @@ void MusicRenderer::RenderLineOfMeasures(RenderData& renderData, const Settings&
     bool isLastMeasureInSystem = false;
     for (int m = (int)startMeasure; m <= endMeasure; m++)
     {
+        /*if (staff->csStaff)
+        {
+            if (m < staff->csStaff->measures.size())
+            {
+                CSMeasure csMeasure = staff->csStaff->measures[m];
+
+                csMeasure.Render(renderData, settings, { measurePositionX, staffPositionY });
+            }
+        }*/
+
         std::shared_ptr<Measure> measure = staff->measures[m];
 
         nextMeasurePositionX = measurePositionX + measure->measureWidth;

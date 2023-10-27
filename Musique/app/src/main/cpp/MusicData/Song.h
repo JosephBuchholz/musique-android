@@ -34,7 +34,13 @@ public:
 
     void OnUpdate();
 
-    int GetMeasureCount() const { return m_MeasureWidths.size(); }
+    /**
+     * Gets the number of measures (specifically SystemsMeasures) in the song.
+     *
+     * @return The number of measure in the song.
+     */
+    int GetMeasureCount() const;
+
     float GetMeasureWidth(int measureIndex) const;
 
     /**

@@ -48,6 +48,8 @@ static DiatonicNote DiatonicNoteFromString(std::string string)
         return DiatonicNote::A;
     if (string == "B")
         return DiatonicNote::B;
+
+    throw std::invalid_argument("Invalid value in DiatonicNoteFromString");
 }
 
 enum class NoteValue {

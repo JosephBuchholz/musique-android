@@ -854,3 +854,20 @@ void Note::OnTranspose(const TranspositionRequest& transposeRequest, const Music
     if (accidental)
         accidental->CalculateTypeFromPitch(pitch, transposeRequest.key);
 }
+
+SMuFLID Note::GetRestSMuFLID(NoteValue type)
+{
+    switch (type)
+    {
+        case NoteValue::None: return SMuFLID::None;
+        case NoteValue::Whole: return SMuFLID::restWhole;
+        case NoteValue::Half: return SMuFLID::restHalf;
+        case NoteValue::Quarter: return SMuFLID::restQuarter;
+        case NoteValue::Eighth: return SMuFLID::rest8th;
+        case NoteValue::Sixteenth: return SMuFLID::rest16th;
+        case NoteValue::ThirtySecond: return SMuFLID::rest32nd;
+        default: return SMuFLID::restDoubleWhole;
+    }
+
+    return SMuFLID::None;
+}

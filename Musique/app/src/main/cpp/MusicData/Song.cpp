@@ -784,6 +784,9 @@ using namespace std::chrono;
 
 void Song::CalculateSystemPositionsAndPageBreaks()
 {
+    if (systems.empty() || instruments.empty())
+        return;
+
     auto start = high_resolution_clock::now();
     for (const auto& instrument : instruments)
     {
@@ -1150,7 +1153,7 @@ std::shared_ptr<Measure> Song::GetMeasure(int measureIndex) const
         if (!instruments[0]->staves.empty())
             if (instruments[0]->staves[0]->measures.size() > measureIndex)
                 return instruments[0]->staves[0]->measures[measureIndex];
-    return nullptr;
+    throw DoesNotExistException("Song::GetMeasure: Cannot get measure at measureIndex: " + ToString(measureIndex));
 }
 
 bool Song::DoesMeasureStartNewSystem(int measureIndex) const
@@ -1242,14 +1245,27 @@ void Song::RemovePageBreak(int measureIndex) const
 
 int Song::GetSystemIndex(int measureIndex) const
 {
-    int systemIndex = -1;
+    //int systemIndex = -1;
 
-    if (instruments.empty())
+    /*if (instruments.empty())
         throw IsEmptyException("Instruments empty");
     if (instruments[0]->staves.empty())
-        throw IsEmptyException("Staves empty");
+        throw IsEmptyException("Staves empty");*/
 
-    for (const auto& measure : instruments[0]->staves[0]->measures)
+    int systemIndex = 0;
+    for (const auto& system : systems)
+    {
+        if (measureIndex >= system->beginningMeasureIndex && measureIndex <= system->endingMeasureIndex)
+        {
+            return systemIndex;
+        }
+
+        systemIndex++;
+    }
+
+    return 0;
+
+    /*for (const auto& measure : instruments[0]->staves[0]->measures)
     {
         if (measure == nullptr)
             throw IsNullException("Measure is nullptr");
@@ -1264,7 +1280,7 @@ int Song::GetSystemIndex(int measureIndex) const
     if (systemIndex == -1)
         throw BaseException();
 
-    return systemIndex;
+    return systemIndex;*/
 }
 
 int Song::GetPageIndex(int measureIndex) const
@@ -1338,16 +1354,16 @@ int Song::GetFirstMeasureInSystem(int systemIndex) const
 
 int Song::GetNumPages() const
 {
-    int numPages = 0;
+    /*int numPages = 1;
 
     if (instruments.empty())
-        throw IsEmptyException();
+        return numPages;
     if (!instruments[0])
-        throw IsNullException();
+        return numPages;
     if (instruments[0]->staves.empty())
-        throw IsEmptyException();
+        return numPages;
     if (!instruments[0]->staves[0])
-        throw IsNullException();
+        return numPages;
 
     for (const auto& measure : instruments[0]->staves[0]->measures)
     {
@@ -1358,7 +1374,9 @@ int Song::GetNumPages() const
         }
     }
 
-    return numPages;
+    return numPages - 1;*/
+
+    return pages.size();
 }
 
 /*float Song::GetMeasurePositionX(int measureIndex, Vec2<float> pagePosition, Vec2<float> systemPosition)
@@ -1994,4 +2012,17 @@ void Song::Transpose(const TranspositionRequest& transposeRequest)
    }
 
    OnUpdate();
+}
+
+int Song::GetMeasureCount() const
+{
+    uint16_t count = 0;
+
+    /*for (const auto& system : systems)
+    {
+        count += system->systemMeasures.size();
+    }
+    */
+
+    return count;
 }

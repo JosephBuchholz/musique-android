@@ -9,4 +9,5 @@ class MainActivityViewModel : ViewModel() {
 
     var songIsOpen = false
     var songString = ""
+    var extension = ""
 }

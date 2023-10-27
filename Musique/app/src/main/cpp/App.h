@@ -35,7 +35,7 @@ public:
     void UpdateInstrumentInfo(const InstrumentInfo& info, unsigned int index);
     void SetViewModelData(ViewModelData viewModelData);
     void OnMidiStart();
-    void LoadSongFromString(const std::string& string);
+    void LoadSongFromString(const std::string& extension, const std::string& string);
     bool OnUpdatePrintLayout();
     void UpdateSettings(const Settings& s) { settings = s; OnLayoutChanged(); }
     void OnLayoutChanged();
@@ -55,6 +55,9 @@ private:
     std::shared_ptr<MusicPlayer> musicPlayer;
 
     bool isUpdating = false;
+    bool updateMusicPlayer = true;
+    bool allowRendering = true;
+    bool allowFrameDataRendering = true;
 
     int jcount = 0;
     int icount = 0;

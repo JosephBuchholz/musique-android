@@ -42,12 +42,12 @@ void MusicPlayer::OnUpdate(double dt, const std::shared_ptr<Song>& song)
 
         float playLinePosInMeasure = 0.0f;
         int instrumentIndex = 0;
-        for (auto instrument : song->instruments)
+        for (const auto& instrument : song->instruments)
         {
             player->ChangeInstrument(instrument->midiInstrument.program, instrument->midiInstrument.channel);
 
             int staffIndex = 0;
-            for (auto staff : instrument->staves)
+            for (const auto& staff : instrument->staves)
             {
                 if (instrumentIndex != 0 || staffIndex != 0)
                     isFirstInstrumentAndStaff = false;
@@ -61,7 +61,7 @@ void MusicPlayer::OnUpdate(double dt, const std::shared_ptr<Song>& song)
                 }
 
                 int measureIndex = 0;
-                for (auto measure : staff->measures)
+                for (const auto& measure : staff->measures)
                 {
                     //float measureBeatPosition = staff->GetMeasureNextBeatPosition(measureIndex,playLineBeatPosition);
                     //measureBeatPosition = measure->beatPosition;

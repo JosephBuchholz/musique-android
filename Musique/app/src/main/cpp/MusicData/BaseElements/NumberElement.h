@@ -23,6 +23,7 @@ protected:
 
     int number;
     std::string displayNumber;
+
 };
 
 #endif //MUSIQUE_NUMBERELEMENT_H

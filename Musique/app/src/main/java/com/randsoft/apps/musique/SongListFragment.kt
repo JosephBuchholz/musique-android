@@ -31,7 +31,7 @@ private const val ARG_READ_PERMISSION_GRANTED = "ReadPermissionGrated"
 class SongListFragment() : Fragment(), WebRepository.Callbacks {
 
     interface Callbacks {
-        fun onSongOpened(songId: Int, string: String)
+        fun onSongOpened(songId: Int, extension: String, string: String)
         fun onMainSettingsOpened()
     }
 
@@ -55,7 +55,12 @@ class SongListFragment() : Fragment(), WebRepository.Callbacks {
     private val openDocument = registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         if (readPermissionGranted) {
             if (uri != null) {
-                callbacks?.onSongOpened(0, fileHandler.getStringFromFile(uri))
+                val filePath = uri.path
+                var extension = ""
+                if (filePath != null)
+                    extension = filePath.substring(filePath.lastIndexOf(".") + 1); // gets the file extension
+                Log.e(TAG, "uri.path: ${uri.path}, ${uri.lastPathSegment}, ${extension}")
+                callbacks?.onSongOpened(0, extension, fileHandler.getStringFromFile(uri))
             }
         }
     }
@@ -273,7 +278,7 @@ class SongListFragment() : Fragment(), WebRepository.Callbacks {
                 Observer { string ->
                     onStopLoading()
                     if (string != null)
-                        callbacks?.onSongOpened(songItem.id, string)
+                        callbacks?.onSongOpened(songItem.id, "musicxml", string)
                     else
                         Log.e(TAG, "string is null!!")
                 })

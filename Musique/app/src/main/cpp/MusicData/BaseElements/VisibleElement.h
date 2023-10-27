@@ -6,6 +6,7 @@
 #include "../../Collisions/BoundingBox.h"
 #include "../../Collisions/Vec2.h"
 #include "../../Debuging/Debug.h"
+#include "../../RenderData/RenderData.h"
 
 /**
  * This class represents a element that is visible.

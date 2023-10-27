@@ -218,10 +218,10 @@ extern "C" {
 
     JNIEXPORT void JNICALL
     Java_com_randsoft_apps_musique_MainActivity_loadSongFromString(JNIEnv* env, jobject instance,
-                                                                   jstring string) {
+                                                                   jstring extension, jstring string) {
         if (app != nullptr) {
             jboolean isCopy = true;
-            app->LoadSongFromString(env->GetStringUTFChars(string, &isCopy));
+            app->LoadSongFromString(env->GetStringUTFChars(extension, &isCopy), env->GetStringUTFChars(string, &isCopy));
         }
     }
 

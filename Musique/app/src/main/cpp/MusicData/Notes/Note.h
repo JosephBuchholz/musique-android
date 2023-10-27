@@ -116,6 +116,8 @@ public:
     void OnStop(const std::shared_ptr<Player>& player, Transpose transpose, int channel, float velocity);
     void OnUpdate(const std::shared_ptr<Player>& player, Transpose transpose, int channel, float velocity, float beatPositionRelativeToNote, float previousBeatPositionRelativeToNote);
 
+    static SMuFLID GetRestSMuFLID(NoteValue type);
+
 private:
     void PlayPitch(const std::shared_ptr<Player>& player, Transpose transpose, int channel, float velocity);
     void StopPitch(const std::shared_ptr<Player>& player, Transpose transpose, int channel, float velocity);

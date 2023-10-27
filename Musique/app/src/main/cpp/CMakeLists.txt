@@ -42,6 +42,10 @@ add_library( # Sets the name of the library.
         MusicData/InstrumentBracket.cpp
         MusicData/SoundEvent.cpp
 
+        MusicData/ChordSheetData/CSStaff.cpp
+        MusicData/ChordSheetData/CSMeasure.cpp
+        MusicData/ChordSheetData/CSChord.cpp
+
         MusicData/BaseElements/LineElement.cpp
         MusicData/BaseElements/TextualElement.cpp
         MusicData/BaseElements/VisibleElement.cpp

@@ -6,6 +6,7 @@
 #include "Endings/Ending.h"
 #include "Endings/EndingGroup.h"
 #include "../TranspositionRequest.h"
+#include "ChordSheetData/CSStaff.h"
 
 #include <vector>
 
@@ -67,7 +68,7 @@ public:
 public:
 
     enum class StaffType {
-        None = 0, Standard, Tab
+        None = 0, Standard, Tab, ChordSheet
     };
 
     StaffType type = StaffType::Standard;
@@ -75,6 +76,8 @@ public:
     std::vector<std::shared_ptr<Measure>> measures;
 
     std::vector<std::shared_ptr<DurationDirection>> durationDirections;
+
+    std::shared_ptr<CSStaff> csStaff;
 
     int lines = 5;
 

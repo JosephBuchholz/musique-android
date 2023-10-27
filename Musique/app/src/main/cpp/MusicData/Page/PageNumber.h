@@ -28,7 +28,7 @@ public:
      */
     void UpdateBoundingBox(const Vec2<float>& parentPosition);
 
-    void Render(RenderData& renderData, Vec2<float> pagePosition, Vec2<float> offset = { 0.0f, 0.0f }) const;
+    void Render(RenderData& renderData, Vec2<float> pagePosition) const;
 
 protected:
 

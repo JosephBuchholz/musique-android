@@ -4,10 +4,13 @@
 #include "VisibleElement.h"
 #include "../Types.h"
 
+class VisibleElement;
+
 /**
  * This class represents a element that is (or has or contains) text.
  */
-class TextualElement : public VisibleElement {
+class TextualElement : public VisibleElement
+{
 
 public:
     TextualElement() {}

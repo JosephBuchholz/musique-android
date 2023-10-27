@@ -32,6 +32,8 @@ public:
      */
     void Render(RenderData& renderData, bool showTimeSignature, float positionX, float measurePositionY, float lineSpacing, int lines, float offsetX = 0.0f, float offsetY = 0.0f) const;
 
+    static SMuFLID GetTimeSignatureSMuFLID(int time);
+
 protected:
     void CalculatePositionAsPaged(const MusicDisplayConstants& displayConstants);
 

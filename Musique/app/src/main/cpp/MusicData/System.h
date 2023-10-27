@@ -4,6 +4,7 @@
 #include <unordered_map>
 
 #include "../Collisions/Vec2.h"
+#include "SystemMeasure.h"
 
 /**
  * A class that holds data for a system on a page of sheet music
@@ -48,6 +49,8 @@ public:
 
     // key: the measure index | value: the system wide data for the measure
     std::unordered_map<int, SystemMeasureData> systemMeasureData;
+
+    //std::vector<SystemMeasure> systemMeasures;
 
     Vec2<float> position = { 0.0f, 0.0f }; // relative to the page
 };

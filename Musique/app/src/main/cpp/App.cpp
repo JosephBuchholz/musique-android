@@ -6,6 +6,7 @@
 #include "Utils/Converters.h"
 #include "MusicXMLParser/MusicXMLParser.h"
 #include "Debuging/Debug.h"
+#include "Exceptions/Exceptions.h"
 
 #include <chrono>
 using namespace std::chrono;
@@ -29,7 +30,7 @@ App::~App()
     LOGI("App Done Deconstructing");
 }
 
-void App::LoadSongFromString(const std::string& string)
+void App::LoadSongFromString(const std::string& extension, const std::string& string)
 {
     isUpdating = false;
     musicRenderer->layoutCalculated = false;
@@ -39,54 +40,112 @@ void App::LoadSongFromString(const std::string& string)
 
     LOGI_TAG("App", "Loading song from string");
 
-    std::string error;
-    song = std::make_shared<Song>();
-    MusicXMLParser::ParseMusicXML(string, error, song);
-    if (!error.empty())
+    if (extension == "musicxml")
     {
-        LOGE("Error when parsing music XML: %s", error.c_str());
-    }
-    else
-    {
-        LOGI("There was no error when parsing music XML");
-    }
-
-    unsigned int numStaves = 0;
-    unsigned int numMeasures = 0;
-    unsigned int numNotes = 0;
-    if (song != nullptr) {
-        song->settings = settings;
-
-        for (auto inst : song->instruments) {
-            numStaves += inst->staves.size();
-            for (auto staff : inst->staves) {
-                numMeasures += staff->measures.size();
-                for (auto measure : staff->measures) {
-                    numNotes += measure->notes.size();
-                }
-            }
-
-            //midi.SetVolume(inst->midiInstrument.volume);
+        std::string error;
+        song = std::make_shared<Song>();
+        MusicXMLParser::ParseMusicXML(string, error, song);
+        if (!error.empty())
+        {
+            LOGE("Error when parsing music XML: %s", error.c_str());
         }
+        else
+        {
+            LOGI("There was no error when parsing music XML");
+        }
+
+        unsigned int numStaves = 0;
+        unsigned int numMeasures = 0;
+        unsigned int numNotes = 0;
+        if (song != nullptr)
+        {
+            song->settings = settings;
+
+            for (const auto& inst: song->instruments)
+            {
+                numStaves += inst->staves.size();
+                for (const auto& staff: inst->staves)
+                {
+                    numMeasures += staff->measures.size();
+                    for (const auto& measure: staff->measures)
+                    {
+                        numNotes += measure->notes.size();
+                    }
+                }
+
+                //midi.SetVolume(inst->midiInstrument.volume);
+            }
+        }
+
+        if (error.empty())
+            LOGI("instruments: %d, staves: %d, measures: %d, notes: %d", song->instruments.size(), numStaves, numMeasures, numNotes);
+
+        if (song != nullptr)
+        {
+            //song->OnUpdate();
+            UpdateSongData(song->songData);
+        }
+
+        // crash error is caused when isUpdating = true
+        if (error.empty())
+        {
+            isUpdating = true;
+            musicRenderer->updateRenderData = true;
+            //startRendering = true;
+        }
+
+        songLoaded = true;
+        allowRendering = true;
+        allowFrameDataRendering = false;
+        updateMusicPlayer = true;
     }
-
-    if (error.empty())
-        LOGI("instruments: %d, staves: %d, measures: %d, notes: %d", song->instruments.size(), numStaves, numMeasures, numNotes);
-
-    if (song != nullptr) {
-        //song->OnUpdate();
-        UpdateSongData(song->songData);
-    }
-
-    // crash error is caused when isUpdating = true
-    if (error.empty())
+    else if (extension == "txt")
     {
+        LOGI("Text file format!!!!");
+
+        song = std::make_shared<Song>();
+
+        if (song != nullptr)
+        {
+            std::shared_ptr<Instrument> instrument = std::make_shared<Instrument>();
+            std::shared_ptr<Staff> staff = std::make_shared<Staff>();
+
+            staff->csStaff = std::make_shared<CSStaff>();
+            staff->type = Staff::StaffType::ChordSheet;
+            staff->csStaff->measures.emplace_back();
+            staff->csStaff->measures.emplace_back();
+
+            instrument->staves.push_back(staff);
+            song->instruments.push_back(instrument);
+
+            std::shared_ptr<System> system = std::make_shared<System>();
+            song->systems.push_back(system);
+
+            Page page = Page();
+            song->pages.push_back(page);
+
+            page.pageNumber.SetNumber(1);
+
+            Credit credit;
+            credit.words = CreditWords();
+            credit.creditType = Credit::CreditType::Title;
+            credit.words.text = "Test Song!";
+            credit.words.positionX = 500.0f;
+            credit.words.positionY = 500.0f;
+            song->credits.push_back(credit);
+
+            song->settings = settings;
+            UpdateSongData(song->songData);
+        }
+
+        songUpdated = true;
         isUpdating = true;
         musicRenderer->updateRenderData = true;
-        //startRendering = true;
+        updateMusicPlayer = false;
+        allowRendering = true;
+        allowFrameDataRendering = false;
+        songLoaded = true;
     }
-
-    songLoaded = true;
 }
 
 void App::OnMidiStart()
@@ -101,10 +160,11 @@ void App::OnUpdate(double dt)
 
     if (isUpdating)
     {
-        musicPlayer->OnUpdate(dt, song);
+        if (updateMusicPlayer)
+            musicPlayer->OnUpdate(dt, song);
 
         // --- RENDERING ---
-        if (startRendering)
+        if (startRendering && allowRendering)
         {
             if (song != nullptr && !songUpdated)
             {
@@ -139,7 +199,14 @@ void App::OnUpdate(double dt)
 
                 {
                     auto start = high_resolution_clock::now();
-                    song->UpdateBoundingBoxes(musicRenderer->pagePositions, song->GetSystemPositions());
+                    try
+                    {
+                        song->UpdateBoundingBoxes(musicRenderer->pagePositions, song->GetSystemPositions());
+                    }
+                    catch (const IsEmptyException& e)
+                    {
+                        LOGE("%s", e.what());
+                    }
                     auto stop = high_resolution_clock::now();
                     auto duration = duration_cast<milliseconds>(stop - start);
                     LOGD("Time taken by UpdateBoundingBoxes function: %lld milliseconds | %f seconds", duration.count(), duration.count() / 1000.0f);
@@ -182,24 +249,28 @@ void App::OnUpdate(double dt)
                 LOGE("Time taken by Render function: %lld milliseconds | %f seconds", duration.count(), duration.count() / 1000.0f);
             }*/
 
+
             musicRenderer->Render(song, settings);
 
-            FrameData frameData = FrameData();
+            if (allowFrameDataRendering)
+            {
+                FrameData frameData = FrameData();
 
-            int currentSystemIndex = song->GetSystemIndex(musicPlayer->GetCurrentMeasure());
-            int currentPageIndex = song->GetPageIndex(musicPlayer->GetCurrentMeasure());
-            playLinePosition = musicRenderer->systemPositions[currentSystemIndex].x + song->GetMeasurePositionX(musicPlayer->GetCurrentMeasure());
-            playLineY = musicRenderer->systemPositions[currentSystemIndex].y;
+                int currentSystemIndex = song->GetSystemIndex(musicPlayer->GetCurrentMeasure());
+                int currentPageIndex = song->GetPageIndex(musicPlayer->GetCurrentMeasure());
+                playLinePosition = musicRenderer->systemPositions[currentSystemIndex].x + song->GetMeasurePositionX(musicPlayer->GetCurrentMeasure());
+                playLineY = musicRenderer->systemPositions[currentSystemIndex].y;
 
-            playLineHeight = song->GetSystemHeight(currentSystemIndex);
+                playLineHeight = song->GetSystemHeight(currentSystemIndex);
 
-            frameData.playLinePosition = playLinePosition;
-            frameData.playLinePositionY = playLineY;
-            frameData.playLineHeight = playLineHeight;
-            frameData.playProgress = musicPlayer->GetPlayLineBeatPosition() / song->totalBeatWidth;
-            frameData.isPlaying = musicPlayer->IsPlaying();
+                frameData.playLinePosition = playLinePosition;
+                frameData.playLinePositionY = playLineY;
+                frameData.playLineHeight = playLineHeight;
+                frameData.playProgress = musicPlayer->GetPlayLineBeatPosition() / song->totalBeatWidth;
+                frameData.isPlaying = musicPlayer->IsPlaying();
 
-            UpdateFrameData(frameData);
+                UpdateFrameData(frameData);
+            }
         }
 
     } // if (isUpdating)
@@ -307,9 +378,11 @@ int App::OnCalculateNumPages()
 
 void App::OnTranspose(const TranspositionRequest& transpositionRequest)
 {
-    LOGE("Got transpoition request: %d", transpositionRequest.key.root);
+    LOGI("Got transposition request: %d", transpositionRequest.key.root);
     TranspositionRequest tr = transpositionRequest;
     tr.originalKey.root = MusicalKey::GetKeyFromFifths(song->instruments[0]->staves[0]->measures[0]->keySignature.fifths);
+    if (song == nullptr)
+        return;
     song->Transpose(tr);
     musicRenderer->updateRenderData = true;
     musicRenderer->layoutCalculated = false;
