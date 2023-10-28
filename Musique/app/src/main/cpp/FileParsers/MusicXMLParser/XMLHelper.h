@@ -6,8 +6,8 @@
 #define MUSIQUE_XMLHELPER_H
 
 #include <string>
-#include "../libs/tinyxml2/tinyxml2.h"
-#include "../Collisions/Vec2.h"
+#include "../../libs/tinyxml2/tinyxml2.h"
+#include "../../Collisions/Vec2.h"
 #include "ParseError.h"
 
 using namespace tinyxml2;

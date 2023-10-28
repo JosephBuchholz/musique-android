@@ -48,6 +48,16 @@ public:
 };
 
 /**
+ * This exception is thrown if an invalid argument has been passed.
+ */
+class InvalidArgumentException : public BaseException
+{
+public:
+    InvalidArgumentException() : BaseException("An invalid argument has been pass.") {}
+    InvalidArgumentException(const std::string& msg) : BaseException(msg) {}
+};
+
+/**
  * This exception is thrown if an invalid index has been obtained.
  */
 class OutOfRangeException : public BaseException

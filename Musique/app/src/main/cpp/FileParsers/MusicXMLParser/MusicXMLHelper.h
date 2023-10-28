@@ -6,15 +6,15 @@
 #define MUSIQUE_MUSICXMLHELPER_H
 
 #include <string>
-#include "../libs/tinyxml2/tinyxml2.h"
+#include "../../libs/tinyxml2/tinyxml2.h"
 #include "ParseError.h"
-#include "../MusicData/Types.h"
+#include "../../MusicData/Types.h"
 
-#include "../MusicData/Chords/Chord.h"
-#include "../MusicData/Notes/Lyric.h"
-#include "../MusicData/Directions/BracketDirection.h"
+#include "../../MusicData/Chords/Chord.h"
+#include "../../MusicData/Notes/Lyric.h"
+#include "../../MusicData/Directions/BracketDirection.h"
 
-#include "../Collisions/Vec2.h"
+#include "../../Collisions/Vec2.h"
 
 using namespace tinyxml2;
 

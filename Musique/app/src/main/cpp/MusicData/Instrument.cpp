@@ -1,4 +1,5 @@
 #include "Instrument.h"
+#include "../Exceptions/Exceptions.h"
 
 float Instrument::GetMiddleHeight(float lineSpacing, float tabLineSpacing, int start, int end)
 {
@@ -238,4 +239,12 @@ void Instrument::Transpose(const TranspositionRequest& transposeRequest)
     {
         staff->Transpose(transposeRequest);
     }
+}
+
+float Instrument::GetPositionY(int systemIndex) const
+{
+    if (systemIndex >= systemPositionData.size() || systemIndex < 0)
+        throw InvalidArgumentException();
+
+    return systemPositionData[systemIndex].y;
 }

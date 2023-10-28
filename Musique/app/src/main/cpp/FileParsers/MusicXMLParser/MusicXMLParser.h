@@ -7,9 +7,9 @@
 
 #include <string>
 #include <unordered_map>
-#include "../libs/tinyxml2/tinyxml2.h"
-#include "../MusicData/Song.h"
-#include "../MusicData/Types.h"
+#include "../../libs/tinyxml2/tinyxml2.h"
+#include "../../MusicData/Song.h"
+#include "../../MusicData/Types.h"
 
 #include "XMLHelper.h"
 #include "MusicXMLHelper.h"
@@ -31,14 +31,15 @@ public:
      * Parses a musicxml formatted file (.musicxml)
      *
      * @param data[in] The string data to be parsed.
-     * @param error[out] Will contain an error if there was one.
      * @param song[out] The song object to parse the data into.
      */
-    static void ParseMusicXML(const std::string& data, std::string& error, std::shared_ptr<Song> song);
+    static void ParseMusicXML(const std::string& data, const std::shared_ptr<Song>& song);
 
 private:
 
     // ---- Parse Functions ----
+
+    static void ParsePart(const std::shared_ptr<Song>& song, XMLElement* part, bool isFirstPart, MusicDisplayConstants displayConstants);
 
     static Rehearsal ParseRehearsal(XMLElement* element);
     static Words ParseWords(XMLElement* element);
@@ -50,16 +51,16 @@ private:
     static Direction ParseDirection(XMLElement* directionElement, bool& isNewDirection, float currentTimeInMeasure);
     static std::shared_ptr<DurationDirection> ParseDurationDirection(XMLElement* directionElement, bool& isNewDirection, float currentTimeInMeasure, int measureIndex);
     static void ParseWorkElement(XMLElement* workElement, std::string& workTitle, int& workNumber);
-    static void ParseEncodingElement(XMLElement* encodingElement, std::shared_ptr<Song> song);
-    static void ParseIdentificationElement(XMLElement* idElement, std::shared_ptr<Song> song);
+    static void ParseEncodingElement(XMLElement* encodingElement, const std::shared_ptr<Song>& song);
+    static void ParseIdentificationElement(XMLElement* idElement, const std::shared_ptr<Song>& song);
     static MusicDisplayConstants ParseDefaultsElement(XMLElement* defaultsElement);
     static Credit ParseCreditElement(XMLElement* creditElement);
     static void ParseFrameElement(XMLElement* frameElement, Chord& chord);
     static void ParseHarmonyElement(XMLElement* harmonyElement, float& currentTimeInMeasure, std::vector<std::shared_ptr<Measure>> currentMeasures);
     static Barline ParseBarlineElement(XMLElement* barlineElement);
-    static void ParseArpeggioElement(XMLElement* element, std::shared_ptr<Measure> currentMeasure, std::shared_ptr<Note> currentNote);
-    static void ParseSlurElement(XMLElement* element, std::shared_ptr<Measure> currentMeasure, std::shared_ptr<Note> currentNote);
-    static void ParseEndingElement(XMLElement* element, std::shared_ptr<Song> song, std::vector<std::shared_ptr<Measure>> currentMeasures);
+    static void ParseArpeggioElement(XMLElement* element, const std::shared_ptr<Measure>& currentMeasure, const std::shared_ptr<Note>& currentNote);
+    static void ParseSlurElement(XMLElement* element, const std::shared_ptr<Measure>& currentMeasure, const std::shared_ptr<Note>& currentNote);
+    static void ParseEndingElement(XMLElement* element, const std::shared_ptr<Song>& song, std::vector<std::shared_ptr<Measure>> currentMeasures);
 
     static std::shared_ptr<Marker> ParseCodaSegnoElement(XMLElement* element);
 

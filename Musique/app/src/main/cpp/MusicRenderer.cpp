@@ -52,29 +52,6 @@ void MusicRenderer::Render(const std::shared_ptr<Song>& song, const Settings& se
 {
     switch (settings.musicLayout)
     {
-        case Settings::MusicLayout::Horizontal: {
-            //RenderHorizontalLayout();
-            break;
-        }
-        case Settings::MusicLayout::Vertical: {
-            /*if (!layoutCalculated)
-                CalculateRenderForVerticalLayout();
-
-            RenderWithRenderData();
-
-            FrameData frameData = FrameData();
-            if (playLineHeight == 0.0f) {
-                playLineHeight = 20.0f + 80.0f; //instpos * 80
-            }
-
-            frameData.playLinePosition = playLinePosition;
-            frameData.playLinePositionY = playLineY;
-            frameData.playLineHeight = playLineHeight;
-            frameData.playProgress = playLineBeatPosition / song->totalBeatWidth;
-
-            UpdateFrameData(frameData);*/
-            break;
-        }
         case Settings::MusicLayout::Paged: {
             if (!layoutCalculated)
                 CalculateRenderForPagedLayout(song, settings);
@@ -88,7 +65,7 @@ void MusicRenderer::Render(const std::shared_ptr<Song>& song, const Settings& se
             break;
         }
         default: {
-            //LOGE("This layout is not supported");
+            LOGE("This layout is not supported");
             break;
         }
     }
@@ -316,7 +293,7 @@ Vec2<float> MusicRenderer::RenderSystem(RenderData& renderData, const Settings& 
     {
         if (song->songData.instrumentInfos[instrumentIndex].visible)
         {
-            instPositionY = systemPosition.y + instrument->systemPositionData[systemIndex].y;
+            instPositionY = systemPosition.y + instrument->GetPositionY(systemIndex);
 
             if (song->instruments.size() > 1)
             {
@@ -339,7 +316,7 @@ Vec2<float> MusicRenderer::RenderSystem(RenderData& renderData, const Settings& 
                     ls = song->displayConstants.tabLineSpacing;
                 }
 
-                float staffPositionY = staff->systemPositionData[systemIndex].y;
+                float staffPositionY = staff->GetPositionY(systemIndex);
 
                 for (const auto& direction : staff->durationDirections)
                 {
@@ -505,7 +482,7 @@ void MusicRenderer::RenderLineOfMeasures(RenderData& renderData, const Settings&
     bool isLastMeasureInSystem = false;
     for (int m = (int)startMeasure; m <= endMeasure; m++)
     {
-        /*if (staff->csStaff)
+        if (staff->csStaff)
         {
             if (m < staff->csStaff->measures.size())
             {
@@ -513,60 +490,61 @@ void MusicRenderer::RenderLineOfMeasures(RenderData& renderData, const Settings&
 
                 csMeasure.Render(renderData, settings, { measurePositionX, staffPositionY });
             }
-        }*/
-
-        std::shared_ptr<Measure> measure = staff->measures[m];
-
-        nextMeasurePositionX = measurePositionX + measure->measureWidth;
-
-        if (m == endMeasure)
-            isLastMeasureInSystem = true;
-
-        //if (m == currentMeasure)
-        //{
-        //    playLinePosition = song->GetPositionXInMeasure(playLineBeatPosition, currentMeasure) + measurePositionX;
-        //}
-
-        if (multiMeasureRest)
-        {
-            if (measureIndex - measureThatStartedMultiMeasureRest < numberOfMeasuresInMultiMeasureRest) // this measure is part of the multi measure rest
-            {
-                // do nothing
-            }
-            else // this measure is not part of the multi measure rest (so it has ended)
-            {
-                multiMeasureRest = false;
-                numberOfMeasuresInMultiMeasureRest = 0;
-                measureThatStartedMultiMeasureRest = 0;
-            }
         }
-
-        int currentMeasure = 0; // TODO: remove
-
-        if (!(currentMeasureRenderedCount >= measureRenderCount) &&
-            measureNumber >= currentMeasure - (measureRenderCount / 2) &&
-            !multiMeasureRest) // render measure in a radius of measureRenderCount/2
+        else
         {
-            if (measure->startsMultiMeasureRest)
-            {
-                multiMeasureRest = true;
-                numberOfMeasuresInMultiMeasureRest = measure->multiMeasureRestSymbol->numberOfMeasures;
-                measureThatStartedMultiMeasureRest = measureIndex;
-            }
+            std::shared_ptr<Measure> measure = staff->measures[m];
 
-            bool isPartOfEnding = false;
-            for (const auto& endingGroup : endingGroups)
+            nextMeasurePositionX = measurePositionX + measure->measureWidth;
+
+            if (m == endMeasure)
+                isLastMeasureInSystem = true;
+
+            //if (m == currentMeasure)
+            //{
+            //    playLinePosition = song->GetPositionXInMeasure(playLineBeatPosition, currentMeasure) + measurePositionX;
+            //}
+
+            if (multiMeasureRest)
             {
-                for (const auto& ending : endingGroup->endings)
+                if (measureIndex - measureThatStartedMultiMeasureRest < numberOfMeasuresInMultiMeasureRest) // this measure is part of the multi measure rest
                 {
-                    if (ending->startMeasureIndex <= measureIndex && ending->endMeasureIndex >= measureIndex)
-                        isPartOfEnding = true;
+                    // do nothing
+                } else // this measure is not part of the multi measure rest (so it has ended)
+                {
+                    multiMeasureRest = false;
+                    numberOfMeasuresInMultiMeasureRest = 0;
+                    measureThatStartedMultiMeasureRest = 0;
                 }
             }
 
-            measure->Render(renderData, settings, { measurePositionX, staffPositionY }, nextMeasurePositionX, system, staff->lines, lineSpacing, isTopMeasureLine, isLastMeasureInSystem, staff->tablatureDisplayType, isPartOfEnding);
+            int currentMeasure = 0; // TODO: remove
 
-            currentMeasureRenderedCount++;
+            if (!(currentMeasureRenderedCount >= measureRenderCount) &&
+                measureNumber >= currentMeasure - (measureRenderCount / 2) &&
+                !multiMeasureRest) // render measure in a radius of measureRenderCount/2
+            {
+                if (measure->startsMultiMeasureRest)
+                {
+                    multiMeasureRest = true;
+                    numberOfMeasuresInMultiMeasureRest = measure->multiMeasureRestSymbol->numberOfMeasures;
+                    measureThatStartedMultiMeasureRest = measureIndex;
+                }
+
+                bool isPartOfEnding = false;
+                for (const auto &endingGroup: endingGroups)
+                {
+                    for (const auto &ending: endingGroup->endings)
+                    {
+                        if (ending->startMeasureIndex <= measureIndex && ending->endMeasureIndex >= measureIndex)
+                            isPartOfEnding = true;
+                    }
+                }
+
+                measure->Render(renderData, settings, {measurePositionX, staffPositionY}, nextMeasurePositionX, system, staff->lines, lineSpacing, isTopMeasureLine, isLastMeasureInSystem, staff->tablatureDisplayType, isPartOfEnding);
+
+                currentMeasureRenderedCount++;
+            }
         }
 
         measurePositionX = nextMeasurePositionX;

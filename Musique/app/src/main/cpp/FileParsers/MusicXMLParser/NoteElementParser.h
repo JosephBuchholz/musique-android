@@ -8,31 +8,31 @@
 #include <string>
 #include <memory>
 
-#include "../libs/tinyxml2/tinyxml2.h"
+#include "../../libs/tinyxml2/tinyxml2.h"
 #include "ParseError.h"
 
-#include "../MusicData/Measures/Measure.h"
-#include "../MusicData/Notes/Note.h"
-#include "../MusicData/Notes/Lyric.h"
+#include "../../MusicData/Measures/Measure.h"
+#include "../../MusicData/Notes/Note.h"
+#include "../../MusicData/Notes/Lyric.h"
 
-#include "../MusicData/Notes/Articulations/Accent.h"
-#include "../MusicData/Notes/Articulations/BreathMark.h"
-#include "../MusicData/Notes/Articulations/Caesura.h"
-#include "../MusicData/Notes/Articulations/Slide.h"
-#include "../MusicData/Notes/Articulations/StaccatoArticulation.h"
-#include "../MusicData/Notes/Articulations/Stress.h"
+#include "../../MusicData/Notes/Articulations/Accent.h"
+#include "../../MusicData/Notes/Articulations/BreathMark.h"
+#include "../../MusicData/Notes/Articulations/Caesura.h"
+#include "../../MusicData/Notes/Articulations/Slide.h"
+#include "../../MusicData/Notes/Articulations/StaccatoArticulation.h"
+#include "../../MusicData/Notes/Articulations/Stress.h"
 
-#include "../MusicData/Notes/Techniques/Bowing.h"
-#include "../MusicData/Notes/Techniques/GuitarTechnique.h"
-#include "../MusicData/Notes/Techniques/Bend.h"
+#include "../../MusicData/Notes/Techniques/Bowing.h"
+#include "../../MusicData/Notes/Techniques/GuitarTechnique.h"
+#include "../../MusicData/Notes/Techniques/Bend.h"
 
-#include "../MusicData/Notes/Ornaments/Ornaments.h"
-#include "../MusicData/Notes/Ornaments/TrillMark.h"
-#include "../MusicData/Notes/Ornaments/Mordent.h"
-#include "../MusicData/Notes/Ornaments/Vibrato.h"
-#include "../MusicData/Notes/Ornaments/Turn.h"
+#include "../../MusicData/Notes/Ornaments/Ornaments.h"
+#include "../../MusicData/Notes/Ornaments/TrillMark.h"
+#include "../../MusicData/Notes/Ornaments/Mordent.h"
+#include "../../MusicData/Notes/Ornaments/Vibrato.h"
+#include "../../MusicData/Notes/Ornaments/Turn.h"
 
-#include "../MusicData/Notes/GlissandoSlide.h"
+#include "../../MusicData/Notes/GlissandoSlide.h"
 
 using namespace tinyxml2;
 
@@ -55,7 +55,7 @@ public:
      * @param measureNumber The measure number.
      * @param error An error string (this should be deleted)
      */
-    static void ParseNoteElement(XMLElement* noteElement, float& currentTimeInMeasure, std::vector<bool> staffIsTabInfo, std::shared_ptr<Note> currentNote, std::shared_ptr<Note> previousNote, std::vector<std::shared_ptr<Measure>> currentMeasures, int measureNumber, std::string& error);
+    static void ParseNoteElement(XMLElement* noteElement, float& currentTimeInMeasure, std::vector<bool> staffIsTabInfo, std::shared_ptr<Note> currentNote, std::shared_ptr<Note> previousNote, std::vector<std::shared_ptr<Measure>> currentMeasures, int measureNumber);
 
 private:
     static Lyric ParseLyric(XMLElement* lyricElement);

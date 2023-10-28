@@ -1,9 +1,9 @@
 #include "MusicXMLHelper.h"
 
 #include "XMLHelper.h"
-#include "../Utils/Converters.h"
+#include "../../Utils/Converters.h"
 
-#include "../Exceptions/Exceptions.h"
+#include "../../Exceptions/Exceptions.h"
 
 void MusicXMLHelper::FlipYInVec2(Vec2<float>& v)
 {

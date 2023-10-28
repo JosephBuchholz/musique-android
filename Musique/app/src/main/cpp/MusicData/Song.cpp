@@ -2018,11 +2018,10 @@ int Song::GetMeasureCount() const
 {
     uint16_t count = 0;
 
-    /*for (const auto& system : systems)
+    for (const auto& system : systems)
     {
         count += system->systemMeasures.size();
     }
-    */
 
     return count;
 }

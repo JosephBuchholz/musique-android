@@ -118,12 +118,14 @@ add_library( # Sets the name of the library.
         MusicData/Notes/Ornaments/Turn.cpp
         MusicData/Notes/Ornaments/Vibrato.cpp
 
-        MusicXMLParser/MusicXMLHelper.cpp
-        MusicXMLParser/MusicXMLParser.cpp
-        MusicXMLParser/XMLHelper.cpp
-        MusicXMLParser/ParseError.cpp
-        MusicXMLParser/NoteElementParser.cpp
-        MusicXMLParser/BaseElementParser.cpp
+        FileParsers/ChordSheetParser/ChordSheetParser.cpp
+
+        FileParsers/MusicXMLParser/MusicXMLHelper.cpp
+        FileParsers/MusicXMLParser/MusicXMLParser.cpp
+        FileParsers/MusicXMLParser/XMLHelper.cpp
+        FileParsers/MusicXMLParser/ParseError.cpp
+        FileParsers/MusicXMLParser/NoteElementParser.cpp
+        FileParsers/MusicXMLParser/BaseElementParser.cpp
 
         Utils/Math.cpp
         Utils/Converters.cpp

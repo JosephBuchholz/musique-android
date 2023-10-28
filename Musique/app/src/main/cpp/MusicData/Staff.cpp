@@ -1,4 +1,5 @@
 #include "Staff.h"
+#include "../Exceptions/Exceptions.h"
 
 float Staff::GetMiddleHeight(float lineSpacing) const
 {
@@ -379,4 +380,12 @@ void Staff::Transpose(const TranspositionRequest& transposeRequest)
     {
         measure->OnTranspose(transposeRequest);
     }
+}
+
+float Staff::GetPositionY(int systemIndex) const
+{
+    if (systemIndex >= systemPositionData.size() || systemIndex < 0)
+        throw InvalidArgumentException();
+
+    return systemPositionData[systemIndex].y;
 }

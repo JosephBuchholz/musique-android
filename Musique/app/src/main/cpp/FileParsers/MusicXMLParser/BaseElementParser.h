@@ -8,14 +8,14 @@
 #include <string>
 #include <memory>
 
-#include "../libs/tinyxml2/tinyxml2.h"
+#include "../../libs/tinyxml2/tinyxml2.h"
 #include "ParseError.h"
 
-#include "../MusicData/BaseElements/BaseElement.h"
-#include "../MusicData/BaseElements/PrintableElement.h"
-#include "../MusicData/BaseElements/VisibleElement.h"
-#include "../MusicData/BaseElements/TextualElement.h"
-#include "../MusicData/BaseElements/LineElement.h"
+#include "../../MusicData/BaseElements/BaseElement.h"
+#include "../../MusicData/BaseElements/PrintableElement.h"
+#include "../../MusicData/BaseElements/VisibleElement.h"
+#include "../../MusicData/BaseElements/TextualElement.h"
+#include "../../MusicData/BaseElements/LineElement.h"
 
 using namespace tinyxml2;
 

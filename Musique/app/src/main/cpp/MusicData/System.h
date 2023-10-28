@@ -50,7 +50,7 @@ public:
     // key: the measure index | value: the system wide data for the measure
     std::unordered_map<int, SystemMeasureData> systemMeasureData;
 
-    //std::vector<SystemMeasure> systemMeasures;
+    std::vector<SystemMeasure> systemMeasures;
 
     Vec2<float> position = { 0.0f, 0.0f }; // relative to the page
 };

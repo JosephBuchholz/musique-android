@@ -35,6 +35,15 @@ public:
      */
     int GetMeasureCount();
 
+    /**
+     * Gets the y position of this instrument in the system of the given index. Throws
+     * an InvalidArgumentException if the system index is invalid.
+     *
+     * @param systemIndex The index of the system.
+     * @return The y position.
+     */
+    float GetPositionY(int systemIndex) const;
+
     bool UsesOpenStrings() const;
     void Transpose(const TranspositionRequest& transposeRequest);
 

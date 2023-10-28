@@ -3,11 +3,11 @@
 #include "MusicXMLHelper.h"
 #include "XMLHelper.h"
 #include "BaseElementParser.h"
-#include "../Utils/Converters.h"
+#include "../../Utils/Converters.h"
 
 #include "MusicXMLParser.h"
 
-#include "../Exceptions/Exceptions.h"
+#include "../../Exceptions/Exceptions.h"
 
 #include <unordered_map>
 
@@ -70,7 +70,7 @@ Lyric NoteElementParser::ParseLyric(XMLElement* lyricElement)
     return lyric;
 }
 
-void NoteElementParser::ParseNoteElement(XMLElement* noteElement, float& currentTimeInMeasure, std::vector<bool> staffIsTabInfo, std::shared_ptr<Note> currentNote, std::shared_ptr<Note> previousNote, std::vector<std::shared_ptr<Measure>> currentMeasures, int measureNumber, std::string& error)
+void NoteElementParser::ParseNoteElement(XMLElement* noteElement, float& currentTimeInMeasure, std::vector<bool> staffIsTabInfo, std::shared_ptr<Note> currentNote, std::shared_ptr<Note> previousNote, std::vector<std::shared_ptr<Measure>> currentMeasures, int measureNumber)
 {
     currentNote->defaultPosition.x = XMLHelper::GetFloatAttribute(noteElement, "default-x", currentNote->defaultPosition.x);
     currentNote->defaultPosition.y = XMLHelper::GetFloatAttribute(noteElement, "default-y", currentNote->defaultPosition.y);
@@ -148,7 +148,6 @@ void NoteElementParser::ParseNoteElement(XMLElement* noteElement, float& current
         }
         else
         {
-            error = "no step element in pitch element";
         }
 
         // octave
@@ -159,7 +158,6 @@ void NoteElementParser::ParseNoteElement(XMLElement* noteElement, float& current
         }
         else
         {
-            error = "no octave element in pitch element";
         }
 
         // alter
@@ -181,7 +179,6 @@ void NoteElementParser::ParseNoteElement(XMLElement* noteElement, float& current
         }
         else
         {
-            error = "Error divisions is zero";
         }
 
         // calculating beat position of note

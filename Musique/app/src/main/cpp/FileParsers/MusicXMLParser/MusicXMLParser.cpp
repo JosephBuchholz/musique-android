@@ -1,11 +1,11 @@
 #include "MusicXMLParser.h"
-#include "../Utils/Converters.h"
+#include "../../Utils/Converters.h"
 #include <memory>
 
-#include "../Collisions/Vec2.h"
+#include "../../Collisions/Vec2.h"
 #include "BaseElementParser.h"
 #include "NoteElementParser.h"
-#include "../Exceptions/Exceptions.h"
+#include "../../Exceptions/Exceptions.h"
 
 static std::unordered_map<int, std::shared_ptr<DynamicWedge>> currentDynamicWedges;
 static std::unordered_map<int, std::shared_ptr<BracketDirection>> currentDashes;
@@ -695,7 +695,7 @@ void MusicXMLParser::ParseWorkElement(XMLElement* workElement, std::string& work
     }
 }
 
-void MusicXMLParser::ParseEncodingElement(XMLElement* encodingElement, std::shared_ptr<Song> song)
+void MusicXMLParser::ParseEncodingElement(XMLElement* encodingElement, const std::shared_ptr<Song>& song)
 {
     if (encodingElement)
     {
@@ -756,7 +756,7 @@ void MusicXMLParser::ParseEncodingElement(XMLElement* encodingElement, std::shar
     }
 }
 
-void MusicXMLParser::ParseIdentificationElement(XMLElement* idElement, std::shared_ptr<Song> song)
+void MusicXMLParser::ParseIdentificationElement(XMLElement* idElement, const std::shared_ptr<Song>& song)
 {
     if (idElement)
     {
@@ -1148,7 +1148,7 @@ Barline MusicXMLParser::ParseBarlineElement(XMLElement* barlineElement)
     return barline;
 }
 
-void MusicXMLParser::ParseArpeggioElement(XMLElement* element, std::shared_ptr<Measure> currentMeasure, std::shared_ptr<Note> currentNote)
+void MusicXMLParser::ParseArpeggioElement(XMLElement* element, const std::shared_ptr<Measure>& currentMeasure, const std::shared_ptr<Note>& currentNote)
 {
     if (element)
     {
@@ -1214,7 +1214,7 @@ std::shared_ptr<Marker> MusicXMLParser::ParseCodaSegnoElement(XMLElement* elemen
     return newMarker;
 }
 
-void MusicXMLParser::ParseSlurElement(XMLElement* element, std::shared_ptr<Measure> currentMeasure, std::shared_ptr<Note> currentNote)
+void MusicXMLParser::ParseSlurElement(XMLElement* element, const std::shared_ptr<Measure>& currentMeasure, const std::shared_ptr<Note>& currentNote)
 {
     if (element)
     {
@@ -1256,7 +1256,7 @@ void MusicXMLParser::ParseSlurElement(XMLElement* element, std::shared_ptr<Measu
     }
 }
 
-void MusicXMLParser::ParseEndingElement(XMLElement* element, std::shared_ptr<Song> song, std::vector<std::shared_ptr<Measure>> currentMeasures)
+void MusicXMLParser::ParseEndingElement(XMLElement* element, const std::shared_ptr<Song>& song, std::vector<std::shared_ptr<Measure>> currentMeasures)
 {
     if (!element)
         throw IsNullException();
@@ -1307,7 +1307,7 @@ void MusicXMLParser::ParseEndingElement(XMLElement* element, std::shared_ptr<Son
             else
             {
                 bool createNewEndingGroup = false;
-                for (auto ending : currentEndingGroup->endings)
+                for (const auto& ending : currentEndingGroup->endings)
                 {
                     for (int number1 : ending->endingNumbers)
                     {
@@ -1372,35 +1372,732 @@ void MusicXMLParser::ParseEndingElement(XMLElement* element, std::shared_ptr<Son
     }
 }
 
-// main file parsing
-void MusicXMLParser::ParseMusicXML(const std::string& data, std::string& error, std::shared_ptr<Song> song)
+void MusicXMLParser::ParsePart(const std::shared_ptr<Song>& song, XMLElement* part, bool isFirstPart, MusicDisplayConstants displayConstants)
 {
+    std::string id = part->Attribute("id");
+    std::shared_ptr<Instrument> currentInst = song->GetInstrument(id);
+    if (currentInst == nullptr) {
+        AddError("Error", "Instrument " + id + " does not exist");
+        throw std::exception();
+    }
+
+    // measures
+
+    int measureIndex = 0;
+    int systemIndex = 0;
+    int previousSystemIndex = -1;
+
+    bool firstMeasure = true;
+    std::vector<bool> staffIsTabInfo;
+    bool stavesCreated = false;
+
+//                    bool multiMeasureRest = false; // whether the measure is part of a multi measure rest
+//                    unsigned int numberOfMeasuresInMultiMeasureRest = 0; // number of measures left in multi measure rest
+//                    unsigned int measureThatStartedMultiMeasureRest = 0; // the index of the measure that started the multi measure res
+
+
+    XMLNode* previousMeasureElement = part->FirstChildElement("measure");
+    std::vector<std::shared_ptr<Measure>> previousMeasures;
+
+    while (true)
+    {
+        if (previousMeasureElement)
+        {
+            XMLElement* measure = previousMeasureElement->ToElement();
+
+            int measureNumber = XMLHelper::GetNumberAttribute(measure, "number", 0, true);
+            float measureWidth = XMLHelper::GetFloatAttribute(measure, "width", 1.0f);
+            //LOGW("number: %d, measureWidth: %f", measureNumber, measureWidth);
+
+            bool implicitMeasure = XMLHelper::GetBoolAttribute(measure, "implicit", false);
+
+            bool startNewSystem = false;
+            bool startNewPage = false;
+
+            std::vector<std::shared_ptr<Measure>> currentMeasures;
+
+            // adding staves
+            if (firstMeasure)
+            {
+                XMLElement* attributes = measure->FirstChildElement("attributes");
+                if (attributes)
+                {
+                    // staves
+                    int numStaves = 1;
+                    XMLElement* stavesElement = attributes->FirstChildElement("staves");
+                    if (stavesElement)
+                    {
+                        numStaves = ToInt(stavesElement->GetText());
+                    }
+
+                    // adding staves
+                    for (int i = 0; i < numStaves; i++)
+                    {
+                        currentInst->staves.push_back(std::make_shared<Staff>());
+
+                        staffIsTabInfo.push_back(false);
+                    }
+
+                    stavesCreated = true;
+                }
+            }
+
+            if (currentInst->staves.size() >= 2)
+            {
+                currentInst->instrumentBracket = std::make_shared<InstrumentBracket>();
+                currentInst->instrumentBracket->type = InstrumentBracket::InstrumentBracketType::Brace;
+            }
+
+            // creating measures for each staff
+            for (int i = 0; i < currentInst->staves.size(); i++)
+            {
+                std::shared_ptr<Measure> newMeasure = std::make_shared<Measure>();
+                newMeasure->measureNumber = MeasureNumber(measureNumber);
+                newMeasure->implicit = implicitMeasure;
+                newMeasure->index = measureIndex;
+                newMeasure->staff = i+1;
+                newMeasure->defaultMeasureWidth = measureWidth;
+
+                if (stavesCreated)
+                {
+                    if (staffIsTabInfo[i])
+                        newMeasure->type = Measure::MeasureType::Tab;
+                }
+
+                if (i < previousMeasures.size())
+                {
+                    if (previousMeasures[i]->isMeasureRepeat && previousMeasures[i]->measureRepeat != nullptr)
+                    {
+                        newMeasure->isMeasureRepeat = true;
+                        newMeasure->measureRepeat = std::make_shared<MeasureRepeat>();
+                        newMeasure->measureRepeat->measureRepeatLength = previousMeasures[i]->measureRepeat->measureRepeatLength;
+                        newMeasure->measureRepeat->measureRepeatSlashes = previousMeasures[i]->measureRepeat->measureRepeatSlashes;
+                    }
+                }
+
+                currentMeasures.push_back(newMeasure);
+            }
+
+            /*if (multiMeasureRest)
+            {
+                if (measureIndex - measureThatStartedMultiMeasureRest < numberOfMeasuresInMultiMeasureRest)
+
+            }*/
+
+            // print
+            XMLElement* print = measure->FirstChildElement("print");
+            if (print)
+            {
+                startNewSystem = XMLHelper::GetBoolAttribute(print, "new-system", startNewSystem);
+                startNewPage = XMLHelper::GetBoolAttribute(print, "new-page", startNewPage);
+                startNewSystem |= startNewPage;
+
+                if (firstMeasure)
+                    startNewSystem = true, startNewPage = true;
+
+                for (const auto& m : currentMeasures) { m->startNewSystem = startNewSystem; m->startNewPage = startNewPage; }
+
+                if ((firstMeasure || startNewSystem) && isFirstPart)
+                {
+                    std::shared_ptr<System> system = std::make_shared<System>();
+                    System::SystemLayout systemLayout = displayConstants.systemLayout;
+
+                    XMLElement* systemLayoutElement = print->FirstChildElement("system-layout");
+                    if (systemLayoutElement)
+                    {
+                        systemLayout.systemDistance = XMLHelper::GetFloatValue("system-distance", systemLayoutElement, systemLayout.systemDistance);
+                        systemLayout.topSystemDistance = XMLHelper::GetFloatValue("top-system-distance", systemLayoutElement, systemLayout.topSystemDistance);
+
+                        XMLElement* systemLayoutMarginsElement = systemLayoutElement->FirstChildElement("system-margins");
+                        if (systemLayoutMarginsElement)
+                        {
+                            systemLayout.systemLeftMargin = XMLHelper::GetFloatValue("left-margin", systemLayoutMarginsElement, systemLayout.systemLeftMargin, true); // required
+                            systemLayout.systemRightMargin = XMLHelper::GetFloatValue("right-margin", systemLayoutMarginsElement, systemLayout.systemRightMargin, true); // required
+                        }
+                    }
+
+                    //LOGE("systemLayout; i: %d, leftMargin: %f", song->systemLayouts.size(), systemLayout.systemLeftMargin);
+
+                    system->layout = systemLayout;
+
+                    if (firstMeasure)
+                        system->showBeginningTimeSignature = true;
+
+                    system->showBeginningClef = true;
+                    system->showBeginningKeySignature = true;
+
+                    system->beginningMeasureIndex = measureIndex;
+
+                    if (previousSystemIndex != -1 && previousSystemIndex < song->systems.size())
+                    {
+                        song->systems[previousSystemIndex]->endingMeasureIndex = measureIndex - 1;
+
+                        for (int i = song->systems[previousSystemIndex]->beginningMeasureIndex; i <= measureIndex - 1; i++)
+                        {
+                            SystemMeasure newSystemMeasure;
+                            newSystemMeasure.measureIndex = i;
+                            song->systems[previousSystemIndex]->systemMeasures.push_back(newSystemMeasure);
+                        }
+                    }
+
+                    song->systems.push_back(system);
+
+                    previousSystemIndex = systemIndex;
+                    systemIndex++;
+                }
+
+                XMLElement* staffLayoutElement = print->FirstChildElement("staff-layout");
+                if (staffLayoutElement)
+                {
+                    unsigned int staffNumber = XMLHelper::GetUnsignedIntAttribute(staffLayoutElement, "number", 1); // the number of the staff that this layout applies to
+
+                    // staff distance (the distance from the bottom line of the previous staff to the top line of the current staff)
+                    currentMeasures[staffNumber-1]->defStaffDistance = XMLHelper::GetFloatValue("staff-distance", staffLayoutElement, currentMeasures[staffNumber-1]->defStaffDistance);
+                }
+            }
+
+            float currentTimeInMeasure = 0.0f; // keeps track of the current time that has passed in the current measure in beats(quarter notes)
+
+            // attributes
+            XMLElement* attributes = measure->FirstChildElement("attributes");
+            if (attributes)
+            {
+                // divisions
+                XMLElement* divisions = attributes->FirstChildElement("divisions");
+                if (divisions)
+                {
+                    for (const auto& m : currentMeasures) { m->divisions = ToInt(divisions->GetText()); } // setting divisions for all current measures
+                }
+                else
+                {
+                    if (!previousMeasures.empty() && previousMeasures.size() == currentMeasures.size())
+                    {
+                        int i = 0;
+                        for (const auto& m : currentMeasures)
+                        {
+                            m->divisions = previousMeasures[i]->divisions;
+                            i++;
+                        }
+                    }
+                }
+
+                // key signature
+                XMLElement* keySignatureElement = attributes->FirstChildElement("key");
+                if (keySignatureElement)
+                {
+                    KeySignature keySignature = KeySignature(0);
+                    // print object
+                    keySignature.print = XMLHelper::GetBoolAttribute(keySignatureElement, "print-object", true);
+
+                    // fifths
+                    XMLElement* fifths = keySignatureElement->FirstChildElement("fifths");
+                    if (fifths)
+                        keySignature.fifths = ToInt(fifths->GetText());
+
+                    // mode
+                    XMLElement* mode = keySignatureElement->FirstChildElement("mode");
+                    if (mode)
+                        keySignature.mode = KeySignature::GetModeFromString(mode->GetText());
+
+                    for (const auto& m : currentMeasures) { m->keySignature = keySignature; m->showKeySignature = true; }
+                }
+                else
+                {
+                    if (!previousMeasures.empty() && previousMeasures.size() == currentMeasures.size())
+                    {
+                        int i = 0;
+                        for (const auto& m : currentMeasures)
+                        {
+                            m->keySignature = previousMeasures[i]->keySignature;
+                            i++;
+                        }
+                    }
+                }
+
+                // time signature
+                XMLElement* timeSignatureElement = attributes->FirstChildElement("time");
+                if (timeSignatureElement)
+                {
+                    TimeSignature timeSignature = TimeSignature();
+                    // print object
+                    timeSignature.printObject = XMLHelper::GetBoolAttribute(timeSignatureElement, "print-object", true);
+
+                    const char* symbol = timeSignatureElement->Attribute("symbol");
+                    if (symbol)
+                        timeSignature.displayType = TimeSignature::GetDisplayTypeFromString(symbol);
+
+                    XMLElement* beats = timeSignatureElement->FirstChildElement("beats");
+                    if (beats)
+                        timeSignature.notes = ToInt(beats->GetText());
+                    XMLElement* beatType = timeSignatureElement->FirstChildElement("beat-type");
+                    if (beatType)
+                        timeSignature.noteType = ToInt(beatType->GetText());
+
+                    for (const auto& m : currentMeasures) { m->timeSignature = timeSignature; m->showTimeSignature = true; m->CalculateDuration(); }
+                }
+                else
+                {
+                    if (!previousMeasures.empty() && previousMeasures.size() == currentMeasures.size())
+                    {
+                        int i = 0;
+                        for (const auto& m : currentMeasures)
+                        {
+                            m->timeSignature = previousMeasures[i]->timeSignature;
+                            m->CalculateDuration();
+                            i++;
+                        }
+                    }
+                }
+
+                // clef
+                XMLNode* previousClefElement = attributes->FirstChildElement("clef");
+                if (previousClefElement)
+                {
+                    while (true)
+                    {
+                        if (previousClefElement)
+                        {
+                            XMLElement* clefElement = previousClefElement->ToElement();
+                            int staffNumber = XMLHelper::GetNumberAttribute(clefElement, "number", 1);
+
+                            XMLElement* signElement = clefElement->FirstChildElement("sign");
+                            if (signElement)
+                            {
+                                currentMeasures[staffNumber-1]->clef.sign = signElement->GetText();
+                                if (currentMeasures[staffNumber-1]->clef.sign == "TAB")
+                                {
+                                    if (firstMeasure) {
+                                        currentInst->staves[staffNumber-1]->type = Staff::StaffType::Tab;
+                                        staffIsTabInfo[staffNumber-1] = true;
+                                        currentMeasures[staffNumber-1]->type = Measure::MeasureType::Tab;
+
+                                        if (currentInst->staves.size() > 1) // if there is more than one staff
+                                            currentInst->staves[staffNumber-1]->tablatureDisplayType = TablatureDisplayType::NoRhythm;
+                                    }
+                                }
+                            }
+
+                            XMLElement* line = clefElement->FirstChildElement("line");
+                            if (line)
+                                currentMeasures[staffNumber-1]->clef.line = ToInt(line->GetText());
+
+                            currentMeasures[staffNumber-1]->clef.octaveChange = XMLHelper::GetIntValue("clef-octave-change", clefElement, currentMeasures[staffNumber-1]->clef.octaveChange);
+                        }
+                        else // no more clefs
+                        {
+                            break;
+                        }
+                        previousClefElement = previousClefElement->NextSiblingElement("clef");
+                    }
+                }
+
+                // change the measure's clef the the previous measure's clef if a new clef was not specified (and set the clef changed attribute)
+                int i = 0;
+                for (const auto& m : currentMeasures)
+                {
+                    if (i < previousMeasures.size())
+                    {
+                        if (m->clef.sign.empty())
+                        {
+                            m->clef = previousMeasures[i]->clef;
+                            m->clef.clefChanged = false;
+                        }
+                        else if (m->clef != previousMeasures[i]->clef)
+                        {
+                            m->clef.clefChanged = true;
+                            m->clef.showClef = true;
+                        }
+                    }
+
+                    i++;
+                }
+
+                // transpose
+                XMLElement* transposeElement = attributes->FirstChildElement("transpose");
+                if (transposeElement)
+                {
+                    Transpose transpose = Transpose();
+                    // diatonic
+                    XMLElement* diatonic = transposeElement->FirstChildElement("diatonic");
+                    if (diatonic)
+                    {
+                        transpose.diatonic = ToInt(diatonic->GetText());
+                    }
+
+                    // chromatic
+                    XMLElement* chromatic = transposeElement->FirstChildElement("chromatic");
+                    if (chromatic)
+                    {
+                        transpose.chromatic = ToInt(chromatic->GetText());
+                    }
+
+                    // octave change
+                    XMLElement* octaveChange = transposeElement->FirstChildElement("octave-change");
+                    if (octaveChange)
+                    {
+                        transpose.octaveChange = ToInt(octaveChange->GetText());
+                    }
+
+                    for (const auto& m : currentMeasures) { m->transpose = transpose; }
+                }
+                else
+                {
+                    if (!previousMeasures.empty() && previousMeasures.size() == currentMeasures.size())
+                    {
+                        int j = 0;
+                        for (const auto& m : currentMeasures)
+                        {
+                            m->transpose = previousMeasures[j]->transpose;
+                            j++;
+                        }
+                    }
+                }
+
+                // staff details
+                XMLElement* staffDetails = attributes->FirstChildElement("staff-details");
+                if (staffDetails)
+                {
+                    // staff lines
+                    XMLElement* staffLines = staffDetails->FirstChildElement("staff-lines");
+                    if (staffLines)
+                        currentInst->staves.back()->lines = ToInt(staffLines->GetText());
+
+                    // staff tunings (TAB only)
+                    if (currentInst->staves.back()->type == Staff::StaffType::Tab) {
+                        XMLNode *previousStaffTuning = staffDetails->FirstChildElement("staff-tuning");
+
+                        std::shared_ptr<Staff> tabStaff = currentInst->staves.back();
+
+                        while (true) {
+                            if (previousStaffTuning) {
+                                XMLElement *staffTuning = previousStaffTuning->ToElement();
+                                XMLElement *tuningStep = staffTuning->FirstChildElement(
+                                        "tuning-step");
+                                StaffTuning tuning;
+                                if (tuningStep)
+                                    tuning.pitch.step = DiatonicNoteFromString(tuningStep->GetText());
+                                XMLElement *tuningOctave = staffTuning->FirstChildElement(
+                                        "tuning-octave");
+                                if (tuningOctave)
+                                    tuning.pitch.octave = ToInt(
+                                            tuningOctave->GetText());
+                                XMLElement *tuningAlter = staffTuning->FirstChildElement(
+                                        "tuning-alter");
+                                if (tuningAlter)
+                                    tuning.pitch.alter = (float)ToInt(
+                                            tuningAlter->GetText());
+                                tabStaff->tunings.push_back(tuning);
+                            } else {
+                                break;
+                            }
+                            previousStaffTuning = previousStaffTuning->NextSiblingElement("staff-tuning");
+                        }
+
+                        tabStaff->capo = XMLHelper::GetUnsignedIntValue("capo", staffDetails, tabStaff->capo);
+                    }
+                } // staff details
+
+                // measure style
+                XMLElement* measureStyleElement = attributes->FirstChildElement("measure-style");
+                if (measureStyleElement)
+                {
+                    int staffNumber = XMLHelper::GetNumberAttribute(measureStyleElement, "number", -1);
+
+                    // measure rest
+                    XMLElement* multipleRestElement = measureStyleElement->FirstChildElement("multiple-rest");
+                    if (multipleRestElement)
+                    {
+                        unsigned int numberOfMeasures = XMLHelper::GetUnsignedIntValue(multipleRestElement, 1);
+                        bool useSymbols = XMLHelper::GetBoolAttribute(multipleRestElement, "use-symbols", false);
+
+                        if (staffNumber == -1) // applies to all the staves
+                        {
+                            for (const auto& m : currentMeasures)
+                            {
+                                m->startsMultiMeasureRest = true;
+                                m->isPartOfMultiMeasureRest = true;
+                                m->multiMeasureRestSymbol = std::make_shared<MultiMeasureRestSymbol>();
+                                m->multiMeasureRestSymbol->useSymbols = useSymbols;
+                                m->multiMeasureRestSymbol->numberOfMeasures = numberOfMeasures;
+                            }
+                        }
+                        else // applies only to the specified staff
+                        {
+                            currentMeasures[staffNumber-1]->startsMultiMeasureRest = true;
+                            currentMeasures[staffNumber-1]->isPartOfMultiMeasureRest = true;
+                            currentMeasures[staffNumber-1]->multiMeasureRestSymbol = std::make_shared<MultiMeasureRestSymbol>();
+                            currentMeasures[staffNumber-1]->multiMeasureRestSymbol->useSymbols = useSymbols;
+                            currentMeasures[staffNumber-1]->multiMeasureRestSymbol->numberOfMeasures = numberOfMeasures;
+                        }
+                    }
+
+                    XMLElement* measureRepeatElement = measureStyleElement->FirstChildElement("measure-repeat");
+                    if (measureRepeatElement)
+                    {
+                        std::string typeString = XMLHelper::GetStringAttribute(measureRepeatElement, "type", "", true);
+
+                        if (typeString == "start")
+                        {
+                            currentMeasures[staffNumber-1]->isMeasureRepeat = true;
+                            currentMeasures[staffNumber-1]->measureRepeat = std::make_shared<MeasureRepeat>();
+
+                            currentMeasures[staffNumber-1]->measureRepeat->measureRepeatLength = XMLHelper::GetIntValue(measureRepeatElement, currentMeasures[staffNumber-1]->measureRepeat->measureRepeatLength);
+                            currentMeasures[staffNumber-1]->measureRepeat->measureRepeatSlashes = XMLHelper::GetNumberAttribute(measureRepeatElement, "slashes", currentMeasures[staffNumber-1]->measureRepeat->measureRepeatSlashes);
+                        }
+                        else if (typeString == "stop")
+                        {
+                            currentMeasures[staffNumber-1]->isMeasureRepeat = false;
+                            currentMeasures[staffNumber-1]->measureRepeat = nullptr;
+                        }
+                        else
+                        {
+                            throw InvalidValueException();
+                        }
+                    }
+                }
+            }
+            else
+            {
+                if (firstMeasure)
+                    currentInst->staves.push_back(std::make_shared<Staff>());
+
+                if (!previousMeasures.empty() && previousMeasures.size() == currentMeasures.size())
+                {
+                    int i = 0;
+                    for (const auto& m : currentMeasures)
+                    {
+                        m->timeSignature = previousMeasures[i]->timeSignature;
+                        m->CalculateDuration();
+                        m->keySignature = previousMeasures[i]->keySignature;
+                        m->clef = previousMeasures[i]->clef;
+                        m->divisions = previousMeasures[i]->divisions;
+                        m->transpose = previousMeasures[i]->transpose;
+                        i++;
+                    }
+                }
+            }
+
+            // notes and backup and forward elements
+
+            XMLNode* previousElement = measure->FirstChildElement(); // the first element
+            //XMLNode* previousNoteElement = measure->FirstChildElement("note");
+            std::shared_ptr<Note> previousNote = nullptr;
+            while (true)
+            {
+                if (previousElement)
+                {
+                    XMLElement* element = previousElement->ToElement();
+                    const char* value = element->Value();
+                    if (strcmp(value, "note") == 0) // note
+                    {
+                        std::shared_ptr<Note> currentNote = std::make_shared<Note>();
+                        NoteElementParser::ParseNoteElement(element, currentTimeInMeasure, staffIsTabInfo, currentNote, previousNote, currentMeasures, measureNumber);
+                        previousNote = currentNote;
+                    }
+                    else if (strcmp(value, "backup") == 0) // backup time in measure
+                    {
+                        // duration
+                        XMLElement* durationElement = element->FirstChildElement("duration");
+                        if (durationElement)
+                        {
+                            int divisions = currentMeasures[0]->divisions;
+                            float duration = 0.0f;
+                            if (divisions != 0)
+                            {
+                                duration = (1.0f / (float)divisions) * (float)ToInt(durationElement->GetText());
+                            }
+                            else
+                            {
+                                AddError("Invalid value", "Divisions is zero");
+                            }
+
+                            currentTimeInMeasure -= duration;
+                        }
+                        else
+                        {
+                            AddError("Missing Element", "Backup element has no duration");
+                        }
+                    }
+                    else if (strcmp(value, "harmony") == 0) // harmony element (i.e. chords)
+                    {
+                        ParseHarmonyElement(element, currentTimeInMeasure, currentMeasures);
+                    }
+                    else if (strcmp(value, "forward") == 0) // increment time in measure
+                    {
+                        // duration
+                        XMLElement* durationElement = element->FirstChildElement("duration");
+                        if (durationElement)
+                        {
+                            int divisions = currentMeasures[0]->divisions;
+                            float duration = 0.0f;
+                            if (divisions != 0)
+                            {
+                                duration = (1.0f / (float)divisions) * (float)ToInt(durationElement->GetText());
+                            }
+                            else
+                            {
+                                AddError("Invalid value", "Divisions is zero");
+                            }
+
+                            currentTimeInMeasure += duration;
+                        }
+                        else
+                        {
+                            AddError("Missing Element", "Forward element has no duration");
+                        }
+                    }
+                    else if (strcmp(value, "direction") == 0) // direction
+                    {
+                        // duration direction
+                        bool isNewDurationDirection;
+                        std::shared_ptr<DurationDirection> durationDirection = ParseDurationDirection(element, isNewDurationDirection, currentTimeInMeasure, measureIndex);
+                        if (isNewDurationDirection && durationDirection)
+                        {
+                            /*durationDirection->beatPositionStart = currentTimeInMeasure;
+                            durationDirection->startMeasureIndex = measureIndex;*/
+                            currentInst->staves[0]->durationDirections.push_back(durationDirection);
+                        }
+
+                        if (!isNewDurationDirection)
+                        {
+                            // direction
+                            bool isNewDirection;
+                            Direction direction = ParseDirection(element, isNewDirection, currentTimeInMeasure);
+                            if (isNewDirection)
+                            {
+                                direction.beatPosition = currentTimeInMeasure;
+                                currentMeasures[0]->directions.push_back(direction);
+                            }
+                        }
+
+                        // sound
+                        XMLElement* soundElement = element->FirstChildElement("sound");
+                        if (soundElement)
+                        {
+                            float dynamics = XMLHelper::GetFloatAttribute(soundElement, "dynamics", -1.0f);
+                            float tempo = XMLHelper::GetFloatAttribute(soundElement, "tempo", -1.0f);
+                            int pan = XMLHelper::GetNumberAttribute(soundElement, "pan", 0);
+
+                            // getting beat position of sound event
+                            float eventBeatPosition = currentTimeInMeasure;
+
+                            if (dynamics != -1.0f)
+                            {
+                                std::shared_ptr<DynamicsSoundEvent> dynamicsSoundEvent = std::make_shared<DynamicsSoundEvent>();
+
+                                dynamicsSoundEvent->beatPosition = eventBeatPosition;
+                                dynamicsSoundEvent->SetDynamics(dynamics / 100.0f);
+
+                                for (const auto& m : currentMeasures) { m->soundEvents.push_back(dynamicsSoundEvent); }
+                            }
+
+                            if (tempo != -1.0f)
+                            {
+                                std::shared_ptr<TempoSoundEvent> event = std::make_shared<TempoSoundEvent>();
+
+                                event->beatPosition = eventBeatPosition;
+                                event->tempo = tempo;
+
+                                for (const auto& m : currentMeasures) { m->soundEvents.push_back(event); }
+                            }
+                        }
+                    }
+                    else if (strcmp(value, "barline") == 0) // barline
+                    {
+                        Barline barline = ParseBarlineElement(element);
+
+                        for (const auto& m : currentMeasures) { m->barlines.push_back(barline); }
+
+                        // ending
+                        XMLElement* endingElement = element->FirstChildElement("ending");
+                        if (endingElement)
+                        {
+                            ParseEndingElement(endingElement, song, currentMeasures);
+                        }
+                    }
+                }
+                else
+                {
+                    break;
+                }
+                previousElement = previousElement->NextSibling(); // get the next element
+                //previousNoteElement = measure->IterateChildren("note", previousNoteElement);
+            }
+
+            // adding measure to staff
+            /*LOGD("adding measures");
+            int staffIndex = 0;
+            for (Staff* staff : currentInst->staves)
+            {
+                LOGD("staff %i", staffIndex);
+                Measure* newMeasure = new Measure();
+                newMeasure->staff = staffIndex + 1;
+                newMeasure->CopyData(currentMeasure);
+                LOGD("measure %i, %i", newMeasure->notes.size(), currentMeasure->notes.size());
+                currentInst->staves[staffIndex]->measures.push_back(newMeasure);
+                staffIndex++;
+            }
+            LOGD("done adding meausres");
+            if (previousMeasure != nullptr) {
+                LOGD("deleting previous measure");
+                previousMeasure->notes.clear();
+                delete previousMeasure; // deleting previous measure (but not it's notes because they were all given to other measures)
+                previousMeasure = nullptr;
+            }
+            LOGD("setting previous measure");*/
+
+            // adding measures to correct staves
+            for (const auto& m : currentMeasures)
+            {
+                currentInst->staves[m->staff-1]->measures.push_back(m);
+            }
+
+            previousMeasures = currentMeasures;
+            firstMeasure = false;
+            measureIndex++;
+        }
+        else
+        {
+            /*if (previousMeasure != nullptr) // delete
+            {
+                LOGD("deleting last previous measure");
+                previousMeasure->notes.clear();
+                delete previousMeasure; // deleting previous measure (but not it's notes because they were all given to other measures)
+                previousMeasure = nullptr;
+                LOGD("done deleting last previous measure");
+            }*/
+            break;
+        }
+        previousMeasureElement = previousMeasureElement->NextSiblingElement("measure");
+    }
+}
+
+// main file parsing
+void MusicXMLParser::ParseMusicXML(const std::string& data, const std::shared_ptr<Song>& song)
+{
+    LOGI_TAG("MusicXMLParser", "Starting to parse MusicXML file");
+
     m_Errors.clear();
-    LOGI("STARTING TO PARSE");
     MusicDisplayConstants displayConstants;
-    LOGI("Created song data");
 
     tinyxml2::XMLDocument doc;
-    const char *d = data.c_str();
+    const char* d = data.c_str();
     tinyxml2::XMLError xmlError = doc.Parse(d);
-    LOGD("parced document with tinyxml2");
+
     if (xmlError != tinyxml2::XMLError::XML_SUCCESS) {
-        LOGE("error: %i", xmlError);
-        error = "XMLERROR: " + ToString(int(xmlError));
+        LOGE_TAG("MusicXMLParser", "error: %i", xmlError);
         AddError("XML Error", ToString(int(xmlError)));
     }
 
     if (doc.Error())
     {
-        LOGE("doc error: %s: %s", doc.ErrorName(), doc.ErrorStr());
-        error = "XML DOC ERROR";
+        LOGE_TAG("MusicXMLParser", "doc error: %s: %s", doc.ErrorName(), doc.ErrorStr());
         AddError(doc.ErrorName(), doc.ErrorStr());
-        LOGD("---------------------------Document:\n\n%s\n\n", data.c_str());
-        //error = doc.ErrorDesc();
+        LOGD_TAG("MusicXMLParser", "---------------------------Document:\n\n%s\n\n", data.c_str());
     }
     else
     {
-        // will create problems if it is socre-timewise
+        // TODO: will create problems if it is socre-timewise
         XMLElement* root = doc.FirstChildElement("score-partwise");
         if (root)
         {
@@ -1524,7 +2221,6 @@ void MusicXMLParser::ParseMusicXML(const std::string& data, std::string& error, 
             }
             else
             {
-                error = "ERROR no part-list";
                 AddError("Parse Failed", "No part-list");
             }
 
@@ -1537,700 +2233,8 @@ void MusicXMLParser::ParseMusicXML(const std::string& data, std::string& error, 
                 if (previous)
                 {
                     XMLElement* part = previous->ToElement();
-                    std::string id = part->Attribute("id");
-                    std::shared_ptr<Instrument> currentInst = song->GetInstrument(id);
-                    if (currentInst == nullptr) {
-                        error = "Instrument " + id + " does not exist";
-                        AddError("Error", "Instrument " + id + " does not exist");
-                        return;
-                    }
 
-                    // measures
-
-                    int measureIndex = 0;
-                    int systemIndex = 0;
-                    int previousSystemIndex = -1;
-
-                    bool firstMeasure = true;
-                    std::vector<bool> staffIsTabInfo;
-                    bool stavesCreated = false;
-
-//                    bool multiMeasureRest = false; // whether the measure is part of a multi measure rest
-//                    unsigned int numberOfMeasuresInMultiMeasureRest = 0; // number of measures left in multi measure rest
-//                    unsigned int measureThatStartedMultiMeasureRest = 0; // the index of the measure that started the multi measure res
-
-
-                    XMLNode* previousMeasureElement = part->FirstChildElement("measure");
-                    std::vector<std::shared_ptr<Measure>> previousMeasures;
-
-                    while (true)
-                    {
-                        if (previousMeasureElement)
-                        {
-                            XMLElement* measure = previousMeasureElement->ToElement();
-
-                            int measureNumber = XMLHelper::GetNumberAttribute(measure, "number", 0, true);
-                            float measureWidth = XMLHelper::GetFloatAttribute(measure, "width", 1.0f);
-                            //LOGW("number: %d, measureWidth: %f", measureNumber, measureWidth);
-
-                            bool implicitMeasure = XMLHelper::GetBoolAttribute(measure, "implicit", false);
-
-                            bool startNewSystem = false;
-                            bool startNewPage = false;
-
-                            std::vector<std::shared_ptr<Measure>> currentMeasures;
-
-                            // adding staves
-                            if (firstMeasure)
-                            {
-                                XMLElement* attributes = measure->FirstChildElement("attributes");
-                                if (attributes)
-                                {
-                                    // staves
-                                    int numStaves = 1;
-                                    XMLElement* stavesElement = attributes->FirstChildElement("staves");
-                                    if (stavesElement)
-                                    {
-                                        numStaves = ToInt(stavesElement->GetText());
-                                    }
-
-                                    // adding staves
-                                    for (int i = 0; i < numStaves; i++)
-                                    {
-                                        currentInst->staves.push_back(std::make_shared<Staff>());
-
-                                        staffIsTabInfo.push_back(false);
-                                    }
-
-                                    stavesCreated = true;
-                                }
-                            }
-
-                            if (currentInst->staves.size() >= 2)
-                            {
-                                currentInst->instrumentBracket = std::make_shared<InstrumentBracket>();
-                                currentInst->instrumentBracket->type = InstrumentBracket::InstrumentBracketType::Brace;
-                            }
-
-                            // creating measures for each staff
-                            for (int i = 0; i < currentInst->staves.size(); i++)
-                            {
-                                std::shared_ptr<Measure> newMeasure = std::make_shared<Measure>();
-                                newMeasure->measureNumber = MeasureNumber(measureNumber);
-                                newMeasure->implicit = implicitMeasure;
-                                newMeasure->index = measureIndex;
-                                newMeasure->staff = i+1;
-                                newMeasure->defaultMeasureWidth = measureWidth;
-
-                                if (stavesCreated)
-                                {
-                                    if (staffIsTabInfo[i])
-                                        newMeasure->type = Measure::MeasureType::Tab;
-                                }
-
-                                if (i < previousMeasures.size())
-                                {
-                                    if (previousMeasures[i]->isMeasureRepeat && previousMeasures[i]->measureRepeat != nullptr)
-                                    {
-                                        newMeasure->isMeasureRepeat = true;
-                                        newMeasure->measureRepeat = std::make_shared<MeasureRepeat>();
-                                        newMeasure->measureRepeat->measureRepeatLength = previousMeasures[i]->measureRepeat->measureRepeatLength;
-                                        newMeasure->measureRepeat->measureRepeatSlashes = previousMeasures[i]->measureRepeat->measureRepeatSlashes;
-                                    }
-                                }
-
-                                currentMeasures.push_back(newMeasure);
-                            }
-
-                            /*if (multiMeasureRest)
-                            {
-                                if (measureIndex - measureThatStartedMultiMeasureRest < numberOfMeasuresInMultiMeasureRest)
-
-                            }*/
-
-                            // print
-                            XMLElement* print = measure->FirstChildElement("print");
-                            if (print)
-                            {
-                                startNewSystem = XMLHelper::GetBoolAttribute(print, "new-system", startNewSystem);
-                                startNewPage = XMLHelper::GetBoolAttribute(print, "new-page", startNewPage);
-                                startNewSystem |= startNewPage;
-
-                                if (firstMeasure)
-                                    startNewSystem = true, startNewPage = true;
-
-                                for (auto m : currentMeasures) { m->startNewSystem = startNewSystem; m->startNewPage = startNewPage; }
-
-                                if ((firstMeasure || startNewSystem) && isFirstPart)
-                                {
-                                    std::shared_ptr<System> system = std::make_shared<System>();
-                                    System::SystemLayout systemLayout = displayConstants.systemLayout;
-
-                                    XMLElement* systemLayoutElement = print->FirstChildElement("system-layout");
-                                    if (systemLayoutElement)
-                                    {
-                                        systemLayout.systemDistance = XMLHelper::GetFloatValue("system-distance", systemLayoutElement, systemLayout.systemDistance);
-                                        systemLayout.topSystemDistance = XMLHelper::GetFloatValue("top-system-distance", systemLayoutElement, systemLayout.topSystemDistance);
-
-                                        XMLElement* systemLayoutMarginsElement = systemLayoutElement->FirstChildElement("system-margins");
-                                        if (systemLayoutMarginsElement)
-                                        {
-                                            systemLayout.systemLeftMargin = XMLHelper::GetFloatValue("left-margin", systemLayoutMarginsElement, systemLayout.systemLeftMargin, true); // required
-                                            systemLayout.systemRightMargin = XMLHelper::GetFloatValue("right-margin", systemLayoutMarginsElement, systemLayout.systemRightMargin, true); // required
-                                        }
-                                    }
-
-                                    //LOGE("systemLayout; i: %d, leftMargin: %f", song->systemLayouts.size(), systemLayout.systemLeftMargin);
-
-                                    system->layout = systemLayout;
-
-                                    if (firstMeasure)
-                                        system->showBeginningTimeSignature = true;
-
-                                    system->showBeginningClef = true;
-                                    system->showBeginningKeySignature = true;
-
-                                    system->beginningMeasureIndex = measureIndex;
-
-                                    if (previousSystemIndex != -1 && previousSystemIndex < song->systems.size())
-                                    {
-                                        song->systems[previousSystemIndex]->endingMeasureIndex = measureIndex - 1;
-                                    }
-
-                                    song->systems.push_back(system);
-
-                                    previousSystemIndex = systemIndex;
-                                    systemIndex++;
-                                }
-
-                                XMLElement* staffLayoutElement = print->FirstChildElement("staff-layout");
-                                if (staffLayoutElement)
-                                {
-                                    unsigned int staffNumber = XMLHelper::GetUnsignedIntAttribute(staffLayoutElement, "number", 1); // the number of the staff that this layout applies to
-
-                                    // staff distance (the distance from the bottom line of the previous staff to the top line of the current staff)
-                                    currentMeasures[staffNumber-1]->defStaffDistance = XMLHelper::GetFloatValue("staff-distance", staffLayoutElement, currentMeasures[staffNumber-1]->defStaffDistance);
-                                }
-                            }
-
-                            float currentTimeInMeasure = 0.0f; // keeps track of the current time that has passed in the current measure in beats(quarter notes)
-
-                            // attributes
-                            XMLElement* attributes = measure->FirstChildElement("attributes");
-                            if (attributes)
-                            {
-                                // divisions
-                                XMLElement* divisions = attributes->FirstChildElement("divisions");
-                                if (divisions)
-                                {
-                                    for (auto m : currentMeasures) { m->divisions = ToInt(divisions->GetText()); } // setting divisions for all current measures
-                                }
-                                else
-                                {
-                                    if (!previousMeasures.empty() && previousMeasures.size() == currentMeasures.size())
-                                    {
-                                        int i = 0;
-                                        for (auto m : currentMeasures)
-                                        {
-                                            m->divisions = previousMeasures[i]->divisions;
-                                            i++;
-                                        }
-                                    }
-                                }
-
-                                // key signature
-                                XMLElement* keySignatureElement = attributes->FirstChildElement("key");
-                                if (keySignatureElement)
-                                {
-                                    KeySignature keySignature = KeySignature(0);
-                                    // print object
-                                    keySignature.print = XMLHelper::GetBoolAttribute(keySignatureElement, "print-object", true);
-
-                                    // fifths
-                                    XMLElement* fifths = keySignatureElement->FirstChildElement("fifths");
-                                    if (fifths)
-                                        keySignature.fifths = ToInt(fifths->GetText());
-
-                                    // mode
-                                    XMLElement* mode = keySignatureElement->FirstChildElement("mode");
-                                    if (mode)
-                                        keySignature.mode = KeySignature::GetModeFromString(mode->GetText());
-
-                                    for (auto m : currentMeasures) { m->keySignature = keySignature; m->showKeySignature = true; }
-                                }
-                                else
-                                {
-                                    if (!previousMeasures.empty() && previousMeasures.size() == currentMeasures.size())
-                                    {
-                                        int i = 0;
-                                        for (auto m : currentMeasures)
-                                        {
-                                            m->keySignature = previousMeasures[i]->keySignature;
-                                            i++;
-                                        }
-                                    }
-                                }
-
-                                // time signature
-                                XMLElement* timeSignatureElement = attributes->FirstChildElement("time");
-                                if (timeSignatureElement)
-                                {
-                                    TimeSignature timeSignature = TimeSignature();
-                                    // print object
-                                    timeSignature.printObject = XMLHelper::GetBoolAttribute(timeSignatureElement, "print-object", true);
-
-                                    const char* symbol = timeSignatureElement->Attribute("symbol");
-                                    if (symbol)
-                                        timeSignature.displayType = TimeSignature::GetDisplayTypeFromString(symbol);
-
-                                    XMLElement* beats = timeSignatureElement->FirstChildElement("beats");
-                                    if (beats)
-                                        timeSignature.notes = ToInt(beats->GetText());
-                                    XMLElement* beatType = timeSignatureElement->FirstChildElement("beat-type");
-                                    if (beatType)
-                                        timeSignature.noteType = ToInt(beatType->GetText());
-
-                                    for (auto m : currentMeasures) { m->timeSignature = timeSignature; m->showTimeSignature = true; m->CalculateDuration(); }
-                                }
-                                else
-                                {
-                                    if (!previousMeasures.empty() && previousMeasures.size() == currentMeasures.size())
-                                    {
-                                        int i = 0;
-                                        for (auto m : currentMeasures)
-                                        {
-                                            m->timeSignature = previousMeasures[i]->timeSignature;
-                                            m->CalculateDuration();
-                                            i++;
-                                        }
-                                    }
-                                }
-
-                                // clef
-                                XMLNode* previousClefElement = attributes->FirstChildElement("clef");
-                                if (previousClefElement)
-                                {
-                                    while (true)
-                                    {
-                                        if (previousClefElement)
-                                        {
-                                            XMLElement* clefElement = previousClefElement->ToElement();
-                                            int staffNumber = XMLHelper::GetNumberAttribute(clefElement, "number", 1);
-
-                                            XMLElement* signElement = clefElement->FirstChildElement("sign");
-                                            if (signElement)
-                                            {
-                                                currentMeasures[staffNumber-1]->clef.sign = signElement->GetText();
-                                                if (currentMeasures[staffNumber-1]->clef.sign == "TAB")
-                                                {
-                                                    if (firstMeasure) {
-                                                        currentInst->staves[staffNumber-1]->type = Staff::StaffType::Tab;
-                                                        staffIsTabInfo[staffNumber-1] = true;
-                                                        currentMeasures[staffNumber-1]->type = Measure::MeasureType::Tab;
-
-                                                        if (currentInst->staves.size() > 1) // if there is more than one staff
-                                                            currentInst->staves[staffNumber-1]->tablatureDisplayType = TablatureDisplayType::NoRhythm;
-                                                    }
-                                                }
-                                            }
-
-                                            XMLElement* line = clefElement->FirstChildElement("line");
-                                            if (line)
-                                                currentMeasures[staffNumber-1]->clef.line = ToInt(line->GetText());
-
-                                            currentMeasures[staffNumber-1]->clef.octaveChange = XMLHelper::GetIntValue("clef-octave-change", clefElement, currentMeasures[staffNumber-1]->clef.octaveChange);
-                                        }
-                                        else // no more clefs
-                                        {
-                                            break;
-                                        }
-                                        previousClefElement = previousClefElement->NextSiblingElement("clef");
-                                    }
-                                }
-
-                                // change the measure's clef the the previous measure's clef if a new clef was not specified (and set the clef changed attribute)
-                                int i = 0;
-                                for (auto m : currentMeasures)
-                                {
-                                    if (i < previousMeasures.size())
-                                    {
-                                        if (m->clef.sign.empty())
-                                        {
-                                            m->clef = previousMeasures[i]->clef;
-                                            m->clef.clefChanged = false;
-                                        }
-                                        else if (m->clef != previousMeasures[i]->clef)
-                                        {
-                                            m->clef.clefChanged = true;
-                                            m->clef.showClef = true;
-                                        }
-                                    }
-
-                                    i++;
-                                }
-
-                                // transpose
-                                XMLElement* transposeElement = attributes->FirstChildElement("transpose");
-                                if (transposeElement)
-                                {
-                                    Transpose transpose = Transpose();
-                                    // diatonic
-                                    XMLElement* diatonic = transposeElement->FirstChildElement("diatonic");
-                                    if (diatonic)
-                                    {
-                                        transpose.diatonic = ToInt(diatonic->GetText());
-                                    }
-
-                                    // chromatic
-                                    XMLElement* chromatic = transposeElement->FirstChildElement("chromatic");
-                                    if (chromatic)
-                                    {
-                                        transpose.chromatic = ToInt(chromatic->GetText());
-                                    }
-
-                                    // octave change
-                                    XMLElement* octaveChange = transposeElement->FirstChildElement("octave-change");
-                                    if (octaveChange)
-                                    {
-                                        transpose.octaveChange = ToInt(octaveChange->GetText());
-                                    }
-
-                                    for (auto m : currentMeasures) { m->transpose = transpose; }
-                                }
-                                else
-                                {
-                                    if (!previousMeasures.empty() && previousMeasures.size() == currentMeasures.size())
-                                    {
-                                        int i = 0;
-                                        for (auto m : currentMeasures)
-                                        {
-                                            m->transpose = previousMeasures[i]->transpose;
-                                            i++;
-                                        }
-                                    }
-                                }
-
-                                // staff details
-                                XMLElement* staffDetails = attributes->FirstChildElement("staff-details");
-                                if (staffDetails)
-                                {
-                                    // staff lines
-                                    XMLElement* staffLines = staffDetails->FirstChildElement("staff-lines");
-                                    if (staffLines)
-                                        currentInst->staves.back()->lines = ToInt(staffLines->GetText());
-
-                                    // staff tunings (TAB only)
-                                    if (currentInst->staves.back()->type == Staff::StaffType::Tab) {
-                                        XMLNode *previousStaffTuning = staffDetails->FirstChildElement("staff-tuning");
-
-                                        std::shared_ptr<Staff> tabStaff = currentInst->staves.back();
-
-                                        while (true) {
-                                            if (previousStaffTuning) {
-                                                XMLElement *staffTuning = previousStaffTuning->ToElement();
-                                                XMLElement *tuningStep = staffTuning->FirstChildElement(
-                                                        "tuning-step");
-                                                StaffTuning tuning;
-                                                if (tuningStep)
-                                                    tuning.pitch.step = DiatonicNoteFromString(tuningStep->GetText());
-                                                XMLElement *tuningOctave = staffTuning->FirstChildElement(
-                                                        "tuning-octave");
-                                                if (tuningOctave)
-                                                    tuning.pitch.octave = ToInt(
-                                                            tuningOctave->GetText());
-                                                XMLElement *tuningAlter = staffTuning->FirstChildElement(
-                                                        "tuning-alter");
-                                                if (tuningAlter)
-                                                    tuning.pitch.alter = (float)ToInt(
-                                                            tuningAlter->GetText());
-                                                tabStaff->tunings.push_back(tuning);
-                                            } else {
-                                                break;
-                                            }
-                                            previousStaffTuning = previousStaffTuning->NextSiblingElement("staff-tuning");
-                                        }
-
-                                        tabStaff->capo = XMLHelper::GetUnsignedIntValue("capo", staffDetails, tabStaff->capo);
-                                    }
-                                } // staff details
-
-                                // measure style
-                                XMLElement* measureStyleElement = attributes->FirstChildElement("measure-style");
-                                if (measureStyleElement)
-                                {
-                                    int staffNumber = XMLHelper::GetNumberAttribute(measureStyleElement, "number", -1);
-
-                                    // measure rest
-                                    XMLElement* multipleRestElement = measureStyleElement->FirstChildElement("multiple-rest");
-                                    if (multipleRestElement)
-                                    {
-                                        unsigned int numberOfMeasures = XMLHelper::GetUnsignedIntValue(multipleRestElement, 1);
-                                        bool useSymbols = XMLHelper::GetBoolAttribute(multipleRestElement, "use-symbols", false);
-
-                                        if (staffNumber == -1) // applies to all the staves
-                                        {
-                                            for (auto m : currentMeasures)
-                                            {
-                                                m->startsMultiMeasureRest = true;
-                                                m->isPartOfMultiMeasureRest = true;
-                                                m->multiMeasureRestSymbol = std::make_shared<MultiMeasureRestSymbol>();
-                                                m->multiMeasureRestSymbol->useSymbols = useSymbols;
-                                                m->multiMeasureRestSymbol->numberOfMeasures = numberOfMeasures;
-                                            }
-                                        }
-                                        else // applies only to the specified staff
-                                        {
-                                            currentMeasures[staffNumber-1]->startsMultiMeasureRest = true;
-                                            currentMeasures[staffNumber-1]->isPartOfMultiMeasureRest = true;
-                                            currentMeasures[staffNumber-1]->multiMeasureRestSymbol = std::make_shared<MultiMeasureRestSymbol>();
-                                            currentMeasures[staffNumber-1]->multiMeasureRestSymbol->useSymbols = useSymbols;
-                                            currentMeasures[staffNumber-1]->multiMeasureRestSymbol->numberOfMeasures = numberOfMeasures;
-                                        }
-                                    }
-
-                                    XMLElement* measureRepeatElement = measureStyleElement->FirstChildElement("measure-repeat");
-                                    if (measureRepeatElement)
-                                    {
-                                        std::string typeString = XMLHelper::GetStringAttribute(measureRepeatElement, "type", "", true);
-
-                                        if (typeString == "start")
-                                        {
-                                            currentMeasures[staffNumber-1]->isMeasureRepeat = true;
-                                            currentMeasures[staffNumber-1]->measureRepeat = std::make_shared<MeasureRepeat>();
-
-                                            currentMeasures[staffNumber-1]->measureRepeat->measureRepeatLength = XMLHelper::GetIntValue(measureRepeatElement, currentMeasures[staffNumber-1]->measureRepeat->measureRepeatLength);
-                                            currentMeasures[staffNumber-1]->measureRepeat->measureRepeatSlashes = XMLHelper::GetNumberAttribute(measureRepeatElement, "slashes", currentMeasures[staffNumber-1]->measureRepeat->measureRepeatSlashes);
-                                        }
-                                        else if (typeString == "stop")
-                                        {
-                                            currentMeasures[staffNumber-1]->isMeasureRepeat = false;
-                                            currentMeasures[staffNumber-1]->measureRepeat = nullptr;
-                                        }
-                                        else
-                                        {
-                                            throw InvalidValueException();
-                                        }
-                                    }
-                                }
-                            }
-                            else
-                            {
-                                if (firstMeasure)
-                                    currentInst->staves.push_back(std::make_shared<Staff>());
-
-                                if (!previousMeasures.empty() && previousMeasures.size() == currentMeasures.size())
-                                {
-                                    int i = 0;
-                                    for (auto m : currentMeasures)
-                                    {
-                                        m->timeSignature = previousMeasures[i]->timeSignature;
-                                        m->CalculateDuration();
-                                        m->keySignature = previousMeasures[i]->keySignature;
-                                        m->clef = previousMeasures[i]->clef;
-                                        m->divisions = previousMeasures[i]->divisions;
-                                        m->transpose = previousMeasures[i]->transpose;
-                                        i++;
-                                    }
-                                }
-                            }
-
-                            // notes and backup and forward elements
-
-                            XMLNode* previousElement = measure->FirstChildElement(); // the first element
-                            //XMLNode* previousNoteElement = measure->FirstChildElement("note");
-                            std::shared_ptr<Note> previousNote = nullptr;
-                            while (true)
-                            {
-                                if (previousElement)
-                                {
-                                    XMLElement* element = previousElement->ToElement();
-                                    const char* value = element->Value();
-                                    if (strcmp(value, "note") == 0) // note
-                                    {
-                                        std::shared_ptr<Note> currentNote = std::make_shared<Note>();
-                                        NoteElementParser::ParseNoteElement(element, currentTimeInMeasure, staffIsTabInfo, currentNote, previousNote, currentMeasures, measureNumber, error);
-                                        previousNote = currentNote;
-                                    }
-                                    else if (strcmp(value, "backup") == 0) // backup time in measure
-                                    {
-                                        // duration
-                                        XMLElement* durationElement = element->FirstChildElement("duration");
-                                        if (durationElement)
-                                        {
-                                            int divisions = currentMeasures[0]->divisions;
-                                            float duration = 0.0f;
-                                            if (divisions != 0)
-                                            {
-                                                duration = (1.0f / (float)divisions) * (float)ToInt(durationElement->GetText());
-                                            }
-                                            else
-                                            {
-                                                error = "Error divisions is zero";
-                                                AddError("Invalid value", "Divisions is zero");
-                                            }
-
-                                            currentTimeInMeasure -= duration;
-                                        }
-                                        else
-                                        {
-                                            error = "backup element has no duration";
-                                            AddError("Missing Element", "Backup element has no duration");
-                                        }
-                                    }
-                                    else if (strcmp(value, "harmony") == 0) // harmony element (i.e. chords)
-                                    {
-                                        ParseHarmonyElement(element, currentTimeInMeasure, currentMeasures);
-                                    }
-                                    else if (strcmp(value, "forward") == 0) // increment time in measure
-                                    {
-                                        // duration
-                                        XMLElement* durationElement = element->FirstChildElement("duration");
-                                        if (durationElement)
-                                        {
-                                            int divisions = currentMeasures[0]->divisions;
-                                            float duration = 0.0f;
-                                            if (divisions != 0)
-                                            {
-                                                duration = (1.0f / (float)divisions) * (float)ToInt(durationElement->GetText());
-                                            }
-                                            else
-                                            {
-                                                error = "Error divisions is zero";
-                                                AddError("Invalid value", "Divisions is zero");
-                                            }
-
-                                            currentTimeInMeasure += duration;
-                                        }
-                                        else
-                                        {
-                                            error = "backup element has no duration";
-                                            AddError("Missing Element", "Forward element has no duration");
-                                        }
-                                    }
-                                    else if (strcmp(value, "direction") == 0) // direction
-                                    {
-                                        // duration direction
-                                        bool isNewDurationDirection;
-                                        std::shared_ptr<DurationDirection> durationDirection = ParseDurationDirection(element, isNewDurationDirection, currentTimeInMeasure, measureIndex);
-                                        if (isNewDurationDirection && durationDirection)
-                                        {
-                                            /*durationDirection->beatPositionStart = currentTimeInMeasure;
-                                            durationDirection->startMeasureIndex = measureIndex;*/
-                                            currentInst->staves[0]->durationDirections.push_back(durationDirection);
-                                        }
-
-                                        if (!isNewDurationDirection)
-                                        {
-                                            // direction
-                                            bool isNewDirection;
-                                            Direction direction = ParseDirection(element, isNewDirection, currentTimeInMeasure);
-                                            if (isNewDirection)
-                                            {
-                                                direction.beatPosition = currentTimeInMeasure;
-                                                currentMeasures[0]->directions.push_back(direction);
-                                            }
-                                        }
-
-                                        // sound
-                                        XMLElement* soundElement = element->FirstChildElement("sound");
-                                        if (soundElement)
-                                        {
-                                            float dynamics = XMLHelper::GetFloatAttribute(soundElement, "dynamics", -1.0f);
-                                            float tempo = XMLHelper::GetFloatAttribute(soundElement, "tempo", -1.0f);
-                                            int pan = XMLHelper::GetNumberAttribute(soundElement, "pan", 0);
-
-                                            // getting beat position of sound event
-                                            float eventBeatPosition = currentTimeInMeasure;
-
-                                            if (dynamics != -1.0f)
-                                            {
-                                                std::shared_ptr<DynamicsSoundEvent> dynamicsSoundEvent = std::make_shared<DynamicsSoundEvent>();
-
-                                                dynamicsSoundEvent->beatPosition = eventBeatPosition;
-                                                dynamicsSoundEvent->SetDynamics(dynamics / 100.0f);
-
-                                                for (auto m : currentMeasures) { m->soundEvents.push_back(dynamicsSoundEvent); }
-                                            }
-
-                                            if (tempo != -1.0f)
-                                            {
-                                                std::shared_ptr<TempoSoundEvent> event = std::make_shared<TempoSoundEvent>();
-
-                                                event->beatPosition = eventBeatPosition;
-                                                event->tempo = tempo;
-
-                                                for (auto m : currentMeasures) { m->soundEvents.push_back(event); }
-                                            }
-                                        }
-                                    }
-                                    else if (strcmp(value, "barline") == 0) // barline
-                                    {
-                                        Barline barline = ParseBarlineElement(element);
-
-                                        for (auto m : currentMeasures) { m->barlines.push_back(barline); }
-
-                                        // ending
-                                        XMLElement* endingElement = element->FirstChildElement("ending");
-                                        if (endingElement)
-                                        {
-                                            ParseEndingElement(endingElement, song, currentMeasures);
-                                        }
-                                    }
-                                }
-                                else
-                                {
-                                    break;
-                                }
-                                previousElement = previousElement->NextSibling(); // get the next element
-                                //previousNoteElement = measure->IterateChildren("note", previousNoteElement);
-                            }
-
-                            // adding measure to staff
-                            /*LOGD("adding measures");
-                            int staffIndex = 0;
-                            for (Staff* staff : currentInst->staves)
-                            {
-                                LOGD("staff %i", staffIndex);
-                                Measure* newMeasure = new Measure();
-                                newMeasure->staff = staffIndex + 1;
-                                newMeasure->CopyData(currentMeasure);
-                                LOGD("measure %i, %i", newMeasure->notes.size(), currentMeasure->notes.size());
-                                currentInst->staves[staffIndex]->measures.push_back(newMeasure);
-                                staffIndex++;
-                            }
-                            LOGD("done adding meausres");
-                            if (previousMeasure != nullptr) {
-                                LOGD("deleting previous measure");
-                                previousMeasure->notes.clear();
-                                delete previousMeasure; // deleting previous measure (but not it's notes because they were all given to other measures)
-                                previousMeasure = nullptr;
-                            }
-                            LOGD("setting previous measure");*/
-
-                            // adding measures to correct staves
-                            for (auto m : currentMeasures)
-                            {
-                                currentInst->staves[m->staff-1]->measures.push_back(m);
-                            }
-
-                            previousMeasures = currentMeasures;
-                            firstMeasure = false;
-                            measureIndex++;
-                        }
-                        else
-                        {
-                            /*if (previousMeasure != nullptr) // delete
-                            {
-                                LOGD("deleting last previous measure");
-                                previousMeasure->notes.clear();
-                                delete previousMeasure; // deleting previous measure (but not it's notes because they were all given to other measures)
-                                previousMeasure = nullptr;
-                                LOGD("done deleting last previous measure");
-                            }*/
-                            break;
-                        }
-                        previousMeasureElement = previousMeasureElement->NextSiblingElement("measure");
-                    }
+                    ParsePart(song, part, isFirstPart, displayConstants);
 
                     isFirstPart = false;
                 }
@@ -2244,7 +2248,6 @@ void MusicXMLParser::ParseMusicXML(const std::string& data, std::string& error, 
         }
         else
         {
-            error = "ERROR no root";
             AddError("Parse Error", "Failed to parse root element");
         }
     }
@@ -2258,12 +2261,12 @@ void MusicXMLParser::ParseMusicXML(const std::string& data, std::string& error, 
     bool multiMeasureRest = false; // whether the measure is part of a multi measure rest
     unsigned int numberOfMeasuresInMultiMeasureRest = 0; // number of measures left in multi measure rest
     unsigned int measureThatStartedMultiMeasureRest = 0; // the index of the measure that started the multi measure rest
-    for (auto instrument : song->instruments)
+    for (const auto& instrument : song->instruments)
     {
-        for (auto staff : instrument->staves)
+        for (const auto& staff : instrument->staves)
         {
             int measureIndex = 0;
-            for (auto measure : staff->measures)
+            for (const auto& measure : staff->measures)
             {
                 if (multiMeasureRest)
                 {

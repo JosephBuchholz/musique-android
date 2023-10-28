@@ -58,6 +58,15 @@ public:
 
     void CalculateTotalBoundingBoxes(const MusicDisplayConstants& displayConstants, const std::vector<std::shared_ptr<System>>& systems);
 
+    /**
+     * Gets the y position of this staff in the system of the given index. Throws
+     * an InvalidArgumentException if the system index is invalid.
+     *
+     * @param systemIndex The index of the system.
+     * @return The y position.
+     */
+    float GetPositionY(int systemIndex) const;
+
     /* ----- Sound Related Functions ----- */
 
     std::pair<int, float> GetMeasureFromSoundBeatPosition(float beatPosition, const std::vector<std::shared_ptr<EndingGroup>>& endingGroups);
