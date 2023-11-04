@@ -4,6 +4,7 @@
 #include <vector>
 
 #include "CSMeasure.h"
+#include "SyllableGroup.h"
 
 class CSStaff : public VisibleElement
 {
@@ -14,6 +15,7 @@ public:
 public:
 
     std::vector<CSMeasure> measures;
+    std::vector<SyllableGroup> syllableGroups;
 };
 
 #endif //MUSIQUE_CSSTAFF_H

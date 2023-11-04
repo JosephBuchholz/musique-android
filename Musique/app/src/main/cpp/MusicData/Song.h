@@ -5,10 +5,11 @@
 #ifndef MUSIQUE_SONG_H
 #define MUSIQUE_SONG_H
 
-#include "Instrument.h"
 #include <vector>
 #include <string>
 #include <array>
+
+#include "Instrument.h"
 #include "../Debuging/AndroidDebug.h"
 #include "SongData.h"
 #include "../Settings.h"
@@ -28,10 +29,24 @@ public:
 
     ~Song();
 
+    /**
+     * Gets the instrument from the associated id.
+     *
+     * @param id The id.
+     * @return The instrument.
+     */
     std::shared_ptr<Instrument> GetInstrument(const std::string& id) const;
 
+    /**
+     * Handles a layout change.
+     *
+     * @param layout The new layout.
+     */
     void OnLayoutChanged(Settings::MusicLayout layout);
 
+    /**
+     * Updates/initializes the Song object.
+     */
     void OnUpdate();
 
     /**
@@ -41,6 +56,12 @@ public:
      */
     int GetMeasureCount() const;
 
+    /**
+     * Gets the width of the measure at the given measure index.
+     *
+     * @param measureIndex The measure index.
+     * @return The width of the measure.
+     */
     float GetMeasureWidth(int measureIndex) const;
 
     /**
@@ -95,6 +116,12 @@ public:
      */
     float GetSystemHeight(int systemIndex) const;
 
+    /**
+     * Gets the bounding box of the system.
+     *
+     * @param systemIndex The index of the system.
+     * @return The bounding box of the system.
+     */
     BoundingBox GetSystemBoundingBox(int systemIndex) const;
 
     void CreatePageBreak(int measureIndex) const;
@@ -221,11 +248,23 @@ public:
      */
     std::shared_ptr<Measure> GetMeasureAtPoint(Vec2<float> point, const std::vector<Vec2<float>>& systemPositions) const;
 
+    /**
+     * Transposes the song.
+     *
+     * @param transposeRequest The info needed to transpose the song.
+     */
     void Transpose(const TranspositionRequest& transposeRequest);
 
+    /**
+     * Resolves any collisions between elements/objects in the song.
+     */
     void ResolveCollisions();
 
+    /**
+     * Calculates/finds/initializes all the system and page breaks in the song.
+     */
     void CalculateSystemPositionsAndPageBreaks();
+
 private:
     struct TimeSpacePoint
     {

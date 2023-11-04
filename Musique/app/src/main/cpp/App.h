@@ -58,6 +58,7 @@ private:
     bool updateMusicPlayer = true;
     bool allowRendering = true;
     bool allowFrameDataRendering = true;
+    bool doCollisions = true;
 
     int jcount = 0;
     int icount = 0;

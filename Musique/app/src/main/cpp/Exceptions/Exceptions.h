@@ -7,6 +7,8 @@
 
 #include "BaseException.h"
 
+#include "ParseExceptions.h"
+
 /**
  * This exception is thrown if an object does not exist.
  */

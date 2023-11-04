@@ -4,17 +4,26 @@
 #include <vector>
 
 #include "CSChord.h"
+#include "CSLyric.h"
 
 class CSMeasure : public VisibleElement
 {
 public:
 
+    void Init();
+
     void Render(RenderData& renderData, const Settings& settings, Vec2<float> parentPosition) const;
+
+private:
+
+    float GetPositionXFromBeatPositionOfChords(float beatPosition) const;
+    CSChord& GetChordFromBeatPosition(float beatPosition);
 
 public:
     float width = 0.0f;
 
     std::vector<CSChord> chords;
+    std::vector<std::shared_ptr<CSLyric>> lyrics;
 };
 
 #endif //MUSIQUE_CSMEASURE_H

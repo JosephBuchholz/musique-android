@@ -38,6 +38,19 @@ void Song::OnUpdate()
     // TODO: this is some pretty terrible looking code, needs fixed
     LOGI("Updating song data");
 
+    for (const auto& instrument : instruments)
+    {
+        if (instrument->staves[0]->csStaff)
+        {
+            for (auto& measure: instrument->staves[0]->csStaff->measures)
+            {
+                measure.Init();
+            }
+
+            return;
+        }
+    }
+
     songData.instrumentInfos.clear();
     for (const auto& instrument: instruments)
     {
@@ -1158,18 +1171,34 @@ std::shared_ptr<Measure> Song::GetMeasure(int measureIndex) const
 
 bool Song::DoesMeasureStartNewSystem(int measureIndex) const
 {
-    std::shared_ptr<Measure> measure = GetMeasure(measureIndex);
-    return measure->startNewSystem;
+    for (const auto& system : systems)
+    {
+        if (measureIndex >= system->beginningMeasureIndex && measureIndex <= system->endingMeasureIndex)
+        {
+            if (measureIndex == system->beginningMeasureIndex)
+                return true;
+
+            return false;
+        }
+    }
+
+    return false;
 }
 
 bool Song::DoesMeasureStartNewPage(int measureIndex) const
 {
-    std::shared_ptr<Measure> measure = GetMeasure(measureIndex);
+    for (const auto& page : pages)
+    {
+        if (!page.systems.empty())
+        {
+            if (page.systems[0]->beginningMeasureIndex == measureIndex)
+            {
+                return true;
+            }
+        }
+    }
 
-    if (measure != nullptr)
-        return measure->startNewPage;
-    else
-        throw DoesNotExistException("Measure does not exist");
+    return false;
 }
 
 float Song::GetSystemPositionY(int measureIndex) const // TODO: needs finished

@@ -186,6 +186,8 @@ void MusicRenderer::RenderMusicToPage(const std::shared_ptr<Song>& song, int pag
                 startNewSystem = true;
             }
 
+            LOGD("m_i: %d, s_i: %d, measureCount: %d, startNewSystem: %d", i, systemIndex, measureCount, startNewSystem);
+
             if ((startNewSystem || i == measureCount) && i != 0 && systemIndex < song->systems.size()) // render system
             {
                 startMeasure = endMeasure+1;
@@ -286,6 +288,8 @@ void MusicRenderer::RenderDebugToPage(const std::shared_ptr<Song>& song, int pag
 
 Vec2<float> MusicRenderer::RenderSystem(RenderData& renderData, const Settings& settings, const std::shared_ptr<Song>& song, unsigned int startMeasure, unsigned int endMeasure, int systemIndex, Vec2<float> systemPosition, Vec2<float> pagePosition, bool drawFullInstNames)
 {
+    LOGD("Rendering System: startMeasure: %d, endMeasure: %d", startMeasure, endMeasure);
+
     std::shared_ptr<Instrument> prevInstrument = nullptr;
     int instrumentIndex = 0;
     float instPositionY = systemPosition.y;
@@ -487,6 +491,8 @@ void MusicRenderer::RenderLineOfMeasures(RenderData& renderData, const Settings&
             if (m < staff->csStaff->measures.size())
             {
                 CSMeasure csMeasure = staff->csStaff->measures[m];
+
+                nextMeasurePositionX = measurePositionX + csMeasure.width;
 
                 csMeasure.Render(renderData, settings, { measurePositionX, staffPositionY });
             }

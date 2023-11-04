@@ -2094,162 +2094,162 @@ void MusicXMLParser::ParseMusicXML(const std::string& data, const std::shared_pt
         LOGE_TAG("MusicXMLParser", "doc error: %s: %s", doc.ErrorName(), doc.ErrorStr());
         AddError(doc.ErrorName(), doc.ErrorStr());
         LOGD_TAG("MusicXMLParser", "---------------------------Document:\n\n%s\n\n", data.c_str());
+        throw ParseException("Document error");
     }
-    else
+
+    // TODO: will create problems if it is socre-timewise
+    XMLElement* root = doc.FirstChildElement("score-partwise");
+    if (root)
     {
-        // TODO: will create problems if it is socre-timewise
-        XMLElement* root = doc.FirstChildElement("score-partwise");
-        if (root)
+        song->musicXMLVersion = root->Attribute("version");
+
+        // work
+        XMLElement* workElement = root->FirstChildElement("work");
+        if (workElement)
         {
-            song->musicXMLVersion = root->Attribute("version");
+            ParseWorkElement(workElement, song->songData.songTitle, song->songData.workNumber);
+        }
 
-            // work
-            XMLElement* workElement = root->FirstChildElement("work");
-            if (workElement)
+        song->songData.movementNumber = XMLHelper::GetStringValue("movement-number", root, song->songData.movementNumber); // movement number
+        song->songData.movementTitle = XMLHelper::GetStringValue("movement-title", root, song->songData.movementTitle); // movement title
+
+        // identification
+        XMLElement* identificationElement = root->FirstChildElement("identification");
+        if (identificationElement)
+        {
+            ParseIdentificationElement(identificationElement, song);
+        }
+
+        // defaults
+        XMLElement* defaultsElement = root->FirstChildElement("defaults");
+        if (defaultsElement)
+        {
+            displayConstants = ParseDefaultsElement(defaultsElement);
+        }
+
+        // credits
+        XMLNode* previousCreditNode = root->FirstChildElement("credit");
+        while (true)
+        {
+            if (previousCreditNode)
             {
-                ParseWorkElement(workElement, song->songData.songTitle, song->songData.workNumber);
-            }
-
-            song->songData.movementNumber = XMLHelper::GetStringValue("movement-number", root, song->songData.movementNumber); // movement number
-            song->songData.movementTitle = XMLHelper::GetStringValue("movement-title", root, song->songData.movementTitle); // movement title
-
-            // identification
-            XMLElement* identificationElement = root->FirstChildElement("identification");
-            if (identificationElement)
-            {
-                ParseIdentificationElement(identificationElement, song);
-            }
-
-            // defaults
-            XMLElement* defaultsElement = root->FirstChildElement("defaults");
-            if (defaultsElement)
-            {
-                displayConstants = ParseDefaultsElement(defaultsElement);
-            }
-
-            // credits
-            XMLNode* previousCreditNode = root->FirstChildElement("credit");
-            while (true)
-            {
-                if (previousCreditNode)
-                {
-                    XMLElement* creditElement = previousCreditNode->ToElement();
-                    song->credits.push_back(ParseCreditElement(creditElement));
-                }
-                else
-                {
-                    break;
-                }
-
-                previousCreditNode = previousCreditNode->NextSiblingElement("credit");
-            }
-
-            // part list
-            XMLElement* partList = root->FirstChildElement("part-list");
-            if (partList)
-            {
-                // score parts
-                XMLNode* previousScorePartElement = partList->FirstChildElement("score-part");
-                while (true)
-                {
-                    if (previousScorePartElement)
-                    {
-                        XMLElement* scorePart = previousScorePartElement->ToElement();
-                        std::shared_ptr<Instrument> instrument = std::make_shared<Instrument>();
-                        song->instruments.push_back(instrument);
-
-                        // part id
-                        instrument->id = scorePart->Attribute("id");
-
-                        // part name
-                        XMLElement* partName = scorePart->FirstChildElement("part-name");
-                        if (partName)
-                        {
-                            instrument->name.string = partName->GetText();
-                            instrument->name.print = XMLHelper::GetBoolAttribute(partName, "print-object", true);
-                        }
-
-                        // part name abbreviation
-                        XMLElement* partAbbreviation = scorePart->FirstChildElement("part-abbreviation");
-                        if (partAbbreviation)
-                        {
-                            instrument->nameAbbreviation.string = partAbbreviation->GetText();
-                            instrument->nameAbbreviation.print = XMLHelper::GetBoolAttribute(partAbbreviation, "print-object", true);
-                        }
-
-                        // midi instrument
-                        XMLElement* midiInstrumentElement = scorePart->FirstChildElement("midi-instrument");
-                        if (midiInstrumentElement)
-                        {
-                            instrument->midiInstrument.id = XMLHelper::GetStringAttribute(midiInstrumentElement, "id", "");
-
-                            // midi channel
-                            XMLElement* channelElement = midiInstrumentElement->FirstChildElement("midi-channel");
-                            if (channelElement)
-                            {
-                                instrument->midiInstrument.channel = ToInt(channelElement->GetText()) - 1;
-                            }
-
-                            // midi program
-                            XMLElement* programElement = midiInstrumentElement->FirstChildElement("midi-program");
-                            if (programElement)
-                            {
-                                instrument->midiInstrument.program = ToInt(programElement->GetText()) - 1;
-                            }
-
-                            // volume
-                            XMLElement* volumeElement = midiInstrumentElement->FirstChildElement("volume");
-                            if (volumeElement)
-                            {
-                                instrument->midiInstrument.volume = ToInt(volumeElement->GetText());
-                            }
-
-                            // pan
-                            XMLElement* panElement = midiInstrumentElement->FirstChildElement("pan");
-                            if (panElement)
-                            {
-                                instrument->midiInstrument.pan = ToInt(panElement->GetText());
-                            }
-                        }
-                    }
-                    else
-                    {
-                        break;
-                    }
-                    previousScorePartElement = previousScorePartElement->NextSiblingElement("score-part");
-                }
+                XMLElement* creditElement = previousCreditNode->ToElement();
+                song->credits.push_back(ParseCreditElement(creditElement));
             }
             else
             {
-                AddError("Parse Failed", "No part-list");
+                break;
             }
 
+            previousCreditNode = previousCreditNode->NextSiblingElement("credit");
+        }
 
-            // parts
-            bool isFirstPart = true;
-            XMLNode* previous = root->FirstChildElement("part");
-            while (true) // looping through all parts
+        // part list
+        XMLElement* partList = root->FirstChildElement("part-list");
+        if (partList)
+        {
+            // score parts
+            XMLNode* previousScorePartElement = partList->FirstChildElement("score-part");
+            while (true)
             {
-                if (previous)
+                if (previousScorePartElement)
                 {
-                    XMLElement* part = previous->ToElement();
+                    XMLElement* scorePart = previousScorePartElement->ToElement();
+                    std::shared_ptr<Instrument> instrument = std::make_shared<Instrument>();
+                    song->instruments.push_back(instrument);
 
-                    ParsePart(song, part, isFirstPart, displayConstants);
+                    // part id
+                    instrument->id = scorePart->Attribute("id");
 
-                    isFirstPart = false;
+                    // part name
+                    XMLElement* partName = scorePart->FirstChildElement("part-name");
+                    if (partName)
+                    {
+                        instrument->name.string = partName->GetText();
+                        instrument->name.print = XMLHelper::GetBoolAttribute(partName, "print-object", true);
+                    }
+
+                    // part name abbreviation
+                    XMLElement* partAbbreviation = scorePart->FirstChildElement("part-abbreviation");
+                    if (partAbbreviation)
+                    {
+                        instrument->nameAbbreviation.string = partAbbreviation->GetText();
+                        instrument->nameAbbreviation.print = XMLHelper::GetBoolAttribute(partAbbreviation, "print-object", true);
+                    }
+
+                    // midi instrument
+                    XMLElement* midiInstrumentElement = scorePart->FirstChildElement("midi-instrument");
+                    if (midiInstrumentElement)
+                    {
+                        instrument->midiInstrument.id = XMLHelper::GetStringAttribute(midiInstrumentElement, "id", "");
+
+                        // midi channel
+                        XMLElement* channelElement = midiInstrumentElement->FirstChildElement("midi-channel");
+                        if (channelElement)
+                        {
+                            instrument->midiInstrument.channel = ToInt(channelElement->GetText()) - 1;
+                        }
+
+                        // midi program
+                        XMLElement* programElement = midiInstrumentElement->FirstChildElement("midi-program");
+                        if (programElement)
+                        {
+                            instrument->midiInstrument.program = ToInt(programElement->GetText()) - 1;
+                        }
+
+                        // volume
+                        XMLElement* volumeElement = midiInstrumentElement->FirstChildElement("volume");
+                        if (volumeElement)
+                        {
+                            instrument->midiInstrument.volume = ToInt(volumeElement->GetText());
+                        }
+
+                        // pan
+                        XMLElement* panElement = midiInstrumentElement->FirstChildElement("pan");
+                        if (panElement)
+                        {
+                            instrument->midiInstrument.pan = ToInt(panElement->GetText());
+                        }
+                    }
                 }
                 else
                 {
                     break;
                 }
-
-                previous = previous->NextSiblingElement("part");
+                previousScorePartElement = previousScorePartElement->NextSiblingElement("score-part");
             }
         }
         else
         {
-            AddError("Parse Error", "Failed to parse root element");
+            AddError("Parse Failed", "No part-list");
         }
+
+
+        // parts
+        bool isFirstPart = true;
+        XMLNode* previous = root->FirstChildElement("part");
+        while (true) // looping through all parts
+        {
+            if (previous)
+            {
+                XMLElement* part = previous->ToElement();
+
+                ParsePart(song, part, isFirstPart, displayConstants);
+
+                isFirstPart = false;
+            }
+            else
+            {
+                break;
+            }
+
+            previous = previous->NextSiblingElement("part");
+        }
+    }
+    else
+    {
+        AddError("Parse Error", "Failed to parse root element");
+        throw ParseException("Failed to parse root element");
     }
 
     song->displayConstants = displayConstants;
