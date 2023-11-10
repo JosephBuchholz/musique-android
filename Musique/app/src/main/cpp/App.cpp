@@ -169,7 +169,7 @@ void App::OnUpdate(double dt)
                         }
                         catch (const IsEmptyException &e)
                         {
-                            LOGE("%s", e.what());
+                            LOGE_TAG("App.cpp", "%s", e.what());
                         }
                         auto stop = high_resolution_clock::now();
                         auto duration = duration_cast<milliseconds>(stop - start);

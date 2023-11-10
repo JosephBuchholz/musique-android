@@ -2,7 +2,6 @@ package com.randsoft.apps.musique
 
 import android.content.Context
 import android.os.Build
-import android.os.Build.VERSION_CODES.Q
 import android.os.Bundle
 import android.util.Log
 import android.view.*
@@ -15,6 +14,7 @@ import android.widget.ProgressBar
 import android.widget.TextView
 import android.widget.TextView.OnEditorActionListener
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.ui.platform.ComposeView
 import androidx.core.content.ContextCompat.getSystemService
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.LiveData
@@ -22,6 +22,7 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.randsoft.apps.musique.ui.SongList
 
 
 private const val TAG = "SongListFragment"
@@ -43,12 +44,14 @@ class SongListFragment() : Fragment(), WebRepository.Callbacks {
     private lateinit var browseButton: Button
     private lateinit var searchButton: Button
     private lateinit var searchField: EditText
-    private lateinit var songListRecyclerView: RecyclerView
+    private lateinit var songListRecyclerView: ComposeView
     private lateinit var mainSettingsButton: Button
     private lateinit var moreOptionsMenuButton: Button
 
     private var loadingProgressBar: ProgressBar? = null
     private var isLoading = false
+
+    private var partPickerDialogFragment: PartPickerDialogFragment? = null
 
     private lateinit var viewModel: SongListFragmentViewModel
 
@@ -90,7 +93,11 @@ class SongListFragment() : Fragment(), WebRepository.Callbacks {
                 onStopLoading()
                 Log.d(TAG, "Got data: $songItems")
                 viewModel.songItems = songItems
-                songListRecyclerView.adapter = SongListAdapter(songItems)
+                songListRecyclerView.setContent {
+                    SongList(songItems = songItems) { songItem ->
+                        onItemClicked(songItem)
+                    }
+                }
             })
     }
 
@@ -128,7 +135,11 @@ class SongListFragment() : Fragment(), WebRepository.Callbacks {
                     onStopLoading()
 
                     viewModel.songItems = songItems
-                    songListRecyclerView.adapter = SongListAdapter(songItems)
+                    songListRecyclerView.setContent {
+                        SongList(songItems = songItems) { songItem ->
+                            onItemClicked(songItem)
+                        }
+                    }
                 })
         }
 
@@ -162,19 +173,11 @@ class SongListFragment() : Fragment(), WebRepository.Callbacks {
         }
 
         songListRecyclerView = view.findViewById(R.id.song_list_recycler_view)
-        songListRecyclerView.layoutManager = LinearLayoutManager(context)
-        songListRecyclerView.adapter = SongListAdapter(viewModel.songItems)
-
-//        openButton = view.findViewById(R.id.open_button)
-//        openButton.setOnClickListener {
-//            Log.i(TAG, "Open button was clicked")
-//            openDocument.launch(arrayOf("*/*"))
-//        }
-//
-//        mainSettingsButton = view.findViewById(R.id.main_settings_button)
-//        mainSettingsButton.setOnClickListener {
-//            callbacks?.onMainSettingsOpened()
-//        }
+        songListRecyclerView.setContent {
+            SongList(songItems = viewModel.songItems) { songItem ->
+                onItemClicked(songItem)
+            }
+        }
 
         moreOptionsMenuButton = view.findViewById(R.id.more_options_menu_button)
         moreOptionsMenuButton.setOnClickListener {
@@ -214,90 +217,44 @@ class SongListFragment() : Fragment(), WebRepository.Callbacks {
                 onStopLoading()
                 Log.d(TAG, "Got data: $songItems")
                 viewModel.songItems = songItems
-                songListRecyclerView.adapter = SongListAdapter(songItems)
+                songListRecyclerView.setContent {
+                    SongList(songItems = songItems) { songItem ->
+                        onItemClicked(songItem)
+                    }
+                }
             })
     }
 
-    inner class SongListViewHolder(var view: View) : RecyclerView.ViewHolder(view), PartPickerDialogFragment.Callbacks {
-
-        private lateinit var songItem: SongItem
-
-        private var titleTextView: TextView = view.findViewById(R.id.song_item_title)
-        private var artistsTextView: TextView = view.findViewById(R.id.song_item_artists)
-        private var instrumentsTextView: TextView = view.findViewById(R.id.song_item_instruments)
-
-        private var partPickerDialogFragment: PartPickerDialogFragment? = null
-
-        fun bind(songItem: SongItem) {
-            this.songItem = songItem
-            titleTextView.text = songItem.title
-
-            var artistsString = ""
-            for ((index, artist) in songItem.artists.withIndex()) {
-
-                artistsString += artist.name
-
-                if (index != songItem.artists.size - 1) // add a comma if it is not the last one in the list
-                    artistsString += ", "
-            }
-            artistsTextView.text = artistsString
-
-            var instrumentsString = ""
-            for ((index, instrument) in songItem.instruments.withIndex()) {
-                instrumentsString += instrument
-
-                if (index != songItem.instruments.size - 1) // add a comma if it is not the last one in the list
-                    instrumentsString += ", "
-            }
-            instrumentsTextView.text = instrumentsString
-
-            view.setOnClickListener {
-                if (songItem.files.size >= 2) // 2 or more files, so give the user a choice
-                {
-                    partPickerDialogFragment = PartPickerDialogFragment.newInstance(this, songItem.files)
-                    partPickerDialogFragment?.show(parentFragmentManager, "PartPickerDialog")
-                }
-                else // else just open the song
-                {
-                    openSong(0)
-                }
-            }
-        }
-
-        override fun onPartPicked(partIndex: Int) {
-            openSong(partIndex)
-        }
-
-        private fun openSong(partIndex: Int)
+    private fun onItemClicked(songItem: SongItem) {
+        if (songItem.files.size >= 2) // 2 or more files, so give the user a choice
         {
-            onStartLoading()
-
-            val responseLiveData: LiveData<String> = webRepository.getFile(songItem.id, partIndex)
-            responseLiveData.observe(
-                this@SongListFragment,
-                Observer { string ->
-                    onStopLoading()
-                    if (string != null)
-                        callbacks?.onSongOpened(songItem.id, "musicxml", string)
-                    else
-                        Log.e(TAG, "string is null!!")
-                })
+            partPickerDialogFragment = PartPickerDialogFragment.newInstance(object : PartPickerDialogFragment.Callbacks {
+                override fun onPartPicked(partIndex: Int) {
+                    openSong(songItem, partIndex)
+                }
+            }, songItem.files)
+            partPickerDialogFragment?.show(parentFragmentManager, "PartPickerDialog")
+        }
+        else // else just open the song
+        {
+            openSong(songItem, 0)
         }
     }
 
-    inner class SongListAdapter(private var songItems: List<SongItem>) : RecyclerView.Adapter<SongListViewHolder>() {
-        override fun getItemCount(): Int {
-            return songItems.size
-        }
+    private fun openSong(songItem: SongItem, partIndex: Int)
+    {
+        onStartLoading()
 
-        override fun onBindViewHolder(holder: SongListViewHolder, position: Int) {
-            holder.bind(songItems[position])
-        }
-
-        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): SongListViewHolder {
-            val view = layoutInflater.inflate(R.layout.list_item_song, parent, false)
-            return SongListViewHolder(view)
-        }
+        val responseLiveData: LiveData<String> = webRepository.getFile(songItem.id, partIndex)
+        responseLiveData.observe(
+            viewLifecycleOwner,
+            Observer { string ->
+                onStopLoading()
+                if (string != null)
+                    callbacks?.onSongOpened(songItem.id, "musicxml", string)
+                else
+                    Log.e(TAG, "string is null!!")
+            })
     }
 
     private fun onStartLoading()

@@ -127,12 +127,11 @@ class MusicDisplayView(context: Context, attrs: AttributeSet? = null): View(cont
 
     private var gestureDetector: GestureDetector = GestureDetector(context, object : SimpleOnGestureListener() {
         override fun onScroll(
-            e1: MotionEvent,
+            e1: MotionEvent?,
             e2: MotionEvent,
             distanceX: Float,
             distanceY: Float
         ): Boolean {
-
             positionX -= distanceX;
             positionY -= distanceY;
 
