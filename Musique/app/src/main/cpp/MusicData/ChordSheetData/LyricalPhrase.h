@@ -1,5 +1,5 @@
-#ifndef MUSIQUE_SYLLABLEGROUP_H
-#define MUSIQUE_SYLLABLEGROUP_H
+#ifndef MUSIQUE_LYRICALPHRASE_H
+#define MUSIQUE_LYRICALPHRASE_H
 
 #include <vector>
 
@@ -7,11 +7,11 @@
 
 class CSLyric;
 
-class SyllableGroup
+class LyricalPhrase
 {
 public:
 
     std::vector<std::shared_ptr<CSLyric>> lyrics;
 };
 
-#endif //MUSIQUE_SYLLABLEGROUP_H
+#endif //MUSIQUE_LYRICALPHRASE_H

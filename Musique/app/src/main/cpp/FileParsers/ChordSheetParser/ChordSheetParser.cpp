@@ -84,7 +84,7 @@ Chord ParseChordSymbol(const std::string& chordSymbol)
 }
 
 // parses a chord symbol that contains timing info (i.e. Cmaj7..)
-CSChord ParseTimedChordSymbol(const std::string& timedChordSymbol)
+std::shared_ptr<CSChord> ParseTimedChordSymbol(const std::string& timedChordSymbol)
 {
     size_t found = timedChordSymbol.find_first_of('.');
 
@@ -104,10 +104,10 @@ CSChord ParseTimedChordSymbol(const std::string& timedChordSymbol)
 
     LOGI("chordSymbol: %s, rhythm: %s", chordSymbol.c_str(), rhythm.c_str());
 
-    CSChord newChord;
-    newChord.chordSymbol = ParseChordSymbol(chordSymbol);
+    std::shared_ptr<CSChord> newChord = std::make_shared<CSChord>();
+    newChord->chordSymbol = ParseChordSymbol(chordSymbol);
 
-    newChord.duration = (float)rhythm.size();
+    newChord->duration = (float)rhythm.size();
 
     return newChord;
 }
@@ -162,7 +162,7 @@ void ChordSheetParser::ParseChordSheet(const std::string &data, const std::share
         lines.push_back(currentLine);
     }
 
-    CSMeasure currentMeasure;
+    std::shared_ptr<CSMeasure> currentMeasure = std::make_shared<CSMeasure>();
     int currentMeasureIndex = 0;
     int systemIndex = 0;
     float currentBeatPositionInMeasure = 0.0f;
@@ -195,31 +195,33 @@ void ChordSheetParser::ParseChordSheet(const std::string &data, const std::share
 
         if (isChords)
         {
+            currentMeasure->isFirstMeasureOfSystem = true;
+
             float beginningMargin = 10.0f;
             float previousChordWidth = beginningMargin;
             for (const auto& token : line)
             {
-                CSChord newChord = ParseTimedChordSymbol(token);
+                std::shared_ptr<CSChord> newChord = ParseTimedChordSymbol(token);
 
-                newChord.beatPosition = currentBeatPositionInMeasure;
+                newChord->beatPosition = currentBeatPositionInMeasure;
 
-                currentBeatPositionInMeasure += newChord.duration;
+                currentBeatPositionInMeasure += newChord->duration;
 
-                newChord.chordSymbol.CalculateChordName(Settings());
+                newChord->chordSymbol.CalculateChordName(Settings());
 
-                newChord.position = { currentMeasure.width + previousChordWidth, 25.0f };
+                newChord->position = { currentMeasure->width + previousChordWidth, 25.0f };
 
-                previousChordWidth = newChord.duration * 30.0f;
+                previousChordWidth = newChord->duration * 30.0f;
 
-                currentMeasure.width = newChord.position.x;
+                currentMeasure->width = newChord->position.x;
 
-                currentMeasure.chords.push_back(newChord);
+                currentMeasure->chords.push_back(newChord);
 
                 if (currentBeatPositionInMeasure >= 4.0f)
                 {
-                    currentMeasure.width += 50.0f;
+                    currentMeasure->width += 50.0f;
                     staff->csStaff->measures.push_back(currentMeasure);
-                    currentMeasure = CSMeasure();
+                    currentMeasure = std::make_shared<CSMeasure>();
                     currentMeasureIndex++;
 
                     currentBeatPositionInMeasure = 0.0f;
@@ -244,7 +246,7 @@ void ChordSheetParser::ParseChordSheet(const std::string &data, const std::share
                 newSystem->systemMeasures.push_back(systemMeasure);
             }
 
-            newSystem->position = { 50.0f, 200.0f + (systemIndex * 75.0f) };
+            newSystem->position = { 150.0f, 200.0f + ((float)systemIndex * 75.0f) };
 
             song->systems.push_back(newSystem);
             systemIndex++;
@@ -258,14 +260,16 @@ void ChordSheetParser::ParseChordSheet(const std::string &data, const std::share
             int measureIndex = 0;
             int chordIndex = 0;
 
-            CSChord currentChord;
+            std::shared_ptr<CSChord> currentChord;
+            float currentLyricBeatPosition = 0.0f;
 
             if (measureIndex < staff->csStaff->measures.size())
             {
-                CSMeasure measure = staff->csStaff->measures[measureIndex];
-                if (chordIndex < measure.chords.size())
+                std::shared_ptr<CSMeasure> measure = staff->csStaff->measures[measureIndex];
+                if (chordIndex < measure->chords.size())
                 {
-                    currentChord = measure.chords[chordIndex];
+                    currentChord = measure->chords[chordIndex];
+                    currentLyricBeatPosition = currentChord->beatPosition;
                 }
             }
 
@@ -275,6 +279,7 @@ void ChordSheetParser::ParseChordSheet(const std::string &data, const std::share
             }
 
             std::vector<std::shared_ptr<CSLyric>> allLyrics;
+            bool foundFirstPlaceMarker = false;
 
             for (const auto& token : line)
             {
@@ -287,17 +292,37 @@ void ChordSheetParser::ParseChordSheet(const std::string &data, const std::share
                 {
                     std::shared_ptr<CSLyric> newLyric = std::make_shared<CSLyric>();
                     newLyric->lyricText.text = text;
+                    if (!foundFirstPlaceMarker)
+                        newLyric->isPickupToNextMeasure = true;
                     lyrics.push_back(newLyric);
+
                     if (measureIndex < staff->csStaff->measures.size())
                     {
-                        CSMeasure& measure = staff->csStaff->measures[measureIndex];
+                        if (newLyric->isPickupToNextMeasure && measureIndex - 1 >= 0)
+                        {
+                            std::shared_ptr<CSMeasure> measure = staff->csStaff->measures[measureIndex - 1];
 
-                        newLyric->beatPosition = currentChord.beatPosition;
-                        newLyric->duration = currentChord.duration;
+                            newLyric->beatPosition = -1.0f;
+                            newLyric->duration = currentChord->duration;
 
-                        measure.lyrics.push_back(newLyric);
+                            measure->lyrics.push_back(newLyric);
+                        }
+                        else
+                        {
+                            std::shared_ptr<CSMeasure> measure = staff->csStaff->measures[measureIndex];
+
+                            newLyric->beatPosition = currentLyricBeatPosition;
+                            newLyric->duration = currentChord->duration;
+
+                            currentLyricBeatPosition += 0.1f;
+
+                            measure->lyrics.push_back(newLyric);
+                        }
                     }
                 }
+
+                if (firstPlaceMarker != std::string::npos)
+                    foundFirstPlaceMarker = true;
 
                 while (firstPlaceMarker != std::string::npos)
                 {
@@ -310,13 +335,13 @@ void ChordSheetParser::ParseChordSheet(const std::string &data, const std::share
                         std::shared_ptr<CSLyric> newLyric = std::make_shared<CSLyric>();
                         newLyric->lyricText.text = text;
                         lyrics.push_back(newLyric);
-                        LOGD("Placemarker on %s", text.c_str());
+                        LOGD_TAG("ChordSheetParser", "Placemarker on %s", text.c_str());
 
                         if (measureIndex < staff->csStaff->measures.size())
                         {
-                            while (chordIndex >= staff->csStaff->measures[measureIndex].chords.size())
+                            while (chordIndex >= staff->csStaff->measures[measureIndex]->chords.size())
                             {
-                                LOGE("Measure index++: %d, ++: %d, ChordIndex: %d", measureIndex, measureIndex + 1, chordIndex);
+                                LOGV_TAG("ChordSheetParser", "Measure index++: %d, ++: %d, ChordIndex: %d", measureIndex, measureIndex + 1, chordIndex);
                                 measureIndex++;
                                 chordIndex = 0;
 
@@ -327,19 +352,22 @@ void ChordSheetParser::ParseChordSheet(const std::string &data, const std::share
                                 }
                             }
 
-                            CSMeasure &measure = staff->csStaff->measures[measureIndex];
-                            if (chordIndex < measure.chords.size())
+                            std::shared_ptr<CSMeasure> measure = staff->csStaff->measures[measureIndex];
+                            if (chordIndex < measure->chords.size())
                             {
-                                currentChord = measure.chords[chordIndex];
+                                currentChord = measure->chords[chordIndex];
+                                currentLyricBeatPosition = currentChord->beatPosition;
 
-                                newLyric->beatPosition = currentChord.beatPosition;
-                                newLyric->duration = currentChord.duration;
+                                newLyric->beatPosition = currentLyricBeatPosition;
+                                newLyric->duration = currentChord->duration;
+
+                                currentLyricBeatPosition += 0.1f;
 
                                 chordIndex++;
 
                             }
 
-                            measure.lyrics.push_back(newLyric);
+                            measure->lyrics.push_back(newLyric);
                         }
                     }
 
@@ -348,9 +376,14 @@ void ChordSheetParser::ParseChordSheet(const std::string &data, const std::share
 
                 if (lyrics.size() > 1)
                 {
-                    SyllableGroup syllableGroup;
-                    syllableGroup.lyrics = lyrics;
+                    std::shared_ptr<SyllableGroup> syllableGroup = std::make_shared<SyllableGroup>();
+                    syllableGroup->lyrics = lyrics;
                     staff->csStaff->syllableGroups.push_back(syllableGroup);
+
+                    for (const auto& lyric : syllableGroup->lyrics)
+                    {
+                        lyric->parentSyllableGroup = syllableGroup;
+                    }
                 }
 
                 for (const auto& lyric : lyrics)
@@ -359,11 +392,17 @@ void ChordSheetParser::ParseChordSheet(const std::string &data, const std::share
                 }
             }
 
-            /*LOGW("lyrics: ");
-            for (const auto& lyric : allLyrics)
+            if (!allLyrics.empty())
             {
-                LOGW(":: %s", lyric->lyric.c_str());
-            }*/
+                std::shared_ptr<LyricalPhrase> lyricalPhrase = std::make_shared<LyricalPhrase>();
+                lyricalPhrase->lyrics = allLyrics;
+                staff->csStaff->lyricalPhrases.push_back(lyricalPhrase);
+
+                for (const auto& lyric : lyricalPhrase->lyrics)
+                {
+                    lyric->parentLyricalPhrase = lyricalPhrase;
+                }
+            }
         }
     }
 

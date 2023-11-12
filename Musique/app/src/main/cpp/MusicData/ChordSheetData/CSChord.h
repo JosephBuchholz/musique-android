@@ -12,6 +12,10 @@ public:
 
     void Render(RenderData& renderData, const Settings& settings, Vec2<float> measurePosition) const;
 
+    void Init(Vec2<float> pos);
+
+    Vec2<float> GetDimensions() const;
+
 public:
 
     Chord chordSymbol;

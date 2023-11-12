@@ -4,6 +4,6 @@ void CSStaff::Render(RenderData& renderData, const Settings& settings, Vec2<floa
 {
     for (const auto& measure : measures)
     {
-        measure.Render(renderData, settings, parentPosition + position);
+        measure->Render(renderData, settings, parentPosition + position);
     }
 }

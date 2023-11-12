@@ -103,7 +103,7 @@ public:
      */
     void MakeDimensionsPositive();
 
-    void Render(RenderData& renderData, const int& color = 0xFFFF00FF) const;
+    void Render(RenderData& renderData, Color color = Color(0xFFFF00FF), Vec2<float> offset = { 0.0f, 0.0f }) const;
 
     /**
      * Debug only.

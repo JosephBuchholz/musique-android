@@ -17,12 +17,14 @@ public:
 private:
 
     float GetPositionXFromBeatPositionOfChords(float beatPosition) const;
-    CSChord& GetChordFromBeatPosition(float beatPosition);
+    std::shared_ptr<CSChord> GetChordFromBeatPosition(float beatPosition);
 
 public:
     float width = 0.0f;
 
-    std::vector<CSChord> chords;
+    bool isFirstMeasureOfSystem = false;
+
+    std::vector<std::shared_ptr<CSChord>> chords;
     std::vector<std::shared_ptr<CSLyric>> lyrics;
 };
 

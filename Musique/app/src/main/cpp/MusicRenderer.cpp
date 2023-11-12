@@ -490,11 +490,11 @@ void MusicRenderer::RenderLineOfMeasures(RenderData& renderData, const Settings&
         {
             if (m < staff->csStaff->measures.size())
             {
-                CSMeasure csMeasure = staff->csStaff->measures[m];
+                std::shared_ptr<CSMeasure> csMeasure = staff->csStaff->measures[m];
 
-                nextMeasurePositionX = measurePositionX + csMeasure.width;
+                nextMeasurePositionX = measurePositionX + csMeasure->width;
 
-                csMeasure.Render(renderData, settings, { measurePositionX, staffPositionY });
+                csMeasure->Render(renderData, settings, { measurePositionX, staffPositionY });
             }
         }
         else

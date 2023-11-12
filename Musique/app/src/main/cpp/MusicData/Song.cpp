@@ -42,9 +42,9 @@ void Song::OnUpdate()
     {
         if (instrument->staves[0]->csStaff)
         {
-            for (auto& measure: instrument->staves[0]->csStaff->measures)
+            for (const auto& measure: instrument->staves[0]->csStaff->measures)
             {
-                measure.Init();
+                measure->Init();
             }
 
             return;

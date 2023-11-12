@@ -95,18 +95,16 @@ struct Date {
     int day = 1;
 };
 
-struct Color {
-
+struct Color
+{
     Color() {}
-
-    Color(unsigned int color)
+    Color(uint32_t color)
         : color(color) {}
 
     operator int() const { return color; }
+    operator uint32_t() const { return color; }
 
-    operator unsigned int() const { return color; }
-
-    unsigned int color = 0xff000000;
+    uint32_t color = 0xff000000;
 };
 
 enum class TablatureDisplayType {

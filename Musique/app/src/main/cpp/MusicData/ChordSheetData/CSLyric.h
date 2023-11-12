@@ -4,8 +4,10 @@
 #include "../BaseElements/TextualElement.h"
 #include "../../Settings.h"
 #include "../BaseElements/TextElement.h"
+#include "SyllableGroup.h"
+#include "LyricalPhrase.h"
 
-class CSLyric : TextualElement
+class CSLyric : public TextualElement
 {
 public:
     void Init(Vec2<float> pos);
@@ -18,6 +20,11 @@ public:
     float duration = 1.0f;
 
     TextElement lyricText;
+
+    std::shared_ptr<SyllableGroup> parentSyllableGroup;
+    std::shared_ptr<LyricalPhrase> parentLyricalPhrase;
+
+    bool isPickupToNextMeasure = false;
 };
 
 #endif //MUSIQUE_CSLYRIC_H

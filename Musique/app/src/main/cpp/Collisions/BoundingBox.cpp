@@ -358,19 +358,19 @@ void BoundingBox::MakeDimensionsPositive()
     }
 }
 
-void BoundingBox::Render(RenderData& renderData, const int& color) const
+void BoundingBox::Render(RenderData& renderData, Color color, Vec2<float> offset) const
 {
     Paint paint = Paint();
-    paint.color = color;
+    paint.color = (int)color;
     paint.strokeWidth = 2.0f;
 
     // horizontal lines
-    renderData.AddLine(Line(position.x, position.y, position.x + size.x, position.y, paint));
-    renderData.AddLine(Line(position.x, position.y + size.y, position.x + size.x, position.y + size.y, paint));
+    renderData.AddLine(Line(position.x + offset.x, position.y + offset.y, position.x + size.x + offset.x, position.y + offset.y, paint));
+    renderData.AddLine(Line(position.x + offset.x, position.y + size.y + offset.y, position.x + size.x + offset.x, position.y + size.y + offset.y, paint));
 
     // vertical lines
-    renderData.AddLine(Line(position.x, position.y, position.x, position.y + size.y, paint));
-    renderData.AddLine(Line(position.x + size.x, position.y, position.x + size.x, position.y + size.y, paint));
+    renderData.AddLine(Line(position.x + offset.x, position.y + offset.y, position.x + offset.x, position.y + size.y + offset.y, paint));
+    renderData.AddLine(Line(position.x + size.x + offset.x, position.y + offset.y, position.x + size.x + offset.x, position.y + size.y + offset.y, paint));
 }
 
 std::string BoundingBox::GetPrintableConstraints() const

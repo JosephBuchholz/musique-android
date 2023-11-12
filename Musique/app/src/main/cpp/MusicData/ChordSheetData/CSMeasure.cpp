@@ -10,21 +10,80 @@ void CSMeasure::Render(RenderData& renderData, const Settings& settings, Vec2<fl
     LOGV_TAG("CSMeasure", "Rendering Measure!");
     for (const auto& chord : chords)
     {
-        chord.Render(renderData, settings, parentPosition + position);
+        chord->Render(renderData, settings, parentPosition + position);
+    }
+
+    if (isFirstMeasureOfSystem && !lyrics.empty())
+    {
+        std::shared_ptr<LyricalPhrase> lyricalPhrase = lyrics[0]->parentLyricalPhrase;
+
+        for (const auto& lyric : lyricalPhrase->lyrics)
+        {
+            if (lyric->isPickupToNextMeasure)
+            {
+                lyric->Render(renderData, settings, currentPosition);
+            }
+            else
+                break;
+        }
     }
 
     for (const auto& lyric : lyrics)
     {
-        LOGW("Rendering lyric: %s, beatPos: %f", lyric->lyricText.text.c_str(), lyric->beatPosition);
-        lyric->Render(renderData, settings, currentPosition);
+        LOGI_TAG("CSMeasure", "Rendering lyric: %s, beatPos: %f", lyric->lyricText.text.c_str(), lyric->beatPosition);
+        if (!lyric->isPickupToNextMeasure)
+            lyric->Render(renderData, settings, currentPosition);
     }
 }
 
 void CSMeasure::Init()
 {
+    Vec2<float> previousPosition = { 10.0f, 0.0f };
+    for (const auto& chord : chords)
+    {
+        Vec2<float> dimensions = chord->GetDimensions();
+
+        Vec2<float> position = { previousPosition.x, 25.0f };
+        chord->Init(position);
+
+        if (position.x + dimensions.x + chord->duration * 30.0f > width)
+        {
+            width = position.x + dimensions.x + chord->duration * 30.0f;
+        }
+
+        previousPosition = position;
+        previousPosition.x += dimensions.x + chord->duration * 30.0f;
+    }
+
+
+    if (isFirstMeasureOfSystem && !lyrics.empty())
+    {
+        std::shared_ptr<LyricalPhrase> lyricalPhrase = lyrics[0]->parentLyricalPhrase;
+
+        Vec2<float> prevPos = { 0.0f, 0.0f };
+        for (int i = (int)lyricalPhrase->lyrics.size() - 1; i >= 0; i--)
+        {
+            std::shared_ptr<CSLyric> lyric = lyricalPhrase->lyrics[i];
+
+            if (lyric->isPickupToNextMeasure)
+            {
+                Vec2<float> dimensions = lyric->lyricText.GetDimensions(Paint());
+
+                Vec2<float> lyricPosition = { prevPos.x - dimensions.x, 55.0f };
+
+                lyric->Init(lyricPosition);
+
+                prevPos = lyricPosition;
+            }
+        }
+    }
+
     Vec2<float> prevPos = { 0.0f, 0.0f };
     for (const auto& lyric : lyrics)
     {
+        if (lyric->isPickupToNextMeasure)
+            continue;
+
         Vec2<float> dimensions = lyric->lyricText.GetDimensions(Paint());
 
         float chordPositionX = GetPositionXFromBeatPositionOfChords(lyric->beatPosition);
@@ -34,13 +93,19 @@ void CSMeasure::Init()
         if (lyricPosition.x > chordPositionX)
         {
             // change chord position x
-            CSChord& chord = GetChordFromBeatPosition(lyric->beatPosition);
+            std::shared_ptr<CSChord> chord = GetChordFromBeatPosition(lyric->beatPosition);
 
-            chord.position.x = lyricPosition.x;
+            if (chord != nullptr)
+                chord->position.x = lyricPosition.x;
         }
         else if (lyricPosition.x < chordPositionX)
         {
             lyricPosition.x = chordPositionX;
+        }
+
+        if (lyricPosition.x + dimensions.x > width)
+        {
+            width = lyricPosition.x + dimensions.x;
         }
 
         LOGE("dimensions: %s, lyricPos: %s", dimensions.GetPrintableString().c_str(), lyricPosition.GetPrintableString().c_str());
@@ -49,15 +114,26 @@ void CSMeasure::Init()
 
         prevPos = { lyricPosition.x + dimensions.x, 0.0f };
     }
+
+    float chordPosX = 0.0f;
+    float lyricPosX = 0.0f;
+
+    if (!chords.empty())
+        chordPosX = chords.back()->GetDimensions().x + chords.back()->position.x + chords.back()->duration * 30.0f;
+
+    if (!lyrics.empty())
+        lyricPosX = lyrics.back()->lyricText.GetDimensions(Paint()).x + lyrics.back()->position.x;
+
+    width = std::max(chordPosX, lyricPosX);
 }
 
 float CSMeasure::GetPositionXFromBeatPositionOfChords(float beatPosition) const
 {
     for (const auto& chord : chords)
     {
-        if (beatPosition >= chord.beatPosition) // found
+        if (beatPosition == chord->beatPosition) // found
         {
-            return chord.position.x;
+            return chord->position.x;
         }
 
         // else beatPos < chord.beatPos: continue
@@ -66,15 +142,20 @@ float CSMeasure::GetPositionXFromBeatPositionOfChords(float beatPosition) const
     return 0.0f;
 }
 
-CSChord& CSMeasure::GetChordFromBeatPosition(float beatPosition)
+std::shared_ptr<CSChord> CSMeasure::GetChordFromBeatPosition(float beatPosition)
 {
-    for (auto& chord : chords)
+    float previousChordBeatPosition = 0.0f;
+    for (const auto& chord : chords)
     {
-        if (beatPosition >= chord.beatPosition) // found
+        if (beatPosition >= previousChordBeatPosition && beatPosition <= chord->beatPosition) // found
         {
             return chord;
         }
 
+        previousChordBeatPosition = chord->beatPosition;
+
         // else beatPos < chord.beatPos: continue
     }
+
+    return nullptr;
 }
