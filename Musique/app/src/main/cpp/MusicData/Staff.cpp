@@ -83,7 +83,7 @@ BoundingBox Staff::GetTotalBoundingBox(const MusicDisplayConstants& displayConst
     return {};
 }
 
-void Staff::CalculateTotalBoundingBoxes(const MusicDisplayConstants &displayConstants, const std::vector<std::shared_ptr<System>>& systems)
+void Staff::CalculateTotalBoundingBoxes(const MusicDisplayConstants& displayConstants, const std::vector<std::shared_ptr<System>>& systems)
 {
     for (const auto& system : systems)
     {
@@ -102,13 +102,28 @@ void Staff::CalculateTotalBoundingBoxes(const MusicDisplayConstants &displayCons
 
         for (int i = system->beginningMeasureIndex; i <= system->endingMeasureIndex; i++)
         {
-            if (i >= measures.size())
-            {
-                LOGE("Index is bigger than measures.size()!!");
-                break;
-            }
+            BoundingBox measureBoundingBox;
 
-            BoundingBox measureBoundingBox = measures[i]->GetTotalBoundingBox(displayConstants, lines);
+            if (type == StaffType::ChordSheet)
+            {
+                if (i >= csStaff->measures.size())
+                {
+                    LOGE_TAG("Staff", "Index is bigger than measures.size()!!");
+                    break;
+                }
+
+                measureBoundingBox = csStaff->measures[i]->GetTotalBoundingBox(displayConstants);
+            }
+            else
+            {
+                if (i >= measures.size())
+                {
+                    LOGE_TAG("Staff", "Index is bigger than measures.size()!!");
+                    break;
+                }
+
+                measureBoundingBox = measures[i]->GetTotalBoundingBox(displayConstants, lines);
+            }
 
             if (boundingBoxNotSet)
                 bb = measureBoundingBox, boundingBoxNotSet = false;
@@ -384,8 +399,8 @@ void Staff::Transpose(const TranspositionRequest& transposeRequest)
 
 float Staff::GetPositionY(int systemIndex) const
 {
-    if (systemIndex >= systemPositionData.size() || systemIndex < 0)
-        throw InvalidArgumentException();
+    ASSERT(systemIndex < systemPositionData.size());
+    ASSERT(systemIndex >= 0);
 
     return systemPositionData[systemIndex].y;
 }

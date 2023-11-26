@@ -151,7 +151,7 @@ void MusicRenderer::RenderMusicToPage(const std::shared_ptr<Song>& song, int pag
 
         int systemIndex = song->GetSystemIndex(startingMeasureIndex);
 
-        LOGD("page: %d, start measure: %d, systemIndex: %d, pages: %d", page, startingMeasureIndex, systemIndex, song->GetNumPages());
+        LOGD_TAG("MusicRenderer", "page: %d, start measure: %d, systemIndex: %d, pages: %d", page, startingMeasureIndex, systemIndex, song->GetNumPages());
 
         bool drawFullInstNames = true;
 
@@ -186,7 +186,7 @@ void MusicRenderer::RenderMusicToPage(const std::shared_ptr<Song>& song, int pag
                 startNewSystem = true;
             }
 
-            LOGD("m_i: %d, s_i: %d, measureCount: %d, startNewSystem: %d", i, systemIndex, measureCount, startNewSystem);
+            LOGD_TAG("MusicRenderer", "measureIndex: %d, systemIndex: %d, measureCount: %d, startNewSystem: %d", i, systemIndex, measureCount, startNewSystem);
 
             if ((startNewSystem || i == measureCount) && i != 0 && systemIndex < song->systems.size()) // render system
             {
@@ -207,7 +207,11 @@ void MusicRenderer::RenderMusicToPage(const std::shared_ptr<Song>& song, int pag
                 }
             } // system loop (sort of)
 
-            if (song->GetPageIndex(i) > page) // don't render the next page
+            if (i == measureCount)
+            {
+                break;
+            }
+            else if (song->GetPageIndex(i) > page) // don't render the next page
             {
                 break;
             }
@@ -275,7 +279,11 @@ void MusicRenderer::RenderDebugToPage(const std::shared_ptr<Song>& song, int pag
                 }
             } // system loop (sort of)
 
-            if (song->GetPageIndex(i) > page) // don't render the next page
+            if (i == measureCount)
+            {
+                break;
+            }
+            else if (song->GetPageIndex(i) > page) // don't render the next page
             {
                 break;
             }

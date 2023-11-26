@@ -163,6 +163,14 @@ void App::OnUpdate(double dt)
                 {
                     {
                         auto start = high_resolution_clock::now();
+                        song->CalculateSystemPositionsAndPageBreaks();
+                        auto stop = high_resolution_clock::now();
+                        auto duration = duration_cast<milliseconds>(stop - start);
+                        LOGD("Time taken by CalculateSystemPositionsAndPageBreaks function: %lld milliseconds | %f seconds", duration.count(), duration.count() / 1000.0f);
+                    }
+
+                    {
+                        auto start = high_resolution_clock::now();
                         try
                         {
                             song->UpdateBoundingBoxes(musicRenderer->pagePositions, song->GetSystemPositions());
@@ -190,13 +198,21 @@ void App::OnUpdate(double dt)
                     auto totalDuration = duration_cast<milliseconds>(totalStop - totalStart);
                     LOGD("Total time taken by collision resolver: %lld milliseconds | %f seconds", totalDuration.count(), totalDuration.count() / 1000.0f);
 
-                    {
+                    /*{
                         auto start = high_resolution_clock::now();
                         song->CalculateSystemPositionsAndPageBreaks();
                         auto stop = high_resolution_clock::now();
                         auto duration = duration_cast<milliseconds>(stop - start);
                         LOGD("Time taken by CalculateSystemPositionsAndPageBreaks function: %lld milliseconds | %f seconds", duration.count(), duration.count() / 1000.0f);
-                    }
+                    }*/
+                }
+
+                {
+                    auto start = high_resolution_clock::now();
+                    song->CalculateSystemPositionsAndPageBreaks();
+                    auto stop = high_resolution_clock::now();
+                    auto duration = duration_cast<milliseconds>(stop - start);
+                    LOGD("Time taken by CalculateSystemPositionsAndPageBreaks function: %lld milliseconds | %f seconds", duration.count(), duration.count() / 1000.0f);
                 }
 
                 songUpdated = true;

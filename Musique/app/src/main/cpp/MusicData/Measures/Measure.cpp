@@ -113,8 +113,8 @@ void Measure::Render(RenderData& renderData, const Settings& settings, Vec2<floa
         noteIndex = 0;
         for (const auto& noteChord : noteChords)
         {
-            if (noteChord->m_notes.empty())
-                throw IsEmptyException();
+            ASSERT(!noteChord->m_notes.empty());
+
             float rootNotePositionYRelativeToMeasure = CalculateNoteYPositionRelativeToMeasure(noteChord->m_notes[0]);
             float topNotePositionYRelativeToMeasure = CalculateNoteYPositionRelativeToMeasure(noteChord->m_notes[noteChord->m_notes.size()-1]);
             noteChord->Render(renderData, tablatureDisplayType, rootNotePositionYRelativeToMeasure, topNotePositionYRelativeToMeasure, staffLineCount, measurePosition, nextMeasurePositionX, staffLineSpacing);
@@ -204,8 +204,8 @@ void Measure::RenderDebug(RenderData& renderData, const Settings& settings, Vec2
         noteIndex = 0;
         for (const auto& noteChord : noteChords)
         {
-            if (noteChord->m_notes.empty())
-                throw IsEmptyException();
+            ASSERT(!noteChord->m_notes.empty());
+
             float rootNotePositionYRelativeToMeasure = CalculateNoteYPositionRelativeToMeasure(noteChord->m_notes[0]);
             float topNotePositionYRelativeToMeasure = CalculateNoteYPositionRelativeToMeasure(noteChord->m_notes[noteChord->m_notes.size()-1]);
             noteChord->RenderDebug(renderData, tablatureDisplayType, rootNotePositionYRelativeToMeasure, topNotePositionYRelativeToMeasure, staffLineCount, measurePosition, nextMeasurePositionX, staffLineSpacing);

@@ -159,3 +159,13 @@ std::shared_ptr<CSChord> CSMeasure::GetChordFromBeatPosition(float beatPosition)
 
     return nullptr;
 }
+
+BoundingBox CSMeasure::GetTotalBoundingBox(const MusicDisplayConstants& displayConstants) const
+{
+    BoundingBox totalBoundingBox;
+
+    totalBoundingBox.size.x = width;
+    totalBoundingBox.size.y = 100.0f;
+
+    return totalBoundingBox;
+}

@@ -448,7 +448,7 @@ void ChordSheetParser::ParseChordSheet(const std::string &data, const std::share
 
     LOGI("System count: %d", song->systems.size());
 
-    Page page = Page();
+    /*Page page = Page();
     song->pages.push_back(page);
     page.pageNumber.SetNumber(1);
     systemIndex = 0;
@@ -460,7 +460,7 @@ void ChordSheetParser::ParseChordSheet(const std::string &data, const std::share
         staff->systemPositionData.push_back({ 0.0f, 0.0f });
 
         systemIndex++;
-    }
+    }*/
 
     Credit credit;
     credit.words = CreditWords();
@@ -472,4 +472,7 @@ void ChordSheetParser::ParseChordSheet(const std::string &data, const std::share
     credit.words.fontSize.size = 20.0f;
     credit.words.justify = Justify::Center;
     song->credits.push_back(credit);
+
+    song->displayConstants.systemLayout.systemLeftMargin = 200.0f;
+    song->displayConstants.leftMargin = 200.0f;
 }

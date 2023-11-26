@@ -13,6 +13,7 @@
 #define LOGW_TAG(tag, ...)
 #define LOGE_TAG(tag, ...)
 #define LOGF_TAG(tag, ...)
+#define ASSERT_MSG(condition, msg)
 
 #define LOGV(...)
 #define LOGD(...)
@@ -20,6 +21,7 @@
 #define LOGW(...)
 #define LOGE(...)
 #define LOGF(...)
+#define ASSERT(condition)
 
 #endif
 

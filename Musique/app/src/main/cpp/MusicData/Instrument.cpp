@@ -243,8 +243,8 @@ void Instrument::Transpose(const TranspositionRequest& transposeRequest)
 
 float Instrument::GetPositionY(int systemIndex) const
 {
-    if (systemIndex >= systemPositionData.size() || systemIndex < 0)
-        throw InvalidArgumentException();
+    ASSERT(systemIndex < systemPositionData.size());
+    ASSERT(systemIndex >= 0);
 
     return systemPositionData[systemIndex].y;
 }

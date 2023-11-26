@@ -787,6 +787,17 @@ void Song::OnUpdate()
                 }
             }
         }
+
+        /*for (const auto& measure : instruments[0]->staves[0]->measures)
+        {
+            if (measure->startNewPage)
+            {
+                Page page;
+                page.start
+
+                pages.push_back(page);
+            }
+        }*/
     }
 
     LOGI("Done updating song data!");
@@ -864,6 +875,8 @@ void Song::CalculateSystemPositionsAndPageBreaks()
         }
     }
 
+    pages.clear();
+
     // calculate system positions and page breaks
     CreatePageBreak(0);
     Page newPage;
@@ -887,7 +900,7 @@ void Song::CalculateSystemPositionsAndPageBreaks()
                 if (newPage.systems.size() - 1 != 0)
                 {
                     float extra = dist / (float) newPage.systems.size() - 1;
-                    LOGW("extra: %f", extra);
+                    LOGW_TAG("Song", "extra: %f", extra);
                     for (int i = 0; i < newPage.systems.size(); i++)
                     {
                         newPage.systems[i]->position.y += extra * (float)i;
@@ -895,6 +908,7 @@ void Song::CalculateSystemPositionsAndPageBreaks()
                 }
 
                 // start a new page
+                LOGE_TAG("Song", "Starting new page");
                 startNewPage = true;
                 previousSystemPosition = { 0.0f, displayConstants.topMargin + systems[systemIndex]->layout.topSystemDistance };
                 CreatePageBreak(system->beginningMeasureIndex);
@@ -912,6 +926,7 @@ void Song::CalculateSystemPositionsAndPageBreaks()
             system->position.y += -GetSystemBoundingBox(systemIndex).AddPadding(systemPadding).GetTop();
         }
 
+        LOGE_TAG("Song", "Pushing back system!!!!!!!!!!!!!!!!");
         newPage.systems.push_back(system);
         previousSystemPosition = system->position;
         previousSystemIndex = systemIndex;
@@ -1228,8 +1243,7 @@ float Song::GetSystemPositionY(int measureIndex) const // TODO: needs finished
 
 float Song::GetSystemHeight(int systemIndex) const
 {
-    if (systemIndex >= systems.size())
-        throw OutOfRangeException();
+    ASSERT(systemIndex < systems.size());
 
     std::shared_ptr<System> system = systems[systemIndex];
 
@@ -1249,20 +1263,27 @@ float Song::GetSystemHeight(int systemIndex) const
 
 BoundingBox Song::GetSystemBoundingBox(int systemIndex) const
 {
-    if (systemIndex >= systemBoundingBoxes.size())
-        throw OutOfRangeException();
-
+    ASSERT(systemIndex < systemBoundingBoxes.size());
     return systemBoundingBoxes[systemIndex];
 }
 
 void Song::CreatePageBreak(int measureIndex) const
 {
+    if (measureIndex < 0)
+        throw OutOfRangeException("measureIndex is out of range");
+
     for (const auto& instrument : instruments)
     {
         for (const auto& staff : instrument->staves)
         {
-            staff->measures[measureIndex]->startNewPage = true;
-            staff->measures[measureIndex]->startNewSystem = true; // a new page always starts a new system
+            if (staff->type != Staff::StaffType::ChordSheet)
+            {
+                if (measureIndex >= staff->measures.size())
+                    throw OutOfRangeException("measureIndex is out of range");
+
+                staff->measures[measureIndex]->startNewPage = true;
+                staff->measures[measureIndex]->startNewSystem = true; // a new page always starts a new system
+            }
         }
     }
 }
@@ -1314,7 +1335,25 @@ int Song::GetSystemIndex(int measureIndex) const
 
 int Song::GetPageIndex(int measureIndex) const
 {
-    int pageIndex = -1;
+    LOGE("measureIndex: %d", measureIndex);
+
+    int i = 0;
+    for (const Page& page : pages)
+    {
+        ASSERT_MSG(!page.systems.empty(), "No systems on page");
+
+
+        LOGE("begininng m: %d, end: %d", page.systems[0]->beginningMeasureIndex, page.systems.back()->endingMeasureIndex);
+
+        if (page.systems[0]->beginningMeasureIndex <= measureIndex && measureIndex <= page.systems.back()->endingMeasureIndex)
+            return i;
+
+        i++;
+    }
+
+    ASSERT(false);
+
+    /*int pageIndex = -1;
 
     if (instruments.empty())
         return 0;
@@ -1330,12 +1369,22 @@ int Song::GetPageIndex(int measureIndex) const
             break;
     }
 
-    return pageIndex;
+    return pageIndex;*/
 }
 
-int Song::GetFirstMeasureOnPage(int pageIndex) const
+int Song::GetFirstMeasureOnPage(uint16_t pageIndex) const
 {
     int measureIndex = 0;
+
+    if (pageIndex > pages.size())
+        throw OutOfRangeException("PageIndex is to large");
+
+    Page page = pages[pageIndex];
+
+    if (page.systems.empty())
+        throw IsEmptyException("No systems on page");
+
+    return page.systems[0]->beginningMeasureIndex;
 
     if (instruments.empty())
         return 0;
@@ -1648,7 +1697,7 @@ void Song::RenderBoundingBoxes(RenderData& renderData, const std::vector<Vec2<fl
                     bb.position.x = systemPositions[systemIndex].x;
                     bb.size.x = 1050.0f;
 
-                    for (int m = start; m <= end; m++)
+                    /*for (int m = start; m <= end; m++)
                     {
                         BoundingBox boundingBox = bb;
 
@@ -1656,7 +1705,7 @@ void Song::RenderBoundingBoxes(RenderData& renderData, const std::vector<Vec2<fl
                         boundingBox.size.x = staff->measures[m]->boundingBox.size.x;
 
                         boundingBox.Render(renderData, 0xFFFF00FF);
-                    }
+                    }*/
 
                     staffIndex++;
                 }

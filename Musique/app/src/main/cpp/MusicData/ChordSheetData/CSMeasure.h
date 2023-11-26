@@ -14,6 +14,8 @@ public:
 
     void Render(RenderData& renderData, const Settings& settings, Vec2<float> parentPosition) const;
 
+    BoundingBox GetTotalBoundingBox(const MusicDisplayConstants& displayConstants) const;
+
 private:
 
     float GetPositionXFromBeatPositionOfChords(float beatPosition) const;

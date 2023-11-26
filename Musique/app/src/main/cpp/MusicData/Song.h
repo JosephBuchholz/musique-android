@@ -149,7 +149,7 @@ public:
      * @param pageIndex the index of the page
      * @return the index of the measure
      */
-    int GetFirstMeasureOnPage(int pageIndex) const;
+    int GetFirstMeasureOnPage(uint16_t pageIndex) const;
     int GetFirstMeasureInSystem(int systemIndex) const;
 
     /**
